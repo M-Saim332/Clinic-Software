@@ -4,7 +4,7 @@
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="ClinicSystem.UI.Views.Dashboard.DashboardView"
              x:DataType="vm:DashboardViewModel" x:CompileBindings="True"
-             Background="#F0F4F8">
+             Background="{DynamicResource BrushBackground}">
 
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20,16,20,20" Spacing="16">
@@ -99,6 +99,46 @@
                 </Border>
 
             </Grid>
+
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <!-- ADMIN QUICK ACTIONS (Admin only)                            -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <Border IsVisible="{Binding IsAdmin}"
+                    Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="{DynamicResource CornerRadiusCard}"
+                    Padding="18,14">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Left" VerticalAlignment="Center">
+                        <Border Width="32" Height="32" CornerRadius="8" Background="#EFF6FF">
+                            <PathIcon Data="{StaticResource IconSettings}" Width="15" Height="15"
+                                      Foreground="#3B82F6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Admin Quick Actions" FontSize="14" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Administrative options visible to Admin role only"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Command="{Binding OpenChangePasswordCommand}"
+                                Background="{DynamicResource BrushPrimaryBlue}"
+                                Foreground="White" BorderThickness="0"
+                                CornerRadius="{DynamicResource CornerRadiusPill}"
+                                Padding="16,0" Height="36"
+                                ToolTip.Tip="Change your Admin account password">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13"
+                                          Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="Change Password" VerticalAlignment="Center"
+                                           FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- ROW 2: Charts                                               -->
@@ -344,17 +384,17 @@
 
         <!-- KPI (top stat) card -->
         <Style Selector="Border.kpiCard">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{DynamicResource BrushCardBackground}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusCard}"/>
             <Setter Property="Padding" Value="16,12"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BoxShadow" Value="0 1 4 0 #0A000000"/>
         </Style>
 
         <!-- KPI icon box -->
         <Style Selector="Border.kpiIcon">
-            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
             <Setter Property="Width" Value="46"/>
             <Setter Property="Height" Value="46"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -364,26 +404,29 @@
         <!-- KPI text styles -->
         <Style Selector="TextBlock.kpiLabel">
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
             <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontFamily" Value="{DynamicResource FontInter}"/>
         </Style>
         <Style Selector="TextBlock.kpiValue">
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource FontMono}"/>
         </Style>
         <Style Selector="TextBlock.kpiLink">
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="FontFamily" Value="{DynamicResource FontInter}"/>
         </Style>
 
         <!-- General dashboard card -->
         <Style Selector="Border.dashCard">
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Background" Value="{DynamicResource BrushCardBackground}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusCard}"/>
             <Setter Property="Padding" Value="18,14"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BoxShadow" Value="0 1 4 0 #0A000000"/>
         </Style>
@@ -392,8 +435,9 @@
         <Style Selector="TextBlock.cardTitle">
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontFamily" Value="{DynamicResource FontLexend}"/>
         </Style>
 
     </UserControl.Styles>

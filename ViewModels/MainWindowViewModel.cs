@@ -97,6 +97,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ChangePasswordVM = changePasswordVM;
         ChangePasswordVM.CloseRequested += () => ShowChangePassword = false;
 
+        // Allow Dashboard to trigger the shared Change Password popup
+        _dashboardVM.RequestChangePassword += () => OpenChangePasswordDialogCommand.Execute(null);
+
         // Start on Dashboard
         NavigateTo(_dashboardVM, "Dashboard");
 

@@ -1,183 +1,216 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Reports.ReportsView"
              x:DataType="vm:ReportsViewModel" x:CompileBindings="True"
-             Background="#F8FAFC">
+             Background="{DynamicResource BrushBackground}">
 
     <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header -->
-        <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource IconReports}" Width="20" Height="20" Foreground="#2563EB"/>
-                    <TextBlock Text="Reports" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                        <PathIcon Data="{StaticResource IconReports}" Width="20" Height="20"
+                                  Foreground="{DynamicResource BrushPrimaryBlue}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="Reports &amp; Analytics" FontSize="20" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk900}"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="Generate PDF summaries, check stocks, alerts, visit history, and financials"
+                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                    </StackPanel>
                 </StackPanel>
-                
             </DockPanel>
         </Border>
 
-        <TabControl Grid.Row="1"
-                    SelectedIndex="{Binding SelectedTabIndex}"
-                    Background="#F8FAFC"
-                    Margin="12">
-
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedTabIndex}" Margin="28,20">
             <!-- Tab 1: Patient List -->
             <TabItem Header="Patient List">
-                <DockPanel Margin="12">
-                    <Button DockPanel.Dock="Top" Command="{Binding LoadPatientListCommand}" Classes="primary" HorizontalAlignment="Left" Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <DataGrid ItemsSource="{Binding PatientList}" AutoGenerateColumns="False" IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID"      Binding="{Binding PatientID}" Width="60"/>
-                            <DataGridTextColumn Header="Name"    Binding="{Binding Name}"      Width="*"/>
-                            <DataGridTextColumn Header="Age"     Binding="{Binding Age}"       Width="80"/>
-                            <DataGridTextColumn Header="Gender"  Binding="{Binding Gender}"    Width="100"/>
-                            <DataGridTextColumn Header="Contact" Binding="{Binding Contact}"   Width="140"/>
-                            <DataGridTextColumn Header="Address" Binding="{Binding Address}"   Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <comp:DataTableShellControl Title="Patients Database Summary" RecordCount="{Binding PatientList.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <Button Command="{Binding LoadPatientListCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding PatientList}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding PatientID}" Width="70"/>
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
+                                <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="110"/>
+                                <DataGridTextColumn Header="CONTACT" Binding="{Binding Contact}" Width="150"/>
+                                <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
             </TabItem>
 
             <!-- Tab 2: Medicine Stock -->
             <TabItem Header="Medicine Stock">
-                <DockPanel Margin="12">
-                    <Button DockPanel.Dock="Top" Command="{Binding LoadMedicineStockCommand}" Classes="primary" HorizontalAlignment="Left" Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <DataGrid ItemsSource="{Binding MedicineStockList}" AutoGenerateColumns="False" IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name"         Binding="{Binding Name}"         Width="*"/>
-                            <DataGridTextColumn Header="Stock"        Binding="{Binding Stock}"        Width="90"/>
-                            <DataGridTextColumn Header="Min Stock"    Binding="{Binding MinStock}"     Width="100"/>
-                            <DataGridTextColumn Header="Status"       Binding="{Binding StockStatus}"  Width="100"/>
-                            <DataGridTextColumn Header="Expiry"       Binding="{Binding ExpiryDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
-                            <DataGridTextColumn Header="Price"        Binding="{Binding Price, StringFormat=\{0:F2\}}" Width="100"/>
-                            <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <comp:DataTableShellControl Title="Stock Level Listing" RecordCount="{Binding MedicineStockList.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <Button Command="{Binding LoadMedicineStockCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding MedicineStockList}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="MEDICINE NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="CURRENT STOCK" Binding="{Binding Stock}" Width="140"/>
+                                <DataGridTextColumn Header="MINIMUM LEVEL" Binding="{Binding MinStock}" Width="140"/>
+                                <DataGridTextColumn Header="STATUS" Binding="{Binding StockStatus}" Width="130"/>
+                                <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="PRICE" Binding="{Binding Price, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                <DataGridTextColumn Header="MANUFACTURER" Binding="{Binding Manufacturer}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
             </TabItem>
 
-            <!-- Tab 3: Expired/Low Stock -->
+            <!-- Tab 3: Alerts -->
             <TabItem Header="Alerts">
-                <DockPanel Margin="12">
-                    <Button DockPanel.Dock="Top" Command="{Binding LoadExpiredLowStockCommand}" Classes="primary" HorizontalAlignment="Left" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,*" RowDefinitions="Auto,*">
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Expired Medicines" Foreground="#DC2626" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
-                        <TextBlock Grid.Column="1" Grid.Row="0" Text="Low Stock Medicines" Foreground="#F59E0B" FontWeight="Bold" FontSize="14" Margin="20,0,0,10"/>
-                        <DataGrid Grid.Column="0" Grid.Row="1"
-                                  ItemsSource="{Binding ExpiredMedicines}"
-                                  AutoGenerateColumns="False" IsReadOnly="True"
-                                  Margin="0,0,12,0">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name"   Binding="{Binding Name}"       Width="*"/>
-                                <DataGridTextColumn Header="Stock"  Binding="{Binding Stock}"      Width="80"/>
-                                <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="130"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        <DataGrid Grid.Column="1" Grid.Row="1"
-                                  ItemsSource="{Binding LowStockMedicines}"
-                                  AutoGenerateColumns="False" IsReadOnly="True"
-                                  Margin="12,0,0,0">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name"      Binding="{Binding Name}"     Width="*"/>
-                                <DataGridTextColumn Header="Stock"     Binding="{Binding Stock}"    Width="80"/>
-                                <DataGridTextColumn Header="Min Stock" Binding="{Binding MinStock}" Width="100"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </Grid>
-                </DockPanel>
+                <Grid ColumnDefinitions="*,*" Margin="0,12,0,0">
+                    <!-- Expired medicines panel -->
+                    <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+                            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                            CornerRadius="{DynamicResource CornerRadiusCard}" Margin="0,0,12,0" Padding="16">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="EXPIRED MEDICINES (DO NOT SELL)" FontSize="11" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushRose}" LetterSpacing="1.5"
+                                       FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
+                            <DataGrid ItemsSource="{Binding ExpiredMedicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                                      Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Low Stock medicines panel -->
+                    <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}"
+                            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                            CornerRadius="{DynamicResource CornerRadiusCard}" Margin="12,0,0,0" Padding="16">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="LOW STOCK ALERTS (REORDER SOON)" FontSize="11" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushAmber}" LetterSpacing="1.5"
+                                       FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
+                            <DataGrid ItemsSource="{Binding LowStockMedicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                                      Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                                    <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinStock}" Width="160"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </TabItem>
 
-            <!-- Tab 4: All Visits -->
+            <!-- Tab 4: Visit History -->
             <TabItem Header="Visit History">
-                <DockPanel Margin="12">
-                    <Button DockPanel.Dock="Top" Command="{Binding LoadAllVisitsCommand}" Classes="primary" HorizontalAlignment="Left" Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text="Refresh" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    <DataGrid ItemsSource="{Binding AllVisits}" AutoGenerateColumns="False" IsReadOnly="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Date"      Binding="{Binding VisitDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="120"/>
-                            <DataGridTextColumn Header="Patient"   Binding="{Binding PatientName}" Width="*"/>
-                            <DataGridTextColumn Header="Doctor"    Binding="{Binding DoctorName}"  Width="160"/>
-                            <DataGridTextColumn Header="Diagnosis" Binding="{Binding Diagnosis}"   Width="*"/>
-                            <DataGridTextColumn Header="Notes"     Binding="{Binding Notes}"       Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </DockPanel>
+                <comp:DataTableShellControl Title="Patient Consultations &amp; Visits" RecordCount="{Binding AllVisits.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <Button Command="{Binding LoadAllVisitsCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding AllVisits}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding VisitDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
+                                <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="160"/>
+                                <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
+                                <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
             </TabItem>
 
             <!-- Tab 5: Financials -->
             <TabItem Header="Financials">
-                <DockPanel Margin="12">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,0,0,24">
-                        <Button Command="{Binding LoadFinancialsCommand}" Classes="primary">
+                <DockPanel Margin="0,12,0,0">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
+                        <Button Command="{Binding LoadFinancialsCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding DownloadWeeklyReportCommand}">
+                        <Button Command="{Binding DownloadWeeklyReportCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
-                                <TextBlock Text="Download Weekly" VerticalAlignment="Center"/>
+                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Download Weekly PDF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding DownloadMonthlyReportCommand}">
+                        <Button Command="{Binding DownloadMonthlyReportCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
-                                <TextBlock Text="Download Monthly" VerticalAlignment="Center"/>
+                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Download Monthly PDF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
 
+                    <!-- Financial Summary cards in full-page swap layout style -->
                     <StackPanel Spacing="20" HorizontalAlignment="Left">
-                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="Total Revenue" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                                <TextBlock Text="{Binding TotalRevenue, StringFormat=C2}" Foreground="#16A34A" FontSize="28" FontWeight="Bold"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="Total Expenses (Purchases)" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                                <TextBlock Text="{Binding TotalExpenses, StringFormat=C2}" Foreground="#DC2626" FontSize="28" FontWeight="Bold"/>
-                            </StackPanel>
-                        </Border>
-                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
-                            <StackPanel Spacing="8">
-                                <TextBlock Text="Net Profit" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
-                                <TextBlock Text="{Binding NetProfit, StringFormat=C2}" Foreground="#2563EB" FontSize="28" FontWeight="Bold"/>
-                            </StackPanel>
-                        </Border>
+                        <comp:SummaryCardControl Title="Total Revenue" Value="{Binding TotalRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="380"/>
+                        <comp:SummaryCardControl Title="Total Expenses (Purchases)" Value="{Binding TotalExpenses, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushRose}" Width="380"/>
+                        <comp:SummaryCardControl Title="Net Profit" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="380"/>
                     </StackPanel>
                 </DockPanel>
             </TabItem>
         </TabControl>
 
-        <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-            <StackPanel Orientation="Horizontal" Spacing="12">
-                <TextBlock Text="{Binding StatusMessage}" Foreground="#6B7280" FontSize="12" VerticalAlignment="Center"/>
-                <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Width="100" Height="4" Foreground="#2563EB" Background="#E5E7EB" VerticalAlignment="Center"/>
-            </StackPanel>
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+            <DockPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk600}"
+                           VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Width="100" Height="4"
+                             Foreground="{DynamicResource BrushPrimaryBlue}" Background="{DynamicResource BrushLine}"
+                             DockPanel.Dock="Right" VerticalAlignment="Center"/>
+            </DockPanel>
         </Border>
     </Grid>
-</UserControl>
 
+    <UserControl.Styles>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

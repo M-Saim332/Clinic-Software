@@ -1,143 +1,223 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Products"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Products.ProductRegistryView"
              x:DataType="vm:ProductRegistryViewModel" x:CompileBindings="True"
-             Background="#F8FAFC">
+             Background="{DynamicResource BrushBackground}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
-
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16"
-                BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-            <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20" Foreground="#2563EB"/>
-                    <TextBlock Text="Product Registry" FontSize="20" FontWeight="Bold"
-                               Foreground="#1F2937" VerticalAlignment="Center"/>
-                </StackPanel>
-                
-            </DockPanel>
-        </Border>
-
-        <!-- Main content -->
-        <Grid Grid.Row="1" ColumnDefinitions="340,*">
-
-            <!-- Left: Form -->
-            <Border Grid.Column="0" Background="#FFFFFF" Padding="24"
-                    BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
+    <Grid>
+        <!-- LIST VIEW -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
-                    <!-- Save/Cancel at bottom -->
-                    <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,20,0,0">
-                        <Grid ColumnDefinitions="*,*">
-                            <Button Grid.Column="0" Content="Save" Command="{Binding SaveCommand}"
-                                    IsEnabled="{Binding SaveCancelEnabled}"
-                                    Classes="primary" HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center" Margin="0,0,6,0"/>
-                            <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
-                                    IsEnabled="{Binding SaveCancelEnabled}"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center" Margin="6,0,0,0"/>
-                        </Grid>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="13" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <ScrollViewer IsEnabled="{Binding SaveCancelEnabled}">
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Name *" Classes="label"/>
-                                <TextBox Text="{Binding Name}" PlaceholderText="Product name"/>
-                            </StackPanel>
-
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Company" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
-                                          HorizontalAlignment="Stretch">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </StackPanel>
-
-                            <Grid ColumnDefinitions="*,*">
-                                <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
-                                    <TextBlock Text="Purchase Rate" Classes="label"/>
-                                    <NumericUpDown Value="{Binding PurchaseRate}" FormatString="C2"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="Selling Price" Classes="label"/>
-                                    <NumericUpDown Value="{Binding SellingPrice}" FormatString="C2"/>
-                                </StackPanel>
-                            </Grid>
-
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Tax (%)" Classes="label"/>
-                                <NumericUpDown Value="{Binding Tax}" FormatString="N2"/>
-                            </StackPanel>
-
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Stock Quantity (Manual Adj.)" Classes="label"/>
-                                <NumericUpDown Value="{Binding StockQuantity}" FormatString="N0"/>
-                            </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushAmber50}">
+                            <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushAmber}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Product Registry" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Manage products, pricing, and stock quantities"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
-                    </ScrollViewer>
+                    </StackPanel>
+                    <Button Content="+ Add Product" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Right: Grid with toolbar -->
-            <Border Grid.Column="1" Padding="24">
-                <DockPanel>
-                    <!-- Toolbar -->
-                    <Border DockPanel.Dock="Top" Padding="0,0,0,16"
-                            BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,0,0,16">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding NewCommand}"
-                                    IsEnabled="{Binding MutationEnabled}" Classes="primary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="New" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding EditCommand}"
-                                    IsEnabled="{Binding MutationEnabled}">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Edit" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding DeleteCommand}"
-                                    IsEnabled="{Binding MutationEnabled}" Classes="danger">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Delete" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Border>
+            <!-- Summary Cards -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Products"
+                    Value="{Binding Products.Count, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="In Stock"
+                    Value="{Binding InStockCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Low Stock"
+                    Value="{Binding LowStockCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushRose}"/>
+                <comp:SummaryCardControl Grid.Column="3"
+                    Title="Companies"
+                    Value="{Binding Companies.Count, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+            </Grid>
 
-                    <DataGrid ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
-                              AutoGenerateColumns="False" IsReadOnly="True"
-                              Background="Transparent" BorderThickness="0">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID"            Binding="{Binding ProductID}"                                   Width="60"/>
-                            <DataGridTextColumn Header="Name"          Binding="{Binding Name}"                                        Width="*"/>
-                            <DataGridTextColumn Header="Company"       Binding="{Binding CompanyName}"                                 Width="150"/>
-                            <DataGridTextColumn Header="Purchase Rate" Binding="{Binding PurchaseRate, StringFormat=C2}"               Width="120"/>
-                            <DataGridTextColumn Header="Selling Price" Binding="{Binding SellingPrice, StringFormat=C2}"               Width="120"/>
-                            <DataGridTextColumn Header="Stock"         Binding="{Binding StockQuantity}"                               Width="80"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
+            <!-- Data Panel -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="All Products" RecordCount="{Binding Products.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Edit" Command="{Binding EditCommand}"
+                                    IsEnabled="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-secondary"/>
+                            <Button Content="Delete" Command="{Binding DeleteCommand}"
+                                    IsEnabled="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-danger"/>
+                        </StackPanel>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" Background="Transparent" BorderThickness="0"
+                                  GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="PRODUCT NAME"  Binding="{Binding Name}"                                  Width="*"/>
+                                <DataGridTextColumn Header="COMPANY"       Binding="{Binding CompanyName}"                           Width="160"/>
+                                <DataGridTextColumn Header="PURCHASE RATE" Binding="{Binding PurchaseRate, StringFormat=\{0:C2\}}"   Width="130"/>
+                                <DataGridTextColumn Header="SELLING PRICE" Binding="{Binding SellingPrice, StringFormat=\{0:C2\}}"   Width="130"/>
+                                <DataGridTextColumn Header="TAX %"         Binding="{Binding Tax, StringFormat=\{0:N1\}%}"           Width="80"/>
+                                <DataGridTextColumn Header="STOCK"         Binding="{Binding StockQuantity}"                         Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
+            </Grid>
+        </Grid>
+
+        <!-- FORM VIEW -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushAmber50}">
+                            <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushAmber}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Product'}" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill in the product details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="← Back to Products" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="PRODUCT DETAILS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Product Name *" Classes="label"/>
+                            <TextBox Text="{Binding Name}" PlaceholderText="Enter product name"/>
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Company" Classes="label"/>
+                            <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
+                                <TextBlock Text="Purchase Rate" Classes="label"/>
+                                <NumericUpDown Value="{Binding PurchaseRate}" FormatString="N2" Minimum="0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
+                                <TextBlock Text="Selling Price" Classes="label"/>
+                                <NumericUpDown Value="{Binding SellingPrice}" FormatString="N2" Minimum="0"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
+                                <TextBlock Text="Tax (%)" Classes="label"/>
+                                <NumericUpDown Value="{Binding Tax}" FormatString="N2" Minimum="0" Maximum="100"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
+                                <TextBlock Text="Stock Quantity" Classes="label"/>
+                                <NumericUpDown Value="{Binding StockQuantity}" FormatString="N0" Minimum="0"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                <DockPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Product" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
                 </DockPanel>
             </Border>
         </Grid>
-
-        <!-- Status bar -->
-        <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8"
-                BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#6B7280" FontSize="12"/>
-        </Border>
     </Grid>
-</UserControl>
 
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-danger">
+            <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#BE123C"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.40"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

@@ -1,130 +1,204 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Companies"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Companies.CompanyRegistryView"
              x:DataType="vm:CompanyRegistryViewModel" x:CompileBindings="True"
-             Background="#F8FAFC">
+             Background="{DynamicResource BrushBackground}">
 
-  <Grid RowDefinitions="Auto,*,Auto">
+    <Grid>
+        <!-- LIST VIEW -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconCompanies}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Company Registry" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Manage pharmaceutical companies and distributors"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="+ Add Company" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
-    <!-- Header -->
-    <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16"
-            BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-      <DockPanel>
-        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <PathIcon Data="{StaticResource IconCompanies}" Width="20" Height="20" Foreground="#2563EB"/>
-          <TextBlock Text="Company Registry" FontSize="20" FontWeight="Bold"
-                     Foreground="#1F2937" VerticalAlignment="Center"/>
-        </StackPanel>
-        
-      </DockPanel>
-    </Border>
-
-    <!-- Main content -->
-    <Grid Grid.Row="1" ColumnDefinitions="340,*">
-
-      <!-- Left: Form -->
-      <Border Grid.Column="0" Background="#FFFFFF" Padding="24"
-              BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
-        <ScrollViewer>
-          <StackPanel Spacing="16">
-
-            <!-- Actions -->
-            <TextBlock Text="ACTIONS" Classes="label" Foreground="#9CA3AF" FontSize="10" FontWeight="Bold" LetterSpacing="1.5" Margin="0,0,0,4"/>
-            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*">
-              <Button Grid.Row="0" Grid.Column="0" Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-              <Button Grid.Row="0" Grid.Column="1" Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-              <Button Grid.Row="0" Grid.Column="2" Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action danger" Margin="0,0,0,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Focusable="False"/>
-              <Button Grid.Row="1" Grid.Column="0" Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="action primary" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-              <Button Grid.Row="1" Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+            <!-- Summary Cards -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Companies"
+                    Value="{Binding Companies.Count, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="Active"
+                    Value="{Binding Companies.Count, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="2"
+                    Title="Selected"
+                    Value="{Binding SelectedCompany.Name, FallbackValue='—'}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
             </Grid>
 
-            <Separator Margin="0,4"/>
+            <!-- Data Panel -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="All Companies" RecordCount="{Binding Companies.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Content="Edit" Command="{Binding EditCommand}"
+                                    IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-secondary"/>
+                            <Button Content="Delete" Command="{Binding DeleteCommand}"
+                                    IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-danger"/>
+                        </StackPanel>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" Background="Transparent" BorderThickness="0"
+                                  GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="COMPANY NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="PHONE"         Binding="{Binding Phone}" Width="160"/>
+                                <DataGridTextColumn Header="EMAIL"         Binding="{Binding Email}" Width="220"/>
+                                <DataGridTextColumn Header="ADDRESS"       Binding="{Binding Address}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
+            </Grid>
+        </Grid>
 
-            <!-- Form Fields -->
-            <StackPanel Spacing="14">
-              <StackPanel Spacing="2">
-                <TextBlock Text="Company Name *" Classes="label"/>
-                <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}"
-                         PlaceholderText="Company name"/>
-              </StackPanel>
-              <StackPanel Spacing="2">
-                <TextBlock Text="Phone" Classes="label"/>
-                <TextBox Text="{Binding Phone}" IsEnabled="{Binding SaveCancelEnabled}"
-                         PlaceholderText="Contact number"/>
-              </StackPanel>
-              <StackPanel Spacing="2">
-                <TextBlock Text="Email" Classes="label"/>
-                <TextBox Text="{Binding Email}" IsEnabled="{Binding SaveCancelEnabled}"
-                         PlaceholderText="Email address"/>
-              </StackPanel>
-              <StackPanel Spacing="2">
-                <TextBlock Text="Address" Classes="label"/>
-                <TextBox Text="{Binding Address}" IsEnabled="{Binding SaveCancelEnabled}"
-                         PlaceholderText="Full address" Height="80"
-                         AcceptsReturn="True" VerticalContentAlignment="Top" Padding="12,10"/>
-              </StackPanel>
-            </StackPanel>
+        <!-- FORM VIEW -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconCompanies}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Company'}" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill in the company details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="← Back to Companies" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
-          </StackPanel>
-        </ScrollViewer>
-      </Border>
+            <!-- Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="COMPANY DETAILS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Company Name *" Classes="label"/>
+                            <TextBox Text="{Binding Name}" PlaceholderText="Enter company name"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
+                                <TextBlock Text="Phone" Classes="label"/>
+                                <TextBox Text="{Binding Phone}" PlaceholderText="Contact number"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
+                                <TextBlock Text="Email" Classes="label"/>
+                                <TextBox Text="{Binding Email}" PlaceholderText="Email address"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Address" Classes="label"/>
+                            <TextBox Text="{Binding Address}" PlaceholderText="Full address..."
+                                     AcceptsReturn="True" Height="80" TextWrapping="Wrap"
+                                     VerticalContentAlignment="Top" Padding="12,10"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
 
-      <!-- Right: Company list -->
-      <Border Grid.Column="1" Padding="24">
-        <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="All Companies" Foreground="#1F2937"
-                     FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
-          <DataGrid ItemsSource="{Binding Companies}"
-                    SelectedItem="{Binding SelectedCompany}"
-                    AutoGenerateColumns="False" IsReadOnly="True"
-                    SelectionMode="Single">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Name"    Binding="{Binding Name}"    Width="*"/>
-              <DataGridTextColumn Header="Phone"   Binding="{Binding Phone}"   Width="140"/>
-              <DataGridTextColumn Header="Email"   Binding="{Binding Email}"   Width="200"/>
-              <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="*"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </DockPanel>
-      </Border>
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                <DockPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Company" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 
-    <!-- Status bar -->
-    <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8"
-            BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-      <TextBlock Text="{Binding StatusMessage}" Foreground="#6B7280" FontSize="12"/>
-    </Border>
-  </Grid>
-
-  <UserControl.Styles>
-    <Style Selector="Button.action">
-      <Setter Property="Height" Value="36"/>
-      <Setter Property="Padding" Value="14,0"/>
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="CornerRadius" Value="6"/>
-    </Style>
-    <Style Selector="Button.action.primary">
-      <Setter Property="Background" Value="#2563EB"/>
-      <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderThickness" Value="0"/>
-    </Style>
-    <Style Selector="Button.action.primary:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#1D4ED8"/>
-      <Setter Property="TextElement.Foreground" Value="White"/>
-    </Style>
-    <Style Selector="Button.action.danger">
-      <Setter Property="Background" Value="#DC2626"/>
-      <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderThickness" Value="0"/>
-    </Style>
-    <Style Selector="Button.action.danger:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#B91C1C"/>
-      <Setter Property="TextElement.Foreground" Value="White"/>
-    </Style>
-    <Style Selector="Button:disabled /template/ ContentPresenter">
-      <Setter Property="Opacity" Value="0.45"/>
-    </Style>
-  </UserControl.Styles>
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-danger">
+            <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#BE123C"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.40"/>
+        </Style>
+    </UserControl.Styles>
 </UserControl>
-

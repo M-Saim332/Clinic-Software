@@ -41,9 +41,15 @@ public partial class ChangePasswordViewModel : ViewModelBase
             IsSuccess = false;
             return;
         }
-        if (string.IsNullOrWhiteSpace(NewPassword) || NewPassword.Length < 6)
+        if (string.IsNullOrWhiteSpace(NewPassword))
         {
-            StatusMessage = "New password must be at least 6 characters.";
+            StatusMessage = "New Password cannot be empty.";
+            IsSuccess = false;
+            return;
+        }
+        if (NewPassword.Length < 8)
+        {
+            StatusMessage = "Password must contain at least 8 characters.";
             IsSuccess = false;
             return;
         }
@@ -78,11 +84,15 @@ public partial class ChangePasswordViewModel : ViewModelBase
 
             if (success)
             {
-                StatusMessage = "Password changed successfully!";
+                StatusMessage = "Password changed successfully.";
                 IsSuccess = true;
                 CurrentPassword  = string.Empty;
                 NewPassword      = string.Empty;
                 ConfirmPassword  = string.Empty;
+
+                // Auto-close after 1.5 seconds so the user can read the success message
+                _ = Task.Delay(1500).ContinueWith(_ =>
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => CloseRequested?.Invoke()));
             }
             else
             {

@@ -19,55 +19,44 @@ public partial class SaleViewModel : ViewModelBase
         _medicineRepo = medicineRepo;
     }
 
-    [ObservableProperty]
-    private FormMode _mode = FormMode.View;
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private bool _showForm;
     
-    [ObservableProperty]
-    private ObservableCollection<Sale> _sales = new();
-    [ObservableProperty]
-    private ObservableCollection<Patient> _patients = new();
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _medicines = new(); // non-expired
-    
-    [ObservableProperty]
-    private Sale? _selectedSale;
+    [ObservableProperty] private ObservableCollection<Sale> _sales = new();
+    [ObservableProperty] private ObservableCollection<Patient> _patients = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _medicines = new(); // non-expired
+    [ObservableProperty] private Sale? _selectedSale;
+
+    // KPI summary counts
+    [ObservableProperty] private int _totalInvoicesCount;
+    [ObservableProperty] private decimal _totalRevenue;
+    [ObservableProperty] private decimal _revenueToday;
+    [ObservableProperty] private decimal _avgSaleValue;
 
     // Header Fields
-    [ObservableProperty]
-    private string _invoiceNumber = string.Empty;
-    [ObservableProperty]
-    private Patient? _selectedPatient;
-    [ObservableProperty]
-    private DateTimeOffset _saleDate = DateTimeOffset.Now;
-    [ObservableProperty]
-    private decimal _consultationFee;
-    [ObservableProperty]
-    private string _paymentMethod = "Cash";
+    [ObservableProperty] private string _invoiceNumber = string.Empty;
+    [ObservableProperty] private Patient? _selectedPatient;
+    [ObservableProperty] private DateTimeOffset _saleDate = DateTimeOffset.Now;
+    [ObservableProperty] private decimal _consultationFee;
+    [ObservableProperty] private string _paymentMethod = "Cash";
 
     public List<string> PaymentMethods { get; } = new() { "Cash", "Card", "Online" };
 
     // Line Items
-    [ObservableProperty]
-    private ObservableCollection<SaleItem> _lineItems = new();
+    [ObservableProperty] private ObservableCollection<SaleItem> _lineItems = new();
     
     // Line Item Input
-    [ObservableProperty]
-    private Medicine? _selectedMedicine;
-    [ObservableProperty]
-    private int _quantity = 1;
-    [ObservableProperty]
-    private decimal _discount;
-    [ObservableProperty]
-    private decimal _tax;
-    [ObservableProperty]
-    private decimal _medicinePrice;
+    [ObservableProperty] private Medicine? _selectedMedicine;
+    [ObservableProperty] private int _quantity = 1;
+    [ObservableProperty] private decimal _discount;
+    [ObservableProperty] private decimal _tax;
+    [ObservableProperty] private decimal _medicinePrice;
 
     public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.Quantity * x.MedicinePrice - x.Discount + x.Tax);
 
-    public bool MutationEnabled => Mode == FormMode.View;
-    public bool SaveCancelEnabled => Mode != FormMode.View;
+    public bool MutationEnabled => !ShowForm;
+    public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
     public bool IsNewSale => Mode == FormMode.Add;
 
     [RelayCommand]
@@ -76,6 +65,7 @@ public partial class SaleViewModel : ViewModelBase
         ClearFields();
         InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
         Mode = FormMode.Add;
+        ShowForm = true;
         NotifyButtonStates();
         StatusMessage = "Create new sale invoice.";
     }
@@ -85,21 +75,29 @@ public partial class SaleViewModel : ViewModelBase
     {
         if (SelectedSale == null) { StatusMessage = "Select a sale first."; return; }
         
-        InvoiceNumber = SelectedSale.InvoiceNumber;
-        SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == SelectedSale.PatientID);
-        SaleDate = new DateTimeOffset(SelectedSale.SaleDate);
-        ConsultationFee = SelectedSale.ConsultationFee;
-        PaymentMethod = SelectedSale.PaymentMethod ?? "Cash";
-        
-        var saleWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedSale.SaleID));
-        var items = saleWithItems?.Items ?? new List<SaleItem>();
-        LineItems = new ObservableCollection<SaleItem>(items);
-        
-        OnPropertyChanged(nameof(GrandTotal));
-        
-        Mode = FormMode.View; 
-        NotifyButtonStates();
-        StatusMessage = $"Viewing details for {InvoiceNumber}";
+        try
+        {
+            InvoiceNumber = SelectedSale.InvoiceNumber;
+            SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == SelectedSale.PatientID);
+            SaleDate = new DateTimeOffset(SelectedSale.SaleDate);
+            ConsultationFee = SelectedSale.ConsultationFee;
+            PaymentMethod = SelectedSale.PaymentMethod ?? "Cash";
+            
+            var saleWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedSale.SaleID));
+            var items = saleWithItems?.Items ?? new List<SaleItem>();
+            LineItems = new ObservableCollection<SaleItem>(items);
+            
+            OnPropertyChanged(nameof(GrandTotal));
+            
+            Mode = FormMode.View; 
+            ShowForm = true;
+            NotifyButtonStates();
+            StatusMessage = $"Viewing details for {InvoiceNumber}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading sale details: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -128,6 +126,7 @@ public partial class SaleViewModel : ViewModelBase
         Discount = 0;
         Tax = 0;
         MedicinePrice = 0;
+        StatusMessage = string.Empty;
     }
 
     [RelayCommand]
@@ -161,39 +160,59 @@ public partial class SaleViewModel : ViewModelBase
             Items = LineItems.ToList()
         };
 
-        if (Mode == FormMode.Add)
+        try
         {
-            await Task.Run(() => _repo.Insert(s));
-            StatusMessage = "Sale posted successfully. Stock updated.";
+            if (Mode == FormMode.Add)
+            {
+                await Task.Run(() => _repo.Insert(s));
+                StatusMessage = "Sale posted successfully. Stock updated.";
+            }
+            
+            Mode = FormMode.View;
+            ShowForm = false;
+            NotifyButtonStates();
+            await InitializeAsync();
         }
-        
-        Mode = FormMode.View;
-        NotifyButtonStates();
-        await InitializeAsync();
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving sale: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private void Cancel()
     {
         Mode = FormMode.View;
+        ShowForm = false;
         NotifyButtonStates();
         StatusMessage = string.Empty;
     }
 
     public async Task InitializeAsync()
     {
-        var patients = await Task.Run(() => _patientRepo.GetAll());
-        var medicines = await Task.Run(() => _medicineRepo.GetAll());
-        var sales = await Task.Run(() => _repo.GetAll());
-        
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+        try
         {
-            Patients = new ObservableCollection<Patient>(patients);
-            // Only show medicines that are not expired and have stock
-            Medicines = new ObservableCollection<Medicine>(
-                medicines.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
-            Sales = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
-        });
+            var patients = await Task.Run(() => _patientRepo.GetAll());
+            var medicines = await Task.Run(() => _medicineRepo.GetAll());
+            var sales = await Task.Run(() => _repo.GetAll());
+            
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+            {
+                Patients = new ObservableCollection<Patient>(patients);
+                Medicines = new ObservableCollection<Medicine>(
+                    medicines.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
+                Sales = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
+
+                TotalInvoicesCount = Sales.Count;
+                TotalRevenue = Sales.Sum(s => s.GrandTotal);
+                RevenueToday = Sales.Where(s => s.SaleDate.Date == DateTime.Today).Sum(s => s.GrandTotal);
+                AvgSaleValue = TotalInvoicesCount > 0 ? TotalRevenue / TotalInvoicesCount : 0;
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load data: {ex.Message}");
+        }
     }
 
     private void ClearFields()
@@ -214,7 +233,6 @@ public partial class SaleViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsNewSale));
     }
 
-    // Auto-fill price when medicine selected
     partial void OnSelectedMedicineChanged(Medicine? value)
     {
         if (value != null)
@@ -223,7 +241,6 @@ public partial class SaleViewModel : ViewModelBase
         }
     }
     
-    // Update grand total when fee changes
     partial void OnConsultationFeeChanged(decimal value)
     {
         OnPropertyChanged(nameof(GrandTotal));

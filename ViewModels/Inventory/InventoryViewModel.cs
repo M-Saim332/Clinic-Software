@@ -15,55 +15,60 @@ public partial class InventoryViewModel : ViewModelBase
         _medicineRepo = medicineRepo;
     }
 
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _allStock = new();
-    
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _lowStock = new();
-    
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _outOfStock = new();
-    
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _expired = new();
-    
-    [ObservableProperty]
-    private ObservableCollection<Medicine> _nearExpiry = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _allStock = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _lowStock = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _outOfStock = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _expired = new();
+    [ObservableProperty] private ObservableCollection<Medicine> _nearExpiry = new();
+
+    // KPI Summary counts
+    [ObservableProperty] private int _totalStockItems;
+    [ObservableProperty] private int _lowStockCount;
+    [ObservableProperty] private int _outOfStockCount;
+    [ObservableProperty] private int _expiredCount;
 
     // Adjustment fields
-    [ObservableProperty]
-    private Medicine? _selectedMedicine;
-    [ObservableProperty]
-    private int _adjustmentQuantity;
-    [ObservableProperty]
-    private string _adjustmentReason = string.Empty;
+    [ObservableProperty] private Medicine? _selectedMedicine;
+    [ObservableProperty] private int _adjustmentQuantity;
+    [ObservableProperty] private string _adjustmentReason = string.Empty;
 
     public async Task InitializeAsync()
     {
-        var medicines = await Task.Run(() => _medicineRepo.GetAll());
-        var list = medicines.ToList();
-        var today = DateTime.Today;
-
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+        try
         {
-            AllStock = new ObservableCollection<Medicine>(list.OrderBy(m => m.Name));
-            
-            LowStock = new ObservableCollection<Medicine>(
-                list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
+            var medicines = await Task.Run(() => _medicineRepo.GetAll());
+            var list = medicines.ToList();
+            var today = DateTime.Today;
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+            {
+                AllStock = new ObservableCollection<Medicine>(list.OrderBy(m => m.Name));
                 
-            OutOfStock = new ObservableCollection<Medicine>(
-                list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
-                
-            Expired = new ObservableCollection<Medicine>(
-                list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
-                
-            NearExpiry = new ObservableCollection<Medicine>(
-                list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30))
-                    .OrderBy(m => m.ExpiryDate));
-        });
+                LowStock = new ObservableCollection<Medicine>(
+                    list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
+                    
+                OutOfStock = new ObservableCollection<Medicine>(
+                    list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
+                    
+                Expired = new ObservableCollection<Medicine>(
+                    list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
+                    
+                NearExpiry = new ObservableCollection<Medicine>(
+                    list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30))
+                        .OrderBy(m => m.ExpiryDate));
+
+                TotalStockItems = AllStock.Count;
+                LowStockCount = LowStock.Count;
+                OutOfStockCount = OutOfStock.Count;
+                ExpiredCount = Expired.Count;
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load inventory: {ex.Message}");
+        }
     }
 
     [RelayCommand]
@@ -87,15 +92,20 @@ public partial class InventoryViewModel : ViewModelBase
             return;
         }
 
-        // Just adjusting the master stock record for now
-        await Task.Run(() => _medicineRepo.AddStock(SelectedMedicine.MedicineID, AdjustmentQuantity));
-        
-        StatusMessage = $"Stock adjusted for {SelectedMedicine.Name} by {AdjustmentQuantity}.";
-        
-        SelectedMedicine = null;
-        AdjustmentQuantity = 0;
-        AdjustmentReason = string.Empty;
-        
-        await InitializeAsync();
+        try
+        {
+            await Task.Run(() => _medicineRepo.AddStock(SelectedMedicine.MedicineID, AdjustmentQuantity));
+            StatusMessage = $"Stock adjusted for {SelectedMedicine.Name} by {AdjustmentQuantity}.";
+            
+            SelectedMedicine = null;
+            AdjustmentQuantity = 0;
+            AdjustmentReason = string.Empty;
+            
+            await InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to adjust stock: {ex.Message}";
+        }
     }
 }
