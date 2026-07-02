@@ -19,51 +19,42 @@ public partial class PurchaseViewModel : ViewModelBase
         _productRepo = productRepo;
     }
 
-    [ObservableProperty]
-    private FormMode _mode = FormMode.View;
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
-    [ObservableProperty]
-    private ObservableCollection<Purchase> _purchases = new();
-    [ObservableProperty]
-    private ObservableCollection<Supplier> _suppliers = new();
-    [ObservableProperty]
-    private ObservableCollection<Product> _products = new();
-    [ObservableProperty]
-    private Purchase? _selectedPurchase;
+    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private bool _showForm;
+    
+    [ObservableProperty] private ObservableCollection<Purchase> _purchases = new();
+    [ObservableProperty] private ObservableCollection<Supplier> _suppliers = new();
+    [ObservableProperty] private ObservableCollection<Product> _products = new();
+    [ObservableProperty] private Purchase? _selectedPurchase;
+
+    // KPI Summary counts
+    [ObservableProperty] private int _totalInvoicesCount;
+    [ObservableProperty] private decimal _totalPurchasesAmount;
+    [ObservableProperty] private int _totalSuppliersCount;
+    [ObservableProperty] private decimal _averageInvoiceValue;
 
     // Header Fields
-    [ObservableProperty]
-    private string _invoiceNumber = string.Empty;
-    [ObservableProperty]
-    private Supplier? _selectedSupplier;
-    [ObservableProperty]
-    private DateTimeOffset _purchaseDate = DateTimeOffset.Now;
+    [ObservableProperty] private string _invoiceNumber = string.Empty;
+    [ObservableProperty] private Supplier? _selectedSupplier;
+    [ObservableProperty] private DateTimeOffset _purchaseDate = DateTimeOffset.Now;
 
     // Line Items for the current purchase
-    [ObservableProperty]
-    private ObservableCollection<PurchaseItem> _lineItems = new();
+    [ObservableProperty] private ObservableCollection<PurchaseItem> _lineItems = new();
     
     // Line Item Input
-    [ObservableProperty]
-    private Product? _selectedProduct;
-    [ObservableProperty]
-    private string _batchNumber = string.Empty;
-    [ObservableProperty]
-    private DateTimeOffset? _expiryDate;
-    [ObservableProperty]
-    private int _quantity = 1;
-    [ObservableProperty]
-    private decimal _purchasePrice;
-    [ObservableProperty]
-    private decimal _discount;
-    [ObservableProperty]
-    private decimal _tax;
+    [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private string _batchNumber = string.Empty;
+    [ObservableProperty] private DateTimeOffset? _expiryDate;
+    [ObservableProperty] private int _quantity = 1;
+    [ObservableProperty] private decimal _purchasePrice;
+    [ObservableProperty] private decimal _discount;
+    [ObservableProperty] private decimal _tax;
 
-    public decimal GrandTotal => LineItems.Sum(x => x.Quantity * x.PurchasePrice - x.Discount + x.Tax); // Simplify for now
+    public decimal GrandTotal => LineItems.Sum(x => x.Quantity * x.PurchasePrice - x.Discount + x.Tax);
 
-    public bool MutationEnabled => Mode == FormMode.View;
-    public bool SaveCancelEnabled => Mode != FormMode.View;
+    public bool MutationEnabled => !ShowForm;
+    public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
 
     [RelayCommand]
     private void New()
@@ -71,6 +62,7 @@ public partial class PurchaseViewModel : ViewModelBase
         ClearFields();
         InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
         Mode = FormMode.Add;
+        ShowForm = true;
         NotifyButtonStates();
         StatusMessage = "Create new purchase invoice.";
     }
@@ -80,19 +72,27 @@ public partial class PurchaseViewModel : ViewModelBase
     {
         if (SelectedPurchase == null) { StatusMessage = "Select a purchase first."; return; }
         
-        InvoiceNumber = SelectedPurchase.InvoiceNumber;
-        SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == SelectedPurchase.SupplierID);
-        PurchaseDate = new DateTimeOffset(SelectedPurchase.PurchaseDate);
-        
-        var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
-        var items = purchaseWithItems?.Items ?? new List<PurchaseItem>();
-        LineItems = new ObservableCollection<PurchaseItem>(items);
-        
-        OnPropertyChanged(nameof(GrandTotal));
-        
-        Mode = FormMode.View; // Still view mode, just showing details
-        NotifyButtonStates();
-        StatusMessage = $"Viewing details for {InvoiceNumber}";
+        try
+        {
+            InvoiceNumber = SelectedPurchase.InvoiceNumber;
+            SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == SelectedPurchase.SupplierID);
+            PurchaseDate = new DateTimeOffset(SelectedPurchase.PurchaseDate);
+            
+            var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
+            var items = purchaseWithItems?.Items ?? new List<PurchaseItem>();
+            LineItems = new ObservableCollection<PurchaseItem>(items);
+            
+            OnPropertyChanged(nameof(GrandTotal));
+            
+            Mode = FormMode.View;
+            ShowForm = true;
+            NotifyButtonStates();
+            StatusMessage = $"Viewing details for {InvoiceNumber}";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error loading purchase details: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -124,6 +124,7 @@ public partial class PurchaseViewModel : ViewModelBase
         PurchasePrice = 0;
         Discount = 0;
         Tax = 0;
+        StatusMessage = string.Empty;
     }
 
     [RelayCommand]
@@ -160,37 +161,58 @@ public partial class PurchaseViewModel : ViewModelBase
             Items = LineItems.ToList()
         };
 
-        if (Mode == FormMode.Add)
+        try
         {
-            await Task.Run(() => _repo.Insert(p));
-            StatusMessage = "Purchase created and stock updated.";
+            if (Mode == FormMode.Add)
+            {
+                await Task.Run(() => _repo.Insert(p));
+                StatusMessage = "Purchase created and stock updated.";
+            }
+            
+            Mode = FormMode.View;
+            ShowForm = false;
+            NotifyButtonStates();
+            await InitializeAsync();
         }
-        
-        Mode = FormMode.View;
-        NotifyButtonStates();
-        await InitializeAsync();
+        catch (Exception ex)
+        {
+            StatusMessage = $"Error saving invoice: {ex.Message}";
+        }
     }
 
     [RelayCommand]
     private void Cancel()
     {
         Mode = FormMode.View;
+        ShowForm = false;
         NotifyButtonStates();
         StatusMessage = string.Empty;
     }
 
     public async Task InitializeAsync()
     {
-        var suppliers = await Task.Run(() => _supplierRepo.GetAll());
-        var products = await Task.Run(() => _productRepo.GetAll());
-        var purchases = await Task.Run(() => _repo.GetAll());
-        
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+        try
         {
-            Suppliers = new ObservableCollection<Supplier>(suppliers);
-            Products = new ObservableCollection<Product>(products);
-            Purchases = new ObservableCollection<Purchase>(purchases.OrderByDescending(p => p.PurchaseDate));
-        });
+            var suppliers = await Task.Run(() => _supplierRepo.GetAll());
+            var products = await Task.Run(() => _productRepo.GetAll());
+            var purchases = await Task.Run(() => _repo.GetAll());
+            
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+            {
+                Suppliers = new ObservableCollection<Supplier>(suppliers);
+                Products = new ObservableCollection<Product>(products);
+                Purchases = new ObservableCollection<Purchase>(purchases.OrderByDescending(p => p.PurchaseDate));
+
+                TotalInvoicesCount = Purchases.Count;
+                TotalPurchasesAmount = Purchases.Sum(p => p.TotalAmount);
+                TotalSuppliersCount = Suppliers.Count;
+                AverageInvoiceValue = TotalInvoicesCount > 0 ? TotalPurchasesAmount / TotalInvoicesCount : 0;
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load data: {ex.Message}");
+        }
     }
 
     private void ClearFields()
@@ -208,7 +230,6 @@ public partial class PurchaseViewModel : ViewModelBase
         OnPropertyChanged(nameof(SaveCancelEnabled));
     }
 
-    // Auto-fill price when product selected
     partial void OnSelectedProductChanged(Product? value)
     {
         if (value != null)

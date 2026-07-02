@@ -7,321 +7,225 @@
              x:DataType="vm:PatientRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
-
-        <!-- ── Page Header ──────────────────────────────────────────────── -->
-        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
-                Padding="28,18">
-            <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                        <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
-                                  Foreground="{DynamicResource BrushPrimaryBlue}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="Patients Registry" FontSize="20" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk900}"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Manage patient records, diagnoses and consultation history"
-                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+    <Grid>
+        <!-- ============================================================ -->
+        <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
+        <!-- ============================================================ -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Patients" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Manage patient records, diagnoses and consultation history"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-
-                <!-- Action Toolbar (right side of header) -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="Find"   Command="{Binding FindCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="List"   Command="{Binding ListCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Border Width="1" Background="{DynamicResource BrushLine}" Height="22" VerticalAlignment="Center"/>
-                    <Button Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="btn-primary"/>
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="btn-ghost"/>
-                    <Border Width="1" Background="{DynamicResource BrushLine}" Height="22" VerticalAlignment="Center"/>
-                    <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}"  Classes="btn-danger"/>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <!-- ── KPI Summary Cards ─────────────────────────────────────────── -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
-            <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
-                Title="Total Patients"
-                Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushPrimaryBlue}"/>
-            <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                Title="Active This Month"
-                Value="{Binding ActiveThisMonthCount, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushTeal}"/>
-            <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
-                Title="Waiting Today"
-                Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushAmber}"/>
-            <comp:SummaryCardControl Grid.Column="3"
-                Title="Avg Consultation"
-                Value="{Binding AvgConsultationFee}"
-                BorderColor="{DynamicResource BrushRose}"/>
-        </Grid>
-
-        <!-- ── Main Content ──────────────────────────────────────────────── -->
-        <Grid Grid.Row="2" ColumnDefinitions="380,*" Margin="28,12,28,0">
-
-            <!-- LEFT: Form Card ──────────────────────────────── -->
-            <Border Grid.Column="0" Margin="0,0,12,0"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="{DynamicResource CornerRadiusCard}"
-                    BoxShadow="0 1 3 0 #0A000000">
-                <ScrollViewer Padding="24">
-                    <StackPanel Spacing="16">
-
-                        <!-- Form Section Label -->
-                        <TextBlock Text="PATIENT DETAILS" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}"
-                                   LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-
-                        <!-- Full Name -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Full Name *" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="Patient full name"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        </StackPanel>
-
-                        <!-- Age + Gender -->
-                        <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Age" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding Age}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="Years"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Gender" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <ComboBox ItemsSource="{Binding GenderOptions}"
-                                          SelectedItem="{Binding Gender}"
-                                          IsEnabled="{Binding SaveCancelEnabled}"
-                                          HorizontalAlignment="Stretch"
-                                          CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Phone -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Phone" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Phone}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="e.g. 0300-1234567"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        </StackPanel>
-
-                        <!-- Address -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Address" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Address}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="Full address"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        </StackPanel>
-
-                        <Border Height="1" Background="{DynamicResource BrushLine}" Margin="0,4"/>
-
-                        <TextBlock Text="CLINICAL NOTES" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}"
-                                   LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-
-                        <!-- Diagnosis -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Diagnosis" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Diagnosis}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="Diagnosis notes..."
-                                     AcceptsReturn="True" TextWrapping="Wrap"
-                                     Height="80" VerticalContentAlignment="Top" Padding="12,10"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        </StackPanel>
-
-                        <!-- Prescription -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Prescription" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Prescription}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="Prescribed medicines..."
-                                     AcceptsReturn="True" TextWrapping="Wrap"
-                                     Height="80" VerticalContentAlignment="Top" Padding="12,10"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        </StackPanel>
-
-                        <Border Height="1" Background="{DynamicResource BrushLine}" Margin="0,4"/>
-
-                        <TextBlock Text="BILLING" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}"
-                                   LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-
-                        <!-- Fee + Discount -->
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Consultation Fee" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding ConsultationFee}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="0.00"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Discount" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding Discount}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="0.00"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                            </StackPanel>
-                        </Grid>
-
-                    </StackPanel>
-                </ScrollViewer>
+                    <!-- Primary action: + Add Patient -->
+                    <Button Content="+ Add Patient" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
             </Border>
 
-            <!-- RIGHT: List / Placeholder ────────────────────── -->
-            <Grid Grid.Column="1">
+            <!-- Summary Cards Row -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Patients"
+                    Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="Active This Month"
+                    Value="{Binding ActiveThisMonthCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Waiting Today"
+                    Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="3"
+                    Title="Avg Consultation"
+                    Value="{Binding AvgConsultationFee}"
+                    BorderColor="{DynamicResource BrushRose}"/>
+            </Grid>
 
-                <!-- Patient List overlay -->
-                <Border IsVisible="{Binding ShowList}"
-                        Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}"
-                        BoxShadow="0 1 3 0 #0A000000" Padding="24">
-                    <DockPanel>
+            <!-- Data Panel using DataTableShellControl -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="Patient List" RecordCount="{Binding FilteredPatients.Count}">
+                    <!-- Toolbar / Search inside FilterToolbar -->
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                            <!-- Search box -->
+                            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+                                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                    CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
+                                    Height="40" MaxWidth="400" HorizontalAlignment="Left">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                                              Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
+                                             PlaceholderText="Search by name or phone..."
+                                             Classes="search-input"
+                                             VerticalAlignment="Center" Height="38" Padding="0"/>
+                                </Grid>
+                            </Border>
 
-                        <!-- List header -->
-                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16"
-                                          Foreground="{DynamicResource BrushPrimaryBlue}"/>
-                                <TextBlock Text="Find Patient" FontSize="16" FontWeight="Bold"
-                                           Foreground="{DynamicResource BrushInk900}"
-                                           FontFamily="{DynamicResource FontLexend}"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <!-- Edit, Delete buttons are here for the selected row -->
+                                <Button Content="Edit Details" Command="{Binding EditCommand}"
+                                        IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Classes="btn-secondary"/>
+                                <Button Content="Delete" Command="{Binding DeleteCommand}"
+                                        IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Classes="btn-danger"/>
                             </StackPanel>
-                            <Button DockPanel.Dock="Right" Command="{Binding CloseListCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Width="32" Height="32" Padding="0" HorizontalAlignment="Right">
-                                <PathIcon Data="{StaticResource IconClose}" Width="12" Height="12"
-                                          Foreground="{DynamicResource BrushInk600}"/>
-                            </Button>
-                        </DockPanel>
+                        </Grid>
+                    </comp:DataTableShellControl.FilterToolbar>
 
-                        <!-- Search box -->
-                        <Border DockPanel.Dock="Top"
-                                Background="{DynamicResource BrushBackground}"
-                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                                CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
-                                Margin="0,0,0,16" Height="44">
-                            <Grid ColumnDefinitions="Auto,*">
-                                <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
-                                          Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
-                                         PlaceholderText="Search by name or phone..."
-                                         BorderThickness="0" Background="Transparent"
-                                         VerticalAlignment="Center" Height="42" Padding="0"/>
-                            </Grid>
-                        </Border>
-
-                        <!-- Select button at bottom -->
-                        <Button DockPanel.Dock="Bottom"
-                                Content="Select Patient" Margin="0,16,0,0"
-                                Command="{Binding SelectFromListCommand}"
-                                CommandParameter="{Binding SelectedPatient}"
-                                Classes="btn-primary" HorizontalAlignment="Left"/>
-
-                        <!-- DataGrid -->
+                    <!-- Main Table -->
+                    <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding FilteredPatients}"
                                   SelectedItem="{Binding SelectedPatient}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   SelectionMode="Single"
-                                  Background="{DynamicResource BrushBackground}"
+                                  Background="Transparent"
                                   BorderThickness="0"
                                   GridLinesVisibility="Horizontal"
                                   RowBackground="{DynamicResource BrushCardBackground}">
-
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name"   Binding="{Binding Name}"   Width="*"/>
-                                <DataGridTextColumn Header="Age"    Binding="{Binding Age}"    Width="60"/>
-                                <DataGridTextColumn Header="Gender" Binding="{Binding Gender}" Width="80"/>
-                                <DataGridTextColumn Header="Phone"  Binding="{Binding Phone}"  Width="140"/>
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="100"/>
+                                <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="120"/>
+                                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="180"/>
+                                <DataGridTextColumn Header="CONSULTATION FEE" Binding="{Binding ConsultationFee, StringFormat='Rs. {0:N2}'}" Width="180"/>
                             </DataGrid.Columns>
                         </DataGrid>
-
-                    </DockPanel>
-                </Border>
-
-                <!-- Empty state placeholder -->
-                <Border IsVisible="{Binding !ShowList}"
-                        Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}"
-                        BoxShadow="0 1 3 0 #0A000000">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-                        <Border Width="72" Height="72" CornerRadius="36" Background="{DynamicResource BrushBlue50}"
-                                HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="28" Height="28"
-                                      Foreground="{DynamicResource BrushPrimaryBlue}"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Patients Registry" FontSize="20" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushInk900}"
-                                       HorizontalAlignment="Center"
-                                       FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Use 'New' to add a patient, or 'List' to browse existing records."
-                                       Foreground="{DynamicResource BrushInk600}"
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       FontSize="13" MaxWidth="320" TextWrapping="Wrap"/>
-                        </StackPanel>
-
-                        <!-- Quick action hints -->
-                        <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <Border Margin="4" Background="{DynamicResource BrushBlue50}"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                                <TextBlock Text="New → Add patient" FontSize="12"
-                                           Foreground="{DynamicResource BrushPrimaryBlue}" FontWeight="Medium"/>
-                            </Border>
-                            <Border Margin="4" Background="{DynamicResource BrushTeal50}"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                                <TextBlock Text="List → Search records" FontSize="12"
-                                           Foreground="{DynamicResource BrushTeal}" FontWeight="Medium"/>
-                            </Border>
-                            <Border Margin="4" Background="{DynamicResource BrushAmber50}"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                                <TextBlock Text="Edit → Modify selected" FontSize="12"
-                                           Foreground="{DynamicResource BrushAmber}" FontWeight="Medium"/>
-                            </Border>
-                        </WrapPanel>
-                    </StackPanel>
-                </Border>
-
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
             </Grid>
         </Grid>
 
-        <!-- ── Status Bar ─────────────────────────────────────────────────── -->
-        <Border Grid.Row="3" Margin="0,12,0,0"
-                Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
-                Padding="28,8">
-            <DockPanel>
-                <PathIcon Data="{StaticResource IconClinic}" Width="12" Height="12"
-                          Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="{Binding StatusMessage}"
-                           Foreground="{DynamicResource BrushInk600}" FontSize="12"
-                           VerticalAlignment="Center"/>
-            </DockPanel>
-        </Border>
+        <!-- ============================================================ -->
+        <!-- 2. FORM VIEW (SaveCancelEnabled is true)                       -->
+        <!-- ============================================================ -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Patient'}" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill out the patient details below"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <!-- Back Button -->
+                    <Button Content="← Back to Patients" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
+            <!-- Scrollable Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+                    <!-- SECTION 1: Personal Info -->
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="PERSONAL INFORMATION" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Full Name *" Classes="label"/>
+                                <TextBox Text="{Binding Name}" PlaceholderText="Enter full name"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Phone Number" Classes="label"/>
+                                <TextBox Text="{Binding Phone}" PlaceholderText="e.g. 0300-1234567"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Age" Classes="label"/>
+                                <TextBox Text="{Binding Age}" PlaceholderText="Years"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Gender" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Spacing="6" Margin="0,0,0,12">
+                            <TextBlock Text="Address" Classes="label"/>
+                            <TextBox Text="{Binding Address}" PlaceholderText="Enter patient residential address"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- SECTION 2: Medical / Consultation Info -->
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="CLINICAL NOTES &amp; BILLING" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        
+                        <StackPanel Spacing="6" Margin="0,0,0,12">
+                            <TextBlock Text="Diagnosis" Classes="label"/>
+                            <TextBox Text="{Binding Diagnosis}" PlaceholderText="Enter diagnosis, symptoms, or medical observations..."
+                                     AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="6" Margin="0,0,0,12">
+                            <TextBlock Text="Prescription" Classes="label"/>
+                            <TextBox Text="{Binding Prescription}" PlaceholderText="Enter prescribed medicines, dosages, and instructions..."
+                                     AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Consultation Fee (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Discount (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding Discount}" PlaceholderText="0.00"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Bottom Action Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
+                    Padding="28,16">
+                <DockPanel>
+                    <!-- Error / Status Message on Left -->
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                    <!-- Save / Cancel on Right -->
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Record" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
     </Grid>
 
     <UserControl.Styles>
-        <!-- Primary btn -->
         <Style Selector="Button.btn-primary">
             <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -336,8 +240,6 @@
             <Setter Property="Background" Value="#1D4ED8"/>
             <Setter Property="TextElement.Foreground" Value="White"/>
         </Style>
-
-        <!-- Secondary btn -->
         <Style Selector="Button.btn-secondary">
             <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
             <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
@@ -348,8 +250,6 @@
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
-
-        <!-- Ghost btn -->
         <Style Selector="Button.btn-ghost">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
@@ -360,8 +260,6 @@
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
-
-        <!-- Danger btn -->
         <Style Selector="Button.btn-danger">
             <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -376,10 +274,25 @@
             <Setter Property="Background" Value="#BE123C"/>
             <Setter Property="TextElement.Foreground" Value="White"/>
         </Style>
-
-        <!-- Disabled state -->
         <Style Selector="Button:disabled /template/ ContentPresenter">
             <Setter Property="Opacity" Value="0.40"/>
+        </Style>
+
+        <!-- Search input TextBox adjustments (no focus borders) -->
+        <Style Selector="TextBox.search-input">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+        <Style Selector="TextBox.search-input:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BoxShadow" Value="None"/>
+        </Style>
+        <Style Selector="TextBox.search-input:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </UserControl.Styles>
 </UserControl>

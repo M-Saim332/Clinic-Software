@@ -19,6 +19,18 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _dbSession = dbSession;
         ChangePasswordVM = changePasswordVM;
+        ChangePasswordVM.CloseRequested += () => IsChangePasswordVisible = false;
+    }
+
+    public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+
+    [ObservableProperty] private bool _isChangePasswordVisible;
+
+    [RelayCommand]
+    private void OpenChangePassword()
+    {
+        ChangePasswordVM.Reset();
+        IsChangePasswordVisible = true;
     }
 
     [ObservableProperty] private string _clinicName = "Care & Cure Clinic";

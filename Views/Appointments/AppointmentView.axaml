@@ -1,133 +1,246 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Appointments"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Appointments.AppointmentView"
              x:DataType="vm:AppointmentViewModel" x:CompileBindings="True"
-             Background="#F8FAFC">
+             Background="{DynamicResource BrushBackground}">
 
-    <Grid ColumnDefinitions="360,*" Margin="24">
-        <!-- Form Side -->
-        <Border Grid.Column="0" Classes="card">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Book Appointment" Classes="sectionTitle" Margin="0,0,0,20"/>
-                
-                <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,20,0,0">
-                    <Grid ColumnDefinitions="*,*">
-                        <Button Grid.Column="0" Content="Save" Command="{Binding SaveCommand}"
-                                IsEnabled="{Binding SaveCancelEnabled}" Classes="primary" Margin="0,0,6,0"/>
-                        <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
-                                IsEnabled="{Binding SaveCancelEnabled}" Classes="secondary" Margin="6,0,0,0"/>
-                    </Grid>
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="13" TextWrapping="Wrap"/>
-                </StackPanel>
-
-                <ScrollViewer IsEnabled="{Binding SaveCancelEnabled}">
-                    <StackPanel Spacing="16">
-                        
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Patient" Classes="label"/>
-                            <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" 
-                                      HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Name}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+    <Grid>
+        <!-- LIST VIEW -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Appointments" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Book, manage, and track patient appointments"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
-                        
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Doctor" Classes="label"/>
-                            <ComboBox ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}" 
-                                      HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding Username}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Date" Classes="label"/>
-                            <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Time" Classes="label"/>
-                            <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-                        
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Reason for Visit" Classes="label"/>
-                            <TextBox Text="{Binding Reason}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
-                        </StackPanel>
-
                     </StackPanel>
-                </ScrollViewer>
-            </DockPanel>
-        </Border>
+                    <Button Content="+ Book Appointment" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
-        <!-- Grid Side -->
-        <Border Grid.Column="1" Classes="card" Margin="24,0,0,0">
-            <DockPanel>
-                <!-- Toolbar -->
-                <Border DockPanel.Dock="Top" Padding="0,0,0,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,0,0,16">
-                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
-                            <Button Command="{Binding NewCommand}" IsEnabled="{Binding MutationEnabled}" Classes="primary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Book" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding EditCommand}" IsEnabled="{Binding MutationEnabled}">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Edit" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                        
-                        <Border Width="1" Background="#E5E7EB" Margin="0,0,16,0" Height="24" VerticalAlignment="Center"/>
+            <!-- Summary Cards -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Appointments"
+                    Value="{Binding TotalAppointmentsCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="Scheduled"
+                    Value="{Binding ScheduledCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Checked-In"
+                    Value="{Binding CheckedInCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="3"
+                    Title="Completed Today"
+                    Value="{Binding CompletedCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushRose}"/>
+            </Grid>
 
-                        <!-- Status actions -->
+            <!-- Data Panel -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="Appointment List" RecordCount="{Binding Appointments.Count}">
+                    <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding CheckInCommand}" IsEnabled="{Binding MutationEnabled}">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Check-In" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding CompleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="success">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconVisit}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Complete" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding MarkCancelledCommand}" IsEnabled="{Binding MutationEnabled}" Classes="danger">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Cancel" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
+                            <Button Content="Check-In" Command="{Binding CheckInCommand}"
+                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-secondary"/>
+                            <Button Content="Complete" Command="{Binding CompleteCommand}"
+                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-success"/>
+                            <Button Content="Cancel Appt" Command="{Binding MarkCancelledCommand}"
+                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-danger"/>
+                            <Button Content="Edit" Command="{Binding EditCommand}"
+                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-secondary"/>
                         </StackPanel>
-                    </WrapPanel>
-                </Border>
-                
-                <DataGrid ItemsSource="{Binding Appointments}" SelectedItem="{Binding SelectedAppointment}"
-                          AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date" Binding="{Binding AppointmentDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="110"/>
-                        <DataGridTextColumn Header="Time" Binding="{Binding AppointmentTime, StringFormat=\{0:hh\\:mm\}}" Width="90"/>
-                        <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}" Width="160"/>
-                        <DataGridTextColumn Header="Doctor" Binding="{Binding DoctorName}" Width="130"/>
-                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
-                        <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-        </Border>
-    </Grid>
-</UserControl>
+                    </comp:DataTableShellControl.FilterToolbar>
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding Appointments}" SelectedItem="{Binding SelectedAppointment}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single" Background="Transparent" BorderThickness="0"
+                                  GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding AppointmentDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="TIME" Binding="{Binding AppointmentTime, StringFormat=\{0:hh\:mm tt\}}" Width="100"/>
+                                <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
+                                <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="160"/>
+                                <DataGridTextColumn Header="REASON" Binding="{Binding Reason}" Width="*"/>
+                                <DataGridTemplateColumn Header="STATUS" Width="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <comp:StatusBadgeControl Status="{Binding Status}" VerticalAlignment="Center" Margin="4,0"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
+            </Grid>
+        </Grid>
 
+        <!-- FORM VIEW -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+                            <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushPrimaryBlue}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Appointment'}" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill out appointment details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="← Back to Appointments" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="APPOINTMENT DETAILS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Patient *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Doctor *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate><TextBlock Text="{Binding FullName}"/></DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Date *" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Time *" Classes="label"/>
+                                <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Spacing="6" Margin="0,0,0,12">
+                                <TextBlock Text="Reason for Visit" Classes="label"/>
+                                <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
+                                         AcceptsReturn="True" Height="80" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" Padding="12,10"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                <DockPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Appointment" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-danger">
+            <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#BE123C"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-success">
+            <Setter Property="Background" Value="#16A34A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.40"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

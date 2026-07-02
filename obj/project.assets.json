@@ -3548,24 +3548,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\mssai\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\Khizar's Computer\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
+      "projectUniqueName": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj",
       "projectName": "ClinicSystem.UI",
-      "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
-      "packagesPath": "C:\\Users\\mssai\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\obj\\",
+      "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj",
+      "packagesPath": "C:\\Users\\Khizar's Computer\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\mssai\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\Khizar's Computer\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -3579,11 +3574,11 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
-              "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
+            "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
+              "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
             },
-            "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
-              "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj"
+            "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
+              "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj"
             }
           }
         }
@@ -3665,7 +3660,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

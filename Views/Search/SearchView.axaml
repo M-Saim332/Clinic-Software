@@ -1,47 +1,60 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Search"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
-             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="ClinicSystem.UI.Views.Search.SearchView"
-             x:DataType="vm:SearchViewModel"
+             x:DataType="vm:SearchViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
-    <Grid RowDefinitions="Auto,*" Margin="24">
-        <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,24">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Grid.Column="0" Spacing="4">
-                    <TextBlock Text="Global Search" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
-                    <TextBlock Text="Search instantly across patients, appointments, and medicines." FontSize="14" Foreground="{DynamicResource BrushInk600}"/>
-                </StackPanel>
-                
-                <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Width="350" Height="44" Padding="12,0">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="16" Height="16" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Type to search..." BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Height="36" Padding="0"/>
 
+    <Grid RowDefinitions="Auto,*">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                        <PathIcon Data="{StaticResource IconSearch}" Width="20" Height="20"
+                                  Foreground="{DynamicResource BrushPrimaryBlue}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="Global Search" FontSize="20" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk900}"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="Search instantly across patients, appointments, and medicines"
+                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Border DockPanel.Dock="Right" Background="{DynamicResource BrushBackground}"
+                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusInput}" Width="350" Height="38" Padding="12,0"
+                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                                  Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Type to search..."
+                                 BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Height="36" Padding="0"/>
                     </Grid>
                 </Border>
-            </Grid>
+            </DockPanel>
         </Border>
 
         <!-- Main Results Panels -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24">
             <StackPanel Spacing="24">
                 
                 <!-- Patients Results -->
                 <comp:DataTableShellControl Title="Matching Patients" RecordCount="{Binding PatientCount, StringFormat='{}{0}'}">
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Patients}" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" Height="200" CanUserSortColumns="True">
+                        <DataGrid ItemsSource="{Binding Patients}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" Height="200">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding PatientID}" Width="80"/>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="Age" Binding="{Binding Age}" Width="100"/>
-                                <DataGridTextColumn Header="Gender" Binding="{Binding Gender}" Width="120"/>
-                                <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="180"/>
-                                <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="250"/>
+                                <DataGridTextColumn Header="ID" Binding="{Binding PatientID}" Width="70"/>
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
+                                <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="110"/>
+                                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
+                                <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
@@ -50,17 +63,18 @@
                 <!-- Appointments Results -->
                 <comp:DataTableShellControl Title="Matching Appointments" RecordCount="{Binding AppointmentCount, StringFormat='{}{0}'}">
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Appointments}" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" Height="200" CanUserSortColumns="True">
+                        <DataGrid ItemsSource="{Binding Appointments}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" Height="200">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding AppointmentID}" Width="80"/>
-                                <DataGridTextColumn Header="Date" Binding="{Binding AppointmentDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="130"/>
-                                <DataGridTextColumn Header="Time" Binding="{Binding AppointmentTime, StringFormat=\{0:hh\\:mm\}}" Width="100"/>
-                                <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}" Width="*"/>
-                                <DataGridTextColumn Header="Doctor" Binding="{Binding DoctorName}" Width="*"/>
-                                <DataGridTemplateColumn Header="Status" Width="130">
+                                <DataGridTextColumn Header="ID" Binding="{Binding AppointmentID}" Width="70"/>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding AppointmentDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="TIME" Binding="{Binding AppointmentTime, StringFormat=\{0:hh\:mm tt\}}" Width="100"/>
+                                <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
+                                <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="*"/>
+                                <DataGridTemplateColumn Header="STATUS" Width="130">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <comp:StatusBadgeControl Status="{Binding Status}"/>
+                                            <comp:StatusBadgeControl Status="{Binding Status}" VerticalAlignment="Center" Margin="4,0"/>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -72,14 +86,15 @@
                 <!-- Medicines Results -->
                 <comp:DataTableShellControl Title="Matching Medicines" RecordCount="{Binding MedicineCount, StringFormat='{}{0}'}">
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Medicines}" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal" Height="200" CanUserSortColumns="True">
+                        <DataGrid ItemsSource="{Binding Medicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" Height="200">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding MedicineID}" Width="80"/>
-                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="Generic Name" Binding="{Binding GenericName}" Width="*"/>
-                                <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="150"/>
-                                <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="150"/>
-                                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="100"/>
+                                <DataGridTextColumn Header="ID" Binding="{Binding MedicineID}" Width="70"/>
+                                <DataGridTextColumn Header="MEDICINE NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*"/>
+                                <DataGridTextColumn Header="BATCH NO." Binding="{Binding BatchNumber}" Width="120"/>
+                                <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
+                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>

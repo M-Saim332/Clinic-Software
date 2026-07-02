@@ -1,32 +1,44 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Settings"
-             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             xmlns:userviews="using:ClinicSystem.UI.Views.Users"
              x:Class="ClinicSystem.UI.Views.Settings.SettingsView"
-             x:DataType="vm:SettingsViewModel"
+             x:DataType="vm:SettingsViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
-    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+
+    <Panel>
+    <Grid RowDefinitions="Auto,*,Auto">
         <!-- Header -->
-        <Border Grid.Row="0" Margin="0,0,0,24">
+        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
             <DockPanel>
-                <StackPanel Spacing="4">
-                    <TextBlock Text="Settings" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
-                    <TextBlock Text="Manage clinic configuration, defaults, database backups, and security settings." FontSize="14" Foreground="{DynamicResource BrushInk600}"/>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                        <PathIcon Data="{StaticResource IconSettings}" Width="20" Height="20"
+                                  Foreground="{DynamicResource BrushPrimaryBlue}"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                        <TextBlock Text="Settings" FontSize="20" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk900}"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="Manage clinic configuration, defaults, database backups, and security settings"
+                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                    </StackPanel>
                 </StackPanel>
-                <Button DockPanel.Dock="Right" Content="Save Settings" Command="{Binding SaveSettingsCommand}" Classes="primary" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"
+                        Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
             </DockPanel>
         </Border>
 
         <!-- Main Content Panels -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="20">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24">
+            <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left">
                 
                 <!-- Clinic Information Section -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="CLINIC INFORMATION" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <TextBlock Text="CLINIC INFORMATION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
@@ -50,9 +62,9 @@
                 </Border>
 
                 <!-- System Defaults -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="SYSTEM DEFAULTS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <TextBlock Text="SYSTEM DEFAULTS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
                         <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
@@ -68,14 +80,49 @@
                 </Border>
 
                 <!-- Database & Maintenance -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="16">
-                            <Button Content="Backup Database" Command="{Binding BackupCommand}" Classes="secondary"/>
-                            <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="secondary"/>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Button Content="Backup Database" Command="{Binding BackupCommand}" Classes="btn-secondary"/>
+                            <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="btn-secondary"/>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Admin Security (Admin only) -->
+                <Border IsVisible="{Binding IsAdmin}"
+                        Background="{DynamicResource BrushCardBackground}"
+                        BorderBrush="#FCA5A5" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="ADMIN SECURITY" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushRose}" LetterSpacing="1.2"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator Height="1" Background="#FCA5A5"/>
+                        <DockPanel>
+                            <StackPanel Spacing="4" DockPanel.Dock="Left">
+                                <TextBlock Text="Change Admin Password" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BrushInk900}"/>
+                                <TextBlock Text="Update your admin account password. You will need to verify your current password first."
+                                           FontSize="12" Foreground="{DynamicResource BrushInk600}"
+                                           TextWrapping="Wrap" MaxWidth="480"/>
+                            </StackPanel>
+                            <Button Command="{Binding OpenChangePasswordCommand}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="{DynamicResource BrushRose}"
+                                    Foreground="White" BorderThickness="0"
+                                    CornerRadius="{DynamicResource CornerRadiusPill}"
+                                    Padding="16,0" Height="36">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13"
+                                              Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Change Password" FontSize="13" FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </DockPanel>
                     </StackPanel>
                 </Border>
 
@@ -83,8 +130,42 @@
         </ScrollViewer>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}" Padding="16,8" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Margin="-24,24,-24,-24">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk600}" FontSize="12" VerticalAlignment="Center"/>
+        <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}" Padding="28,16" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk600}" FontSize="13" VerticalAlignment="Center" FontWeight="Medium"/>
         </Border>
     </Grid>
+
+    <!-- Change Password Modal Overlay (Settings-triggered) -->
+    <Panel IsVisible="{Binding IsChangePasswordVisible}" ZIndex="200">
+        <userviews:ChangePasswordView DataContext="{Binding ChangePasswordVM}"/>
+    </Panel>
+
+    </Panel>
+
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+    </UserControl.Styles>
 </UserControl>

@@ -19,30 +19,25 @@ public partial class AppointmentViewModel : ViewModelBase
         _userRepo = userRepo;
     }
 
-    [ObservableProperty]
-    private FormMode _mode = FormMode.View;
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
-    [ObservableProperty]
-    private ObservableCollection<Appointment> _appointments = new();
-    [ObservableProperty]
-    private ObservableCollection<Patient> _patients = new();
-    [ObservableProperty]
-    private ObservableCollection<User> _doctors = new();
-    [ObservableProperty]
-    private Appointment? _selectedAppointment;
+    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private ObservableCollection<Appointment> _appointments = new();
+    [ObservableProperty] private ObservableCollection<Patient> _patients = new();
+    [ObservableProperty] private ObservableCollection<User> _doctors = new();
+    [ObservableProperty] private Appointment? _selectedAppointment;
 
-    // Fields
-    [ObservableProperty]
-    private Patient? _selectedPatient;
-    [ObservableProperty]
-    private User? _selectedDoctor;
-    [ObservableProperty]
-    private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
-    [ObservableProperty]
-    private TimeSpan _appointmentTime = DateTime.Now.TimeOfDay;
-    [ObservableProperty]
-    private string _reason = string.Empty;
+    // KPI Summary counts
+    [ObservableProperty] private int _totalAppointmentsCount;
+    [ObservableProperty] private int _scheduledCount;
+    [ObservableProperty] private int _checkedInCount;
+    [ObservableProperty] private int _completedCount;
+
+    // Form fields
+    [ObservableProperty] private Patient? _selectedPatient;
+    [ObservableProperty] private User? _selectedDoctor;
+    [ObservableProperty] private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
+    [ObservableProperty] private TimeSpan _appointmentTime = DateTime.Now.TimeOfDay;
+    [ObservableProperty] private string _reason = string.Empty;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -84,35 +79,37 @@ public partial class AppointmentViewModel : ViewModelBase
             Status = Mode == FormMode.Add ? "Scheduled" : SelectedAppointment!.Status
         };
 
-        if (Mode == FormMode.Add)
+        try
         {
-            // Conflict check
-            if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, 0)))
+            if (Mode == FormMode.Add)
             {
-                StatusMessage = "Conflict: Doctor already has an appointment at this time.";
-                return;
+                if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, 0)))
+                {
+                    StatusMessage = "Conflict: Doctor already has an appointment at this time.";
+                    return;
+                }
+                await Task.Run(() => _repo.Insert(appt));
+                StatusMessage = "Appointment booked.";
             }
-
-            await Task.Run(() => _repo.Insert(appt));
-            StatusMessage = "Appointment booked.";
+            else
+            {
+                appt.AppointmentID = SelectedAppointment!.AppointmentID;
+                if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, appt.AppointmentID)))
+                {
+                    StatusMessage = "Conflict: Doctor already has an appointment at this time.";
+                    return;
+                }
+                await Task.Run(() => _repo.Update(appt));
+                StatusMessage = "Appointment updated.";
+            }
+            Mode = FormMode.View;
+            NotifyButtonStates();
+            await InitializeAsync();
         }
-        else
+        catch (Exception ex)
         {
-            appt.AppointmentID = SelectedAppointment!.AppointmentID;
-            
-            // Conflict check
-            if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, appt.AppointmentID)))
-            {
-                StatusMessage = "Conflict: Doctor already has an appointment at this time.";
-                return;
-            }
-
-            await Task.Run(() => _repo.Update(appt));
-            StatusMessage = "Appointment updated.";
+            StatusMessage = $"Error saving appointment: {ex.Message}";
         }
-        Mode = FormMode.View;
-        NotifyButtonStates();
-        await InitializeAsync();
     }
 
     [RelayCommand]
@@ -123,16 +120,18 @@ public partial class AppointmentViewModel : ViewModelBase
         StatusMessage = string.Empty;
     }
 
-    // Status management commands
     [RelayCommand]
     private async Task CheckInAsync()
     {
         if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
         if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be checked in."; return; }
-        
-        await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Checked-In", null));
-        StatusMessage = "Patient checked in.";
-        await InitializeAsync();
+        try
+        {
+            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Checked-In", null));
+            StatusMessage = "Patient checked in.";
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
     }
 
     [RelayCommand]
@@ -140,10 +139,13 @@ public partial class AppointmentViewModel : ViewModelBase
     {
         if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
         if (SelectedAppointment.Status != "Checked-In") { StatusMessage = "Only Checked-In appointments can be completed."; return; }
-        
-        await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Completed", null));
-        StatusMessage = "Appointment completed.";
-        await InitializeAsync();
+        try
+        {
+            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Completed", null));
+            StatusMessage = "Appointment completed.";
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
     }
 
     [RelayCommand]
@@ -151,31 +153,47 @@ public partial class AppointmentViewModel : ViewModelBase
     {
         if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
         if (SelectedAppointment.Status == "Completed") { StatusMessage = "Cannot cancel completed appointments."; return; }
-        
-        await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Cancelled", "Cancelled by user"));
-        StatusMessage = "Appointment cancelled.";
-        await InitializeAsync();
+        try
+        {
+            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Cancelled", "Cancelled by user"));
+            StatusMessage = "Appointment cancelled.";
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
     }
 
     public async Task InitializeAsync()
     {
-        var patients = await Task.Run(() => _patientRepo.GetAll());
-        var users = await Task.Run(() => _userRepo.GetAll());
-        var doctors = users.Where(u => u.Role == "Doctor").ToList();
-        var appointments = await Task.Run(() => _repo.GetAll()); // Needs to get names via join
-        
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+        try
         {
-            Patients = new ObservableCollection<Patient>(patients);
-            Doctors = new ObservableCollection<User>(doctors);
-            Appointments = new ObservableCollection<Appointment>(appointments.OrderBy(a => a.AppointmentDate).ThenBy(a => a.AppointmentTime));
-        });
+            var patients = await Task.Run(() => _patientRepo.GetAll());
+            var users = await Task.Run(() => _userRepo.GetAll());
+            var doctors = users.Where(u => u.Role == "Doctor").ToList();
+            var appointments = await Task.Run(() => _repo.GetAll());
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Patients = new ObservableCollection<Patient>(patients);
+                Doctors = new ObservableCollection<User>(doctors);
+                var sorted = new ObservableCollection<Appointment>(appointments.OrderBy(a => a.AppointmentDate).ThenBy(a => a.AppointmentTime));
+                Appointments = sorted;
+
+                TotalAppointmentsCount = Appointments.Count;
+                ScheduledCount = Appointments.Count(a => a.Status == "Scheduled");
+                CheckedInCount = Appointments.Count(a => a.Status == "Checked-In");
+                CompletedCount = Appointments.Count(a => a.Status == "Completed" && a.AppointmentDate.Date == DateTime.Today);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load data: {ex.Message}");
+        }
     }
 
     private void ClearFields()
     {
         SelectedPatient = null;
-        SelectedDoctor = Doctors.FirstOrDefault(); // default to first doc
+        SelectedDoctor = Doctors.FirstOrDefault();
         AppointmentDate = DateTimeOffset.Now;
         AppointmentTime = DateTime.Now.TimeOfDay;
         Reason = string.Empty;

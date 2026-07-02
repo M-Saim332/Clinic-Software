@@ -20,6 +20,11 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly SaleRepository       _saleRepo;
     private readonly PurchaseRepository   _purchaseRepo;
 
+    // Wired up by MainWindowViewModel so the dashboard can open the shared popup
+    public Action? RequestChangePassword { get; set; }
+
+    public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+
     public DashboardViewModel(
         PatientRepository    patientRepo,
         MedicineRepository   medicineRepo,
@@ -37,6 +42,9 @@ public partial class DashboardViewModel : ViewModelBase
         _saleRepo        = saleRepo;
         _purchaseRepo    = purchaseRepo;
     }
+
+    [RelayCommand]
+    private void OpenChangePassword() => RequestChangePassword?.Invoke();
 
     // ── Summary card counts ────────────────────────────────────────────────
     [ObservableProperty] private int _totalPatients;

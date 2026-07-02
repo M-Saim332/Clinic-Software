@@ -145,17 +145,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
 
     partial void OnSearchTermChanged(string value) => FilterMedicines();
 
-    public async Task InitializeAsync()
-    {
-        var compList = await Task.Run(() => _companyRepo.GetAll());
-        var list = await Task.Run(() => _repo.GetAll());
 
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
-            Companies = new ObservableCollection<Company>(compList);
-            Medicines = new ObservableCollection<Medicine>(list);
-            FilterMedicines();
-        });
-    }
 
     private void FilterMedicines()
     {

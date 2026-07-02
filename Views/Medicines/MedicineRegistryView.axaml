@@ -7,105 +7,170 @@
              x:DataType="vm:MedicineRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
-
-        <!-- ── Page Header ──────────────────────────────────────────────── -->
-        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
-                Padding="28,18">
-            <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushTeal50}">
-                        <PathIcon Data="{StaticResource IconMedicines}" Width="20" Height="20"
-                                  Foreground="{DynamicResource BrushTeal}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="Medicine Registry" FontSize="20" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk900}"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Track medicines, stocks, expiry dates, and pricing"
-                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+    <Grid>
+        <!-- ============================================================ -->
+        <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
+        <!-- ============================================================ -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushTeal50}">
+                            <PathIcon Data="{StaticResource IconMedicines}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushTeal}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Medicine Registry" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Track medicines, stocks, expiry dates, and pricing"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                    <!-- Primary action: + Add Medicine -->
+                    <Button Content="+ Add Medicine" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
-                <!-- Action Toolbar -->
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="Find"   Command="{Binding FindCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Button Content="List"   Command="{Binding ListCommand}"   IsEnabled="{Binding MutationEnabled}"  Classes="btn-secondary"/>
-                    <Border Width="1" Background="{DynamicResource BrushLine}" Height="22" VerticalAlignment="Center"/>
-                    <Button Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="btn-primary"/>
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="btn-ghost"/>
-                    <Border Width="1" Background="{DynamicResource BrushLine}" Height="22" VerticalAlignment="Center"/>
-                    <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}"  Classes="btn-danger"/>
-                </StackPanel>
-            </DockPanel>
-        </Border>
+            <!-- Summary Cards Row -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Medicines"
+                    Value="{Binding Medicines.Count, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="Low Stock"
+                    Value="{Binding LowStockCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Expired"
+                    Value="{Binding ExpiredCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushRose}"/>
+                <comp:SummaryCardControl Grid.Column="3"
+                    Title="Inventory Value"
+                    Value="{Binding TotalInventoryValue}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+            </Grid>
 
-        <!-- ── KPI Summary Cards ─────────────────────────────────────────── -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
-            <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
-                Title="Total Medicines"
-                Value="{Binding Medicines.Count, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushTeal}"/>
-            <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                Title="Low Stock"
-                Value="{Binding LowStockCount, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushAmber}"/>
-            <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
-                Title="Expired"
-                Value="{Binding ExpiredCount, StringFormat={}{0}}"
-                BorderColor="{DynamicResource BrushRose}"/>
-            <comp:SummaryCardControl Grid.Column="3"
-                Title="Inventory Value"
-                Value="{Binding TotalInventoryValue}"
-                BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+            <!-- Data Panel using DataTableShellControl -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="Medicine Inventory" RecordCount="{Binding FilteredMedicines.Count}">
+                    <!-- Toolbar / Search inside FilterToolbar -->
+                    <comp:DataTableShellControl.FilterToolbar>
+                        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                            <!-- Search box -->
+                            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+                                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                    CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
+                                    Height="40" MaxWidth="400" HorizontalAlignment="Left">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                                              Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
+                                             PlaceholderText="Search by name, generic, batch or company..."
+                                             Classes="search-input"
+                                             VerticalAlignment="Center" Height="38" Padding="0"/>
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                                <Button Content="Edit Details" Command="{Binding EditCommand}"
+                                        IsEnabled="{Binding SelectedMedicine, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Classes="btn-secondary"/>
+                                <Button Content="Delete" Command="{Binding DeleteCommand}"
+                                        IsEnabled="{Binding SelectedMedicine, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                        Classes="btn-danger"/>
+                            </StackPanel>
+                        </Grid>
+                    </comp:DataTableShellControl.FilterToolbar>
+
+                    <!-- Main Table -->
+                    <comp:DataTableShellControl.TableContent>
+                        <DataGrid ItemsSource="{Binding FilteredMedicines}"
+                                  SelectedItem="{Binding SelectedMedicine}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  GridLinesVisibility="Horizontal"
+                                  RowBackground="{DynamicResource BrushCardBackground}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="MEDICINE NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*"/>
+                                <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="160"/>
+                                <DataGridTextColumn Header="BATCH NO." Binding="{Binding BatchNumber}" Width="120"/>
+                                <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                                <DataGridTextColumn Header="MIN LVL" Binding="{Binding MinimumStockLevel}" Width="90"/>
+                                <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </comp:DataTableShellControl.TableContent>
+                </comp:DataTableShellControl>
+            </Grid>
         </Grid>
 
-        <!-- ── Main Content ──────────────────────────────────────────────── -->
-        <Grid Grid.Row="2" ColumnDefinitions="380,*" Margin="28,12,28,0">
-
-            <!-- LEFT: Form Card -->
-            <Border Grid.Column="0" Margin="0,0,12,0"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="{DynamicResource CornerRadiusCard}"
-                    BoxShadow="0 1 3 0 #0A000000">
-                <ScrollViewer Padding="24">
-                    <StackPanel Spacing="16">
-
-                        <TextBlock Text="MEDICINE DETAILS" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}"
-                                   LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-
-                        <!-- Name -->
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Name *" FontSize="12" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource BrushInk600}"/>
-                            <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}"
-                                     PlaceholderText="Medicine brand name"
-                                     CornerRadius="{DynamicResource CornerRadiusInput}"/>
+        <!-- ============================================================ -->
+        <!-- 2. FORM VIEW (SaveCancelEnabled is true)                       -->
+        <!-- ============================================================ -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushTeal50}">
+                            <PathIcon Data="{StaticResource IconMedicines}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushTeal}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Medicine'}" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill out the medicine details below"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
+                    </StackPanel>
+                    <!-- Back Button -->
+                    <Button Content="← Back to Registry" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
 
-                        <!-- Generic Name + Company -->
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Generic Name" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding GenericName}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="e.g. Paracetamol"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+            <!-- Scrollable Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+                    <!-- SECTION 1: Medicine Info -->
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="MEDICINE DETAILS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                            <!-- Name -->
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Medicine Name *" Classes="label"/>
+                                <TextBox Text="{Binding Name}" PlaceholderText="e.g. Amoxicillin 500mg"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Company" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
+                            <!-- Generic Name -->
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Generic Name" Classes="label"/>
+                                <TextBox Text="{Binding GenericName}" PlaceholderText="e.g. Amoxicillin Trihydrate"/>
+                            </StackPanel>
+                            <!-- Company -->
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Company" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding Companies}"
                                           SelectedItem="{Binding SelectedCompany}"
-                                          IsEnabled="{Binding SaveCancelEnabled}"
-                                          HorizontalAlignment="Stretch"
-                                          CornerRadius="{DynamicResource CornerRadiusInput}">
+                                          HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate x:DataType="models:Company">
                                             <TextBlock Text="{Binding Name}"/>
@@ -113,72 +178,53 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </StackPanel>
-                        </Grid>
-
-                        <!-- Batch + Expiry -->
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Batch Number" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding BatchNumber}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="Batch No."
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+                            <!-- Batch Number -->
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Batch Number" Classes="label"/>
+                                <TextBox Text="{Binding BatchNumber}" PlaceholderText="e.g. B-9988"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Expiry Date" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <DatePicker SelectedDate="{Binding ExpiryDate}"
-                                            IsEnabled="{Binding SaveCancelEnabled}"
-                                            HorizontalAlignment="Stretch"/>
+                            <!-- Expiry Date -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Expiry Date" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding ExpiryDate}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
+                    </StackPanel>
 
-                        <Border Height="1" Background="{DynamicResource BrushLine}" Margin="0,4"/>
-                        <TextBlock Text="PRICING &amp; STOCK" FontSize="10" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}"
-                                   LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-
-                        <!-- Purchase + Selling Price -->
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Purchase Price" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding PurchasePrice}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="0.00"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+                    <!-- SECTION 2: Pricing and Stock -->
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="PRICING &amp; INVENTORY" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                            <!-- Purchase Price -->
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Purchase Price (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Selling Price" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding SellingPrice}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="0.00"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+                            <!-- Selling Price -->
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Selling Price (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding SellingPrice}" PlaceholderText="0.00"/>
                             </StackPanel>
-                        </Grid>
-
-                        <!-- Stock + Min Level -->
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,8,0">
-                                <TextBlock Text="Current Stock" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding Stock}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="0"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+                            <!-- Current Stock -->
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Current Stock" Classes="label"/>
+                                <TextBox Text="{Binding Stock}" PlaceholderText="0"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Min Stock Level" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk600}"/>
-                                <TextBox Text="{Binding MinimumStockLevel}" IsEnabled="{Binding SaveCancelEnabled}"
-                                         PlaceholderText="10"
-                                         CornerRadius="{DynamicResource CornerRadiusInput}"/>
+                            <!-- Minimum Stock Level -->
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Minimum Stock Level" Classes="label"/>
+                                <TextBox Text="{Binding MinimumStockLevel}" PlaceholderText="10"/>
                             </StackPanel>
                         </Grid>
 
-                        <!-- Financial Snapshot Card -->
+                        <!-- Snapshot Card -->
                         <Border Background="{DynamicResource BrushBlue50}"
                                 BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                                 CornerRadius="{DynamicResource CornerRadiusInput}"
-                                Padding="16" Margin="0,8,0,0">
+                                Padding="20,16" Margin="0,8,0,0" MaxWidth="500" HorizontalAlignment="Left">
                             <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
                                 <TextBlock Grid.ColumnSpan="2" Text="Financial Snapshot"
                                            Foreground="{DynamicResource BrushInk900}"
@@ -202,134 +248,25 @@
                                            Foreground="{DynamicResource BrushInk600}" FontSize="11"/>
                             </Grid>
                         </Border>
-
                     </StackPanel>
-                </ScrollViewer>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
+                    Padding="28,16">
+                <DockPanel>
+                    <!-- Error or info messages go here -->
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Medicine" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
             </Border>
-
-            <!-- RIGHT: List / Placeholder -->
-            <Grid Grid.Column="1">
-
-                <!-- Medicine List overlay -->
-                <Border IsVisible="{Binding ShowList}"
-                        Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}"
-                        BoxShadow="0 1 3 0 #0A000000" Padding="24">
-                    <DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16"
-                                          Foreground="{DynamicResource BrushTeal}"/>
-                                <TextBlock Text="Find Medicine" FontSize="16" FontWeight="Bold"
-                                           Foreground="{DynamicResource BrushInk900}"
-                                           FontFamily="{DynamicResource FontLexend}"/>
-                            </StackPanel>
-                            <Button DockPanel.Dock="Right" Command="{Binding CloseListCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Width="32" Height="32" Padding="0" HorizontalAlignment="Right">
-                                <PathIcon Data="{StaticResource IconClose}" Width="12" Height="12"
-                                          Foreground="{DynamicResource BrushInk600}"/>
-                            </Button>
-                        </DockPanel>
-
-                        <Border DockPanel.Dock="Top"
-                                Background="{DynamicResource BrushBackground}"
-                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                                CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
-                                Margin="0,0,0,16" Height="44">
-                            <Grid ColumnDefinitions="Auto,*">
-                                <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
-                                          Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
-                                         PlaceholderText="Search by name, generic, company or batch..."
-                                         BorderThickness="0" Background="Transparent"
-                                         VerticalAlignment="Center" Height="42" Padding="0"/>
-                            </Grid>
-                        </Border>
-
-                        <Button DockPanel.Dock="Bottom" Content="Select Medicine" Margin="0,16,0,0"
-                                Command="{Binding SelectFromListCommand}"
-                                CommandParameter="{Binding SelectedMedicine}"
-                                Classes="btn-primary" HorizontalAlignment="Left"/>
-
-                        <DataGrid ItemsSource="{Binding FilteredMedicines}"
-                                  SelectedItem="{Binding SelectedMedicine}"
-                                  AutoGenerateColumns="False" IsReadOnly="True"
-                                  SelectionMode="Single"
-                                  Background="{DynamicResource BrushBackground}"
-                                  BorderThickness="0"
-                                  GridLinesVisibility="Horizontal"
-                                  RowBackground="{DynamicResource BrushCardBackground}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Name"         Binding="{Binding Name}"         Width="*"/>
-                                <DataGridTextColumn Header="Generic"      Binding="{Binding GenericName}"  Width="130"/>
-                                <DataGridTextColumn Header="Company"      Binding="{Binding CompanyName}"  Width="110"/>
-                                <DataGridTextColumn Header="Stock"        Binding="{Binding Stock}"        Width="60"/>
-                                <DataGridTextColumn Header="Status"       Binding="{Binding StockStatus}"  Width="70"/>
-                                <DataGridTextColumn Header="Purchase"     Binding="{Binding PurchasePrice, StringFormat={}{0:F2}}" Width="85"/>
-                                <DataGridTextColumn Header="Selling"      Binding="{Binding SellingPrice, StringFormat={}{0:F2}}"  Width="85"/>
-                                <DataGridTextColumn Header="Expiry"       Binding="{Binding ExpiryDate, StringFormat={}{0:yyyy-MM-dd}}" Width="100"/>
-                                <DataGridTextColumn Header="Batch"        Binding="{Binding BatchNumber}"  Width="80"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </DockPanel>
-                </Border>
-
-                <!-- Empty state placeholder -->
-                <Border IsVisible="{Binding !ShowList}"
-                        Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}"
-                        BoxShadow="0 1 3 0 #0A000000">
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-                        <Border Width="72" Height="72" CornerRadius="36" Background="{DynamicResource BrushTeal50}"
-                                HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource IconMedicines}" Width="28" Height="28"
-                                      Foreground="{DynamicResource BrushTeal}"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Medicine Registry" FontSize="20" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushInk900}"
-                                       HorizontalAlignment="Center"
-                                       FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Track medicines, stocks, expiry dates, and batch numbers."
-                                       Foreground="{DynamicResource BrushInk600}"
-                                       HorizontalAlignment="Center" TextAlignment="Center"
-                                       FontSize="13" MaxWidth="300" TextWrapping="Wrap"/>
-                        </StackPanel>
-                        <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                            <Border Margin="4" Background="{DynamicResource BrushTeal50}"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                                <TextBlock Text="New → Add medicine" FontSize="12"
-                                           Foreground="{DynamicResource BrushTeal}" FontWeight="Medium"/>
-                            </Border>
-                            <Border Margin="4" Background="{DynamicResource BrushAmber50}"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                                <TextBlock Text="Low Stock → Check alerts" FontSize="12"
-                                           Foreground="{DynamicResource BrushAmber}" FontWeight="Medium"/>
-                            </Border>
-                        </WrapPanel>
-                    </StackPanel>
-                </Border>
-            </Grid>
         </Grid>
-
-        <!-- ── Status Bar ──────────────────────────────────────────────────── -->
-        <Border Grid.Row="3" Margin="0,12,0,0"
-                Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
-                Padding="28,8">
-            <DockPanel>
-                <PathIcon Data="{StaticResource IconMedicines}" Width="12" Height="12"
-                          Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="{Binding StatusMessage}"
-                           Foreground="{DynamicResource BrushInk600}" FontSize="12"
-                           VerticalAlignment="Center"/>
-            </DockPanel>
-        </Border>
-
     </Grid>
 
     <UserControl.Styles>

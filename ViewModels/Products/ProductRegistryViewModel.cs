@@ -28,6 +28,10 @@ public partial class ProductRegistryViewModel : ViewModelBase
     [ObservableProperty]
     private Product? _selectedProduct;
 
+    // KPI
+    [ObservableProperty] private int _inStockCount;
+    [ObservableProperty] private int _lowStockCount;
+
     // Fields
     [ObservableProperty]
     private string _name = string.Empty;
@@ -40,7 +44,7 @@ public partial class ProductRegistryViewModel : ViewModelBase
     [ObservableProperty]
     private decimal _tax;
     [ObservableProperty]
-    private int _stockQuantity; // Usually read-only but shown
+    private int _stockQuantity;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -117,14 +121,23 @@ public partial class ProductRegistryViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var companies = await Task.Run(() => _companyRepo.GetAll());
-        var products = await Task.Run(() => _repo.GetAll());
-        
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+        try
         {
-            Companies = new ObservableCollection<Company>(companies);
-            Products = new ObservableCollection<Product>(products);
-        });
+            var companies = await Task.Run(() => _companyRepo.GetAll());
+            var products = await Task.Run(() => _repo.GetAll());
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Companies = new ObservableCollection<Company>(companies);
+                Products = new ObservableCollection<Product>(products);
+                InStockCount = Products.Count(p => p.StockQuantity > 10);
+                LowStockCount = Products.Count(p => p.StockQuantity <= 10 && p.StockQuantity > 0);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load products: {ex.Message}");
+        }
     }
 
     private void ClearFields()
