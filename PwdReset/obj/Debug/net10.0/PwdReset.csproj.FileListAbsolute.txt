@@ -1,0 +1,17 @@
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\PwdReset.exe
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\PwdReset.deps.json
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\PwdReset.runtimeconfig.json
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\PwdReset.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\PwdReset.pdb
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.csproj.AssemblyReference.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.AssemblyInfoInputs.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.AssemblyInfo.cs
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.csproj.CoreCompileInputs.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.csproj.Up2Date
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\refint\PwdReset.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.pdb
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\PwdReset.genruntimeconfig.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\PwdReset\obj\Debug\net10.0\ref\PwdReset.dll

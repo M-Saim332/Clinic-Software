@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Medicines"
+             x:Class="ClinicSystem.UI.Views.Medicines.MedicineRegistryView"
+             x:DataType="vm:MedicineRegistryViewModel"
+             Background="#0F1117">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <Border Grid.Row="0" Background="#1A1D27" Padding="20,14" BorderBrush="#2A2D3A" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <TextBlock Text="💊 Medicines Registry" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}" Foreground="#0097A7" VerticalAlignment="Center" FontSize="13"/>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="320,*">
+
+            <!-- Left: Form -->
+            <Border Grid.Column="0" Background="#141720" Padding="20" BorderBrush="#2A2D3A" BorderThickness="0,0,1,0">
+                <ScrollViewer>
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Actions" Foreground="#666" FontSize="11" FontWeight="SemiBold"/>
+                        <WrapPanel Margin="0,0,0,16">
+                            <Button Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}" Classes="action"/>
+                            <Button Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}" Classes="action"/>
+                            <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action danger"/>
+                            <Button Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="action primary"/>
+                            <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="action"/>
+                        </WrapPanel>
+                        <WrapPanel>
+                            <Button Content="Find" Command="{Binding FindCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action"/>
+                            <Button Content="List" Command="{Binding ListCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action"/>
+                        </WrapPanel>
+                        <Separator Background="#2A2D3A" Height="1" Margin="0,4"/>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Name *" Classes="label"/>
+                            <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Medicine name"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                <TextBlock Text="Stock (units)" Classes="label"/>
+                                <TextBox Text="{Binding Stock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Min Stock" Classes="label"/>
+                                <TextBox Text="{Binding MinStock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="10"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Expiry Date" Classes="label"/>
+                            <DatePicker SelectedDate="{Binding ExpiryDate}"
+                                        IsEnabled="{Binding SaveCancelEnabled}"
+                                        HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Price (PKR)" Classes="label"/>
+                            <TextBox Text="{Binding Price}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="0.00"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Manufacturer" Classes="label"/>
+                            <TextBox Text="{Binding Manufacturer}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Manufacturer name"/>
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Category" Classes="label"/>
+                            <TextBox Text="{Binding Category}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="e.g. Antibiotic"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Right: List / Welcome -->
+            <Border Grid.Column="1" Padding="20">
+                <Grid>
+                    <Border IsVisible="{Binding ShowList}" Background="#141720" CornerRadius="10" Padding="16">
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                                <TextBlock Text="Find Medicine" FontSize="16" FontWeight="Bold" Foreground="White"/>
+                                <Button DockPanel.Dock="Right" Content="✕ Close" Command="{Binding CloseListCommand}" Classes="action"/>
+                            </DockPanel>
+                            <TextBox DockPanel.Dock="Top" Text="{Binding SearchTerm}"
+                                     Watermark="Search by name or manufacturer..." Margin="0,0,0,10" Classes="field"/>
+                            <DataGrid ItemsSource="{Binding FilteredMedicines}"
+                                      SelectedItem="{Binding SelectedMedicine}"
+                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      Background="#141720" RowBackground="#141720"
+                                      Foreground="White" GridLinesVisibility="Horizontal"
+                                      BorderBrush="#2A2D3A" SelectionMode="Single">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Name"        Binding="{Binding Name}"         Width="*"/>
+                                    <DataGridTextColumn Header="Stock"       Binding="{Binding Stock}"        Width="60"/>
+                                    <DataGridTextColumn Header="Status"      Binding="{Binding StockStatus}"  Width="70"/>
+                                    <DataGridTextColumn Header="Expiry"      Binding="{Binding ExpiryDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="100"/>
+                                    <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="120"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <Button DockPanel.Dock="Bottom" Content="Select" Margin="0,10,0,0"
+                                    Command="{Binding SelectFromListCommand}"
+                                    CommandParameter="{Binding SelectedMedicine}"
+                                    Classes="action primary" HorizontalAlignment="Left"/>
+                        </DockPanel>
+                    </Border>
+
+                    <StackPanel IsVisible="{Binding !ShowList}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+                        <TextBlock Text="💊" FontSize="64" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Medicines Registry" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Track stock, expiry dates and pricing." Foreground="#666" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#141720" Padding="16,8" BorderBrush="#2A2D3A" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#888" FontSize="12"/>
+        </Border>
+    </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#AAA"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="TextBox.field">
+            <Setter Property="Background" Value="#252837"/>
+            <Setter Property="BorderBrush" Value="#333"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style Selector="Button.action">
+            <Setter Property="Background" Value="#252837"/>
+            <Setter Property="Foreground" Value="#DDD"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.action.primary">
+            <Setter Property="Background" Value="#0097A7"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.action.danger">
+            <Setter Property="Background" Value="#B71C1C"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

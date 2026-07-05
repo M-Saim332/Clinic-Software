@@ -1,0 +1,116 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ClinicSystem.UI.ViewModels"
+        x:Class="ClinicSystem.UI.Views.LoginWindow"
+        x:DataType="vm:LoginViewModel"
+        Title="Clinic System — Login"
+        Width="420" Height="500"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Background="#0F1117">
+
+    <Grid RowDefinitions="*,Auto,*">
+        <Border Grid.Row="1"
+                Background="#1A1D27"
+                CornerRadius="16"
+                Padding="40"
+                Margin="30,0"
+                BoxShadow="0 8 32 0 #40000000">
+            <StackPanel Spacing="20">
+
+                <!-- Logo / Title -->
+                <StackPanel HorizontalAlignment="Center" Spacing="8">
+                    <Border Width="64" Height="64" CornerRadius="32"
+                            Background="#0097A7">
+                        <TextBlock Text="🏥" FontSize="32"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="{Binding FormTitle}"
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding FormSubtitle}"
+                               FontSize="13" Foreground="#888"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Full Name (Sign Up only) -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsSignUpMode}">
+                    <TextBlock Text="Full Name" Foreground="#AAA" FontSize="12"/>
+                    <TextBox Text="{Binding FullName}"
+                             Watermark="Enter your full name"
+                             Background="#252837"
+                             BorderBrush="#333"
+                             Foreground="White"
+                             CornerRadius="8" Padding="12,10"/>
+                </StackPanel>
+
+                <!-- Username -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Username" Foreground="#AAA" FontSize="12"/>
+                    <TextBox x:Name="UsernameBox"
+                             Text="{Binding Username}"
+                             Watermark="Enter username"
+                             Background="#252837"
+                             BorderBrush="#333"
+                             Foreground="White"
+                             CornerRadius="8" Padding="12,10"/>
+                </StackPanel>
+
+                <!-- Password -->
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Password" Foreground="#AAA" FontSize="12"/>
+                    <TextBox Text="{Binding Password}"
+                             PasswordChar="●"
+                             Watermark="Enter password"
+                             Background="#252837"
+                             BorderBrush="#333"
+                             Foreground="White"
+                             CornerRadius="8" Padding="12,10"/>
+                </StackPanel>
+
+                <!-- Confirm Password (Sign Up only) -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsSignUpMode}">
+                    <TextBlock Text="Confirm Password" Foreground="#AAA" FontSize="12"/>
+                    <TextBox Text="{Binding ConfirmPassword}"
+                             PasswordChar="●"
+                             Watermark="Confirm password"
+                             Background="#252837"
+                             BorderBrush="#333"
+                             Foreground="White"
+                             CornerRadius="8" Padding="12,10"/>
+                </StackPanel>
+
+                <!-- Error -->
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#FF5252" FontSize="12"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding HasErrorMessage}"/>
+
+                <!-- Login Button -->
+                <Button Content="{Binding LoginButtonText}"
+                        Command="{Binding LoginCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Background="#0097A7"
+                        Foreground="White"
+                        FontWeight="SemiBold"
+                        FontSize="15"
+                        CornerRadius="8"
+                        Padding="0,12"
+                        IsEnabled="{Binding !IsBusy}"/>
+
+                <!-- Toggle Sign Up/Sign In -->
+                <Button Content="{Binding ToggleModeText}"
+                        Command="{Binding ToggleModeCommand}"
+                        HorizontalAlignment="Center"
+                        Background="Transparent"
+                        Foreground="#0097A7"
+                        FontSize="13"
+                        Padding="5"/>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
