@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ClinicSystem.UI.ViewModels"
+        xmlns:vp="using:ClinicSystem.UI.Views.Patients"
+        xmlns:vm2="using:ClinicSystem.UI.Views.Medicines"
+        xmlns:vpr="using:ClinicSystem.UI.Views.Prescriptions"
+        xmlns:vu="using:ClinicSystem.UI.Views.Users"
+        xmlns:vrp="using:ClinicSystem.UI.Views.Reports"
+        x:Class="ClinicSystem.UI.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Clinic Management System"
+        Width="1100" Height="720"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#0F1117">
+
+    <Window.DataTemplates>
+        <DataTemplate DataType="vm:MainWindowViewModel">
+            <ContentControl Content="{Binding CurrentPageViewModel}"/>
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <DockPanel>
+        <!-- ── Top Menu Bar ── -->
+        <Border DockPanel.Dock="Top"
+                Background="#1A1D27"
+                BorderBrush="#2A2D3A"
+                BorderThickness="0,0,0,1"
+                Padding="12,8">
+            <DockPanel>
+                <!-- Logo -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Border Width="32" Height="32" CornerRadius="8" Background="#0097A7">
+                        <TextBlock Text="🏥" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Clinic System" FontSize="16" FontWeight="Bold"
+                               Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Logged in user (right side) -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LoggedInUser}" Foreground="#AAA" FontSize="12" VerticalAlignment="Center"/>
+                    <Button Content="Logout" Command="{Binding LogoutCommand}"
+                            Background="#333" Foreground="#EEE" CornerRadius="6" Padding="10,5" FontSize="12"/>
+                </StackPanel>
+
+                <!-- Navigation Buttons -->
+                <WrapPanel VerticalAlignment="Center" Margin="20,0">
+                    <Button Content="👥 Patients"   Command="{Binding ShowPatientsCommand}"   Classes="navbtn"/>
+                    <Button Content="💊 Medicines"  Command="{Binding ShowMedicinesCommand}"  Classes="navbtn"/>
+                    <Button Content="📋 New Visit"  Command="{Binding ShowPrescriptionsCommand}" Classes="navbtn"/>
+                    <Button Content="📅 Visit History" Command="{Binding ShowVisitHistoryCommand}" Classes="navbtn"/>
+                    <Button Content="👤 Users"      Command="{Binding ShowUsersCommand}"      Classes="navbtn"/>
+                    <Button Content="📊 Reports"    Command="{Binding ShowReportsCommand}"    Classes="navbtn"/>
+                    <Button Content="💾 Backup"     Command="{Binding BackupCommand}"         Classes="navbtn"/>
+                </WrapPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ── Status Bar ── -->
+        <Border DockPanel.Dock="Bottom"
+                Background="#141720"
+                BorderBrush="#2A2D3A"
+                BorderThickness="0,1,0,0"
+                Padding="12,6">
+            <TextBlock Text="{Binding StatusText}" Foreground="#888" FontSize="12"/>
+        </Border>
+
+        <!-- ── Main Content Area ── -->
+        <ContentControl Content="{Binding CurrentPageViewModel}"
+                        Margin="0" Background="#0F1117"/>
+    </DockPanel>
+
+    <Window.Styles>
+        <Style Selector="Button.navbtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#252837"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+</Window>

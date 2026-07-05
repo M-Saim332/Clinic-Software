@@ -1,0 +1,100 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ClinicSystem.UI.ViewModels.Patients;
+using ClinicSystem.UI.ViewModels.Medicines;
+using ClinicSystem.UI.ViewModels.Prescriptions;
+using ClinicSystem.UI.ViewModels.Users;
+using ClinicSystem.UI.ViewModels.Reports;
+using ClinicSystem.Data;
+using System;
+using System.Threading.Tasks;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+
+namespace ClinicSystem.UI.ViewModels;
+
+public partial class MainWindowViewModel : ViewModelBase
+{
+    // Child ViewModels (injected via DI)
+    private readonly PatientRegistryViewModel _patientVM;
+    private readonly MedicineRegistryViewModel _medicineVM;
+    private readonly PrescriptionViewModel _prescriptionVM;
+    private readonly VisitHistoryViewModel _visitHistoryVM;
+    private readonly UserRegistryViewModel _userVM;
+    private readonly ReportsViewModel _reportsVM;
+    private readonly DatabaseSession _dbSession;
+
+    public MainWindowViewModel(
+        PatientRegistryViewModel patientVM,
+        MedicineRegistryViewModel medicineVM,
+        PrescriptionViewModel prescriptionVM,
+        VisitHistoryViewModel visitHistoryVM,
+        UserRegistryViewModel userVM,
+        ReportsViewModel reportsVM,
+        DatabaseSession dbSession)
+    {
+        _patientVM = patientVM;
+        _medicineVM = medicineVM;
+        _prescriptionVM = prescriptionVM;
+        _visitHistoryVM = visitHistoryVM;
+        _userVM = userVM;
+        _reportsVM = reportsVM;
+        _dbSession = dbSession;
+
+        // Start on patient registry
+        CurrentPageViewModel = _patientVM;
+    }
+
+    [ObservableProperty] private ViewModelBase? _currentPageViewModel;
+    [ObservableProperty] private string _statusText = string.Empty;
+
+    public string LoggedInUser => CurrentUser != null
+        ? $"{CurrentUser.DisplayName}  [{CurrentUser.Role}]"
+        : "Not logged in";
+
+    // Navigation commands
+    [RelayCommand] private void ShowPatients()    { CurrentPageViewModel = _patientVM; }
+    [RelayCommand] private void ShowMedicines()   { CurrentPageViewModel = _medicineVM; }
+    [RelayCommand] private void ShowPrescriptions() { CurrentPageViewModel = _prescriptionVM; }
+    [RelayCommand] private void ShowVisitHistory() { CurrentPageViewModel = _visitHistoryVM; }
+    [RelayCommand] private void ShowUsers()       { CurrentPageViewModel = _userVM; }
+    [RelayCommand] private void ShowReports()     { CurrentPageViewModel = _reportsVM; }
+
+    public event Action? LogoutRequested;
+    [RelayCommand] private void Logout() => LogoutRequested?.Invoke();
+
+    [RelayCommand]
+    private async Task BackupAsync()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var storage = desktop.MainWindow?.StorageProvider;
+            if (storage == null) return;
+
+            var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Backup Database",
+                SuggestedFileName = $"ClinicDB_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.bak",
+                DefaultExtension = "bak",
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("SQL Server Backup (*.bak)") { Patterns = new[] { "*.bak" } }
+                }
+            });
+
+            if (file != null)
+            {
+                StatusText = "Backing up database...";
+                try
+                {
+                    await Task.Run(() => _dbSession.Backup(file.Path.LocalPath));
+                    StatusText = "Backup completed successfully!";
+                }
+                catch (Exception ex)
+                {
+                    StatusText = $"Backup failed: {ex.Message}";
+                }
+            }
+        }
+    }
+}
