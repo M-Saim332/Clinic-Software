@@ -54,15 +54,20 @@ public partial class VisitHistoryViewModel : ViewModelBase
     partial void OnSelectedPrescriptionChanged(Prescription? value)
     {
         if (value == null) { PrescriptionItems.Clear(); return; }
-        var full = _prescRepo.GetByIdWithItems(value.PrescriptionID);
-        if (full != null)
-        {
-            PrescriptionItems = new ObservableCollection<PrescriptionItem>(full.Items);
-        }
-        else
-        {
-            PrescriptionItems.Clear();
-        }
+        // Run DB query off the UI thread to prevent freezing.
+        var prescriptionId = value.PrescriptionID;
+        Task.Run(() => _prescRepo.GetByIdWithItems(prescriptionId))
+            .ContinueWith(t =>
+            {
+                var full = t.Result;
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    if (full != null)
+                        PrescriptionItems = new ObservableCollection<PrescriptionItem>(full.Items);
+                    else
+                        PrescriptionItems.Clear();
+                });
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
     }
 
     partial void OnPatientSearchChanged(string value) => FilterPatients();

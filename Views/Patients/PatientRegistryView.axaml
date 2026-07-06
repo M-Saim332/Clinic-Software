@@ -48,12 +48,12 @@
                         <StackPanel Spacing="10">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Full Name *" Classes="label"/>
-                                <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Patient full name"/>
+                                <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Patient full name"/>
                             </StackPanel>
                             <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                                 <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
                                     <TextBlock Text="Age" Classes="label"/>
-                                    <TextBox Text="{Binding Age}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Years"/>
+                                    <TextBox Text="{Binding Age}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Years"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="4">
                                     <TextBlock Text="Gender" Classes="label"/>
@@ -65,18 +65,18 @@
                             </Grid>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Contact" Classes="label"/>
-                                <TextBox Text="{Binding Contact}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Phone number"/>
+                                <TextBox Text="{Binding Contact}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Phone number"/>
                             </StackPanel>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Address" Classes="label"/>
-                                <TextBox Text="{Binding Address}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Full address"/>
+                                <TextBox Text="{Binding Address}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Full address"/>
                             </StackPanel>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Medical History" Classes="label"/>
                                 <TextBox Text="{Binding MedicalHistory}"
                                          IsEnabled="{Binding SaveCancelEnabled}"
                                          Classes="field"
-                                         Watermark="Known conditions, allergies, notes..."
+                                         PlaceholderText="Known conditions, allergies, notes..."
                                          AcceptsReturn="True" TextWrapping="Wrap"
                                          Height="100"/>
                             </StackPanel>
@@ -97,7 +97,7 @@
                                 <Button DockPanel.Dock="Right" Content="✕ Close" Command="{Binding CloseListCommand}" Classes="action" HorizontalAlignment="Right"/>
                             </DockPanel>
                             <TextBox DockPanel.Dock="Top" Text="{Binding SearchTerm}"
-                                     Watermark="Search by name or contact..." Margin="0,0,0,10"
+                                     PlaceholderText="Search by name or contact..." Margin="0,0,0,10"
                                      Classes="field"/>
                             <DataGrid ItemsSource="{Binding FilteredPatients}"
                                       SelectedItem="{Binding SelectedPatient}"

@@ -24,9 +24,12 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         // Build configuration
+        // appsettings.local.json is gitignored and machine-specific (overrides the base file).
+        // Each developer creates their own local file with their connection string.
         var config = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
             .Build();
 
         // Build DI container
