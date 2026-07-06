@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Exclude sub-project directories from SDK default globs to prevent duplicate compilation -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ClinicSystem.Core\**;ClinicSystem.Data\**;PwdReset\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClinicSystem.Core\ClinicSystem.Core.csproj" />
-    <ProjectReference Include="..\ClinicSystem.Data\ClinicSystem.Data.csproj" />
+    <ProjectReference Include="ClinicSystem.Core\ClinicSystem.Core.csproj" />
+    <ProjectReference Include="ClinicSystem.Data\ClinicSystem.Data.csproj" />
   </ItemGroup>
 </Project>

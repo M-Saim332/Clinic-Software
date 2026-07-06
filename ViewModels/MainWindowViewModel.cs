@@ -43,6 +43,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Start on patient registry
         CurrentPageViewModel = _patientVM;
+
+        // Initialize ViewModels sequentially to prevent opening 7+ concurrent SQL connections which freezes the thread pool
+        Task.Run(async () => {
+            await _patientVM.InitializeAsync();
+            await _medicineVM.InitializeAsync();
+            await _prescriptionVM.InitializeAsync();
+            await _visitHistoryVM.LoadAllVisits();
+            await _userVM.InitializeAsync();
+        });
     }
 
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;

@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\ClinicSystem.UI.csproj": {}
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj": {}
   },
   "projects": {
     "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
@@ -704,14 +704,14 @@
         }
       }
     },
-    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\ClinicSystem.UI.csproj": {
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\ClinicSystem.UI.csproj",
+        "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
         "projectName": "ClinicSystem.UI",
-        "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\ClinicSystem.UI.csproj",
+        "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
         "packagesPath": "C:\\Users\\mssai\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\obj\\",
+        "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

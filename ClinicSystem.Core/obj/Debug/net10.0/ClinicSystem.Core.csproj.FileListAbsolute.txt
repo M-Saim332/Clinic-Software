@@ -9,3 +9,4 @@ C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net1
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\refint\ClinicSystem.Core.dll
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.pdb
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ref\ClinicSystem.Core.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.sourcelink.json

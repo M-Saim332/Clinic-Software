@@ -15,7 +15,6 @@ public partial class PatientRegistryViewModel : ViewModelBase
     public PatientRegistryViewModel(PatientRepository repo)
     {
         _repo = repo;
-        LoadPatients();
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -69,7 +68,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     {
         if (SelectedPatient == null) { StatusMessage = "Select a patient first."; return; }
         var ok = await Task.Run(() => _repo.Delete(SelectedPatient.PatientID));
-        if (ok) { StatusMessage = "Patient deleted."; LoadPatients(); SelectedPatient = null; }
+        if (ok) { StatusMessage = "Patient deleted."; _ = InitializeAsync(); SelectedPatient = null; }
         else StatusMessage = "Cannot delete — patient has existing prescriptions.";
     }
 
@@ -88,7 +87,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         StatusMessage = Mode == FormMode.Add ? "Patient added." : "Patient updated.";
         Mode = FormMode.View;
         NotifyButtonStates();
-        LoadPatients();
+        _ = InitializeAsync();
     }
 
     [RelayCommand]
@@ -125,11 +124,13 @@ public partial class PatientRegistryViewModel : ViewModelBase
     partial void OnSearchTermChanged(string value) => FilterPatients();
 
     // ── Helpers ────────────────────────────────────────────────────────────
-    private void LoadPatients()
+    public async Task InitializeAsync()
     {
-        var list = _repo.GetAll();
-        Patients = new ObservableCollection<Patient>(list);
-        FilterPatients();
+        var list = await Task.Run(() => _repo.GetAll());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            Patients = new ObservableCollection<Patient>(list);
+            FilterPatients();
+        });
     }
 
     private void FilterPatients()

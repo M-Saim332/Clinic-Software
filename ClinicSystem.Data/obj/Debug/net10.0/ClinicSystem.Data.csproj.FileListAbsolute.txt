@@ -13,3 +13,4 @@ C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Data\obj\Debug\net1
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Data\obj\Debug\net10.0\refint\ClinicSystem.Data.dll
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Data\obj\Debug\net10.0\ClinicSystem.Data.pdb
 C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Data\obj\Debug\net10.0\ref\ClinicSystem.Data.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Data\obj\Debug\net10.0\ClinicSystem.Data.sourcelink.json

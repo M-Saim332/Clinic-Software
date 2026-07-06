@@ -20,7 +20,6 @@ public partial class PrescriptionViewModel : ViewModelBase
         _prescRepo = prescRepo;
         _patientRepo = patientRepo;
         _medicineRepo = medicineRepo;
-        LoadData();
     }
 
     // ── Patient selection ─────────────────────────────────────────────────
@@ -129,16 +128,20 @@ public partial class PrescriptionViewModel : ViewModelBase
         SelectedPatient = null; VisitDate = DateTimeOffset.Now;
         Diagnosis = string.Empty; Notes = string.Empty; Items.Clear();
         StatusMessage = string.Empty;
-        LoadData();
+        _ = InitializeAsync();
     }
 
     partial void OnPatientSearchChanged(string value) => FilterPatients();
 
-    private void LoadData()
+    public async Task InitializeAsync()
     {
-        Patients = new ObservableCollection<Patient>(_patientRepo.GetAll());
-        AvailableMedicines = new ObservableCollection<Medicine>(_medicineRepo.GetPrescribable());
-        FilterPatients();
+        var patients = await Task.Run(() => _patientRepo.GetAll());
+        var medicines = await Task.Run(() => _medicineRepo.GetPrescribable());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            Patients = new ObservableCollection<Patient>(patients);
+            AvailableMedicines = new ObservableCollection<Medicine>(medicines);
+            FilterPatients();
+        });
     }
 
     private void FilterPatients()

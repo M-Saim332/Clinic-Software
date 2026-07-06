@@ -4,7 +4,7 @@
         x:Class="ClinicSystem.UI.Views.LoginWindow"
         x:DataType="vm:LoginViewModel"
         Title="Clinic System — Login"
-        Width="420" Height="500"
+        Width="420" Height="580"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         Background="#0F1117">
@@ -43,6 +43,7 @@
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
+                             CaretBrush="White"
                              CornerRadius="8" Padding="12,10"/>
                 </StackPanel>
 
@@ -55,6 +56,7 @@
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
+                             CaretBrush="White"
                              CornerRadius="8" Padding="12,10"/>
                 </StackPanel>
 
@@ -67,6 +69,7 @@
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
+                             CaretBrush="White"
                              CornerRadius="8" Padding="12,10"/>
                 </StackPanel>
 
@@ -79,6 +82,7 @@
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
+                             CaretBrush="White"
                              CornerRadius="8" Padding="12,10"/>
                 </StackPanel>
 

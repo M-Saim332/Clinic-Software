@@ -15,7 +15,6 @@ public partial class UserRegistryViewModel : ViewModelBase
     public UserRegistryViewModel(UserRepository repo)
     {
         _repo = repo;
-        LoadUsers();
     }
 
     [ObservableProperty]
@@ -59,7 +58,7 @@ public partial class UserRegistryViewModel : ViewModelBase
         if (SelectedUser == null) { StatusMessage = "Select a user first."; return; }
         if (SelectedUser.UserID == CurrentUser?.UserID) { StatusMessage = "Cannot delete your own account."; return; }
         var ok = await Task.Run(() => _repo.Delete(SelectedUser.UserID));
-        if (ok) { StatusMessage = "User deleted."; LoadUsers(); SelectedUser = null; }
+        if (ok) { StatusMessage = "User deleted."; _ = InitializeAsync(); SelectedUser = null; }
         else StatusMessage = "Cannot delete — user has existing prescriptions.";
     }
 
@@ -87,15 +86,18 @@ public partial class UserRegistryViewModel : ViewModelBase
             }
             StatusMessage = "User updated.";
         }
-        Mode = FormMode.View; NotifyButtonStates(); LoadUsers();
+        Mode = FormMode.View; NotifyButtonStates(); _ = InitializeAsync();
     }
 
     [RelayCommand]
     private void Cancel() { Mode = FormMode.View; NotifyButtonStates(); StatusMessage = string.Empty; }
 
-    private void LoadUsers()
+    public async Task InitializeAsync()
     {
-        Users = new ObservableCollection<User>(_repo.GetAll());
+        var users = await Task.Run(() => _repo.GetAll());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            Users = new ObservableCollection<User>(users);
+        });
     }
 
     private void ClearFields()
