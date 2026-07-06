@@ -44,30 +44,46 @@ public partial class MainWindowViewModel : ViewModelBase
         // Start on patient registry
         CurrentPageViewModel = _patientVM;
 
-        // Initialize ViewModels sequentially to prevent opening 7+ concurrent SQL connections which freezes the thread pool
-        Task.Run(async () => {
+        // Load sequentially to avoid overwhelming the SQL connection pool.
+        // VisitHistory is excluded from startup — it loads lazily on first tab visit.
+        IsLoading = true;
+        Task.Run(async () =>
+        {
             await _patientVM.InitializeAsync();
             await _medicineVM.InitializeAsync();
             await _prescriptionVM.InitializeAsync();
-            await _visitHistoryVM.LoadAllVisits();
             await _userVM.InitializeAsync();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsLoading = false);
         });
     }
 
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;
     [ObservableProperty] private string _statusText = string.Empty;
+    [ObservableProperty] private bool _isLoading;
+    private bool _visitHistoryLoaded;
 
     public string LoggedInUser => CurrentUser != null
         ? $"{CurrentUser.DisplayName}  [{CurrentUser.Role}]"
         : "Not logged in";
 
     // Navigation commands
-    [RelayCommand] private void ShowPatients()    { CurrentPageViewModel = _patientVM; }
-    [RelayCommand] private void ShowMedicines()   { CurrentPageViewModel = _medicineVM; }
+    [RelayCommand] private void ShowPatients()      { CurrentPageViewModel = _patientVM; }
+    [RelayCommand] private void ShowMedicines()     { CurrentPageViewModel = _medicineVM; }
     [RelayCommand] private void ShowPrescriptions() { CurrentPageViewModel = _prescriptionVM; }
-    [RelayCommand] private void ShowVisitHistory() { CurrentPageViewModel = _visitHistoryVM; }
-    [RelayCommand] private void ShowUsers()       { CurrentPageViewModel = _userVM; }
-    [RelayCommand] private void ShowReports()     { CurrentPageViewModel = _reportsVM; }
+    [RelayCommand] private void ShowUsers()         { CurrentPageViewModel = _userVM; }
+    [RelayCommand] private void ShowReports()       { CurrentPageViewModel = _reportsVM; }
+
+    [RelayCommand]
+    private void ShowVisitHistory()
+    {
+        CurrentPageViewModel = _visitHistoryVM;
+        // Lazy-load visit history only on first navigation to this tab
+        if (!_visitHistoryLoaded)
+        {
+            _visitHistoryLoaded = true;
+            _ = _visitHistoryVM.LoadAllVisits();
+        }
+    }
 
     public event Action? LogoutRequested;
     [RelayCommand] private void Logout() => LogoutRequested?.Invoke();

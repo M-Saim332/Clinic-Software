@@ -74,9 +74,16 @@ public partial class VisitHistoryViewModel : ViewModelBase
 
     private void LoadForPatient(int patientId)
     {
-        var list = _prescRepo.GetByPatient(patientId);
-        Prescriptions = new ObservableCollection<Prescription>(list);
         PrescriptionItems.Clear();
+        Task.Run(() => _prescRepo.GetByPatient(patientId))
+            .ContinueWith(t =>
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    Prescriptions = new ObservableCollection<Prescription>(t.Result);
+                    PrescriptionItems.Clear();
+                });
+            }, TaskContinuationOptions.OnlyOnRanToCompletion);
     }
 
     private void FilterPatients()
