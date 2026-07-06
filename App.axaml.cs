@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using ClinicSystem.Data;
@@ -57,44 +58,42 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Show Login window first
-            var loginVM = _services.GetRequiredService<LoginViewModel>();
-            var loginWindow = new LoginWindow { DataContext = loginVM };
-
-            loginVM.LoginSucceeded += user =>
-            {
-                var mainVM = _services.GetRequiredService<MainWindowViewModel>();
-                var mainWindow = new MainWindow { DataContext = mainVM };
-
-                mainVM.LogoutRequested += () =>
-                {
-                    ViewModelBase.CurrentUser = null;
-                    var newLogin = _services.GetRequiredService<LoginViewModel>();
-                    var newLoginWin = new LoginWindow { DataContext = newLogin };
-                    newLogin.LoginSucceeded += _ =>
-                    {
-                        // Restart main window (simple approach)
-                        desktop.MainWindow = new MainWindow
-                        {
-                            DataContext = _services.GetRequiredService<MainWindowViewModel>()
-                        };
-                        newLoginWin.Close();
-                        desktop.MainWindow.Show();
-                    };
-                    desktop.MainWindow = newLoginWin;
-                    mainWindow.Close();
-                    newLoginWin.Show();
-                };
-
-                desktop.MainWindow = mainWindow;
-                loginWindow.Close();
-                mainWindow.Show();
-            };
-
-            desktop.MainWindow = loginWindow;
-            loginWindow.Show();
+            ShowLoginWindow(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void ShowLoginWindow(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        if (_services is null) return;
+
+        var previousWindow = desktop.MainWindow;
+        var loginVM = _services.GetRequiredService<LoginViewModel>();
+        var loginWindow = new LoginWindow { DataContext = loginVM };
+
+        loginVM.LoginSucceeded += _ => ShowMainWindow(desktop, loginWindow);
+
+        desktop.MainWindow = loginWindow;
+        loginWindow.Show();
+        previousWindow?.Close();
+    }
+
+    private void ShowMainWindow(IClassicDesktopStyleApplicationLifetime desktop, Window? previousWindow)
+    {
+        if (_services is null) return;
+
+        var mainVM = _services.GetRequiredService<MainWindowViewModel>();
+        var mainWindow = new MainWindow { DataContext = mainVM };
+
+        mainVM.LogoutRequested += () =>
+        {
+            ViewModelBase.CurrentUser = null;
+            ShowLoginWindow(desktop);
+        };
+
+        desktop.MainWindow = mainWindow;
+        mainWindow.Show();
+        previousWindow?.Close();
     }
 }

@@ -53,15 +53,53 @@ IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Medicines' AND xtype='U')
 CREATE TABLE Medicines (
     MedicineID   INT IDENTITY(1,1) PRIMARY KEY,
     Name         VARCHAR(150) NOT NULL,
+    Formula      VARCHAR(150),
     Stock        INT          NOT NULL DEFAULT 0,
     MinStock     INT          NOT NULL DEFAULT 10,   -- threshold for low-stock alert
     ExpiryDate   DATE,
     Price        DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    BuyingPrice  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    SellingPrice DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     Manufacturer VARCHAR(150),
+    Company      VARCHAR(150),
+    SupplierName VARCHAR(150),
     Category     VARCHAR(100),
+    BuyingDate   DATE,
+    UnitsBought  INT NOT NULL DEFAULT 0,
+    StockType    VARCHAR(20) NOT NULL DEFAULT 'Bought' CHECK (StockType IN ('Bought', 'Sample')),
     CreatedAt    DATETIME NOT NULL DEFAULT GETDATE(),
     UpdatedAt    DATETIME NOT NULL DEFAULT GETDATE()
 );
+GO
+
+IF COL_LENGTH('Medicines', 'Formula') IS NULL
+    ALTER TABLE Medicines ADD Formula VARCHAR(150) NULL;
+GO
+IF COL_LENGTH('Medicines', 'BuyingPrice') IS NULL
+    ALTER TABLE Medicines ADD BuyingPrice DECIMAL(10,2) NOT NULL CONSTRAINT DF_Medicines_BuyingPrice DEFAULT 0.00;
+GO
+IF COL_LENGTH('Medicines', 'SellingPrice') IS NULL
+    ALTER TABLE Medicines ADD SellingPrice DECIMAL(10,2) NOT NULL CONSTRAINT DF_Medicines_SellingPrice DEFAULT 0.00;
+GO
+IF COL_LENGTH('Medicines', 'Company') IS NULL
+    ALTER TABLE Medicines ADD Company VARCHAR(150) NULL;
+GO
+IF COL_LENGTH('Medicines', 'SupplierName') IS NULL
+    ALTER TABLE Medicines ADD SupplierName VARCHAR(150) NULL;
+GO
+IF COL_LENGTH('Medicines', 'BuyingDate') IS NULL
+    ALTER TABLE Medicines ADD BuyingDate DATE NULL;
+GO
+IF COL_LENGTH('Medicines', 'UnitsBought') IS NULL
+    ALTER TABLE Medicines ADD UnitsBought INT NOT NULL CONSTRAINT DF_Medicines_UnitsBought DEFAULT 0;
+GO
+IF COL_LENGTH('Medicines', 'StockType') IS NULL
+    ALTER TABLE Medicines ADD StockType VARCHAR(20) NOT NULL CONSTRAINT DF_Medicines_StockType DEFAULT 'Bought';
+GO
+UPDATE Medicines
+SET SellingPrice = CASE WHEN SellingPrice = 0 THEN Price ELSE SellingPrice END,
+    UnitsBought = CASE WHEN UnitsBought = 0 THEN Stock ELSE UnitsBought END
+WHERE SellingPrice = 0 OR UnitsBought = 0;
 GO
 
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Prescriptions' AND xtype='U')

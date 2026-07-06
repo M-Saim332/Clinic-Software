@@ -4,19 +4,24 @@
         x:Class="ClinicSystem.UI.Views.LoginWindow"
         x:DataType="vm:LoginViewModel"
         Title="Clinic System — Login"
-        Width="420" Height="580"
+        Width="420" Height="620"
+        MinWidth="340" MinHeight="520"
         WindowStartupLocation="CenterScreen"
-        CanResize="False"
+        CanResize="True"
         Background="#0F1117">
 
-    <Grid RowDefinitions="*,Auto,*">
-        <Border Grid.Row="1"
-                Background="#1A1D27"
-                CornerRadius="16"
-                Padding="40"
-                Margin="30,0"
-                BoxShadow="0 8 32 0 #40000000">
-            <StackPanel Spacing="20">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <Grid MinHeight="520" RowDefinitions="*,Auto,*">
+            <Border Grid.Row="1"
+                    Background="#1A1D27"
+                    CornerRadius="12"
+                    Padding="28"
+                    Margin="20"
+                    MaxWidth="420"
+                    HorizontalAlignment="Center"
+                    BoxShadow="0 8 32 0 #40000000">
+                <StackPanel Spacing="16">
 
                 <!-- Logo / Title -->
                 <StackPanel HorizontalAlignment="Center" Spacing="8">
@@ -63,27 +68,123 @@
                 <!-- Password -->
                 <StackPanel Spacing="6">
                     <TextBlock Text="Password" Foreground="#AAA" FontSize="12"/>
-                    <TextBox Text="{Binding Password}"
-                             PasswordChar="●"
-                             PlaceholderText="Enter password"
-                             Background="#252837"
-                             BorderBrush="#333"
-                             Foreground="White"
-                             CaretBrush="White"
-                             CornerRadius="8" Padding="12,10"/>
+                    <Grid>
+                        <TextBox Text="{Binding Password}"
+                                 PasswordChar="•"
+                                 IsVisible="{Binding !IsPasswordVisible}"
+                                 PlaceholderText="Enter password"
+                                 Background="#252837"
+                                 BorderBrush="#333"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 CornerRadius="8" Padding="12,10,46,10"/>
+                        <TextBox Text="{Binding Password}"
+                                 IsVisible="{Binding IsPasswordVisible}"
+                                 PlaceholderText="Enter password"
+                                 Background="#252837"
+                                 BorderBrush="#333"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 CornerRadius="8" Padding="12,10,46,10"/>
+                        <Button Command="{Binding TogglePasswordVisibilityCommand}"
+                                Width="34" Height="34"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                ToolTip.Tip="Show or hide password">
+                            <Grid Width="18" Height="18">
+                                <Viewbox IsVisible="{Binding !IsPasswordVisible}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Ellipse Width="6" Height="6" Canvas.Left="9" Canvas.Top="9"
+                                                 Stroke="#B8C0CC" StrokeThickness="2"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <Viewbox IsVisible="{Binding IsPasswordVisible}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M14.084 14.158a3 3 0 0 1-4.242-4.242"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M2 2L22 22"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                    </Canvas>
+                                </Viewbox>
+                            </Grid>
+                        </Button>
+                    </Grid>
                 </StackPanel>
 
                 <!-- Confirm Password (Sign Up only) -->
                 <StackPanel Spacing="6" IsVisible="{Binding IsSignUpMode}">
                     <TextBlock Text="Confirm Password" Foreground="#AAA" FontSize="12"/>
-                    <TextBox Text="{Binding ConfirmPassword}"
-                             PasswordChar="●"
-                             PlaceholderText="Confirm password"
-                             Background="#252837"
-                             BorderBrush="#333"
-                             Foreground="White"
-                             CaretBrush="White"
-                             CornerRadius="8" Padding="12,10"/>
+                    <Grid>
+                        <TextBox Text="{Binding ConfirmPassword}"
+                                 PasswordChar="•"
+                                 IsVisible="{Binding !IsConfirmPasswordVisible}"
+                                 PlaceholderText="Confirm password"
+                                 Background="#252837"
+                                 BorderBrush="#333"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 CornerRadius="8" Padding="12,10,46,10"/>
+                        <TextBox Text="{Binding ConfirmPassword}"
+                                 IsVisible="{Binding IsConfirmPasswordVisible}"
+                                 PlaceholderText="Confirm password"
+                                 Background="#252837"
+                                 BorderBrush="#333"
+                                 Foreground="White"
+                                 CaretBrush="White"
+                                 CornerRadius="8" Padding="12,10,46,10"/>
+                        <Button Command="{Binding ToggleConfirmPasswordVisibilityCommand}"
+                                Width="34" Height="34"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                ToolTip.Tip="Show or hide password">
+                            <Grid Width="18" Height="18">
+                                <Viewbox IsVisible="{Binding !IsConfirmPasswordVisible}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Ellipse Width="6" Height="6" Canvas.Left="9" Canvas.Top="9"
+                                                 Stroke="#B8C0CC" StrokeThickness="2"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <Viewbox IsVisible="{Binding IsConfirmPasswordVisible}">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M14.084 14.158a3 3 0 0 1-4.242-4.242"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                        <Path Data="M2 2L22 22"
+                                              Stroke="#B8C0CC" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round"/>
+                                    </Canvas>
+                                </Viewbox>
+                            </Grid>
+                        </Button>
+                    </Grid>
                 </StackPanel>
 
                 <!-- Error -->
@@ -114,7 +215,8 @@
                         FontSize="13"
                         Padding="5"/>
 
-            </StackPanel>
-        </Border>
-    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </Window>
