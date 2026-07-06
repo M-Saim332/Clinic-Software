@@ -65,7 +65,7 @@ public class PrescriptionRepository
     public int Insert(Prescription prescription)
     {
         using var conn = _session.CreateConnection();
-        conn.Open();
+        // Note: conn is already open — CreateConnection() opens it.
         using var tx = conn.BeginTransaction();
         try
         {

@@ -39,7 +39,7 @@
                 <StackPanel Spacing="6" IsVisible="{Binding IsSignUpMode}">
                     <TextBlock Text="Full Name" Foreground="#AAA" FontSize="12"/>
                     <TextBox Text="{Binding FullName}"
-                             Watermark="Enter your full name"
+                             PlaceholderText="Enter your full name"
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
@@ -52,7 +52,7 @@
                     <TextBlock Text="Username" Foreground="#AAA" FontSize="12"/>
                     <TextBox x:Name="UsernameBox"
                              Text="{Binding Username}"
-                             Watermark="Enter username"
+                             PlaceholderText="Enter username"
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
@@ -65,7 +65,7 @@
                     <TextBlock Text="Password" Foreground="#AAA" FontSize="12"/>
                     <TextBox Text="{Binding Password}"
                              PasswordChar="●"
-                             Watermark="Enter password"
+                             PlaceholderText="Enter password"
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"
@@ -78,7 +78,7 @@
                     <TextBlock Text="Confirm Password" Foreground="#AAA" FontSize="12"/>
                     <TextBox Text="{Binding ConfirmPassword}"
                              PasswordChar="●"
-                             Watermark="Confirm password"
+                             PlaceholderText="Confirm password"
                              Background="#252837"
                              BorderBrush="#333"
                              Foreground="White"

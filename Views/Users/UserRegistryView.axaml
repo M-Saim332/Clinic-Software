@@ -29,11 +29,11 @@
 
                     <StackPanel Spacing="4">
                         <TextBlock Text="Username *" Classes="label"/>
-                        <TextBox Text="{Binding Username}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Login username"/>
+                        <TextBox Text="{Binding Username}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Login username"/>
                     </StackPanel>
                     <StackPanel Spacing="4">
                         <TextBlock Text="Full Name" Classes="label"/>
-                        <TextBox Text="{Binding FullName}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Display name"/>
+                        <TextBox Text="{Binding FullName}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Display name"/>
                     </StackPanel>
                     <StackPanel Spacing="4">
                         <TextBlock Text="Role" Classes="label"/>
@@ -46,12 +46,12 @@
                         <TextBlock Text="Password" Classes="label"/>
                         <TextBox Text="{Binding Password}" IsEnabled="{Binding SaveCancelEnabled}"
                                  PasswordChar="●" Classes="field"
-                                 Watermark="{Binding PasswordWatermark}"/>
+                                 PlaceholderText="{Binding PasswordWatermark}"/>
                     </StackPanel>
                     <StackPanel Spacing="4">
                         <TextBlock Text="Confirm Password" Classes="label"/>
                         <TextBox Text="{Binding ConfirmPassword}" IsEnabled="{Binding SaveCancelEnabled}"
-                                 PasswordChar="●" Classes="field" Watermark="Re-enter password"/>
+                                 PasswordChar="●" Classes="field" PlaceholderText="Re-enter password"/>
                     </StackPanel>
                     <CheckBox Content="Active" IsChecked="{Binding IsActive}" IsEnabled="{Binding SaveCancelEnabled}" Foreground="White"/>
                 </StackPanel>

@@ -80,7 +80,7 @@
                             <TextBlock Text="Filter by Patient" FontSize="18" FontWeight="Bold" Foreground="White"/>
                             <Button DockPanel.Dock="Right" Content="✕" Command="{Binding ClosePatientListCommand}" Background="Transparent" Foreground="#888" FontSize="16"/>
                         </DockPanel>
-                        <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}" Watermark="Search..." Margin="0,0,0,10"
+                        <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}" PlaceholderText="Search..." Margin="0,0,0,10"
                                  Background="#252837" BorderBrush="#333" Foreground="White" CornerRadius="6" Padding="10,8"/>
                         <DataGrid ItemsSource="{Binding FilteredPatients}"
                                   AutoGenerateColumns="False" IsReadOnly="True"

@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Patients;
 
-public enum FormMode { View, Add, Edit }
 
 public partial class PatientRegistryViewModel : ViewModelBase
 {

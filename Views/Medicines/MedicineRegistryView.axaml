@@ -36,16 +36,16 @@
 
                         <StackPanel Spacing="4">
                             <TextBlock Text="Name *" Classes="label"/>
-                            <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Medicine name"/>
+                            <TextBox Text="{Binding Name}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Medicine name"/>
                         </StackPanel>
                         <Grid ColumnDefinitions="*,*">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
                                 <TextBlock Text="Stock (units)" Classes="label"/>
-                                <TextBox Text="{Binding Stock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="0"/>
+                                <TextBox Text="{Binding Stock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4">
                                 <TextBlock Text="Min Stock" Classes="label"/>
-                                <TextBox Text="{Binding MinStock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="10"/>
+                                <TextBox Text="{Binding MinStock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="10"/>
                             </StackPanel>
                         </Grid>
                         <StackPanel Spacing="4">
@@ -56,15 +56,15 @@
                         </StackPanel>
                         <StackPanel Spacing="4">
                             <TextBlock Text="Price (PKR)" Classes="label"/>
-                            <TextBox Text="{Binding Price}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="0.00"/>
+                            <TextBox Text="{Binding Price}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
                             <TextBlock Text="Manufacturer" Classes="label"/>
-                            <TextBox Text="{Binding Manufacturer}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="Manufacturer name"/>
+                            <TextBox Text="{Binding Manufacturer}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Manufacturer name"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
                             <TextBlock Text="Category" Classes="label"/>
-                            <TextBox Text="{Binding Category}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" Watermark="e.g. Antibiotic"/>
+                            <TextBox Text="{Binding Category}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="e.g. Antibiotic"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
@@ -80,7 +80,7 @@
                                 <Button DockPanel.Dock="Right" Content="✕ Close" Command="{Binding CloseListCommand}" Classes="action"/>
                             </DockPanel>
                             <TextBox DockPanel.Dock="Top" Text="{Binding SearchTerm}"
-                                     Watermark="Search by name or manufacturer..." Margin="0,0,0,10" Classes="field"/>
+                                     PlaceholderText="Search by name or manufacturer..." Margin="0,0,0,10" Classes="field"/>
                             <DataGrid ItemsSource="{Binding FilteredMedicines}"
                                       SelectedItem="{Binding SelectedMedicine}"
                                       AutoGenerateColumns="False" IsReadOnly="True"

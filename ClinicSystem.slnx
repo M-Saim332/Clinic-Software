@@ -1,2 +1,6 @@
 <Solution>
+  <Project Path="ClinicSystem.UI.csproj" />
+  <Project Path="ClinicSystem.Core\ClinicSystem.Core.csproj" />
+  <Project Path="ClinicSystem.Data\ClinicSystem.Data.csproj" />
+  <Project Path="PwdReset\PwdReset.csproj" />
 </Solution>
