@@ -18,6 +18,8 @@ public partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private string _password = string.Empty;
     [ObservableProperty] private string _confirmPassword = string.Empty;
     [ObservableProperty] private string _fullName = string.Empty;
+    [ObservableProperty] private bool _isPasswordVisible;
+    [ObservableProperty] private bool _isConfirmPasswordVisible;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LoginButtonText))]
@@ -48,6 +50,18 @@ public partial class LoginViewModel : ViewModelBase
     {
         IsSignUpMode = !IsSignUpMode;
         ErrorMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+
+    [RelayCommand]
+    private void ToggleConfirmPasswordVisibility()
+    {
+        IsConfirmPasswordVisible = !IsConfirmPasswordVisible;
     }
 
     [RelayCommand]

@@ -9,12 +9,12 @@
 
         <Border Grid.Row="0" Background="#1A1D27" Padding="20,14" BorderBrush="#2A2D3A" BorderThickness="0,0,0,1">
             <DockPanel>
-                <TextBlock Text="💊 Medicines Registry" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock Text="💊 Pharmacy" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                 <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}" Foreground="#0097A7" VerticalAlignment="Center" FontSize="13"/>
             </DockPanel>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="320,*">
+        <Grid Grid.Row="1" ColumnDefinitions="380,*">
 
             <!-- Left: Form -->
             <Border Grid.Column="0" Background="#141720" Padding="20" BorderBrush="#2A2D3A" BorderThickness="0,0,1,0">
@@ -24,6 +24,7 @@
                         <WrapPanel Margin="0,0,0,16">
                             <Button Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}" Classes="action"/>
                             <Button Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}" Classes="action"/>
+                            <Button Content="+ Stock" Command="{Binding OpenAddStockCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action primary"/>
                             <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action danger"/>
                             <Button Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="action primary"/>
                             <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="action"/>
@@ -40,12 +41,45 @@
                         </StackPanel>
                         <Grid ColumnDefinitions="*,*">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
-                                <TextBlock Text="Stock (units)" Classes="label"/>
+                                <TextBlock Text="Formula" Classes="label"/>
+                                <TextBox Text="{Binding Formula}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="e.g. Paracetamol"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Company" Classes="label"/>
+                                <TextBox Text="{Binding Company}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Company name"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                <TextBlock Text="Current Stock" Classes="label"/>
                                 <TextBox Text="{Binding Stock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4">
-                                <TextBlock Text="Min Stock" Classes="label"/>
-                                <TextBox Text="{Binding MinStock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="10"/>
+                                <TextBlock Text="Units Bought" Classes="label"/>
+                                <TextBox Text="{Binding UnitsBought}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                <TextBlock Text="Buying Price" Classes="label"/>
+                                <TextBox Text="{Binding BuyingPrice}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Selling Price" Classes="label"/>
+                                <TextBox Text="{Binding SellingPrice}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                <TextBlock Text="Buying Date" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding BuyingDate}" IsEnabled="{Binding SaveCancelEnabled}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Type" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding StockTypeOptions}"
+                                          SelectedItem="{Binding StockType}"
+                                          IsEnabled="{Binding SaveCancelEnabled}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
                         <StackPanel Spacing="4">
@@ -54,18 +88,72 @@
                                         IsEnabled="{Binding SaveCancelEnabled}"
                                         HorizontalAlignment="Stretch"/>
                         </StackPanel>
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Price (PKR)" Classes="label"/>
-                            <TextBox Text="{Binding Price}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
-                        </StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                <TextBlock Text="Min Stock" Classes="label"/>
+                                <TextBox Text="{Binding MinStock}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="10"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <TextBlock Text="Category" Classes="label"/>
+                                <TextBox Text="{Binding Category}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="e.g. Antibiotic"/>
+                            </StackPanel>
+                        </Grid>
                         <StackPanel Spacing="4">
                             <TextBlock Text="Manufacturer" Classes="label"/>
                             <TextBox Text="{Binding Manufacturer}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Manufacturer name"/>
                         </StackPanel>
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Category" Classes="label"/>
-                            <TextBox Text="{Binding Category}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="e.g. Antibiotic"/>
+                            <TextBlock Text="Supplier (optional)" Classes="label"/>
+                            <TextBox Text="{Binding SupplierName}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Supplier name"/>
                         </StackPanel>
+
+                        <Border Background="#1A1D27" BorderBrush="#2A2D3A" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,6,0,0">
+                            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
+                                <TextBlock Grid.ColumnSpan="2" Text="Financial Snapshot" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding ProfitPerUnitText}" Classes="metricValue"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding EstimatedProfitText}" Classes="metricValue"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Profit / unit" Classes="metricLabel"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="Estimated profit" Classes="metricLabel"/>
+                            </Grid>
+                        </Border>
+
+                        <Border IsVisible="{Binding ShowAddStockPanel}" Background="#101A1D" BorderBrush="#0097A7" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Add Stock" Foreground="White" FontWeight="SemiBold"/>
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                        <TextBlock Text="Quantity" Classes="label"/>
+                                        <TextBox Text="{Binding AddStockQuantity}" Classes="field" PlaceholderText="1"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="Type" Classes="label"/>
+                                        <ComboBox ItemsSource="{Binding StockTypeOptions}" SelectedItem="{Binding AddStockType}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                        <TextBlock Text="Buying Price" Classes="label"/>
+                                        <TextBox Text="{Binding AddStockBuyingPrice}" Classes="field" PlaceholderText="0.00"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="4">
+                                        <TextBlock Text="Selling Price" Classes="label"/>
+                                        <TextBox Text="{Binding AddStockSellingPrice}" Classes="field" PlaceholderText="0.00"/>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Buying Date" Classes="label"/>
+                                    <DatePicker SelectedDate="{Binding AddStockBuyingDate}"/>
+                                </StackPanel>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Supplier (optional)" Classes="label"/>
+                                    <TextBox Text="{Binding AddStockSupplierName}" Classes="field" PlaceholderText="Supplier name"/>
+                                </StackPanel>
+                                <WrapPanel>
+                                    <Button Content="Add Stock" Command="{Binding SaveAddedStockCommand}" Classes="action primary"/>
+                                    <Button Content="Cancel" Command="{Binding CancelAddStockCommand}" Classes="action"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
@@ -80,7 +168,7 @@
                                 <Button DockPanel.Dock="Right" Content="✕ Close" Command="{Binding CloseListCommand}" Classes="action"/>
                             </DockPanel>
                             <TextBox DockPanel.Dock="Top" Text="{Binding SearchTerm}"
-                                     PlaceholderText="Search by name or manufacturer..." Margin="0,0,0,10" Classes="field"/>
+                                     PlaceholderText="Search by name, formula, company or supplier..." Margin="0,0,0,10" Classes="field"/>
                             <DataGrid ItemsSource="{Binding FilteredMedicines}"
                                       SelectedItem="{Binding SelectedMedicine}"
                                       AutoGenerateColumns="False" IsReadOnly="True"
@@ -89,10 +177,18 @@
                                       BorderBrush="#2A2D3A" SelectionMode="Single">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Name"        Binding="{Binding Name}"         Width="*"/>
+                                    <DataGridTextColumn Header="Formula"     Binding="{Binding Formula}"      Width="130"/>
+                                    <DataGridTextColumn Header="Company"     Binding="{Binding Company}"      Width="120"/>
                                     <DataGridTextColumn Header="Stock"       Binding="{Binding Stock}"        Width="60"/>
+                                    <DataGridTextColumn Header="Bought"      Binding="{Binding UnitsBought}"  Width="70"/>
+                                    <DataGridTextColumn Header="Type"        Binding="{Binding StockType}"    Width="70"/>
                                     <DataGridTextColumn Header="Status"      Binding="{Binding StockStatus}"  Width="70"/>
+                                    <DataGridTextColumn Header="Buy"         Binding="{Binding BuyingPrice, StringFormat=\{0:F2\}}" Width="70"/>
+                                    <DataGridTextColumn Header="Sell"        Binding="{Binding SellingPrice, StringFormat=\{0:F2\}}" Width="70"/>
+                                    <DataGridTextColumn Header="Profit"      Binding="{Binding Profit, StringFormat=\{0:F2\}}" Width="80"/>
+                                    <DataGridTextColumn Header="Revenue"     Binding="{Binding Revenue, StringFormat=\{0:F2\}}" Width="85"/>
                                     <DataGridTextColumn Header="Expiry"      Binding="{Binding ExpiryDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="100"/>
-                                    <DataGridTextColumn Header="Manufacturer" Binding="{Binding Manufacturer}" Width="120"/>
+                                    <DataGridTextColumn Header="Supplier"    Binding="{Binding SupplierName}" Width="120"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                             <Button DockPanel.Dock="Bottom" Content="Select" Margin="0,10,0,0"
@@ -104,8 +200,8 @@
 
                     <StackPanel IsVisible="{Binding !ShowList}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
                         <TextBlock Text="💊" FontSize="64" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Medicines Registry" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Track stock, expiry dates and pricing." Foreground="#666" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Pharmacy Module" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Track purchases, stock, sales, revenue and profit." Foreground="#666" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -127,6 +223,15 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="10,8"/>
+        </Style>
+        <Style Selector="TextBlock.metricValue">
+            <Setter Property="Foreground" Value="#0097A7"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="TextBlock.metricLabel">
+            <Setter Property="Foreground" Value="#888"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
         <Style Selector="Button.action">
             <Setter Property="Background" Value="#252837"/>

@@ -49,11 +49,22 @@ public partial class MainWindowViewModel : ViewModelBase
         IsLoading = true;
         Task.Run(async () =>
         {
-            await _patientVM.InitializeAsync();
-            await _medicineVM.InitializeAsync();
-            await _prescriptionVM.InitializeAsync();
-            await _userVM.InitializeAsync();
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsLoading = false);
+            try
+            {
+                await _patientVM.InitializeAsync();
+                await _medicineVM.InitializeAsync();
+                await _prescriptionVM.InitializeAsync();
+                await _userVM.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    StatusText = $"Startup load failed: {ex.Message}");
+            }
+            finally
+            {
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => IsLoading = false);
+            }
         });
     }
 

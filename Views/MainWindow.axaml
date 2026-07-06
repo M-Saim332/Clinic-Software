@@ -47,7 +47,7 @@
                 <!-- Navigation Buttons -->
                 <WrapPanel VerticalAlignment="Center" Margin="20,0">
                     <Button Content="👥 Patients"   Command="{Binding ShowPatientsCommand}"   Classes="navbtn"/>
-                    <Button Content="💊 Medicines"  Command="{Binding ShowMedicinesCommand}"  Classes="navbtn"/>
+                    <Button Content="💊 Pharmacy"  Command="{Binding ShowMedicinesCommand}"  Classes="navbtn"/>
                     <Button Content="📋 New Visit"  Command="{Binding ShowPrescriptionsCommand}" Classes="navbtn"/>
                     <Button Content="📅 Visit History" Command="{Binding ShowVisitHistoryCommand}" Classes="navbtn"/>
                     <Button Content="👤 Users"      Command="{Binding ShowUsersCommand}"      Classes="navbtn"/>
