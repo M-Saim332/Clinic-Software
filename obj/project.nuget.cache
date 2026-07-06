@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qeDLq533jcg=",
+  "dgSpecHash": "jOrWUk3Vlt8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI\\ClinicSystem.UI.csproj",
+  "projectFilePath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\mssai\\.nuget\\packages\\avalonia\\12.0.5\\avalonia.12.0.5.nupkg.sha512",
     "C:\\Users\\mssai\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.27548.20260419\\avalonia.angle.windows.natives.2.1.27548.20260419.nupkg.sha512",

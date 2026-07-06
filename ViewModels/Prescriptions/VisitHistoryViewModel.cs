@@ -15,7 +15,6 @@ public partial class VisitHistoryViewModel : ViewModelBase
     {
         _prescRepo = prescRepo;
         _patientRepo = patientRepo;
-        LoadAllVisits();
     }
 
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
@@ -40,13 +39,16 @@ public partial class VisitHistoryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void LoadAllVisits()
+    public async Task LoadAllVisits()
     {
         SelectedPatient = null;
-        var all = _prescRepo.GetAll();
-        Prescriptions = new ObservableCollection<Prescription>(all);
-        Patients = new ObservableCollection<Patient>(_patientRepo.GetAll());
-        FilterPatients();
+        var all = await Task.Run(() => _prescRepo.GetAll());
+        var pats = await Task.Run(() => _patientRepo.GetAll());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            Prescriptions = new ObservableCollection<Prescription>(all);
+            Patients = new ObservableCollection<Patient>(pats);
+            FilterPatients();
+        });
     }
 
     partial void OnSelectedPrescriptionChanged(Prescription? value)

@@ -15,7 +15,6 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     public MedicineRegistryViewModel(MedicineRepository repo)
     {
         _repo = repo;
-        LoadMedicines();
     }
 
     [ObservableProperty] private FormMode _mode = FormMode.View;
@@ -54,7 +53,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     {
         if (SelectedMedicine == null) { StatusMessage = "Select a medicine first."; return; }
         var ok = await Task.Run(() => _repo.Delete(SelectedMedicine.MedicineID));
-        if (ok) { StatusMessage = "Medicine deleted."; LoadMedicines(); SelectedMedicine = null; }
+        if (ok) { StatusMessage = "Medicine deleted."; _ = InitializeAsync(); SelectedMedicine = null; }
         else StatusMessage = "Cannot delete — medicine used in prescriptions.";
     }
 
@@ -69,7 +68,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
             else { m.MedicineID = SelectedMedicine!.MedicineID; _repo.Update(m); }
         });
         StatusMessage = Mode == FormMode.Add ? "Medicine added." : "Medicine updated.";
-        Mode = FormMode.View; NotifyButtonStates(); LoadMedicines();
+        Mode = FormMode.View; NotifyButtonStates(); _ = InitializeAsync();
     }
 
     [RelayCommand]
@@ -88,11 +87,13 @@ public partial class MedicineRegistryViewModel : ViewModelBase
 
     partial void OnSearchTermChanged(string value) => FilterMedicines();
 
-    private void LoadMedicines()
+    public async Task InitializeAsync()
     {
-        var list = _repo.GetAll();
-        Medicines = new ObservableCollection<Medicine>(list);
-        FilterMedicines();
+        var list = await Task.Run(() => _repo.GetAll());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
+            Medicines = new ObservableCollection<Medicine>(list);
+            FilterMedicines();
+        });
     }
 
     private void FilterMedicines()
