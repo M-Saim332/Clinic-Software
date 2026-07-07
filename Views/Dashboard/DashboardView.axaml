@@ -3,127 +3,136 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
              x:Class="ClinicSystem.UI.Views.Dashboard.DashboardView"
              x:DataType="vm:DashboardViewModel"
-             Background="#F5F7FA">
+             Background="#F8FAFC">
 
     <ScrollViewer>
-        <StackPanel Margin="20" Spacing="20">
+        <StackPanel Margin="24" Spacing="24">
             <!-- Summary Cards Row -->
-            <Grid ColumnDefinitions="*,*,*,*,*,*" Margin="0,0,0,10">
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*">
                 <!-- Patients -->
-                <Border Grid.Column="0" Classes="statCard" Background="#E0F2FE">
+                <Border Grid.Row="0" Grid.Column="0" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#3B82F6">
-                            <TextBlock Text="👥" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#EFF6FF">
+                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Patients" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalPatients}" Classes="statValue" Foreground="#1E3A8A" />
+                            <TextBlock Text="{Binding TotalPatients}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
                 <!-- Companies -->
-                <Border Grid.Column="1" Classes="statCard" Background="#DCFCE7">
+                <Border Grid.Row="0" Grid.Column="1" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#22C55E">
-                            <TextBlock Text="🏢" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#F0FDF4">
+                            <PathIcon Data="{StaticResource IconCompanies}" Width="20" Height="20" Foreground="#16A34A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Companies" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalCompanies}" Classes="statValue" Foreground="#14532D" />
+                            <TextBlock Text="{Binding TotalCompanies}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
                 <!-- Products -->
-                <Border Grid.Column="2" Classes="statCard" Background="#FEF3C7">
+                <Border Grid.Row="0" Grid.Column="2" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#F59E0B">
-                            <TextBlock Text="📦" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#FFFBEB">
+                            <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20" Foreground="#F59E0B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Products" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalProducts}" Classes="statValue" Foreground="#78350F" />
+                            <TextBlock Text="{Binding TotalProducts}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
                 <!-- Suppliers -->
-                <Border Grid.Column="3" Classes="statCard" Background="#F3E8FF">
+                <Border Grid.Row="1" Grid.Column="0" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#A855F7">
-                            <TextBlock Text="🚚" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#EFF6FF">
+                            <PathIcon Data="{StaticResource IconSuppliers}" Width="20" Height="20" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Suppliers" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalSuppliers}" Classes="statValue" Foreground="#4C1D95" />
+                            <TextBlock Text="{Binding TotalSuppliers}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
                 <!-- Medicines -->
-                <Border Grid.Column="4" Classes="statCard" Background="#CCFBF1">
+                <Border Grid.Row="1" Grid.Column="1" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#14B8A6">
-                            <TextBlock Text="💊" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#EFF6FF">
+                            <PathIcon Data="{StaticResource IconMedicines}" Width="20" Height="20" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Medicines" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalMedicines}" Classes="statValue" Foreground="#134E4A" />
+                            <TextBlock Text="{Binding TotalMedicines}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
                 <!-- Appointments -->
-                <Border Grid.Column="5" Classes="statCard" Background="#FFE4E6">
+                <Border Grid.Row="1" Grid.Column="2" Classes="statCard">
                     <DockPanel>
-                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#F43F5E">
-                            <TextBlock Text="📅" Classes="iconText" />
+                        <Border DockPanel.Dock="Left" Classes="iconBox" Background="#FEF2F2">
+                            <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20" Foreground="#DC2626" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel Margin="10,0,0,0">
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Appointments" Classes="statLabel" />
-                            <TextBlock Text="{Binding TotalAppointmentsToday}" Classes="statValue" Foreground="#881337" />
+                            <TextBlock Text="{Binding TotalAppointmentsToday}" Classes="statValue" />
                         </StackPanel>
                     </DockPanel>
                 </Border>
             </Grid>
 
             <!-- Middle Row: Charts Placeholder -->
-            <Grid ColumnDefinitions="2*,1*" Height="300" Margin="0,0,0,10">
-                <Border Grid.Column="0" Classes="panelCard" Margin="0,0,10,0">
+            <Grid ColumnDefinitions="2*,1*" Height="320">
+                <Border Grid.Column="0" Classes="panelCard" Margin="0,0,12,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="Profit &amp; Loss Analysis" Classes="panelTitle" />
-                        <Border Background="#F3F4F6" CornerRadius="8" Margin="0,10,0,0">
-                            <TextBlock Text="Line Chart Placeholder (LiveCharts2)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9CA3AF" />
+                        <TextBlock DockPanel.Dock="Top" Text="Profit &amp; Loss Analysis" Classes="panelTitle" Margin="0,0,0,16"/>
+                        <Border Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8">
+                            <TextBlock Text="Line Chart Placeholder (LiveCharts2)" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9CA3AF" FontSize="13"/>
                         </Border>
                     </DockPanel>
                 </Border>
-                <Border Grid.Column="1" Classes="panelCard" Margin="10,0,0,0">
+                <Border Grid.Column="1" Classes="panelCard" Margin="12,0,0,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="Revenue Overview" Classes="panelTitle" />
-                        <Border Background="#F3F4F6" CornerRadius="8" Margin="0,10,0,0">
-                            <TextBlock Text="Donut Chart Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9CA3AF" />
+                        <TextBlock DockPanel.Dock="Top" Text="Revenue Overview" Classes="panelTitle" Margin="0,0,0,16"/>
+                        <Border Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8">
+                            <TextBlock Text="Donut Chart Placeholder" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9CA3AF" FontSize="13"/>
                         </Border>
                     </DockPanel>
                 </Border>
             </Grid>
 
             <!-- Bottom Row: Information Panels -->
-            <Grid ColumnDefinitions="*,*,*,*" Height="250">
+            <Grid ColumnDefinitions="*,*,*,*" Height="280">
                 <!-- Today's Summary -->
-                <Border Grid.Column="0" Classes="panelCard" Margin="0,0,5,0">
+                <Border Grid.Column="0" Classes="panelCard" Margin="0,0,8,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="Today's Summary" Classes="panelTitle" />
-                        <TextBlock DockPanel.Dock="Top" Text="{Binding TodayDate}" FontSize="12" Foreground="#6B7280" Margin="0,0,0,10" />
-                        <StackPanel Spacing="10">
+                        <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" Foreground="#2563EB"/>
+                                <TextBlock Text="Today's Summary" Classes="panelTitle" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding TodayDate}" FontSize="12" Foreground="#6B7280" />
+                        </StackPanel>
+                        <StackPanel Spacing="12">
+                            <Border Height="1" Background="#E5E7EB"/>
                             <DockPanel>
-                                <TextBlock Text="Today's Appointments:" Foreground="#4B5563" />
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding TotalAppointmentsToday}" FontWeight="Bold" Foreground="#1F2937" HorizontalAlignment="Right" />
+                                <TextBlock Text="Today's Appointments:" Foreground="#4B5563" FontSize="14"/>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding TotalAppointmentsToday}" FontWeight="Bold" Foreground="#1F2937" FontSize="14" HorizontalAlignment="Right" />
                             </DockPanel>
                         </StackPanel>
                     </DockPanel>
                 </Border>
 
                 <!-- Low Stock Alert -->
-                <Border Grid.Column="1" Classes="panelCard" Margin="5,0,5,0">
+                <Border Grid.Column="1" Classes="panelCard" Margin="8,0,8,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="⚠️ Low Stock Alert" Classes="panelTitle" Foreground="#D97706" />
-                        <DataGrid ItemsSource="{Binding LowStockMedicines}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" Background="Transparent" BorderThickness="0" Margin="0,10,0,0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
+                            <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="#F59E0B"/>
+                            <TextBlock Text="Low Stock Alert" Classes="panelTitle" Foreground="#F59E0B" />
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding LowStockMedicines}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" Background="Transparent" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Binding="{Binding Name}" Width="*" />
                                 <DataGridTextColumn Binding="{Binding Stock, StringFormat='Stock: \{0\}'}" Width="Auto" />
@@ -133,10 +142,13 @@
                 </Border>
 
                 <!-- Expiring Soon -->
-                <Border Grid.Column="2" Classes="panelCard" Margin="5,0,5,0">
+                <Border Grid.Column="2" Classes="panelCard" Margin="8,0,8,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="⌛ Expiring Soon" Classes="panelTitle" Foreground="#EA580C" />
-                        <DataGrid ItemsSource="{Binding ExpiringSoonMedicines}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" Background="Transparent" BorderThickness="0" Margin="0,10,0,0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
+                            <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" Foreground="#DC2626"/>
+                            <TextBlock Text="Expiring Soon" Classes="panelTitle" Foreground="#DC2626" />
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding ExpiringSoonMedicines}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="None" Background="Transparent" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Binding="{Binding Name}" Width="*" />
                                 <DataGridTextColumn Binding="{Binding ExpiryDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="Auto" />
@@ -146,13 +158,16 @@
                 </Border>
 
                 <!-- Recent Activities -->
-                <Border Grid.Column="3" Classes="panelCard" Margin="5,0,0,0">
+                <Border Grid.Column="3" Classes="panelCard" Margin="8,0,0,0">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="🕒 Recent Activities" Classes="panelTitle" Foreground="#2563EB" />
-                        <ListBox ItemsSource="{Binding RecentActivities}" Background="Transparent" BorderThickness="0" Margin="0,10,0,0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
+                            <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" Foreground="#2563EB"/>
+                            <TextBlock Text="Recent Activities" Classes="panelTitle" Foreground="#2563EB" />
+                        </StackPanel>
+                        <ListBox ItemsSource="{Binding RecentActivities}" Background="Transparent" BorderThickness="0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="12" Foreground="#4B5563" Margin="0,0,0,5"/>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="13" Foreground="#4B5563" Margin="0,0,0,6"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
@@ -164,48 +179,42 @@
 
     <UserControl.Styles>
         <Style Selector="Border.statCard">
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Padding" Value="16" />
-            <Setter Property="Margin" Value="5" />
-            <Setter Property="BoxShadow" Value="0 1 3 0 #1A000000" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="20" />
+            <Setter Property="Margin" Value="6" />
+            <Setter Property="BorderBrush" Value="#E5E7EB" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BoxShadow" Value="0 1 3 0 #06000000" />
         </Style>
         <Style Selector="Border.iconBox">
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Width" Value="48" />
-            <Setter Property="Height" Value="48" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-        <Style Selector="TextBlock.iconText">
-            <Setter Property="FontSize" Value="24" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
         <Style Selector="TextBlock.statLabel">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Foreground" Value="#4B5563" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#6B7280" />
+            <Setter Property="FontWeight" Value="Medium" />
         </Style>
         <Style Selector="TextBlock.statValue">
-            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontSize" Value="22" />
             <Setter Property="FontWeight" Value="Bold" />
-        </Style>
-        <Style Selector="Border.panelCard">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="CornerRadius" Value="12" />
-            <Setter Property="Padding" Value="20" />
-            <Setter Property="BoxShadow" Value="0 1 3 0 #1A000000" />
-            <Setter Property="BorderBrush" Value="#E5E7EB" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#1F2937" />
         </Style>
         <Style Selector="TextBlock.panelTitle">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#1F2937" />
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         
         <!-- DataGrid overrides for light theme panels -->
         <Style Selector="DataGrid">
-            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="Foreground" Value="#4B5563" />
             <Setter Property="RowBackground" Value="Transparent" />
+            <Setter Property="FontSize" Value="13"/>
         </Style>
     </UserControl.Styles>
 </UserControl>

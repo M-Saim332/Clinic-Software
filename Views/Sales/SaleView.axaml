@@ -3,57 +3,53 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
              x:Class="ClinicSystem.UI.Views.Sales.SaleView"
              x:DataType="vm:SaleViewModel"
-             Background="#F5F7FA">
+             Background="#F8FAFC">
 
-    <Grid ColumnDefinitions="450,*" Margin="20">
+    <Grid ColumnDefinitions="450,*" Margin="24">
         <!-- Form Side (Header & Line Items input) -->
-        <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="20"
-                BorderBrush="#E5E7EB" BorderThickness="1"
-                BoxShadow="0 1 3 0 #1A000000">
+        <Border Grid.Column="0" Classes="card">
             <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Text="Sales &amp; Billing" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,10"/>
+                <TextBlock DockPanel.Dock="Top" Text="Sales &amp; Billing" Classes="sectionTitle" Margin="0,0,0,16"/>
                 
-                <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,15,0,0">
+                <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,16,0,0">
                     <!-- Grand Total Display -->
-                    <Border Background="#F3F4F6" Padding="15" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1">
+                    <Border Background="#F8FAFC" Padding="16" CornerRadius="8" BorderBrush="#E5E7EB" BorderThickness="1">
                         <DockPanel>
-                            <TextBlock Text="Grand Total:" FontSize="16" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding GrandTotal, StringFormat=C2}" FontSize="24" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Grand Total:" FontSize="15" FontWeight="SemiBold" Foreground="#4B5563" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding GrandTotal, StringFormat=C2}" FontSize="24" FontWeight="Bold" Foreground="#16A34A" HorizontalAlignment="Right"/>
                         </DockPanel>
                     </Border>
 
                     <Grid ColumnDefinitions="*,*">
                         <Button Grid.Column="0" Content="Post Invoice" Command="{Binding PostSaleCommand}"
-                                IsEnabled="{Binding SaveCancelEnabled}"
-                                Background="#10B981" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,5,0" CornerRadius="6" Padding="10"/>
+                                IsEnabled="{Binding SaveCancelEnabled}" Classes="success" Margin="0,0,6,0" Padding="12"/>
                         <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
-                                IsEnabled="{Binding SaveCancelEnabled}"
-                                Background="#F3F4F6" Foreground="#4B5563" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5,0,0,0" CornerRadius="6" Padding="10"/>
+                                IsEnabled="{Binding SaveCancelEnabled}" Classes="secondary" Margin="6,0,0,0" Padding="12"/>
                     </Grid>
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="13" TextWrapping="Wrap"/>
                 </StackPanel>
 
                 <ScrollViewer IsEnabled="{Binding IsNewSale}">
-                    <StackPanel Spacing="15">
+                    <StackPanel Spacing="16">
                         
                         <!-- Header Section -->
-                        <TextBlock Text="Invoice Header" FontWeight="SemiBold" Foreground="#4B5563" Margin="0,0,0,-5"/>
+                        <TextBlock Text="Invoice Header" Classes="label" Foreground="#6B7280" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
                         
                         <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,5,0">
-                                <TextBlock Text="Invoice Number" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <TextBox Text="{Binding InvoiceNumber}" IsReadOnly="True" CornerRadius="6" BorderBrush="#D1D5DB" Background="#F9FAFB"/>
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                                <TextBlock Text="Invoice Number" Classes="label"/>
+                                <TextBox Text="{Binding InvoiceNumber}" IsReadOnly="True" Background="#F8FAFC"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,0,0">
-                                <TextBlock Text="Date" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <DatePicker SelectedDate="{Binding SaleDate}" HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Date" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding SaleDate}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
 
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="Patient" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Patient" Classes="label"/>
                             <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" 
-                                      HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB">
+                                      HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}"/>
@@ -63,26 +59,26 @@
                         </StackPanel>
                         
                         <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,5,0">
-                                <TextBlock Text="Consultation Fee" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <NumericUpDown Value="{Binding ConsultationFee}" FormatString="N2" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                                <TextBlock Text="Consultation Fee" Classes="label"/>
+                                <NumericUpDown Value="{Binding ConsultationFee}" FormatString="N2" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,0,0">
-                                <TextBlock Text="Payment Method" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <StackPanel Grid.Column="1" Spacing="2">
+                                <TextBlock Text="Payment Method" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}" 
-                                          HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
 
-                        <Border Height="1" Background="#E5E7EB" Margin="0,5"/>
+                        <Border Height="1" Background="#E5E7EB" Margin="0,8"/>
 
                         <!-- Add Item Section -->
-                        <TextBlock Text="Add Medicine" FontWeight="SemiBold" Foreground="#4B5563" Margin="0,0,0,-5"/>
+                        <TextBlock Text="Add Medicine" Classes="label" Foreground="#6B7280" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
                         
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="Medicine (In Stock)" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Medicine (In Stock)" Classes="label"/>
                             <ComboBox ItemsSource="{Binding Medicines}" SelectedItem="{Binding SelectedMedicine}" 
-                                      HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB">
+                                      HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}"/>
@@ -92,22 +88,26 @@
                         </StackPanel>
 
                         <Grid ColumnDefinitions="*,*,*">
-                            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,5,0">
-                                <TextBlock Text="Quantity" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                            <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,8,0">
+                                <TextBlock Text="Quantity" Classes="label"/>
+                                <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="5" Margin="5,0,5,0">
-                                <TextBlock Text="Price" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <NumericUpDown Value="{Binding MedicinePrice}" FormatString="N2" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                            <StackPanel Grid.Column="1" Spacing="2" Margin="0,0,8,0">
+                                <TextBlock Text="Price" Classes="label"/>
+                                <NumericUpDown Value="{Binding MedicinePrice}" FormatString="N2" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="5" Margin="5,0,0,0">
-                                <TextBlock Text="Discount" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
-                                <NumericUpDown Value="{Binding Discount}" FormatString="N2" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                            <StackPanel Grid.Column="2" Spacing="2">
+                                <TextBlock Text="Discount" Classes="label"/>
+                                <NumericUpDown Value="{Binding Discount}" FormatString="N2" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
 
-                        <Button Content="➕ Add Item" Command="{Binding AddLineItemCommand}"
-                                Background="#F3F4F6" Foreground="#4B5563" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" CornerRadius="6"/>
+                        <Button Command="{Binding AddLineItemCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <TextBlock Text="Add Item" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                     </StackPanel>
                 </ScrollViewer>
@@ -115,20 +115,24 @@
         </Border>
 
         <!-- Grid Side -->
-        <Border Grid.Column="1" Background="White" CornerRadius="12" Margin="20,0,0,0"
-                BorderBrush="#E5E7EB" BorderThickness="1"
-                BoxShadow="0 1 3 0 #1A000000">
+        <Border Grid.Column="1" Classes="card" Margin="24,0,0,0">
             <DockPanel>
                 <!-- Toolbar -->
-                <Border DockPanel.Dock="Top" Padding="15" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                <Border DockPanel.Dock="Top" Padding="0,0,0,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Margin="0,0,0,16">
                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,20,0">
-                            <Button Content="➕ New Sale" Command="{Binding NewCommand}"
-                                    IsEnabled="{Binding MutationEnabled}"
-                                    Background="#0EA5E9" Foreground="White" CornerRadius="6" Padding="15,6"/>
-                            <Button Content="👁️ View Details" Command="{Binding ViewDetailsCommand}"
-                                    IsEnabled="{Binding MutationEnabled}"
-                                    Background="#6B7280" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
+                            <Button Command="{Binding NewCommand}" IsEnabled="{Binding MutationEnabled}" Classes="primary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="New Sale" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ViewDetailsCommand}" IsEnabled="{Binding MutationEnabled}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                    <TextBlock Text="View Details" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </WrapPanel>
                 </Border>
@@ -139,39 +143,36 @@
                     <DataGrid ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               IsVisible="{Binding MutationEnabled}"
-                              Background="Transparent" BorderThickness="0"
-                              RowBackground="Transparent"
-                              Foreground="#374151">
+                              Background="Transparent" BorderThickness="0">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Invoice No" Binding="{Binding InvoiceNumber}" Width="120"/>
-                            <DataGridTextColumn Header="Date" Binding="{Binding SaleDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="100"/>
+                            <DataGridTextColumn Header="Invoice No" Binding="{Binding InvoiceNumber}" Width="130"/>
+                            <DataGridTextColumn Header="Date" Binding="{Binding SaleDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="110"/>
                             <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}" Width="*"/>
-                            <DataGridTextColumn Header="Total Amount" Binding="{Binding GrandTotal, StringFormat=C2}" Width="120"/>
+                            <DataGridTextColumn Header="Total Amount" Binding="{Binding GrandTotal, StringFormat=C2}" Width="140"/>
                         </DataGrid.Columns>
                     </DataGrid>
 
                     <!-- Line Items (Add/Edit/Detail Mode) -->
                     <DockPanel IsVisible="{Binding SaveCancelEnabled}">
-                        <TextBlock DockPanel.Dock="Top" Text="Invoice Line Items" FontWeight="SemiBold" Foreground="#374151" Margin="15,15,15,5"/>
+                        <TextBlock DockPanel.Dock="Top" Text="Invoice Line Items" Classes="label" Foreground="#6B7280" FontSize="11" FontWeight="Bold" Margin="15,0,15,10"/>
                         <DataGrid ItemsSource="{Binding LineItems}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
-                                  Background="Transparent" BorderThickness="0"
-                                  RowBackground="Transparent"
-                                  Foreground="#374151">
+                                  Background="Transparent" BorderThickness="0">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Medicine" Binding="{Binding MedicineName}" Width="*"/>
-                                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
-                                <DataGridTextColumn Header="Price" Binding="{Binding MedicinePrice, StringFormat=N2}" Width="80"/>
-                                <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C2}" Width="100"/>
+                                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="70"/>
+                                <DataGridTextColumn Header="Price" Binding="{Binding MedicinePrice, StringFormat=N2}" Width="100"/>
+                                <DataGridTextColumn Header="Total" Binding="{Binding LineTotal, StringFormat=C2}" Width="120"/>
                                 
-                                <DataGridTemplateColumn Width="50">
+                                <DataGridTemplateColumn Width="60">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Button Command="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).RemoveLineItemCommand}"
                                                     CommandParameter="{Binding}"
-                                                    Background="Transparent" Foreground="#EF4444" Padding="5" Cursor="Hand"
-                                                    IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
-                                                <TextBlock Text="🗑️" FontSize="14"/>
+                                                    Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand"
+                                                    IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}"
+                                                    Height="32" Width="32" HorizontalAlignment="Center">
+                                                <PathIcon Data="{StaticResource IconClose}" Width="12" Height="12" Foreground="#DC2626"/>
                                             </Button>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>

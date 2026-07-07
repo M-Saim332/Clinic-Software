@@ -2,15 +2,335 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ClinicSystem.UI.App"
              xmlns:local="using:ClinicSystem.UI"
-             RequestedThemeVariant="Dark">
-             <!-- Dark theme required — UI uses dark backgrounds (#0F1117, #1A1D27, #252837) -->
+             RequestedThemeVariant="Light">
 
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-  
+
+    <Application.Resources>
+        <!-- Modern Healthcare Vector Icon Geometries -->
+        <StreamGeometry x:Key="IconDashboard">M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z</StreamGeometry>
+        <StreamGeometry x:Key="IconPatients">M12 12c3.31 0 6-2.69 6-6s-2.69-6-6-6-6 2.69-6 6 2.69 6 6 6zm-7 2c-3.87 0-7 3.13-7 7v3h14v-3c0-3.87-3.13-7-7-7zm13-3h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z</StreamGeometry>
+        <StreamGeometry x:Key="IconCompanies">M3 21h18M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M9 9h2 M9 13h2 M9 17h2 M13 9h2 M13 13h2 M13 17h2</StreamGeometry>
+        <StreamGeometry x:Key="IconSuppliers">M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C20 10.7 19.1 9 18 9h-5V5c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h2 M9 17H5 M13 17h2 M9 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0 M19 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0</StreamGeometry>
+        <StreamGeometry x:Key="IconProducts">M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L18.4 8 12 11.2 5.6 8 12 4.8zm-8 4.7l7 3.5v7.2l-7-3.5V9.5zm9 10.7v-7.2l7-3.5v7.2l-7 3.5z</StreamGeometry>
+        <StreamGeometry x:Key="IconMedicines">M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 9h3v2h-3v3h-2v-3H8v-2h3V8h2v3z</StreamGeometry>
+        <StreamGeometry x:Key="IconPurchases">M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.9 2 1.99 2 2-.9 2-2-.9-2-2-2z</StreamGeometry>
+        <StreamGeometry x:Key="IconSales">M21.4 11.6l-9-9C12 2.2 11.4 2 10.8 2H3c-1.1 0-2 .9-2 2v7.8c0 .6.2 1.2.6 1.6l9 9c.8.8 2 .8 2.8 0l8-8c.8-.8.8-2 0-2.8zM6.5 8C5.7 8 5 7.3 5 6.5S5.7 5 6.5 5 8 5.7 8 6.5 7.3 8 6.5 8z</StreamGeometry>
+        <StreamGeometry x:Key="IconInventory">M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2 M12 2v4M9 2h6</StreamGeometry>
+        <StreamGeometry x:Key="IconAppointments">M19 3.5h-1v-2h-2v2H8v-2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-14a2 2 0 0 0-2-2zm0 16H5v-11h14v11zM7 10h3v3H7v-3zm5 0h3v3h-3v-3z</StreamGeometry>
+        <StreamGeometry x:Key="IconVisit">M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 11h-3v3h-2v-3H8v-2h3V8h2v3h3v2z</StreamGeometry>
+        <StreamGeometry x:Key="IconUsers">M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8</StreamGeometry>
+        <StreamGeometry x:Key="IconReports">M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z</StreamGeometry>
+        <StreamGeometry x:Key="IconBackup">M12 5c-5.5 0-10 1.3-10 3s4.5 3 10 3 10-1.3 10-3-4.5-3-10-3z M2 8v5c0 1.7 4.5 3 10 3s10-1.3 10-3V8 M2 13v5c0 1.7 4.5 3 10 3s10-1.3 10-3v-5 M2 18v3c0 1.7 4.5 3 10 3s10-1.3 10-3v-3</StreamGeometry>
+        <StreamGeometry x:Key="IconLogout">M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9</StreamGeometry>
+        <StreamGeometry x:Key="IconSearch">M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z</StreamGeometry>
+        <StreamGeometry x:Key="IconAlert">M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12 9v4M12 17h.01</StreamGeometry>
+        <StreamGeometry x:Key="IconClock">M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2</StreamGeometry>
+        <StreamGeometry x:Key="IconClose">M18 6L6 18M6 6l12 12</StreamGeometry>
+        <StreamGeometry x:Key="IconEdit">M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z</StreamGeometry>
+        <StreamGeometry x:Key="IconPlus">M12 5v14M5 12h14</StreamGeometry>
+        <StreamGeometry x:Key="IconFilter">M22 3H2l8 9.46V19l4 2v-8.54L22 3z</StreamGeometry>
+        <StreamGeometry x:Key="IconClinic">M19 4h-3V2h-8v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-2 11h-3v3h-4v-3H7v-4h3V7h4v3h3v4z</StreamGeometry>
+        <StreamGeometry x:Key="IconEye">M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z</StreamGeometry>
+        <StreamGeometry x:Key="IconEyeOff">M12 4.5c2.28 0 4.37.64 6.15 1.7l-1.5 1.5C15.3 7.2 13.7 6.8 12 6.8c-4.42 0-8 3.13-9.5 5.2 1.05 1.45 2.65 3.02 4.63 4.07l-1.5 1.5C3.33 16 1.73 14 1 12c1.73-4.39 6-7.5 11-7.5zm0 10.5a3 3 0 0 1-3-3c0-.46.1-.9.3-1.28L6.46 7.9A8.15 8.15 0 0 0 4 12c1.73 4.39 6 7.5 11 7.5 1.5 0 2.92-.3 4.2-.84l-2.07-2.07A4.93 4.93 0 0 1 12 15zm0-8a3 3 0 0 1 3 3c0 .46-.1.9-.3 1.28l2.84 2.84c.82-1.3 1.46-2.8 2.46-4.12C20.27 7.61 16 4.5 12 4.5zm-3 3a3 3 0 0 0 0 6 3 3 0 0 0 0-6zm-7-5 18 18 1.5-1.5L3.5 2 2 3.5z</StreamGeometry>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
+        <!-- Global Typography & Base Style overrides -->
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,Arial,sans-serif"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+        </Style>
+        <Style Selector="UserControl">
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,Arial,sans-serif"/>
+            <Setter Property="Background" Value="#F8FAFC"/>
+        </Style>
+
+        <!-- Buttons Redesign -->
+        <Style Selector="Button">
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Padding" Value="20,0"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="TextElement.Foreground" Value="#1F2937"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E2E8F0"/>
+        </Style>
+
+        <!-- Primary Button -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1E40AF"/>
+        </Style>
+
+        <!-- Secondary Button -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#2563EB"/>
+        </Style>
+        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EFF6FF"/>
+            <Setter Property="BorderBrush" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="#1D4ED8"/>
+        </Style>
+
+        <!-- Danger Button -->
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#B91C1C"/>
+            <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- Success Button -->
+        <Style Selector="Button.success">
+            <Setter Property="Background" Value="#16A34A"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.success:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#15803D"/>
+            <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- TextBoxes Redesign -->
+        <Style Selector="TextBox">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="CaretBrush" Value="#2563EB"/>
+            <Setter Property="SelectionBrush" Value="#DBEAFE"/>
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BoxShadow" Value="0 0 0 2 #3B82F6"/>
+        </Style>
+
+        <!-- ComboBoxes Redesign -->
+        <Style Selector="ComboBox">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <!-- NumericUpDown Redesign -->
+        <Style Selector="NumericUpDown">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+
+        <!-- DatePicker & TimePicker Redesign -->
+        <Style Selector="DatePicker">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="TimePicker">
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+
+        <!-- DataGrid Redesign -->
+        <Style Selector="DataGrid">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="DataGridRow">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="DataGridRow:pointerover">
+            <Setter Property="Background" Value="#EFF6FF"/>
+        </Style>
+        <Style Selector="DataGridRow:selected">
+            <Setter Property="Background" Value="#DBEAFE"/>
+        </Style>
+        <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
+            <Setter Property="Fill" Value="#DBEAFE"/>
+        </Style>
+
+        <!-- Modern TabControl styling -->
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="#F8FAFC"/>
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#2563EB"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Foreground" Value="#1F2937"/>
+        </Style>
+
+        <!-- Modern Healthcare Card Container styles -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="BoxShadow" Value="0 1 3 0 #08000000"/>
+        </Style>
+        <Style Selector="Border.panelCard">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="BoxShadow" Value="0 1 3 0 #08000000"/>
+        </Style>
+
+        <!-- Sidebar nav button classes -->
+        <Style Selector="Button.navbtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EFF6FF"/>
+            <Setter Property="TextElement.Foreground" Value="#2563EB"/>
+        </Style>
+        <Style Selector="Button.navbtn.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
+        </Style>
+
+        <!-- Common Form Labels -->
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <!-- Section / Panel Titles -->
+        <Style Selector="TextBlock.sectionTitle">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+        </Style>
+        <Style Selector="TextBlock.panelTitle">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Separator -->
+        <Style Selector="Separator">
+            <Setter Property="Background" Value="#E5E7EB"/>
+            <Setter Property="Height" Value="1"/>
+        </Style>
+
+        <!-- ListBox items -->
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#EFF6FF"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#DBEAFE"/>
+        </Style>
     </Application.Styles>
 </Application>

@@ -7,179 +7,180 @@
         Width="1280" Height="780"
         MinWidth="1000" MinHeight="620"
         WindowStartupLocation="CenterScreen"
-        Background="#0D1117">
+        Background="#F8FAFC"
+        Icon="avares://ClinicSystem.UI/Assets/hospital_logo.png">
 
-  <Grid ColumnDefinitions="210,*">
+  <Grid ColumnDefinitions="240,*">
 
     <!-- ═══════════════════════════════════════════════════════
          LEFT SIDEBAR
          ═══════════════════════════════════════════════════════ -->
-    <Border Grid.Column="0" Background="#0D1117"
-            BorderBrush="#1E2333" BorderThickness="0,0,1,0">
+    <Border Grid.Column="0" Background="#FFFFFF"
+            BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
       <DockPanel>
 
         <!-- Logo / Brand -->
-        <Border DockPanel.Dock="Top" Padding="16,20,16,16"
-                BorderBrush="#1E2333" BorderThickness="0,0,0,1">
-          <StackPanel Orientation="Horizontal" Spacing="10">
-            <Border Width="36" Height="36" CornerRadius="10" Background="#0EA5E9">
-              <TextBlock Text="🏥" FontSize="18"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Border DockPanel.Dock="Top" Padding="20,24"
+                BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <Border Width="36" Height="36" CornerRadius="8" Background="#EFF6FF">
+              <PathIcon Data="{StaticResource IconClinic}" Width="18" Height="18"
+                        Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <StackPanel VerticalAlignment="Center" Spacing="1">
-              <TextBlock Text="Clinic" FontSize="14" FontWeight="Bold" Foreground="White"/>
-              <TextBlock Text="Management" FontSize="10" Foreground="#6B7280"/>
+              <TextBlock Text="Clinic" FontSize="15" FontWeight="Bold" Foreground="#1F2937"/>
+              <TextBlock Text="Management" FontSize="11" Foreground="#6B7280"/>
             </StackPanel>
           </StackPanel>
         </Border>
 
         <!-- Logout at bottom -->
-        <Border DockPanel.Dock="Bottom" Padding="12,12">
+        <Border DockPanel.Dock="Bottom" Padding="16">
           <Button Command="{Binding LogoutCommand}" HorizontalAlignment="Stretch"
-                  Classes="navbtn" Background="#1E2333">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-              <TextBlock Text="⎋" FontSize="14" Foreground="#EF4444" VerticalAlignment="Center"/>
-              <TextBlock Text="Logout" Foreground="#EF4444" VerticalAlignment="Center"/>
+                  Classes="navbtn">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+              <PathIcon Data="{StaticResource IconLogout}" Width="16" Height="16" Foreground="#DC2626" VerticalAlignment="Center"/>
+              <TextBlock Text="Logout" Foreground="#DC2626" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
         </Border>
 
         <!-- Logged-in user chip -->
-        <Border DockPanel.Dock="Bottom" Padding="12,6"
-                BorderBrush="#1E2333" BorderThickness="0,1,0,0">
-          <StackPanel Spacing="2">
-            <TextBlock Text="{Binding CurrentUserName}" FontSize="12"
-                       FontWeight="SemiBold" Foreground="White" TextTrimming="CharacterEllipsis"/>
-            <TextBlock Text="{Binding CurrentUserRole}" FontSize="10" Foreground="#6B7280"/>
+        <Border DockPanel.Dock="Bottom" Padding="20,16"
+                BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+          <StackPanel Spacing="3">
+            <TextBlock Text="{Binding CurrentUserName}" FontSize="13"
+                       FontWeight="SemiBold" Foreground="#1F2937" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="#6B7280"/>
           </StackPanel>
         </Border>
 
         <!-- Navigation -->
         <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
-          <StackPanel Spacing="2" Margin="8,12">
+          <StackPanel Spacing="4" Margin="12,16">
 
             <!-- Primary -->
-            <TextBlock Text="MAIN" FontSize="9" FontWeight="Bold"
-                       Foreground="#4B5563" Margin="8,4,0,6" LetterSpacing="2"/>
+            <TextBlock Text="MAIN" FontSize="10" FontWeight="Bold"
+                       Foreground="#9CA3AF" Margin="8,4,0,8" LetterSpacing="1.5"/>
 
             <Button Command="{Binding ShowDashboardCommand}"
                     Classes="navbtn" Classes.active="{Binding IsDashboardActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📊" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconDashboard}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowPatientsCommand}"
                     Classes="navbtn" Classes.active="{Binding IsPatientsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="👥" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Patients" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowCompaniesCommand}"
                     Classes="navbtn" Classes.active="{Binding IsCompaniesActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="🏢" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconCompanies}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Companies" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowSuppliersCommand}"
                     Classes="navbtn" Classes.active="{Binding IsSuppliersActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="🚚" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconSuppliers}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowProductsCommand}"
                     Classes="navbtn" Classes.active="{Binding IsProductsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconProducts}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Products" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowMedicinesCommand}"
                     Classes="navbtn" Classes.active="{Binding IsMedicinesActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="💊" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconMedicines}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Medicines" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <!-- Management Section -->
-            <Border Height="1" Background="#1E2333" Margin="0,10,0,10"/>
-            <TextBlock Text="MANAGEMENT" FontSize="9" FontWeight="Bold"
-                       Foreground="#4B5563" Margin="8,0,0,6" LetterSpacing="2"/>
+            <Border Height="1" Background="#E5E7EB" Margin="8,12"/>
+            <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold"
+                       Foreground="#9CA3AF" Margin="8,0,0,8" LetterSpacing="1.5"/>
 
             <Button Command="{Binding ShowPurchasesCommand}"
                     Classes="navbtn" Classes.active="{Binding IsPurchasesActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="🛒" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconPurchases}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Purchase" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowSalesCommand}"
                     Classes="navbtn" Classes.active="{Binding IsSalesActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="💰" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconSales}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Sales" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowInventoryCommand}"
                     Classes="navbtn" Classes.active="{Binding IsInventoryActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📋" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconInventory}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Inventory" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowAppointmentsCommand}"
                     Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📅" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Appointments" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowPrescriptionsCommand}"
                     Classes="navbtn" Classes.active="{Binding IsPrescriptionsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📝" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconVisit}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="New Visit" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <!-- System Section -->
-            <Border Height="1" Background="#1E2333" Margin="0,10,0,10"/>
-            <TextBlock Text="SYSTEM" FontSize="9" FontWeight="Bold"
-                       Foreground="#4B5563" Margin="8,0,0,6" LetterSpacing="2"/>
+            <Border Height="1" Background="#E5E7EB" Margin="8,12"/>
+            <TextBlock Text="SYSTEM" FontSize="10" FontWeight="Bold"
+                       Foreground="#9CA3AF" Margin="8,0,0,8" LetterSpacing="1.5"/>
 
             <Button Command="{Binding ShowUsersCommand}"
                     Classes="navbtn" Classes.active="{Binding IsUsersActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="👤" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Users" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding ShowReportsCommand}"
                     Classes="navbtn" Classes.active="{Binding IsReportsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📈" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconReports}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Reports" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
             <Button Command="{Binding BackupCommand}"
                     Classes="navbtn">
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="💾" FontSize="14" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconBackup}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="Backup" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
@@ -192,41 +193,41 @@
     <!-- ═══════════════════════════════════════════════════════
          RIGHT: TOP BAR + CONTENT
          ═══════════════════════════════════════════════════════ -->
-    <Grid Grid.Column="1" RowDefinitions="52,*,Auto">
+    <Grid Grid.Column="1" RowDefinitions="60,*,Auto">
 
       <!-- Top bar -->
-      <Border Grid.Row="0" Background="#111827"
-              BorderBrush="#1E2333" BorderThickness="0,0,0,1" Padding="20,0">
+      <Border Grid.Row="0" Background="#FFFFFF"
+              BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Padding="24,0">
         <DockPanel VerticalAlignment="Center">
           <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold"
-                     Foreground="White" VerticalAlignment="Center"/>
+                     Foreground="#1F2937" VerticalAlignment="Center"/>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
                       Spacing="16" VerticalAlignment="Center">
-            <TextBlock Text="{Binding TodayDate}" Foreground="#9CA3AF" FontSize="12" VerticalAlignment="Center"/>
-            <Border Width="8" Height="8" CornerRadius="4" Background="#22C55E" VerticalAlignment="Center"
+            <TextBlock Text="{Binding TodayDate}" Foreground="#9CA3AF" FontSize="13" VerticalAlignment="Center"/>
+            <Border Width="8" Height="8" CornerRadius="4" Background="#16A34A" VerticalAlignment="Center"
                     ToolTip.Tip="Database connected"/>
-            <TextBlock Text="{Binding StatusText}" Foreground="#6B7280" FontSize="11"
+            <TextBlock Text="{Binding StatusText}" Foreground="#6B7280" FontSize="12"
                        VerticalAlignment="Center" MaxWidth="300" TextTrimming="CharacterEllipsis"/>
           </StackPanel>
         </DockPanel>
       </Border>
 
       <!-- Content area -->
-      <Panel Grid.Row="1" Background="#F5F7FA">
-        <ContentControl Content="{Binding CurrentPageViewModel}" Background="#F5F7FA"/>
+      <Panel Grid.Row="1" Background="#F8FAFC">
+        <ContentControl Content="{Binding CurrentPageViewModel}" Background="#F8FAFC"/>
 
         <!-- Loading overlay -->
         <Border IsVisible="{Binding IsLoading}"
-                Background="#CCF5F7FA">
-          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="16">
-            <Border Width="60" Height="60" CornerRadius="30"
-                    Background="White" BorderBrush="#0EA5E9" BorderThickness="2"
-                    BoxShadow="0 4 6 0 #1A000000">
-              <TextBlock Text="🏥" FontSize="28"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                Background="rgba(248, 250, 252, 0.85)">
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18">
+            <Border Width="64" Height="64" CornerRadius="32"
+                    Background="White" BorderBrush="#2563EB" BorderThickness="1"
+                    BoxShadow="0 4 6 -1 rgba(0,0,0,0.05)">
+              <PathIcon Data="{StaticResource IconClinic}" Width="24" Height="24"
+                        Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <ProgressBar IsIndeterminate="True" Width="220" Height="4"
-                         Foreground="#0EA5E9" Background="#E5E7EB"/>
+            <ProgressBar IsIndeterminate="True" Width="200" Height="4"
+                         Foreground="#2563EB" Background="#E5E7EB"/>
             <TextBlock Text="Loading data…" Foreground="#4B5563" FontSize="13"
                        HorizontalAlignment="Center" FontWeight="Medium"/>
           </StackPanel>
@@ -234,37 +235,11 @@
       </Panel>
 
       <!-- Status bar -->
-      <Border Grid.Row="2" Background="#0D1117" Padding="20,5"
-              BorderBrush="#1E2333" BorderThickness="0,1,0,0">
-        <TextBlock Text="{Binding StatusText}" Foreground="#4B5563" FontSize="11"/>
+      <Border Grid.Row="2" Background="#F8FAFC" Padding="24,6"
+              BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+        <TextBlock Text="{Binding StatusText}" Foreground="#6B7280" FontSize="12"/>
       </Border>
 
     </Grid>
   </Grid>
-
-  <Window.Styles>
-    <!-- Sidebar nav button -->
-    <Style Selector="Button.navbtn">
-      <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="#9CA3AF"/>
-      <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Padding" Value="10,9"/>
-      <Setter Property="CornerRadius" Value="8"/>
-      <Setter Property="HorizontalAlignment" Value="Stretch"/>
-      <Setter Property="HorizontalContentAlignment" Value="Left"/>
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Cursor" Value="Hand"/>
-    </Style>
-    <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#1E2333"/>
-      <Setter Property="TextElement.Foreground" Value="White"/>
-    </Style>
-    <Style Selector="Button.navbtn.active /template/ ContentPresenter">
-      <Setter Property="Background" Value="#1E3A5F"/>
-      <Setter Property="TextElement.Foreground" Value="#60A5FA"/>
-    </Style>
-    <Style Selector="Button.navbtn.active TextBlock">
-      <Setter Property="Foreground" Value="#60A5FA"/>
-    </Style>
-  </Window.Styles>
 </Window>

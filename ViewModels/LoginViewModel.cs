@@ -16,17 +16,7 @@ public partial class LoginViewModel : ViewModelBase
 
     [ObservableProperty] private string _username = string.Empty;
     [ObservableProperty] private string _password = string.Empty;
-    [ObservableProperty] private string _confirmPassword = string.Empty;
-    [ObservableProperty] private string _fullName = string.Empty;
     [ObservableProperty] private bool _isPasswordVisible;
-    [ObservableProperty] private bool _isConfirmPasswordVisible;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LoginButtonText))]
-    [NotifyPropertyChangedFor(nameof(ToggleModeText))]
-    [NotifyPropertyChangedFor(nameof(FormTitle))]
-    [NotifyPropertyChangedFor(nameof(FormSubtitle))]
-    private bool _isSignUpMode;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasErrorMessage))]
@@ -38,30 +28,16 @@ public partial class LoginViewModel : ViewModelBase
 
     public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
     
-    public string FormTitle => IsSignUpMode ? "Create Account" : "Clinic Management";
-    public string FormSubtitle => IsSignUpMode ? "Sign up to continue" : "Sign in to continue";
-    public string LoginButtonText => IsBusy ? (IsSignUpMode ? "Signing up…" : "Signing in…") : (IsSignUpMode ? "Sign Up" : "Sign In");
-    public string ToggleModeText => IsSignUpMode ? "Already have an account? Sign in" : "Don't have an account? Sign up";
+    public string FormTitle => "Clinic Management";
+    public string FormSubtitle => "Sign in to continue";
+    public string LoginButtonText => IsBusy ? "Signing in..." : "Sign In";
 
     public event Action<User>? LoginSucceeded;
-
-    [RelayCommand]
-    private void ToggleMode()
-    {
-        IsSignUpMode = !IsSignUpMode;
-        ErrorMessage = string.Empty;
-    }
 
     [RelayCommand]
     private void TogglePasswordVisibility()
     {
         IsPasswordVisible = !IsPasswordVisible;
-    }
-
-    [RelayCommand]
-    private void ToggleConfirmPasswordVisibility()
-    {
-        IsConfirmPasswordVisible = !IsConfirmPasswordVisible;
     }
 
     [RelayCommand]
@@ -78,45 +54,15 @@ public partial class LoginViewModel : ViewModelBase
         IsBusy = true;
         try
         {
-            if (IsSignUpMode)
+            var user = await Task.Run(() => _userRepo.Authenticate(Username, Password));
+            if (user == null)
             {
-                if (Password != ConfirmPassword)
-                {
-                    ErrorMessage = "Passwords do not match.";
-                    return;
-                }
-                if (string.IsNullOrWhiteSpace(FullName))
-                {
-                    ErrorMessage = "Full Name is required.";
-                    return;
-                }
-
-                var existing = await Task.Run(() => _userRepo.GetByUsername(Username));
-                if (existing != null)
-                {
-                    ErrorMessage = "Username is already taken.";
-                    return;
-                }
-
-                var newUser = new User { Username = Username, FullName = FullName, Role = "Receptionist", IsActive = true };
-                var newId = await Task.Run(() => _userRepo.Insert(newUser, Password));
-                newUser.UserID = newId;
-
-                CurrentUser = newUser;
-                LoginSucceeded?.Invoke(newUser);
+                ErrorMessage = "Invalid username or password.";
             }
             else
             {
-                var user = await Task.Run(() => _userRepo.Authenticate(Username, Password));
-                if (user == null)
-                {
-                    ErrorMessage = "Invalid username or password.";
-                }
-                else
-                {
-                    CurrentUser = user;
-                    LoginSucceeded?.Invoke(user);
-                }
+                CurrentUser = user;
+                LoginSucceeded?.Invoke(user);
             }
         }
         catch (Exception ex)
