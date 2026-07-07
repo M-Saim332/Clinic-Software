@@ -3,15 +3,32 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              x:Class="ClinicSystem.UI.Views.Prescriptions.VisitHistoryView"
              x:DataType="vm:VisitHistoryViewModel"
-             Background="#0F1117">
+             Background="#F8FAFC">
     <Panel>
         <Grid RowDefinitions="Auto,*">
-            <Border Grid.Row="0" Background="#1A1D27" Padding="20,14" BorderBrush="#2A2D3A" BorderThickness="0,0,0,1">
+
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16"
+                    BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
                 <DockPanel>
-                    <TextBlock Text="📅 Visit History" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10">
-                        <Button Content="Filter by Patient" Command="{Binding ShowPatientsCommand}" Classes="action"/>
-                        <Button Content="Show All" Command="{Binding LoadAllVisitsCommand}" Classes="action primary"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20" Foreground="#2563EB"/>
+                        <TextBlock Text="Visit History" FontSize="20" FontWeight="Bold"
+                                   Foreground="#1F2937" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button Command="{Binding ShowPatientsCommand}" Classes="action">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconFilter}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <TextBlock Text="Filter by Patient" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding LoadAllVisitsCommand}" Classes="action primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="Show All" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -19,9 +36,10 @@
             <Grid Grid.Row="1" ColumnDefinitions="*,320">
 
                 <!-- Prescriptions List -->
-                <Border Grid.Column="0" Padding="20">
+                <Border Grid.Column="0" Padding="24">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" FontSize="14" Foreground="White" FontWeight="SemiBold" Margin="0,0,0,10">
+                        <TextBlock DockPanel.Dock="Top" FontSize="14" Foreground="#1F2937"
+                                   FontWeight="SemiBold" Margin="0,0,0,12">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="{}{0} visits{1}">
                                     <Binding Path="Prescriptions.Count"/>
@@ -33,36 +51,35 @@
                                   ItemsSource="{Binding Prescriptions}"
                                   SelectedItem="{Binding SelectedPrescription}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
-                                  Background="#141720" RowBackground="#141720"
-                                  Foreground="White" GridLinesVisibility="Horizontal"
-                                  BorderBrush="#2A2D3A" SelectionMode="Single">
+                                  SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Date"        Binding="{Binding VisitDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="140"/>
-                                <DataGridTextColumn Header="Patient"     Binding="{Binding PatientName}" Width="*"/>
-                                <DataGridTextColumn Header="Doctor"      Binding="{Binding DoctorName}"  Width="150"/>
-                                <DataGridTextColumn Header="Diagnosis"   Binding="{Binding Diagnosis}"   Width="*"/>
+                                <DataGridTextColumn Header="Date"      Binding="{Binding VisitDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="155"/>
+                                <DataGridTextColumn Header="Patient"   Binding="{Binding PatientName}"                                   Width="*"/>
+                                <DataGridTextColumn Header="Doctor"    Binding="{Binding DoctorName}"                                    Width="160"/>
+                                <DataGridTextColumn Header="Diagnosis" Binding="{Binding Diagnosis}"                                     Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
                 </Border>
 
                 <!-- Prescription Items Detail -->
-                <Border Grid.Column="1" Background="#141720" Padding="20" BorderBrush="#2A2D3A" BorderThickness="1,0,0,0">
+                <Border Grid.Column="1" Background="#FFFFFF" Padding="24"
+                        BorderBrush="#E5E7EB" BorderThickness="1,0,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Prescribed Medicines" Foreground="White" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="Prescribed Medicines" Foreground="#1F2937"
+                                   FontSize="15" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding SelectedPrescription.Diagnosis, FallbackValue='Select a visit to see details'}"
-                                   Foreground="#888" FontSize="12" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedPrescription.Notes}" Foreground="#666" FontSize="12" TextWrapping="Wrap"/>
-                        <Separator Background="#2A2D3A" Height="1"/>
+                                   Foreground="#6B7280" FontSize="13" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding SelectedPrescription.Notes}"
+                                   Foreground="#6B7280" FontSize="12" TextWrapping="Wrap"/>
+                        <Border Height="1" Background="#E5E7EB"/>
                         <DataGrid ItemsSource="{Binding PrescriptionItems}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
-                                  Background="#1A1D27" RowBackground="#1A1D27"
-                                  Foreground="White" GridLinesVisibility="Horizontal"
-                                  BorderBrush="#2A2D3A">
+                                  Background="Transparent" BorderThickness="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Medicine"  Binding="{Binding MedicineName}" Width="*"/>
-                                <DataGridTextColumn Header="Qty"       Binding="{Binding Quantity}"     Width="50"/>
-                                <DataGridTextColumn Header="Dosage"    Binding="{Binding Dosage}"       Width="*"/>
+                                <DataGridTextColumn Header="Medicine" Binding="{Binding MedicineName}" Width="*"/>
+                                <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}"     Width="50"/>
+                                <DataGridTextColumn Header="Dosage"   Binding="{Binding Dosage}"       Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </StackPanel>
@@ -72,29 +89,38 @@
 
         <!-- Patient Picker Overlay -->
         <Panel IsVisible="{Binding ShowPatientList}">
-            <Border Background="#CC000000" ZIndex="100">
-                <Border Background="#1A1D27" CornerRadius="12" Padding="24"
-                        Width="450" Height="380" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="rgba(31, 41, 55, 0.55)" ZIndex="100">
+                <Border Background="#FFFFFF" Classes="card"
+                        Width="480" Height="400"
+                        VerticalAlignment="Center" HorizontalAlignment="Center">
                     <DockPanel>
-                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-                            <TextBlock Text="Filter by Patient" FontSize="18" FontWeight="Bold" Foreground="White"/>
-                            <Button DockPanel.Dock="Right" Content="✕" Command="{Binding ClosePatientListCommand}" Background="Transparent" Foreground="#888" FontSize="16"/>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Filter by Patient" FontSize="18" FontWeight="Bold"
+                                       Foreground="#1F2937" VerticalAlignment="Center"/>
+                            <Button DockPanel.Dock="Right" Command="{Binding ClosePatientListCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Height="36" Width="36" Padding="0">
+                                <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="#6B7280"/>
+                            </Button>
                         </DockPanel>
-                        <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}" PlaceholderText="Search..." Margin="0,0,0,10"
-                                 Background="#252837" BorderBrush="#333" Foreground="White" CornerRadius="6" Padding="10,8"/>
+                        <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
+                                 PlaceholderText="Search patient..." Margin="0,0,0,16"/>
                         <DataGrid ItemsSource="{Binding FilteredPatients}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
-                                  Background="#141720" RowBackground="#141720"
-                                  Foreground="White" GridLinesVisibility="Horizontal"
-                                  BorderBrush="#2A2D3A">
+                                  SelectionMode="Single">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Name"    Binding="{Binding Name}"    Width="*"/>
-                                <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="120"/>
+                                <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="130"/>
                             </DataGrid.Columns>
                         </DataGrid>
-                        <Button DockPanel.Dock="Bottom" Content="View History" Margin="0,10,0,0"
+                        <Button DockPanel.Dock="Bottom" Margin="0,16,0,0"
                                 Command="{Binding SelectPatientCommand}"
-                                Background="#0097A7" Foreground="White" CornerRadius="6" Padding="14,8"/>
+                                Classes="primary" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="View History" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </DockPanel>
                 </Border>
             </Border>
@@ -103,14 +129,22 @@
 
     <UserControl.Styles>
         <Style Selector="Button.action">
-            <Setter Property="Background" Value="#252837"/>
-            <Setter Property="Foreground" Value="#DDD"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FontSize" Value="13"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="12,7"/>
         </Style>
         <Style Selector="Button.action.primary">
-            <Setter Property="Background" Value="#0097A7"/>
+            <Setter Property="Background" Value="#2563EB"/>
             <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.action.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.45"/>
         </Style>
     </UserControl.Styles>
 </UserControl>

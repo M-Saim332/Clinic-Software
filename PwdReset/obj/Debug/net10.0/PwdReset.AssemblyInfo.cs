@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PwdReset")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2fd801a3677c52396df0c5408b4c89c876924222")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+234e93d2a3dadd4bdd09f93996a68b355a69258d")]
 [assembly: System.Reflection.AssemblyProductAttribute("PwdReset")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PwdReset")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
