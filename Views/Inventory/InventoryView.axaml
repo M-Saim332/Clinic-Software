@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Inventory"
+             x:Class="ClinicSystem.UI.Views.Inventory.InventoryView"
+             x:DataType="vm:InventoryViewModel"
+             Background="#F5F7FA">
+
+    <Grid ColumnDefinitions="300,*" Margin="20">
+        <!-- Stock Adjustment Side -->
+        <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="20"
+                BorderBrush="#E5E7EB" BorderThickness="1"
+                BoxShadow="0 1 3 0 #1A000000">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Manual Adjustment" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+                
+                <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,20,0,0">
+                    <Button Content="Update Stock" Command="{Binding AdjustStockCommand}"
+                            Background="#0EA5E9" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" CornerRadius="6" Padding="10"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <StackPanel Spacing="15">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Medicine" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                        <ComboBox ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedMedicine}" 
+                                  HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Quantity (+ to Add, - to Remove)" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                        <NumericUpDown Value="{Binding AdjustmentQuantity}" FormatString="N0" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Reason" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                        <TextBox Text="{Binding AdjustmentReason}" CornerRadius="6" BorderBrush="#D1D5DB" AcceptsReturn="True" Height="60"/>
+                    </StackPanel>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Grid Side (Tabs) -->
+        <Border Grid.Column="1" Background="White" CornerRadius="12" Margin="20,0,0,0"
+                BorderBrush="#E5E7EB" BorderThickness="1"
+                BoxShadow="0 1 3 0 #1A000000" Padding="10">
+            <TabControl>
+                <TabItem Header="All Stock">
+                    <DataGrid ItemsSource="{Binding AllStock}" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="Transparent" BorderThickness="0"
+                              RowBackground="Transparent" Foreground="#374151">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+                            <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                
+                <TabItem Header="Low Stock">
+                    <DataGrid ItemsSource="{Binding LowStock}" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="Transparent" BorderThickness="0"
+                              RowBackground="Transparent" Foreground="#C2410C">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+                            <DataGridTextColumn Header="Min Level" Binding="{Binding MinimumStockLevel}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                
+                <TabItem Header="Out of Stock">
+                    <DataGrid ItemsSource="{Binding OutOfStock}" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="Transparent" BorderThickness="0"
+                              RowBackground="Transparent" Foreground="#B91C1C">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+                            <DataGridTextColumn Header="Min Level" Binding="{Binding MinimumStockLevel}" Width="80"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                
+                <TabItem Header="Expiring Soon (30 Days)">
+                    <DataGrid ItemsSource="{Binding NearExpiry}" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="Transparent" BorderThickness="0"
+                              RowBackground="Transparent" Foreground="#B45309">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+                            <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                
+                <TabItem Header="Expired">
+                    <DataGrid ItemsSource="{Binding Expired}" AutoGenerateColumns="False" IsReadOnly="True"
+                              Background="Transparent" BorderThickness="0"
+                              RowBackground="Transparent" Foreground="#B91C1C">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Batch" Binding="{Binding BatchNumber}" Width="100"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80"/>
+                            <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+            </TabControl>
+        </Border>
+    </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#4B5563"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#0EA5E9"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

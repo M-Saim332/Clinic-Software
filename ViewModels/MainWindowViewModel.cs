@@ -5,6 +5,14 @@ using ClinicSystem.UI.ViewModels.Medicines;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Reports;
+using ClinicSystem.UI.ViewModels.Companies;
+using ClinicSystem.UI.ViewModels.Suppliers;
+using ClinicSystem.UI.ViewModels.Products;
+using ClinicSystem.UI.ViewModels.Appointments;
+using ClinicSystem.UI.ViewModels.Purchases;
+using ClinicSystem.UI.ViewModels.Sales;
+using ClinicSystem.UI.ViewModels.Inventory;
+using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.Data;
 using System;
 using System.Threading.Tasks;
@@ -15,37 +23,60 @@ namespace ClinicSystem.UI.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    // Child ViewModels (injected via DI)
-    private readonly PatientRegistryViewModel _patientVM;
+    // ── Injected ViewModels ────────────────────────────────────────────────
+    private readonly DashboardViewModel        _dashboardVM;
+    private readonly PatientRegistryViewModel  _patientVM;
     private readonly MedicineRegistryViewModel _medicineVM;
-    private readonly PrescriptionViewModel _prescriptionVM;
-    private readonly VisitHistoryViewModel _visitHistoryVM;
-    private readonly UserRegistryViewModel _userVM;
-    private readonly ReportsViewModel _reportsVM;
-    private readonly DatabaseSession _dbSession;
+    private readonly PrescriptionViewModel     _prescriptionVM;
+    private readonly VisitHistoryViewModel     _visitHistoryVM;
+    private readonly UserRegistryViewModel     _userVM;
+    private readonly ReportsViewModel          _reportsVM;
+    private readonly CompanyRegistryViewModel  _companyVM;
+    private readonly SupplierRegistryViewModel _supplierVM;
+    private readonly ProductRegistryViewModel  _productVM;
+    private readonly AppointmentViewModel      _appointmentVM;
+    private readonly PurchaseViewModel         _purchaseVM;
+    private readonly SaleViewModel             _saleVM;
+    private readonly InventoryViewModel        _inventoryVM;
+    private readonly DatabaseSession           _dbSession;
 
     public MainWindowViewModel(
-        PatientRegistryViewModel patientVM,
+        DashboardViewModel        dashboardVM,
+        PatientRegistryViewModel  patientVM,
         MedicineRegistryViewModel medicineVM,
-        PrescriptionViewModel prescriptionVM,
-        VisitHistoryViewModel visitHistoryVM,
-        UserRegistryViewModel userVM,
-        ReportsViewModel reportsVM,
-        DatabaseSession dbSession)
+        PrescriptionViewModel     prescriptionVM,
+        VisitHistoryViewModel     visitHistoryVM,
+        UserRegistryViewModel     userVM,
+        ReportsViewModel          reportsVM,
+        CompanyRegistryViewModel  companyVM,
+        SupplierRegistryViewModel supplierVM,
+        ProductRegistryViewModel  productVM,
+        AppointmentViewModel      appointmentVM,
+        PurchaseViewModel         purchaseVM,
+        SaleViewModel             saleVM,
+        InventoryViewModel        inventoryVM,
+        DatabaseSession           dbSession)
     {
-        _patientVM = patientVM;
-        _medicineVM = medicineVM;
+        _dashboardVM    = dashboardVM;
+        _patientVM      = patientVM;
+        _medicineVM     = medicineVM;
         _prescriptionVM = prescriptionVM;
         _visitHistoryVM = visitHistoryVM;
-        _userVM = userVM;
-        _reportsVM = reportsVM;
-        _dbSession = dbSession;
+        _userVM         = userVM;
+        _reportsVM      = reportsVM;
+        _companyVM      = companyVM;
+        _supplierVM     = supplierVM;
+        _productVM      = productVM;
+        _appointmentVM  = appointmentVM;
+        _purchaseVM     = purchaseVM;
+        _saleVM         = saleVM;
+        _inventoryVM    = inventoryVM;
+        _dbSession      = dbSession;
 
-        // Start on patient registry
-        CurrentPageViewModel = _patientVM;
+        // Start on Dashboard
+        NavigateTo(_dashboardVM, "Dashboard");
 
-        // Load sequentially to avoid overwhelming the SQL connection pool.
-        // VisitHistory is excluded from startup — it loads lazily on first tab visit.
+        // Startup data load
         IsLoading = true;
         Task.Run(async () =>
         {
@@ -55,6 +86,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _medicineVM.InitializeAsync();
                 await _prescriptionVM.InitializeAsync();
                 await _userVM.InitializeAsync();
+                await _companyVM.InitializeAsync();
+                await _dashboardVM.InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -68,27 +101,89 @@ public partial class MainWindowViewModel : ViewModelBase
         });
     }
 
+    // ── State ──────────────────────────────────────────────────────────────
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;
-    [ObservableProperty] private string _statusText = string.Empty;
-    [ObservableProperty] private bool _isLoading;
+    [ObservableProperty] private string _statusText   = string.Empty;
+    [ObservableProperty] private string _pageTitle    = "Dashboard";
+    [ObservableProperty] private bool   _isLoading;
+
+    public string TodayDate        => DateTime.Now.ToString("dddd, MMM dd yyyy");
+    public string CurrentUserName  => CurrentUser?.FullName.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "Unknown";
+    public string CurrentUserRole  => CurrentUser?.Role ?? string.Empty;
+
+    // ── Active nav flags (for sidebar highlight) ───────────────────────────
+    [ObservableProperty] private bool _isDashboardActive;
+    [ObservableProperty] private bool _isPatientsActive;
+    [ObservableProperty] private bool _isMedicinesActive;
+    [ObservableProperty] private bool _isCompaniesActive;
+    [ObservableProperty] private bool _isSuppliersActive;
+    [ObservableProperty] private bool _isProductsActive;
+    [ObservableProperty] private bool _isPurchasesActive;
+    [ObservableProperty] private bool _isSalesActive;
+    [ObservableProperty] private bool _isInventoryActive;
+    [ObservableProperty] private bool _isAppointmentsActive;
+    [ObservableProperty] private bool _isPrescriptionsActive;
+    [ObservableProperty] private bool _isUsersActive;
+    [ObservableProperty] private bool _isReportsActive;
+
     private bool _visitHistoryLoaded;
 
-    public string LoggedInUser => CurrentUser != null
-        ? $"{CurrentUser.DisplayName}  [{CurrentUser.Role}]"
-        : "Not logged in";
+    // ── Navigation helper ──────────────────────────────────────────────────
+    private void NavigateTo(ViewModelBase vm, string title)
+    {
+        CurrentPageViewModel = vm;
+        PageTitle = title;
+        ClearActiveFlags();
+        switch (title)
+        {
+            case "Dashboard":    IsDashboardActive    = true; break;
+            case "Patients":     IsPatientsActive     = true; break;
+            case "Medicines":    IsMedicinesActive    = true; break;
+            case "Companies":    IsCompaniesActive    = true; break;
+            case "Suppliers":    IsSuppliersActive    = true; break;
+            case "Products":     IsProductsActive     = true; break;
+            case "Purchases":    IsPurchasesActive    = true; break;
+            case "Sales":        IsSalesActive        = true; break;
+            case "Inventory":    IsInventoryActive    = true; break;
+            case "Appointments": IsAppointmentsActive = true; break;
+            case "New Visit":    IsPrescriptionsActive = true; break;
+            case "Users":        IsUsersActive        = true; break;
+            case "Reports":      IsReportsActive      = true; break;
+        }
+    }
 
-    // Navigation commands
-    [RelayCommand] private void ShowPatients()      { CurrentPageViewModel = _patientVM; }
-    [RelayCommand] private void ShowMedicines()     { CurrentPageViewModel = _medicineVM; }
-    [RelayCommand] private void ShowPrescriptions() { CurrentPageViewModel = _prescriptionVM; }
-    [RelayCommand] private void ShowUsers()         { CurrentPageViewModel = _userVM; }
-    [RelayCommand] private void ShowReports()       { CurrentPageViewModel = _reportsVM; }
+    private void ClearActiveFlags()
+    {
+        IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsCompaniesActive =
+        IsSuppliersActive = IsProductsActive = IsPurchasesActive = IsSalesActive =
+        IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive =
+        IsUsersActive = IsReportsActive = false;
+    }
+
+    // ── Navigation commands ────────────────────────────────────────────────
+    [RelayCommand] private void ShowDashboard()    { NavigateTo(_dashboardVM,    "Dashboard");    _ = _dashboardVM.InitializeAsync(); }
+    [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients"); }
+    [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines"); }
+    [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies"); }
+    [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
+    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products");     _ = _productVM.InitializeAsync(); }
+    [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
+    [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales");        _ = _saleVM.InitializeAsync(); }
+    [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
+    [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
+    [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users"); }
+    [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
+
+    [RelayCommand]
+    private void ShowPrescriptions()
+    {
+        NavigateTo(_prescriptionVM, "New Visit");
+    }
 
     [RelayCommand]
     private void ShowVisitHistory()
     {
-        CurrentPageViewModel = _visitHistoryVM;
-        // Lazy-load visit history only on first navigation to this tab
+        NavigateTo(_visitHistoryVM, "Visit History");
         if (!_visitHistoryLoaded)
         {
             _visitHistoryLoaded = true;

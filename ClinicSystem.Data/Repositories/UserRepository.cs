@@ -34,7 +34,7 @@ public class UserRepository
     public User? Authenticate(string username, string password)
     {
         var user = GetByUsername(username);
-        if (user == null || !user.IsActive) return null;
+        if (user == null) return null;
         return BC.Verify(password, user.PasswordHash) ? user : null;
     }
 
@@ -43,8 +43,8 @@ public class UserRepository
         u.PasswordHash = BC.HashPassword(plainPassword);
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive)
-              VALUES (@Username, @PasswordHash, @Role, @FullName, @IsActive);
+            @"INSERT INTO Users (Username, PasswordHash, Role)
+              VALUES (@Username, @PasswordHash, @Role);
               SELECT SCOPE_IDENTITY();", u);
     }
 
@@ -53,8 +53,7 @@ public class UserRepository
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Users SET
-                Username = @Username, Role = @Role,
-                FullName = @FullName, IsActive = @IsActive
+                Username = @Username, Role = @Role
               WHERE UserID = @UserID", u);
     }
 
@@ -71,7 +70,7 @@ public class UserRepository
     {
         using var conn = _session.CreateConnection();
         var count = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Prescriptions WHERE DoctorID = @id", new { id });
+            "SELECT COUNT(*) FROM Appointments WHERE DoctorID = @id", new { id });
         if (count > 0) return false;
         conn.Execute("DELETE FROM Users WHERE UserID = @id", new { id });
         return true;

@@ -18,109 +18,151 @@ USE ClinicDB;
 GO
 
 -- ============================================================
---  TABLES
+--  DROP TABLES (if they exist, in reverse dependency order)
+-- ============================================================
+IF OBJECT_ID('PrescriptionItems', 'U') IS NOT NULL DROP TABLE PrescriptionItems;
+IF OBJECT_ID('Prescriptions', 'U') IS NOT NULL DROP TABLE Prescriptions;
+IF OBJECT_ID('SaleItems', 'U') IS NOT NULL DROP TABLE SaleItems;
+IF OBJECT_ID('Sales', 'U') IS NOT NULL DROP TABLE Sales;
+IF OBJECT_ID('PurchaseItems', 'U') IS NOT NULL DROP TABLE PurchaseItems;
+IF OBJECT_ID('Purchases', 'U') IS NOT NULL DROP TABLE Purchases;
+IF OBJECT_ID('Appointments', 'U') IS NOT NULL DROP TABLE Appointments;
+IF OBJECT_ID('Patients', 'U') IS NOT NULL DROP TABLE Patients;
+IF OBJECT_ID('Medicines', 'U') IS NOT NULL DROP TABLE Medicines;
+IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
+IF OBJECT_ID('Suppliers', 'U') IS NOT NULL DROP TABLE Suppliers;
+IF OBJECT_ID('Companies', 'U') IS NOT NULL DROP TABLE Companies;
+IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users;
+GO
+
+-- ============================================================
+--  CREATE TABLES
 -- ============================================================
 
--- Users (must exist first due to FK in Prescriptions)
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Users' AND xtype='U')
+CREATE TABLE Companies (
+    CompanyID INT IDENTITY(1,1) PRIMARY KEY,
+    Name      VARCHAR(150) NOT NULL,
+    Address   VARCHAR(255),
+    Phone     VARCHAR(50),
+    Email     VARCHAR(150)
+);
+GO
+
+CREATE TABLE Suppliers (
+    SupplierID INT IDENTITY(1,1) PRIMARY KEY,
+    Name       VARCHAR(150) NOT NULL,
+    Address    VARCHAR(255),
+    Phone      VARCHAR(50),
+    Email      VARCHAR(150)
+);
+GO
+
+CREATE TABLE Products (
+    ProductID     INT IDENTITY(1,1) PRIMARY KEY,
+    CompanyID     INT FOREIGN KEY REFERENCES Companies(CompanyID),
+    Name          VARCHAR(150) NOT NULL,
+    PurchaseRate  DECIMAL(10,2) DEFAULT 0,
+    SellingPrice  DECIMAL(10,2) DEFAULT 0,
+    Tax           DECIMAL(5,2) DEFAULT 0,
+    StockQuantity INT DEFAULT 0
+);
+GO
+
+CREATE TABLE Medicines (
+    MedicineID        INT IDENTITY(1,1) PRIMARY KEY,
+    Name              VARCHAR(150) NOT NULL,
+    GenericName       VARCHAR(150),
+    CompanyID         INT FOREIGN KEY REFERENCES Companies(CompanyID),
+    BatchNumber       VARCHAR(50),
+    ExpiryDate        DATE,
+    PurchasePrice     DECIMAL(10,2) DEFAULT 0,
+    SellingPrice      DECIMAL(10,2) DEFAULT 0,
+    Stock             INT DEFAULT 0,
+    MinimumStockLevel INT DEFAULT 0
+);
+GO
+
+CREATE TABLE Patients (
+    PatientID       INT IDENTITY(1,1) PRIMARY KEY,
+    Name            VARCHAR(150) NOT NULL,
+    Age             INT,
+    Gender          VARCHAR(10) CHECK (Gender IN ('Male', 'Female', 'Other')),
+    Phone           VARCHAR(50),
+    Address         VARCHAR(255),
+    Diagnosis       TEXT,
+    Prescription    TEXT,
+    ConsultationFee DECIMAL(10,2) DEFAULT 0,
+    Discount        DECIMAL(10,2) DEFAULT 0
+);
+GO
+
 CREATE TABLE Users (
     UserID       INT IDENTITY(1,1) PRIMARY KEY,
     Username     VARCHAR(100) NOT NULL UNIQUE,
     PasswordHash VARCHAR(255) NOT NULL,
-    Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist')),
-    FullName     VARCHAR(150),
-    IsActive     BIT NOT NULL DEFAULT 1,
-    CreatedAt    DATETIME NOT NULL DEFAULT GETDATE()
+    Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist', 'Admin')),
+    FullName     VARCHAR(150) NULL,
+    IsActive     BIT DEFAULT 1,
+    CreatedAt    DATETIME DEFAULT GETDATE()
 );
 GO
 
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Patients' AND xtype='U')
-CREATE TABLE Patients (
-    PatientID      INT IDENTITY(1,1) PRIMARY KEY,
-    Name           VARCHAR(150) NOT NULL,
-    DateOfBirth    DATE,
-    Age            INT,
-    Gender         VARCHAR(10)  CHECK (Gender IN ('Male', 'Female', 'Other')),
-    Contact        VARCHAR(50),
-    Address        VARCHAR(255),
-    MedicalHistory NVARCHAR(MAX),
-    CreatedAt      DATETIME NOT NULL DEFAULT GETDATE(),
-    UpdatedAt      DATETIME NOT NULL DEFAULT GETDATE()
+CREATE TABLE Appointments (
+    AppointmentID      INT IDENTITY(1,1) PRIMARY KEY,
+    PatientID          INT FOREIGN KEY REFERENCES Patients(PatientID),
+    DoctorID           INT FOREIGN KEY REFERENCES Users(UserID),
+    AppointmentDate    DATE NOT NULL,
+    AppointmentTime    TIME NOT NULL,
+    Reason             VARCHAR(255),
+    Status             VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (Status IN ('Scheduled', 'Checked-In', 'Completed', 'Cancelled', 'No-Show')),
+    CancellationReason VARCHAR(255) NULL,
+    CreatedAt          DATETIME DEFAULT GETDATE(),
+    LinkedVisitID      INT NULL
 );
 GO
 
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Medicines' AND xtype='U')
-CREATE TABLE Medicines (
-    MedicineID   INT IDENTITY(1,1) PRIMARY KEY,
-    Name         VARCHAR(150) NOT NULL,
-    Formula      VARCHAR(150),
-    Stock        INT          NOT NULL DEFAULT 0,
-    MinStock     INT          NOT NULL DEFAULT 10,   -- threshold for low-stock alert
-    ExpiryDate   DATE,
-    Price        DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    BuyingPrice  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    SellingPrice DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    Manufacturer VARCHAR(150),
-    Company      VARCHAR(150),
-    SupplierName VARCHAR(150),
-    Category     VARCHAR(100),
-    BuyingDate   DATE,
-    UnitsBought  INT NOT NULL DEFAULT 0,
-    StockType    VARCHAR(20) NOT NULL DEFAULT 'Bought' CHECK (StockType IN ('Bought', 'Sample')),
-    CreatedAt    DATETIME NOT NULL DEFAULT GETDATE(),
-    UpdatedAt    DATETIME NOT NULL DEFAULT GETDATE()
+CREATE TABLE Purchases (
+    PurchaseID    INT IDENTITY(1,1) PRIMARY KEY,
+    InvoiceNumber VARCHAR(50) NOT NULL,
+    PurchaseDate  DATETIME DEFAULT GETDATE(),
+    SupplierID    INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
+    TotalAmount   DECIMAL(12,2) DEFAULT 0
 );
 GO
 
-IF COL_LENGTH('Medicines', 'Formula') IS NULL
-    ALTER TABLE Medicines ADD Formula VARCHAR(150) NULL;
-GO
-IF COL_LENGTH('Medicines', 'BuyingPrice') IS NULL
-    ALTER TABLE Medicines ADD BuyingPrice DECIMAL(10,2) NOT NULL CONSTRAINT DF_Medicines_BuyingPrice DEFAULT 0.00;
-GO
-IF COL_LENGTH('Medicines', 'SellingPrice') IS NULL
-    ALTER TABLE Medicines ADD SellingPrice DECIMAL(10,2) NOT NULL CONSTRAINT DF_Medicines_SellingPrice DEFAULT 0.00;
-GO
-IF COL_LENGTH('Medicines', 'Company') IS NULL
-    ALTER TABLE Medicines ADD Company VARCHAR(150) NULL;
-GO
-IF COL_LENGTH('Medicines', 'SupplierName') IS NULL
-    ALTER TABLE Medicines ADD SupplierName VARCHAR(150) NULL;
-GO
-IF COL_LENGTH('Medicines', 'BuyingDate') IS NULL
-    ALTER TABLE Medicines ADD BuyingDate DATE NULL;
-GO
-IF COL_LENGTH('Medicines', 'UnitsBought') IS NULL
-    ALTER TABLE Medicines ADD UnitsBought INT NOT NULL CONSTRAINT DF_Medicines_UnitsBought DEFAULT 0;
-GO
-IF COL_LENGTH('Medicines', 'StockType') IS NULL
-    ALTER TABLE Medicines ADD StockType VARCHAR(20) NOT NULL CONSTRAINT DF_Medicines_StockType DEFAULT 'Bought';
-GO
-UPDATE Medicines
-SET SellingPrice = CASE WHEN SellingPrice = 0 THEN Price ELSE SellingPrice END,
-    UnitsBought = CASE WHEN UnitsBought = 0 THEN Stock ELSE UnitsBought END
-WHERE SellingPrice = 0 OR UnitsBought = 0;
-GO
-
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Prescriptions' AND xtype='U')
-CREATE TABLE Prescriptions (
-    PrescriptionID INT IDENTITY(1,1) PRIMARY KEY,
-    PatientID      INT NOT NULL FOREIGN KEY REFERENCES Patients(PatientID),
-    DoctorID       INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
-    VisitDate      DATETIME NOT NULL DEFAULT GETDATE(),
-    Diagnosis      NVARCHAR(MAX),
-    Notes          NVARCHAR(MAX),
-    CreatedAt      DATETIME NOT NULL DEFAULT GETDATE()
+CREATE TABLE PurchaseItems (
+    PurchaseItemID INT IDENTITY(1,1) PRIMARY KEY,
+    PurchaseID     INT FOREIGN KEY REFERENCES Purchases(PurchaseID) ON DELETE CASCADE,
+    ProductID      INT FOREIGN KEY REFERENCES Products(ProductID),
+    BatchNumber    VARCHAR(50),
+    ExpiryDate     DATE,
+    Quantity       INT NOT NULL,
+    PurchasePrice  DECIMAL(10,2),
+    Discount       DECIMAL(10,2) DEFAULT 0,
+    Tax            DECIMAL(5,2) DEFAULT 0
 );
 GO
 
-IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='PrescriptionItems' AND xtype='U')
-CREATE TABLE PrescriptionItems (
-    PrescriptionItemID INT IDENTITY(1,1) PRIMARY KEY,
-    PrescriptionID     INT NOT NULL FOREIGN KEY REFERENCES Prescriptions(PrescriptionID) ON DELETE CASCADE,
-    MedicineID         INT NOT NULL FOREIGN KEY REFERENCES Medicines(MedicineID),
-    Quantity           INT NOT NULL,
-    Dosage             VARCHAR(150)
+CREATE TABLE Sales (
+    SaleID          INT IDENTITY(1,1) PRIMARY KEY,
+    InvoiceNumber   VARCHAR(50) NOT NULL,
+    SaleDate        DATETIME DEFAULT GETDATE(),
+    PatientID       INT FOREIGN KEY REFERENCES Patients(PatientID),
+    ConsultationFee DECIMAL(10,2) DEFAULT 0,
+    GrandTotal      DECIMAL(12,2) DEFAULT 0,
+    PaymentMethod   VARCHAR(20) CHECK (PaymentMethod IN ('Cash', 'Card', 'Online')),
+    IsPosted        BIT DEFAULT 0
+);
+GO
+
+CREATE TABLE SaleItems (
+    SaleItemID INT IDENTITY(1,1) PRIMARY KEY,
+    SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
+    MedicineID INT FOREIGN KEY REFERENCES Medicines(MedicineID),
+    Quantity   INT NOT NULL,
+    Discount   DECIMAL(10,2) DEFAULT 0,
+    Tax        DECIMAL(5,2) DEFAULT 0,
+    LineTotal  DECIMAL(10,2) DEFAULT 0
 );
 GO
 
@@ -133,11 +175,8 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Patients_Name')
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Medicines_Name')
     CREATE INDEX IX_Medicines_Name ON Medicines(Name);
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Prescriptions_PatientID')
-    CREATE INDEX IX_Prescriptions_PatientID ON Prescriptions(PatientID);
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Prescriptions_VisitDate')
-    CREATE INDEX IX_Prescriptions_VisitDate ON Prescriptions(VisitDate);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Appointments_Date')
+    CREATE INDEX IX_Appointments_Date ON Appointments(AppointmentDate);
 GO
 
 -- ============================================================
@@ -147,42 +186,16 @@ GO
 -- ============================================================
 IF NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'admin')
 BEGIN
-    INSERT INTO Users (Username, PasswordHash, Role, FullName)
+    INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive)
     VALUES (
         'admin',
         '$2a$11$u0LyGgHmhN2kTeoBK.a5m.FVHXHSUA/xHZFJ9tE1O4Oj4QvICWT.O',  -- Admin@123
         'Doctor',
-        'System Administrator'
+        'System Admin',
+        1
     );
 END
 GO
 
--- ============================================================
---  EXPIRY SAFETY TRIGGER
---  Prevent prescribing an expired medicine
--- ============================================================
-IF OBJECT_ID('trg_PreventExpiredMedicine', 'TR') IS NOT NULL
-    DROP TRIGGER trg_PreventExpiredMedicine;
-GO
-
-CREATE TRIGGER trg_PreventExpiredMedicine
-ON PrescriptionItems
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN Medicines m ON i.MedicineID = m.MedicineID
-        WHERE m.ExpiryDate IS NOT NULL AND m.ExpiryDate < CAST(GETDATE() AS DATE)
-    )
-    BEGIN
-        RAISERROR('Cannot prescribe an expired medicine.', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END
-GO
-
-PRINT 'ClinicDB schema created / verified successfully.';
+PRINT 'ClinicDB expanded schema created successfully.';
 GO

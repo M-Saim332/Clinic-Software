@@ -9,6 +9,14 @@ using ClinicSystem.UI.ViewModels.Medicines;
 using ClinicSystem.UI.ViewModels.Patients;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Reports;
+using ClinicSystem.UI.ViewModels.Companies;
+using ClinicSystem.UI.ViewModels.Suppliers;
+using ClinicSystem.UI.ViewModels.Products;
+using ClinicSystem.UI.ViewModels.Appointments;
+using ClinicSystem.UI.ViewModels.Purchases;
+using ClinicSystem.UI.ViewModels.Sales;
+using ClinicSystem.UI.ViewModels.Inventory;
+using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.Views;
 using Microsoft.Extensions.Configuration;
@@ -43,6 +51,12 @@ public partial class App : Application
         services.AddSingleton<MedicineRepository>();
         services.AddSingleton<UserRepository>();
         services.AddSingleton<PrescriptionRepository>();
+        services.AddSingleton<CompanyRepository>();
+        services.AddSingleton<SupplierRepository>();
+        services.AddSingleton<ProductRepository>();
+        services.AddSingleton<AppointmentRepository>();
+        services.AddSingleton<PurchaseRepository>();
+        services.AddSingleton<SaleRepository>();
 
         // ViewModels
         services.AddTransient<LoginViewModel>();
@@ -52,6 +66,14 @@ public partial class App : Application
         services.AddSingleton<VisitHistoryViewModel>();
         services.AddSingleton<UserRegistryViewModel>();
         services.AddSingleton<ReportsViewModel>();
+        services.AddSingleton<CompanyRegistryViewModel>();
+        services.AddSingleton<SupplierRegistryViewModel>();
+        services.AddSingleton<ProductRegistryViewModel>();
+        services.AddSingleton<AppointmentViewModel>();
+        services.AddSingleton<PurchaseViewModel>();
+        services.AddSingleton<SaleViewModel>();
+        services.AddSingleton<InventoryViewModel>();
+        services.AddSingleton<DashboardViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
         _services = services.BuildServiceProvider();

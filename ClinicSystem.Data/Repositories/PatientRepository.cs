@@ -28,7 +28,7 @@ public class PatientRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Patient>(
             @"SELECT * FROM Patients
-              WHERE Name LIKE @term OR Contact LIKE @term
+              WHERE Name LIKE @term OR Phone LIKE @term
               ORDER BY Name",
             new { term = $"%{term}%" });
     }
@@ -37,30 +37,31 @@ public class PatientRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Patients (Name, DateOfBirth, Age, Gender, Contact, Address, MedicalHistory)
-              VALUES (@Name, @DateOfBirth, @Age, @Gender, @Contact, @Address, @MedicalHistory);
+            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount)
+              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount);
               SELECT SCOPE_IDENTITY();", p);
     }
 
     public void Update(Patient p)
     {
-        p.UpdatedAt = DateTime.Now;
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Patients SET
-                Name = @Name, DateOfBirth = @DateOfBirth, Age = @Age, Gender = @Gender,
-                Contact = @Contact, Address = @Address, MedicalHistory = @MedicalHistory,
-                UpdatedAt = @UpdatedAt
+                Name = @Name, Age = @Age, Gender = @Gender,
+                Phone = @Phone, Address = @Address, Diagnosis = @Diagnosis,
+                Prescription = @Prescription, ConsultationFee = @ConsultationFee, Discount = @Discount
               WHERE PatientID = @PatientID", p);
     }
 
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
-        // Check for existing prescriptions first
-        var count = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Prescriptions WHERE PatientID = @id", new { id });
-        if (count > 0) return false;
+        // Check for existing appointments or sales first
+        var apptCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM Appointments WHERE PatientID = @id", new { id });
+        var salesCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM Sales WHERE PatientID = @id", new { id });
+        if (apptCount > 0 || salesCount > 0) return false;
 
         conn.Execute("DELETE FROM Patients WHERE PatientID = @id", new { id });
         return true;
