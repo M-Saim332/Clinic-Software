@@ -64,22 +64,41 @@
                                 </StackPanel>
                             </Grid>
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Contact" Classes="label"/>
-                                <TextBox Text="{Binding Contact}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Phone number"/>
+                                <TextBlock Text="Phone" Classes="label"/>
+                                <TextBox Text="{Binding Phone}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Phone number"/>
                             </StackPanel>
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Address" Classes="label"/>
                                 <TextBox Text="{Binding Address}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="Full address"/>
                             </StackPanel>
                             <StackPanel Spacing="4">
-                                <TextBlock Text="Medical History" Classes="label"/>
-                                <TextBox Text="{Binding MedicalHistory}"
+                                <TextBlock Text="Diagnosis" Classes="label"/>
+                                <TextBox Text="{Binding Diagnosis}"
                                          IsEnabled="{Binding SaveCancelEnabled}"
                                          Classes="field"
-                                         PlaceholderText="Known conditions, allergies, notes..."
+                                         PlaceholderText="Diagnosis notes..."
                                          AcceptsReturn="True" TextWrapping="Wrap"
-                                         Height="100"/>
+                                         Height="60"/>
                             </StackPanel>
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Prescription" Classes="label"/>
+                                <TextBox Text="{Binding Prescription}"
+                                         IsEnabled="{Binding SaveCancelEnabled}"
+                                         Classes="field"
+                                         PlaceholderText="Prescribed medicines..."
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         Height="60"/>
+                            </StackPanel>
+                            <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+                                <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,6,0">
+                                    <TextBlock Text="Consultation Fee" Classes="label"/>
+                                    <TextBox Text="{Binding ConsultationFee}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="4">
+                                    <TextBlock Text="Discount" Classes="label"/>
+                                    <TextBox Text="{Binding Discount}" IsEnabled="{Binding SaveCancelEnabled}" Classes="field" PlaceholderText="0.00"/>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
 
                     </StackPanel>
@@ -97,7 +116,7 @@
                                 <Button DockPanel.Dock="Right" Content="✕ Close" Command="{Binding CloseListCommand}" Classes="action" HorizontalAlignment="Right"/>
                             </DockPanel>
                             <TextBox DockPanel.Dock="Top" Text="{Binding SearchTerm}"
-                                     PlaceholderText="Search by name or contact..." Margin="0,0,0,10"
+                                     PlaceholderText="Search by name or phone..." Margin="0,0,0,10"
                                      Classes="field"/>
                             <DataGrid ItemsSource="{Binding FilteredPatients}"
                                       SelectedItem="{Binding SelectedPatient}"
@@ -112,7 +131,7 @@
                                     <DataGridTextColumn Header="Name"    Binding="{Binding Name}"    Width="*"/>
                                     <DataGridTextColumn Header="Age"     Binding="{Binding Age}"     Width="50"/>
                                     <DataGridTextColumn Header="Gender"  Binding="{Binding Gender}"  Width="70"/>
-                                    <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="120"/>
+                                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120"/>
                                 </DataGrid.Columns>
                                 <DataGrid.Styles>
                                     <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">

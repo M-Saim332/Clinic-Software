@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Users;
 
-
 public partial class UserRegistryViewModel : ViewModelBase
 {
     private readonly UserRepository _repo;
@@ -32,14 +31,14 @@ public partial class UserRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _username = string.Empty;
     [ObservableProperty] private string _fullName = string.Empty;
     [ObservableProperty] private string _role = "Receptionist";
+    [ObservableProperty] private bool _isActive = true;
     [ObservableProperty] private string _password = string.Empty;
     [ObservableProperty] private string _confirmPassword = string.Empty;
-    [ObservableProperty] private bool _isActive = true;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
     public bool PasswordVisible => Mode == FormMode.Add;
-    public List<string> RoleOptions { get; } = new() { "Doctor", "Receptionist" };
+    public List<string> RoleOptions { get; } = new() { "Doctor", "Receptionist", "Admin" };
 
     [RelayCommand]
     private void New() { ClearFields(); Mode = FormMode.Add; NotifyButtonStates(); StatusMessage = "Enter new user details."; }
@@ -58,7 +57,7 @@ public partial class UserRegistryViewModel : ViewModelBase
         if (SelectedUser.UserID == CurrentUser?.UserID) { StatusMessage = "Cannot delete your own account."; return; }
         var ok = await Task.Run(() => _repo.Delete(SelectedUser.UserID));
         if (ok) { StatusMessage = "User deleted."; _ = InitializeAsync(); SelectedUser = null; }
-        else StatusMessage = "Cannot delete — user has existing prescriptions.";
+        else StatusMessage = "Cannot delete — user has existing appointments.";
     }
 
     [RelayCommand]
@@ -101,14 +100,13 @@ public partial class UserRegistryViewModel : ViewModelBase
 
     private void ClearFields()
     {
-        Username = string.Empty; FullName = string.Empty; Role = "Receptionist";
-        Password = string.Empty; ConfirmPassword = string.Empty; IsActive = true;
+        Username = string.Empty; FullName = string.Empty; Role = "Receptionist"; IsActive = true;
+        Password = string.Empty; ConfirmPassword = string.Empty;
     }
 
     private void FillFields(User u)
     {
-        Username = u.Username; FullName = u.FullName ?? string.Empty;
-        Role = u.Role; IsActive = u.IsActive;
+        Username = u.Username; FullName = u.FullName; Role = u.Role; IsActive = u.IsActive;
         Password = string.Empty; ConfirmPassword = string.Empty;
     }
 

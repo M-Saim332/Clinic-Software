@@ -1,25 +1,31 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj": {}
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj": {}
   },
   "projects": {
-    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj",
+        "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj",
         "projectName": "ClinicSystem.Core",
-        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj",
-        "packagesPath": "/Users/mrcom/.nuget/packages/",
-        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/obj/",
+        "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj",
+        "packagesPath": "C:\\Users\\mssai\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\mssai\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -38,7 +44,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -59,7 +65,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -337,30 +343,36 @@
         }
       }
     },
-    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj": {
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj",
+        "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj",
         "projectName": "ClinicSystem.Data",
-        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj",
-        "packagesPath": "/Users/mrcom/.nuget/packages/",
-        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/obj/",
+        "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj",
+        "packagesPath": "C:\\Users\\mssai\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\mssai\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
-                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj"
+              "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
+                "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
               }
             }
           }
@@ -375,7 +387,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -414,7 +426,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -692,33 +704,39 @@
         }
       }
     },
-    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj": {
+    "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj",
+        "projectUniqueName": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
         "projectName": "ClinicSystem.UI",
-        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj",
-        "packagesPath": "/Users/mrcom/.nuget/packages/",
-        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/obj/",
+        "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.UI.csproj",
+        "packagesPath": "C:\\Users\\mssai\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\mssai\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
-                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj"
+              "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
+                "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
               },
-              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj": {
-                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj"
+              "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
+                "projectPath": "C:\\Users\\mssai\\OneDrive\\Desktop\\Clinic software\\ClinicSystem.Data\\ClinicSystem.Data.csproj"
               }
             }
           }
@@ -733,7 +751,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net10.0": {
@@ -792,7 +810,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.203/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

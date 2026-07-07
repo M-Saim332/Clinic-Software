@@ -36,9 +36,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _age = string.Empty;
     [ObservableProperty] private string _gender = "Male";
-    [ObservableProperty] private string _contact = string.Empty;
+    [ObservableProperty] private string _phone = string.Empty;
     [ObservableProperty] private string _address = string.Empty;
-    [ObservableProperty] private string _medicalHistory = string.Empty;
+    [ObservableProperty] private string _diagnosis = string.Empty;
+    [ObservableProperty] private string _prescription = string.Empty;
+    [ObservableProperty] private string _consultationFee = "0.00";
+    [ObservableProperty] private string _discount = "0.00";
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
 
@@ -148,20 +151,27 @@ public partial class PatientRegistryViewModel : ViewModelBase
     private void ClearFields()
     {
         Name = string.Empty; Age = string.Empty; Gender = "Male";
-        Contact = string.Empty; Address = string.Empty; MedicalHistory = string.Empty;
+        Phone = string.Empty; Address = string.Empty;
+        Diagnosis = string.Empty; Prescription = string.Empty;
+        ConsultationFee = "0.00"; Discount = "0.00";
     }
 
     private void FillFields(Patient p)
     {
         Name = p.Name; Age = p.Age?.ToString() ?? string.Empty;
-        Gender = p.Gender ?? "Male"; Contact = p.Contact ?? string.Empty;
-        Address = p.Address ?? string.Empty; MedicalHistory = p.MedicalHistory ?? string.Empty;
+        Gender = p.Gender ?? "Male"; Phone = p.Phone ?? string.Empty;
+        Address = p.Address ?? string.Empty;
+        Diagnosis = p.Diagnosis ?? string.Empty; Prescription = p.Prescription ?? string.Empty;
+        ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = p.Discount.ToString("F2");
     }
 
     private Patient BuildPatient() => new()
     {
         Name = Name, Age = int.TryParse(Age, out var a) ? a : null,
-        Gender = Gender, Contact = Contact, Address = Address, MedicalHistory = MedicalHistory
+        Gender = Gender, Phone = Phone, Address = Address,
+        Diagnosis = Diagnosis, Prescription = Prescription,
+        ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
+        Discount = decimal.TryParse(Discount, out var d) ? d : 0
     };
 
     private void NotifyButtonStates()

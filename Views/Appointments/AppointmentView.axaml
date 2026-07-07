@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Appointments"
+             x:Class="ClinicSystem.UI.Views.Appointments.AppointmentView"
+             x:DataType="vm:AppointmentViewModel"
+             Background="#F5F7FA">
+
+    <Grid ColumnDefinitions="350,*" Margin="20">
+        <!-- Form Side -->
+        <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="20"
+                BorderBrush="#E5E7EB" BorderThickness="1"
+                BoxShadow="0 1 3 0 #1A000000">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Book Appointment" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,20"/>
+                
+                <StackPanel DockPanel.Dock="Bottom" Spacing="10" Margin="0,20,0,0">
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Save" Command="{Binding SaveCommand}"
+                                IsEnabled="{Binding SaveCancelEnabled}"
+                                Background="#0EA5E9" Foreground="White" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,5,0" CornerRadius="6"/>
+                        <Button Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}"
+                                IsEnabled="{Binding SaveCancelEnabled}"
+                                Background="#F3F4F6" Foreground="#4B5563" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="5,0,0,0" CornerRadius="6"/>
+                    </Grid>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#EF4444" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <ScrollViewer IsEnabled="{Binding SaveCancelEnabled}">
+                    <StackPanel Spacing="15">
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Patient" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" 
+                                      HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Doctor" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <ComboBox ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}" 
+                                      HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Username}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Date" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Time" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch" CornerRadius="6" BorderBrush="#D1D5DB"/>
+                        </StackPanel>
+                        
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Reason for Visit" Foreground="#374151" FontSize="12" FontWeight="Medium"/>
+                            <TextBox Text="{Binding Reason}" CornerRadius="6" BorderBrush="#D1D5DB" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Grid Side -->
+        <Border Grid.Column="1" Background="White" CornerRadius="12" Margin="20,0,0,0"
+                BorderBrush="#E5E7EB" BorderThickness="1"
+                BoxShadow="0 1 3 0 #1A000000">
+            <DockPanel>
+                <!-- Toolbar -->
+                <Border DockPanel.Dock="Top" Padding="15" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,20,0">
+                            <Button Content="➕ Book" Command="{Binding NewCommand}"
+                                    IsEnabled="{Binding MutationEnabled}"
+                                    Background="#10B981" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                            <Button Content="✏️ Edit" Command="{Binding EditCommand}"
+                                    IsEnabled="{Binding MutationEnabled}"
+                                    Background="#F59E0B" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                        </StackPanel>
+                        
+                        <Border Width="1" Background="#E5E7EB" Margin="0,0,20,0"/>
+
+                        <!-- Status actions -->
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="✅ Check-In" Command="{Binding CheckInCommand}"
+                                    IsEnabled="{Binding MutationEnabled}"
+                                    Background="#0EA5E9" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                            <Button Content="✔️ Complete" Command="{Binding CompleteCommand}"
+                                    IsEnabled="{Binding MutationEnabled}"
+                                    Background="#22C55E" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                            <Button Content="❌ Cancel Appt" Command="{Binding MarkCancelledCommand}"
+                                    IsEnabled="{Binding MutationEnabled}"
+                                    Background="#EF4444" Foreground="White" CornerRadius="6" Padding="15,6"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
+                
+                <DataGrid ItemsSource="{Binding Appointments}" SelectedItem="{Binding SelectedAppointment}"
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="Transparent" BorderThickness="0"
+                          RowBackground="Transparent"
+                          Foreground="#374151">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Date" Binding="{Binding AppointmentDate, StringFormat=\{0:MM/dd/yyyy\}}" Width="100"/>
+                        <DataGridTextColumn Header="Time" Binding="{Binding AppointmentTime, StringFormat=\{0:hh\\:mm\}}" Width="80"/>
+                        <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}" Width="150"/>
+                        <DataGridTextColumn Header="Doctor" Binding="{Binding DoctorName}" Width="120"/>
+                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
+                        <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>
