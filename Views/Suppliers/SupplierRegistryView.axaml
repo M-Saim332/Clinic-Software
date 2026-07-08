@@ -90,7 +90,7 @@
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding DeleteCommand}"
-                                    IsEnabled="{Binding MutationEnabled}" Classes="danger">
+                                    IsEnabled="{Binding MutationEnabled}" Classes="danger" Focusable="False">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                     <TextBlock Text="Delete" VerticalAlignment="Center"/>

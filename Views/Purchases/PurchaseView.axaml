@@ -22,7 +22,7 @@
         </Border>
 
         <!-- Main content -->
-        <Grid Grid.Row="1" ColumnDefinitions="450,*" Margin="24">
+        <Grid Grid.Row="1" ColumnDefinitions="380,*" Margin="24">
 
             <!-- Form Side (Header & Line Items input) -->
             <Border Grid.Column="0" Classes="card">
@@ -189,8 +189,8 @@
                                       Background="Transparent" BorderThickness="0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Product" Binding="{Binding ProductName}"                              Width="*"/>
-                                    <DataGridTextColumn Header="Batch"   Binding="{Binding BatchNumber}"                              Width="80"/>
-                                    <DataGridTextColumn Header="Exp"     Binding="{Binding ExpiryDate, StringFormat=\{0:MM/yy\}}"     Width="70"/>
+                                    <DataGridTextColumn Header="Batch"   Binding="{Binding BatchNumber}"                              Width="100"/>
+                                    <DataGridTextColumn Header="Exp"     Binding="{Binding ExpiryDate, StringFormat=\{0:MM/yy\}}"     Width="80"/>
                                     <DataGridTextColumn Header="Qty"     Binding="{Binding Quantity}"                                 Width="60"/>
                                     <DataGridTextColumn Header="Price"   Binding="{Binding PurchasePrice, StringFormat=N2}"           Width="90"/>
                                     <DataGridTextColumn Header="Total"   Binding="{Binding LineNetTotal, StringFormat=C2}"            Width="100"/>

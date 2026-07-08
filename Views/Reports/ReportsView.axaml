@@ -123,6 +123,53 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
+
+            <!-- Tab 5: Financials -->
+            <TabItem Header="Financials">
+                <DockPanel Margin="12">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="16" Margin="0,0,0,24">
+                        <Button Command="{Binding LoadFinancialsCommand}" Classes="primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="Refresh" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DownloadWeeklyReportCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <TextBlock Text="Download Weekly" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DownloadMonthlyReportCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <TextBlock Text="Download Monthly" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Spacing="20" HorizontalAlignment="Left">
+                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Total Revenue" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
+                                <TextBlock Text="{Binding TotalRevenue, StringFormat=C2}" Foreground="#16A34A" FontSize="28" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Total Expenses (Purchases)" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
+                                <TextBlock Text="{Binding TotalExpenses, StringFormat=C2}" Foreground="#DC2626" FontSize="28" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Width="300" Padding="20">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Net Profit" Foreground="#6B7280" FontSize="14" FontWeight="Medium"/>
+                                <TextBlock Text="{Binding NetProfit, StringFormat=C2}" Foreground="#2563EB" FontSize="28" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+            </TabItem>
         </TabControl>
 
         <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
