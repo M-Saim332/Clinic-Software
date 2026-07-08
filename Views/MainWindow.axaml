@@ -95,13 +95,6 @@
               </StackPanel>
             </Button>
 
-            <Button Command="{Binding ShowProductsCommand}"
-                    Classes="navbtn" Classes.active="{Binding IsProductsActive}">
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <PathIcon Data="{StaticResource IconProducts}" Width="16" Height="16" VerticalAlignment="Center"/>
-                <TextBlock Text="Products" VerticalAlignment="Center"/>
-              </StackPanel>
-            </Button>
 
             <Button Command="{Binding ShowMedicinesCommand}"
                     Classes="navbtn" Classes.active="{Binding IsMedicinesActive}">

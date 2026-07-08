@@ -7,7 +7,7 @@ using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Reports;
 using ClinicSystem.UI.ViewModels.Companies;
 using ClinicSystem.UI.ViewModels.Suppliers;
-using ClinicSystem.UI.ViewModels.Products;
+
 using ClinicSystem.UI.ViewModels.Appointments;
 using ClinicSystem.UI.ViewModels.Purchases;
 using ClinicSystem.UI.ViewModels.Sales;
@@ -33,7 +33,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ReportsViewModel          _reportsVM;
     private readonly CompanyRegistryViewModel  _companyVM;
     private readonly SupplierRegistryViewModel _supplierVM;
-    private readonly ProductRegistryViewModel  _productVM;
+
     private readonly AppointmentViewModel      _appointmentVM;
     private readonly PurchaseViewModel         _purchaseVM;
     private readonly SaleViewModel             _saleVM;
@@ -50,7 +50,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ReportsViewModel          reportsVM,
         CompanyRegistryViewModel  companyVM,
         SupplierRegistryViewModel supplierVM,
-        ProductRegistryViewModel  productVM,
+
         AppointmentViewModel      appointmentVM,
         PurchaseViewModel         purchaseVM,
         SaleViewModel             saleVM,
@@ -66,7 +66,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _reportsVM      = reportsVM;
         _companyVM      = companyVM;
         _supplierVM     = supplierVM;
-        _productVM      = productVM;
+
         _appointmentVM  = appointmentVM;
         _purchaseVM     = purchaseVM;
         _saleVM         = saleVM;
@@ -117,7 +117,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isMedicinesActive;
     [ObservableProperty] private bool _isCompaniesActive;
     [ObservableProperty] private bool _isSuppliersActive;
-    [ObservableProperty] private bool _isProductsActive;
+
     [ObservableProperty] private bool _isPurchasesActive;
     [ObservableProperty] private bool _isSalesActive;
     [ObservableProperty] private bool _isInventoryActive;
@@ -141,7 +141,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Medicines":    IsMedicinesActive    = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
-            case "Products":     IsProductsActive     = true; break;
+
             case "Purchases":    IsPurchasesActive    = true; break;
             case "Sales":        IsSalesActive        = true; break;
             case "Inventory":    IsInventoryActive    = true; break;
@@ -155,7 +155,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearActiveFlags()
     {
         IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsCompaniesActive =
-        IsSuppliersActive = IsProductsActive = IsPurchasesActive = IsSalesActive =
+        IsSuppliersActive = IsPurchasesActive = IsSalesActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive =
         IsUsersActive = IsReportsActive = false;
     }
@@ -166,7 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines"); }
     [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies"); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
-    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products");     _ = _productVM.InitializeAsync(); }
+
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
     [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales");        _ = _saleVM.InitializeAsync(); }
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }

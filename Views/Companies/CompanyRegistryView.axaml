@@ -32,13 +32,13 @@
 
             <!-- Actions -->
             <TextBlock Text="ACTIONS" Classes="label" Foreground="#9CA3AF" FontSize="10" FontWeight="Bold" LetterSpacing="1.5" Margin="0,0,0,4"/>
-            <WrapPanel Margin="0,0,0,8">
-              <Button Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,6,6"/>
-              <Button Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,6,6"/>
-              <Button Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action danger" Margin="0,0,6,6"/>
-              <Button Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="action primary" Margin="0,0,6,6"/>
-              <Button Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="action" Margin="0,0,6,6"/>
-            </WrapPanel>
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*,*">
+              <Button Grid.Row="0" Grid.Column="0" Content="New"    Command="{Binding NewCommand}"    IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Button Grid.Row="0" Grid.Column="1" Content="Edit"   Command="{Binding EditCommand}"   IsEnabled="{Binding MutationEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Button Grid.Row="0" Grid.Column="2" Content="Delete" Command="{Binding DeleteCommand}" IsEnabled="{Binding MutationEnabled}" Classes="action danger" Margin="0,0,0,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Focusable="False"/>
+              <Button Grid.Row="1" Grid.Column="0" Content="Save"   Command="{Binding SaveCommand}"   IsEnabled="{Binding SaveCancelEnabled}" Classes="action primary" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <Button Grid.Row="1" Grid.Column="1" Content="Cancel" Command="{Binding CancelCommand}" IsEnabled="{Binding SaveCancelEnabled}" Classes="action" Margin="0,0,8,8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+            </Grid>
 
             <Separator Margin="0,4"/>
 

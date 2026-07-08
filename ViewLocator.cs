@@ -14,7 +14,7 @@ using ClinicSystem.UI.Views.Users;
 using ClinicSystem.UI.Views.Reports;
 using ClinicSystem.UI.ViewModels.Companies;
 using ClinicSystem.UI.ViewModels.Suppliers;
-using ClinicSystem.UI.ViewModels.Products;
+
 using ClinicSystem.UI.ViewModels.Appointments;
 using ClinicSystem.UI.ViewModels.Purchases;
 using ClinicSystem.UI.ViewModels.Sales;
@@ -22,7 +22,7 @@ using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.Views.Companies;
 using ClinicSystem.UI.Views.Suppliers;
-using ClinicSystem.UI.Views.Products;
+
 using ClinicSystem.UI.Views.Appointments;
 using ClinicSystem.UI.Views.Purchases;
 using ClinicSystem.UI.Views.Sales;
@@ -46,7 +46,7 @@ public class ViewLocator : IDataTemplate
             DashboardViewModel         => new DashboardView         { DataContext = param },
             CompanyRegistryViewModel   => new CompanyRegistryView   { DataContext = param },
             SupplierRegistryViewModel  => new SupplierRegistryView  { DataContext = param },
-            ProductRegistryViewModel   => new ProductRegistryView   { DataContext = param },
+
             AppointmentViewModel       => new AppointmentView       { DataContext = param },
             PurchaseViewModel          => new PurchaseView          { DataContext = param },
             SaleViewModel              => new SaleView              { DataContext = param },

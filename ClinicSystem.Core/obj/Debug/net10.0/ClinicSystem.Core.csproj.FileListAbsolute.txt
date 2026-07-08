@@ -22,3 +22,15 @@ C:/Users/mssai/OneDrive/Desktop/Clinic software/ClinicSystem.Core/obj/Debug/net1
 /Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/obj/Debug/net10.0/refint/ClinicSystem.Core.dll
 /Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/obj/Debug/net10.0/ClinicSystem.Core.pdb
 /Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/obj/Debug/net10.0/ref/ClinicSystem.Core.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\bin\Debug\net10.0\ClinicSystem.Core.deps.json
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\bin\Debug\net10.0\ClinicSystem.Core.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\bin\Debug\net10.0\ClinicSystem.Core.pdb
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.AssemblyInfoInputs.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.AssemblyInfo.cs
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.csproj.CoreCompileInputs.cache
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.sourcelink.json
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\refint\ClinicSystem.Core.dll
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ClinicSystem.Core.pdb
+C:\Users\mssai\OneDrive\Desktop\Clinic software\ClinicSystem.Core\obj\Debug\net10.0\ref\ClinicSystem.Core.dll
