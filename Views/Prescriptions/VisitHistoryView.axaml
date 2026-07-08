@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              x:Class="ClinicSystem.UI.Views.Prescriptions.VisitHistoryView"
-             x:DataType="vm:VisitHistoryViewModel"
+             x:DataType="vm:VisitHistoryViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
     <Panel>
         <Grid RowDefinitions="Auto,*">
@@ -117,7 +117,7 @@
                                 Command="{Binding SelectPatientCommand}"
                                 Classes="primary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <PathIcon Data="{StaticResource IconPatients}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="View History" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -148,3 +148,4 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
+

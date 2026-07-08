@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
+             x:Class="ClinicSystem.UI.Views.Sales.MedicineReturnView"
+             x:DataType="vm:MedicineReturnViewModel" x:CompileBindings="True"
+             Background="#F8FAFC">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource IconCart}" Width="20" Height="20" Foreground="#2563EB"/>
+                    <TextBlock Text="Medicine Returns" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
+                </StackPanel>
+                
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="400,*">
+            <!-- Left: Search & Select Sale -->
+            <Border Grid.Column="0" Background="#FFFFFF" Padding="24" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Step 1: Find Sale" Classes="label" Foreground="#6B7280" FontSize="12" FontWeight="Bold" Margin="0,0,0,8"/>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                        <Button DockPanel.Dock="Right" Content="Search" Command="{Binding SearchSalesCommand}" Classes="action primary" Margin="8,0,0,0"/>
+                        <TextBox Text="{Binding SearchQuery}" PlaceholderText="Invoice # or Patient Name" />
+                    </DockPanel>
+                    
+                    <DataGrid ItemsSource="{Binding FoundSales}"
+                              SelectedItem="{Binding SelectedSale}"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Invoice" Binding="{Binding InvoiceNumber}" Width="*"/>
+                            <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}" Width="*"/>
+                            <DataGridTextColumn Header="Date" Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: Return Items & Confirm -->
+            <Border Grid.Column="1" Padding="24">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Step 2: Select Items to Return" Foreground="#1F2937" FontSize="16" FontWeight="Bold" Margin="0,0,0,16"/>
+                    
+                    <!-- Confirm Panel at bottom -->
+                    <Border DockPanel.Dock="Bottom" Background="#FFFFFF" Padding="16" CornerRadius="8" Margin="0,16,0,0" BorderBrush="#E5E7EB" BorderThickness="1">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding TotalRefundAmount, StringFormat='Total Refund: {0:C}'}" FontSize="18" FontWeight="Bold" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <Button Content="Confirm Return" Command="{Binding ConfirmReturnCommand}" Classes="action danger" Padding="24,0"/>
+                            </StackPanel>
+                            <TextBlock Text="Ensure quantity and reasons are correct before confirming." Foreground="#6B7280" VerticalAlignment="Center" FontSize="13"/>
+                        </DockPanel>
+                    </Border>
+
+                    <DataGrid ItemsSource="{Binding ReturnableItems}"
+                              AutoGenerateColumns="False" IsReadOnly="False"
+                              SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Medicine" Binding="{Binding Item.MedicineName}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding Item.MedicinePrice, StringFormat=\{0:C\}}" IsReadOnly="True" Width="100"/>
+                            <DataGridTextColumn Header="Max Qty" Binding="{Binding MaxReturnable}" IsReadOnly="True" Width="80"/>
+                            
+                            <!-- Input Column -->
+                            <DataGridTemplateColumn Header="Return Qty" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:ReturnableItemViewModel">
+                                        <NumericUpDown Value="{Binding QuantityToReturn}" Minimum="0" Maximum="{Binding MaxReturnable}" FormatString="0" Margin="4"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Reason Column -->
+                            <DataGridTemplateColumn Header="Reason" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate x:DataType="vm:ReturnableItemViewModel">
+                                        <ComboBox ItemsSource="{Binding Reasons}" SelectedItem="{Binding Reason}" HorizontalAlignment="Stretch" Margin="4"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <DataGridTextColumn Header="Refund" Binding="{Binding RefundAmount, StringFormat=\{0:C\}}" IsReadOnly="True" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <UserControl.Styles>
+        <Style Selector="Button.action">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.action.primary">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.action.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.action.danger">
+            <Setter Property="Background" Value="#DC2626"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.action.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#B91C1C"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.45"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>
+

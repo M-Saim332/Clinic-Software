@@ -8,7 +8,7 @@ build_property.AvaloniaNameGeneratorViewFileNamingStrategy = NamespaceAndClassNa
 build_property.AvaloniaNameGeneratorAttachDevTools = true
 build_property.AvaloniaUseCompiledBindingsByDefault = true
 build_property.AvaloniaMainPackageVersion = 12.0.5
-build_property.AvaloniaPreviewerNetCoreToolPath = C:\Users\mssai\.nuget\packages\avalonia\12.0.5\buildTransitive\\..\tools\net8.0\designer\Avalonia.Designer.HostApp.dll
+build_property.AvaloniaPreviewerNetCoreToolPath = C:\Users\This PC\.nuget\packages\avalonia\12.0.5\buildTransitive\\..\tools\net8.0\designer\Avalonia.Designer.HostApp.dll
 build_property.MvvmToolkitEnableINotifyPropertyChangingSupport = true
 build_property._MvvmToolkitIsUsingWindowsRuntimePack = false
 build_property.CsWinRTComponent = 
@@ -25,68 +25,74 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ClinicSystem.UI
-build_property.ProjectDir = C:\Users\mssai\OneDrive\Desktop\Clinic software\
+build_property.ProjectDir = C:\Users\This PC\Desktop\Clinic\Clinic-Software\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/App.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/App.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Appointments/AppointmentView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Appointments/AppointmentView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Companies/CompanyRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Companies/CompanyRegistryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Dashboard/DashboardView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Dashboard/DashboardView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Inventory/InventoryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Inventory/InventoryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/LoginWindow.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/LoginWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/MainWindow.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Medicines/MedicineRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Medicines/MedicineRegistryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Patients/PatientRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Patients/PatientRegistryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Prescriptions/PrescriptionView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Prescriptions/PrescriptionView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Prescriptions/VisitHistoryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Prescriptions/VisitHistoryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Products/ProductRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Products/ProductRegistryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Purchases/PurchaseView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Purchases/PurchaseView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Reports/ReportsView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Reports/ReportsView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Sales/SaleView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Sales/MedicineReturnView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Suppliers/SupplierRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Sales/SaleView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Views/Users/UserRegistryView.axaml]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Suppliers/SupplierRegistryView.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Assets/avalonia-logo.ico]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Users/ChangePasswordView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Views/Users/UserRegistryView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Assets/avalonia-logo.ico]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaResource
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Assets/hospital_logo.jpg]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Assets/hospital_logo.jpg]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaResource
 
-[C:/Users/mssai/OneDrive/Desktop/Clinic software/Assets/hospital_logo.png]
+[C:/Users/This PC/Desktop/Clinic/Clinic-Software/Assets/hospital_logo.png]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaResource

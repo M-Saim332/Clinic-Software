@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Companies"
              x:Class="ClinicSystem.UI.Views.Companies.CompanyRegistryView"
-             x:DataType="vm:CompanyRegistryViewModel"
+             x:DataType="vm:CompanyRegistryViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
   <Grid RowDefinitions="Auto,*,Auto">
@@ -16,8 +16,7 @@
           <TextBlock Text="Company Registry" FontSize="20" FontWeight="Bold"
                      Foreground="#1F2937" VerticalAlignment="Center"/>
         </StackPanel>
-        <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}"
-                   Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+        
       </DockPanel>
     </Border>
 
@@ -128,3 +127,4 @@
     </Style>
   </UserControl.Styles>
 </UserControl>
+

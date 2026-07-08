@@ -1,8 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
+             xmlns:models="using:ClinicSystem.Core.Models"
              x:Class="ClinicSystem.UI.Views.Sales.SaleView"
-             x:DataType="vm:SaleViewModel"
+             x:DataType="vm:SaleViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid ColumnDefinitions="450,*" Margin="24">
@@ -51,7 +52,7 @@
                             <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" 
                                       HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="models:Patient">
                                         <TextBlock Text="{Binding Name}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
@@ -80,7 +81,7 @@
                             <ComboBox ItemsSource="{Binding Medicines}" SelectedItem="{Binding SelectedMedicine}" 
                                       HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
-                                    <DataTemplate>
+                                    <DataTemplate x:DataType="models:Medicine">
                                         <TextBlock Text="{Binding Name}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
@@ -185,3 +186,4 @@
         </Border>
     </Grid>
 </UserControl>
+

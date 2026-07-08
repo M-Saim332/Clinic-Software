@@ -12,6 +12,7 @@ public class Medicine
     public decimal SellingPrice { get; set; }
     public int Stock { get; set; }
     public int MinimumStockLevel { get; set; } = 10;
+    public bool IsReturnable { get; set; } = true;
 
     // Join helper property
     public string? CompanyName { get; set; }

@@ -3,7 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              xmlns:models="using:ClinicSystem.Core.Models"
              x:Class="ClinicSystem.UI.Views.Prescriptions.PrescriptionView"
-             x:DataType="vm:PrescriptionViewModel"
+             x:DataType="vm:PrescriptionViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -14,7 +14,7 @@
                     <PathIcon Data="{StaticResource IconVisit}" Width="20" Height="20" Foreground="#2563EB"/>
                     <TextBlock Text="New Visit / Prescription" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}" Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                
             </DockPanel>
         </Border>
 
@@ -64,7 +64,7 @@
 
                         <Button Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Padding="12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconBackup}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="Save Prescription" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -117,7 +117,7 @@
                                     <DataGridTextColumn Header="Dosage"    Binding="{Binding Dosage}"       Width="*"/>
                                     <DataGridTemplateColumn Header="Remove" Width="90">
                                         <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate x:DataType="vm:PrescriptionItemRow">
+                                            <DataTemplate x:DataType="vm:PrescriptionItemRow" x:CompileBindings="True">
                                                 <Button Command="{Binding $parent[UserControl].((vm:PrescriptionViewModel)DataContext).RemoveItemCommand}"
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand"
@@ -192,3 +192,4 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
+

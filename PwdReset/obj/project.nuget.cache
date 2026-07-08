@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "w+g49Cpjwc4=",
+  "dgSpecHash": "XP/Are/XGtk=",
   "success": true,
-  "projectFilePath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/PwdReset/PwdReset.csproj",
+  "projectFilePath": "C:\\Users\\This PC\\Desktop\\Clinic\\Clinic-Software\\PwdReset\\PwdReset.csproj",
   "expectedPackageFiles": [
-    "/Users/mrcom/.nuget/packages/bcrypt.net-next/4.2.0/bcrypt.net-next.4.2.0.nupkg.sha512"
+    "C:\\Users\\This PC\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512"
   ],
   "logs": []
 }
