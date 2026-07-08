@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Inventory"
              x:Class="ClinicSystem.UI.Views.Inventory.InventoryView"
-             x:DataType="vm:InventoryViewModel"
+             x:DataType="vm:InventoryViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -16,8 +16,7 @@
                     <TextBlock Text="Inventory" FontSize="20" FontWeight="Bold"
                                Foreground="#1F2937" VerticalAlignment="Center"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}"
-                           Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                
             </DockPanel>
         </Border>
 
@@ -135,3 +134,4 @@
         </Border>
     </Grid>
 </UserControl>
+

@@ -3,7 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients"
              xmlns:models="using:ClinicSystem.Core.Models"
              x:Class="ClinicSystem.UI.Views.Patients.PatientRegistryView"
-             x:DataType="vm:PatientRegistryViewModel"
+             x:DataType="vm:PatientRegistryViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -15,8 +15,7 @@
                     <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20" Foreground="#2563EB"/>
                     <TextBlock Text="Patients Registry" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}"
-                           Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                
             </DockPanel>
         </Border>
 
@@ -188,3 +187,4 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
+

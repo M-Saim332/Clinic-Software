@@ -1,8 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ClinicSystem.UI.ViewModels"
+        xmlns:userviews="using:ClinicSystem.UI.Views.Users"
         x:Class="ClinicSystem.UI.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainWindowViewModel" x:CompileBindings="True"
         Title="Clinic Management System"
         Width="1280" Height="780"
         MinWidth="1000" MinHeight="620"
@@ -125,6 +126,14 @@
               </StackPanel>
             </Button>
 
+            <Button Command="{Binding ShowReturnsCommand}"
+                    Classes="navbtn" Classes.active="{Binding IsReturnsActive}">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconCart}" Width="16" Height="16" VerticalAlignment="Center"/>
+                <TextBlock Text="Returns" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+
             <Button Command="{Binding ShowInventoryCommand}"
                     Classes="navbtn" Classes.active="{Binding IsInventoryActive}">
               <StackPanel Orientation="Horizontal" Spacing="12">
@@ -146,6 +155,14 @@
               <StackPanel Orientation="Horizontal" Spacing="12">
                 <PathIcon Data="{StaticResource IconVisit}" Width="16" Height="16" VerticalAlignment="Center"/>
                 <TextBlock Text="New Visit" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+
+            <Button Command="{Binding ShowVisitHistoryCommand}"
+                    Classes="navbtn">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" VerticalAlignment="Center"/>
+                <TextBlock Text="Visit History" VerticalAlignment="Center"/>
               </StackPanel>
             </Button>
 
@@ -195,8 +212,19 @@
           <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold"
                      Foreground="#1F2937" VerticalAlignment="Center"/>
           <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
-                      Spacing="16" VerticalAlignment="Center">
+                      Spacing="12" VerticalAlignment="Center">
             <TextBlock Text="{Binding TodayDate}" Foreground="#9CA3AF" FontSize="13" VerticalAlignment="Center"/>
+            <!-- Change Password button -->
+            <Button Command="{Binding OpenChangePasswordDialogCommand}"
+                    IsVisible="{Binding IsAdmin}"
+                    Background="#F3F4F6" BorderThickness="0"
+                    CornerRadius="8" Padding="10,6"
+                    ToolTip.Tip="Change Password">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13" Foreground="#4B5563" VerticalAlignment="Center"/>
+                    <TextBlock Text="Password" FontSize="12" Foreground="#4B5563" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
             <Border Width="8" Height="8" CornerRadius="4" Background="#16A34A" VerticalAlignment="Center"
                     ToolTip.Tip="Database connected"/>
             <TextBlock Text="{Binding StatusText}" Foreground="#6B7280" FontSize="12"
@@ -225,6 +253,11 @@
                        HorizontalAlignment="Center" FontWeight="Medium"/>
           </StackPanel>
         </Border>
+
+        <!-- Change Password overlay wrapper -->
+        <Panel IsVisible="{Binding ShowChangePassword}" ZIndex="200">
+            <userviews:ChangePasswordView DataContext="{Binding ChangePasswordVM}"/>
+        </Panel>
       </Panel>
 
       <!-- Status bar -->
@@ -236,3 +269,4 @@
     </Grid>
   </Grid>
 </Window>
+

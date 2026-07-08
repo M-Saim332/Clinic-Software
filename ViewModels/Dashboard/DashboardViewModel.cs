@@ -44,6 +44,7 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private int _totalSuppliers;
     [ObservableProperty] private int _totalMedicines;
     [ObservableProperty] private int _totalAppointmentsToday;
+    [ObservableProperty] private int _todaySalesCount;
 
     // ── Today's summary panel ─────────────────────────────────────────────
     [ObservableProperty] private string _todayDate = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
@@ -228,6 +229,7 @@ public partial class DashboardViewModel : ViewModelBase
                 TotalSuppliers         = suppliers.Count();
                 TotalMedicines         = medicineList.Count;
                 TotalAppointmentsToday = todayAppts.Count;
+                TodaySalesCount        = salesList.Count(s => s.SaleDate.Date == today);
                 TodayPatients          = appointmentList.Where(a => a.AppointmentDate.Date == today).Select(a => a.PatientID).Distinct().Count();
 
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";

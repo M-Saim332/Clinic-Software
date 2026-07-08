@@ -37,8 +37,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly AppointmentViewModel      _appointmentVM;
     private readonly PurchaseViewModel         _purchaseVM;
     private readonly SaleViewModel             _saleVM;
+    private readonly MedicineReturnViewModel   _returnVM;
     private readonly InventoryViewModel        _inventoryVM;
     private readonly DatabaseSession           _dbSession;
+
+    public ChangePasswordViewModel ChangePasswordVM { get; }
 
     public MainWindowViewModel(
         DashboardViewModel        dashboardVM,
@@ -54,7 +57,9 @@ public partial class MainWindowViewModel : ViewModelBase
         AppointmentViewModel      appointmentVM,
         PurchaseViewModel         purchaseVM,
         SaleViewModel             saleVM,
+        MedicineReturnViewModel   returnVM,
         InventoryViewModel        inventoryVM,
+        ChangePasswordViewModel   changePasswordVM,
         DatabaseSession           dbSession)
     {
         _dashboardVM    = dashboardVM;
@@ -70,8 +75,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _appointmentVM  = appointmentVM;
         _purchaseVM     = purchaseVM;
         _saleVM         = saleVM;
+        _returnVM       = returnVM;
         _inventoryVM    = inventoryVM;
         _dbSession      = dbSession;
+
+        ChangePasswordVM = changePasswordVM;
+        ChangePasswordVM.CloseRequested += () => ShowChangePassword = false;
 
         // Start on Dashboard
         NavigateTo(_dashboardVM, "Dashboard");
@@ -110,6 +119,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public string TodayDate        => DateTime.Now.ToString("dddd, MMM dd yyyy");
     public string CurrentUserName  => CurrentUser?.FullName.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "Unknown";
     public string CurrentUserRole  => CurrentUser?.Role ?? string.Empty;
+    public bool IsAdmin            => CurrentUser?.IsAdmin ?? false;
 
     // ── Active nav flags (for sidebar highlight) ───────────────────────────
     [ObservableProperty] private bool _isDashboardActive;
@@ -120,11 +130,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isPurchasesActive;
     [ObservableProperty] private bool _isSalesActive;
+    [ObservableProperty] private bool _isReturnsActive;
     [ObservableProperty] private bool _isInventoryActive;
     [ObservableProperty] private bool _isAppointmentsActive;
     [ObservableProperty] private bool _isPrescriptionsActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
+
+    [ObservableProperty] private bool _showChangePassword;
 
     private bool _visitHistoryLoaded;
 
@@ -144,6 +157,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             case "Purchases":    IsPurchasesActive    = true; break;
             case "Sales":        IsSalesActive        = true; break;
+            case "Returns":      IsReturnsActive      = true; break;
             case "Inventory":    IsInventoryActive    = true; break;
             case "Appointments": IsAppointmentsActive = true; break;
             case "New Visit":    IsPrescriptionsActive = true; break;
@@ -155,7 +169,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearActiveFlags()
     {
         IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsCompaniesActive =
-        IsSuppliersActive = IsPurchasesActive = IsSalesActive =
+        IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive =
         IsUsersActive = IsReportsActive = false;
     }
@@ -169,6 +183,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
     [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales");        _ = _saleVM.InitializeAsync(); }
+    [RelayCommand] private void ShowReturns()      { NavigateTo(_returnVM,       "Returns"); }
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users"); }
@@ -193,6 +208,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public event Action? LogoutRequested;
     [RelayCommand] private void Logout() => LogoutRequested?.Invoke();
+
+    [RelayCommand]
+    private void OpenChangePasswordDialog()
+    {
+        ChangePasswordVM.Reset();
+        ShowChangePassword = true;
+    }
 
     [RelayCommand]
     private async Task BackupAsync()

@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ClinicSystem.UI.ViewModels"
         x:Class="ClinicSystem.UI.Views.LoginWindow"
-        x:DataType="vm:LoginViewModel"
+        x:DataType="vm:LoginViewModel" x:CompileBindings="True"
         Title="Clinic System — Sign In"
         Width="420" Height="620"
         MinWidth="340" MinHeight="520"
@@ -115,6 +115,7 @@
                             Command="{Binding LoginCommand}"
                             Classes="primary"
                             HorizontalAlignment="Stretch"
+                            IsDefault="True"
                             IsEnabled="{Binding !IsBusy}"/>
 
                 </StackPanel>
@@ -122,3 +123,4 @@
         </Grid>
     </ScrollViewer>
 </Window>
+

@@ -3,7 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="ClinicSystem.UI.Views.Dashboard.DashboardView"
-             x:DataType="vm:DashboardViewModel"
+             x:DataType="vm:DashboardViewModel" x:CompileBindings="True"
              Background="#F0F4F8">
 
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
@@ -56,16 +56,16 @@
                     </Grid>
                 </Border>
 
-                <!-- Reports -->
+                <!-- Sales Today -->
                 <Border Grid.Column="3" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FDF4FF">
-                            <PathIcon Data="{StaticResource IconReports}" Width="22" Height="22" Foreground="#9333EA"/>
+                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#9333EA"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Reports" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalAppointmentsToday}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#9333EA"/>
+                            <TextBlock Text="Today's Sales" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TodaySalesCount}" Classes="kpiValue"/>
+                            <TextBlock Text="Invoices today" Classes="kpiLink" Foreground="#9333EA"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -399,3 +399,4 @@
     </UserControl.Styles>
 
 </UserControl>
+

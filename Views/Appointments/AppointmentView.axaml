@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Appointments"
              x:Class="ClinicSystem.UI.Views.Appointments.AppointmentView"
-             x:DataType="vm:AppointmentViewModel"
+             x:DataType="vm:AppointmentViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid ColumnDefinitions="360,*" Margin="24">
@@ -130,3 +130,4 @@
         </Border>
     </Grid>
 </UserControl>
+

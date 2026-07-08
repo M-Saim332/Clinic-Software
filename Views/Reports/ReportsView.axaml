@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
              x:Class="ClinicSystem.UI.Views.Reports.ReportsView"
-             x:DataType="vm:ReportsViewModel"
+             x:DataType="vm:ReportsViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -13,7 +13,7 @@
                     <PathIcon Data="{StaticResource IconReports}" Width="20" Height="20" Foreground="#2563EB"/>
                     <TextBlock Text="Reports" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}" Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                
             </DockPanel>
         </Border>
 
@@ -180,3 +180,4 @@
         </Border>
     </Grid>
 </UserControl>
+

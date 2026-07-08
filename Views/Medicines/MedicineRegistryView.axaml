@@ -3,7 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Medicines"
              xmlns:models="using:ClinicSystem.Core.Models"
              x:Class="ClinicSystem.UI.Views.Medicines.MedicineRegistryView"
-             x:DataType="vm:MedicineRegistryViewModel"
+             x:DataType="vm:MedicineRegistryViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
     <Grid RowDefinitions="Auto,*,Auto">
@@ -15,7 +15,7 @@
                     <PathIcon Data="{StaticResource IconMedicines}" Width="20" Height="20" Foreground="#2563EB"/>
                     <TextBlock Text="Medicine Registry" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusMessage}" Foreground="#2563EB" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                
             </DockPanel>
         </Border>
 
@@ -58,7 +58,7 @@
                                               IsEnabled="{Binding SaveCancelEnabled}"
                                               HorizontalAlignment="Stretch">
                                         <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Company">
+                                            <DataTemplate x:DataType="models:Company" x:CompileBindings="True">
                                                 <TextBlock Text="{Binding Name}"/>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
@@ -203,3 +203,4 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
+

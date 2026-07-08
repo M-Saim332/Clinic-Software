@@ -57,6 +57,7 @@ public partial class App : Application
         services.AddSingleton<AppointmentRepository>();
         services.AddSingleton<PurchaseRepository>();
         services.AddSingleton<SaleRepository>();
+        services.AddSingleton<ReturnRepository>();
 
         // ViewModels
         services.AddTransient<LoginViewModel>();
@@ -72,8 +73,10 @@ public partial class App : Application
         services.AddSingleton<AppointmentViewModel>();
         services.AddSingleton<PurchaseViewModel>();
         services.AddSingleton<SaleViewModel>();
+        services.AddSingleton<MedicineReturnViewModel>();
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
+        services.AddSingleton<ChangePasswordViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
         _services = services.BuildServiceProvider();
