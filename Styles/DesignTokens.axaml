@@ -15,6 +15,9 @@
   <Color x:Key="ColorLine">#EAECF0</Color>
   <Color x:Key="ColorBackground">#F9FAFB</Color>
   <Color x:Key="ColorCardBackground">#FFFFFF</Color>
+  <Color x:Key="ColorPrimaryBlue50">#EFF6FF</Color>
+  <Color x:Key="ColorRose100">#FFE4E6</Color>
+  <Color x:Key="ColorInk800">#1E293B</Color>
 
   <!-- Brushes -->
   <SolidColorBrush x:Key="BrushPrimaryBlue" Color="{StaticResource ColorPrimaryBlue}"/>
@@ -31,6 +34,9 @@
   <SolidColorBrush x:Key="BrushLine" Color="{StaticResource ColorLine}"/>
   <SolidColorBrush x:Key="BrushBackground" Color="{StaticResource ColorBackground}"/>
   <SolidColorBrush x:Key="BrushCardBackground" Color="{StaticResource ColorCardBackground}"/>
+  <SolidColorBrush x:Key="BrushPrimaryBlue50" Color="{StaticResource ColorPrimaryBlue50}"/>
+  <SolidColorBrush x:Key="BrushRose100" Color="{StaticResource ColorRose100}"/>
+  <SolidColorBrush x:Key="BrushInk800" Color="{StaticResource ColorInk800}"/>
 
   <!-- Corner Radii -->
   <CornerRadius x:Key="CornerRadiusCard">14</CornerRadius>

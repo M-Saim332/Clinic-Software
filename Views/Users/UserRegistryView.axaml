@@ -35,7 +35,7 @@
             </Border>
 
             <!-- Summary Cards Row -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*" Margin="28,16,28,4">
                 <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
                     Title="Total Users"
                     Value="{Binding TotalUsersCount, StringFormat={}{0}}"
@@ -48,23 +48,26 @@
                     Title="Doctors"
                     Value="{Binding DoctorCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushAmber}"/>
-                <comp:SummaryCardControl Grid.Column="3"
+                <comp:SummaryCardControl Grid.Column="3" Margin="0,0,12,0"
+                    Title="Pharmacists"
+                    Value="{Binding PharmacistCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="4"
                     Title="Administrators"
                     Value="{Binding AdminCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushRose}"/>
             </Grid>
 
             <!-- Data Panel -->
-            <Grid Grid.Row="2" Margin="28,12,28,24">
-                <comp:DataTableShellControl Title="Registered Users" RecordCount="{Binding Users.Count}">
+            <Grid Grid.Row="2" Margin="28,12,28,24" RowDefinitions="Auto,*">
+                <!-- Status Message for List View -->
+                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" 
+                           FontSize="13" FontWeight="Medium" Margin="0,0,0,12"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                           
+                <comp:DataTableShellControl Grid.Row="1" Title="Registered Users" RecordCount="{Binding Users.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                            <Button Content="Edit User" Command="{Binding EditCommand}"
-                                    IsEnabled="{Binding SelectedUser, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-secondary"/>
-                            <Button Content="Delete Account" Command="{Binding DeleteCommand}"
-                                    IsEnabled="{Binding SelectedUser, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-danger"/>
                         </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
@@ -76,8 +79,29 @@
                                 <DataGridTextColumn Header="USERNAME" Binding="{Binding Username}" Width="*"/>
                                 <DataGridTextColumn Header="FULL NAME" Binding="{Binding FullName}" Width="*"/>
                                 <DataGridTextColumn Header="ROLE" Binding="{Binding Role}" Width="160"/>
-                                <DataGridCheckBoxColumn Header="ACTIVE" Binding="{Binding IsActive}" Width="100"/>
-                                <DataGridTextColumn Header="CREATED DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Width="160"/>
+                                <DataGridTextColumn Header="CREATED DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Width="180"/>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                                <Button Background="Transparent" Padding="4"
+                                                        Command="{Binding $parent[UserControl].((vm:UserRegistryViewModel)DataContext).EditCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Edit User"
+                                                        IsVisible="{Binding IsEditable}">
+                                                    <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                                </Button>
+                                                <Button Background="Transparent" Padding="4"
+                                                        Command="{Binding $parent[UserControl].((vm:UserRegistryViewModel)DataContext).RequestDeleteCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip.Tip="Delete User"
+                                                        IsVisible="{Binding IsDeletable}">
+                                                    <PathIcon Data="{StaticResource IconTrash}" Width="16" Height="16" Foreground="{DynamicResource BrushRose}"/>
+                                                </Button>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
@@ -153,6 +177,37 @@
                             </StackPanel>
                         </Grid>
                     </StackPanel>
+
+                    <!-- Module Access Section -->
+                    <StackPanel Spacing="16" IsVisible="{Binding ShowModuleAccess}">
+                        <TextBlock Text="MODULE ACCESS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                            <CheckBox Grid.Column="0" Grid.Row="0" Content="Dashboard" IsChecked="{Binding AccDashboard}"/>
+                            <CheckBox Grid.Column="1" Grid.Row="0" Content="Patients" IsChecked="{Binding AccPatients}"/>
+                            <CheckBox Grid.Column="2" Grid.Row="0" Content="Appointments" IsChecked="{Binding AccAppointments}"/>
+                            
+                            <CheckBox Grid.Column="0" Grid.Row="1" Content="Medicines" IsChecked="{Binding AccMedicines}"/>
+                            <CheckBox Grid.Column="1" Grid.Row="1" Content="Products" IsChecked="{Binding AccProducts}"/>
+                            <CheckBox Grid.Column="2" Grid.Row="1" Content="Companies" IsChecked="{Binding AccCompanies}"/>
+                            
+                            <CheckBox Grid.Column="0" Grid.Row="2" Content="Suppliers" IsChecked="{Binding AccSuppliers}"/>
+                            <CheckBox Grid.Column="1" Grid.Row="2" Content="Purchases" IsChecked="{Binding AccPurchases}"/>
+                            <CheckBox Grid.Column="2" Grid.Row="2" Content="Sales &amp; Billing" IsChecked="{Binding AccSales}"/>
+                            
+                            <CheckBox Grid.Column="0" Grid.Row="3" Content="Returns" IsChecked="{Binding AccReturns}"/>
+                            <CheckBox Grid.Column="1" Grid.Row="3" Content="New Visit" IsChecked="{Binding AccNewVisit}"/>
+                            <CheckBox Grid.Column="2" Grid.Row="3" Content="Visit History" IsChecked="{Binding AccVisitHistory}"/>
+                            
+                            <CheckBox Grid.Column="0" Grid.Row="4" Content="Inventory" IsChecked="{Binding AccInventory}"/>
+                            <CheckBox Grid.Column="1" Grid.Row="4" Content="Reports" IsChecked="{Binding AccReports}"/>
+                            
+                            <CheckBox Grid.Column="0" Grid.Row="5" Content="Users" IsChecked="{Binding AccUsers}"/>
+                        </Grid>
+                    </StackPanel>
+
                 </StackPanel>
             </ScrollViewer>
 
@@ -169,6 +224,38 @@
                 </DockPanel>
             </Border>
         </Grid>
+        
+        <!-- ============================================================ -->
+        <!-- 3. DELETE CONFIRMATION OVERLAY                               -->
+        <!-- ============================================================ -->
+        <Border IsVisible="{Binding ShowDeleteConfirm}" Background="#80000000" ZIndex="100">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource BrushRose100}">
+                            <PathIcon Data="{StaticResource IconTrash}" Width="20" Height="20" Foreground="{DynamicResource BrushRose}"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Delete User" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}">
+                        <Run Text="Are you sure you want to delete the user account "/>
+                        <Run Text="{Binding PendingDeleteLabel}" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                        <Run Text="?"/>
+                        <LineBreak/><LineBreak/>
+                        <Run Text="This action cannot be undone."/>
+                    </TextBlock>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Classes="btn-ghost"/>
+                        <Button Content="Delete User" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 
     <UserControl.Styles>

@@ -27,7 +27,25 @@ public class DatabaseSession
     {
         var conn = new SqlConnection(_connectionString);
         conn.Open();
+        EnsureSchemaUpdated(conn);
         return conn;
+    }
+
+    private bool _schemaChecked = false;
+    private void EnsureSchemaUpdated(IDbConnection conn)
+    {
+        if (_schemaChecked) return;
+        _schemaChecked = true;
+        try
+        {
+            conn.Execute(@"
+                IF COL_LENGTH('Users', 'Permissions') IS NULL
+                BEGIN
+                    ALTER TABLE Users ADD Permissions VARCHAR(1000) NULL;
+                END
+            ");
+        }
+        catch { }
     }
 
     /// <summary>Tests connectivity — returns null on success, error message on failure.</summary>

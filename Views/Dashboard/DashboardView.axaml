@@ -23,7 +23,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Patients" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TotalPatients}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#3B82F6"/>
+                            <Button Command="{Binding NavigateToPatientsCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#3B82F6"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -37,7 +42,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Companies" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TotalCompanies}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#16A34A"/>
+                            <Button Command="{Binding NavigateToCompaniesCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#16A34A"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -51,7 +61,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Suppliers" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TotalSuppliers}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#EA580C"/>
+                            <Button Command="{Binding NavigateToSuppliersCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#EA580C"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -65,7 +80,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Today's Sales" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TodaySalesCount}" Classes="kpiValue"/>
-                            <TextBlock Text="Invoices today" Classes="kpiLink" Foreground="#9333EA"/>
+                            <Button Command="{Binding NavigateToSalesCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View invoices →" Classes="kpiLink" Foreground="#9333EA"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -79,7 +99,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Appointments" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TotalAppointmentsToday}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#E11D48"/>
+                            <Button Command="{Binding NavigateToAppointmentsCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#E11D48"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -93,7 +118,12 @@
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Medicines" Classes="kpiLabel"/>
                             <TextBlock Text="{Binding TotalMedicines}" Classes="kpiValue"/>
-                            <TextBlock Text="View all →" Classes="kpiLink" Foreground="#0D9488"/>
+                            <Button Command="{Binding NavigateToMedicinesCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#0D9488"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -291,8 +321,13 @@
                                 <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="#F59E0B"/>
                                 <TextBlock Text="Low Stock Alert" Classes="cardTitle" Foreground="#F59E0B"/>
                             </StackPanel>
-                            <TextBlock DockPanel.Dock="Right" Text="View all" Foreground="#3B82F6" FontSize="12"
-                                       VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                            <Button DockPanel.Dock="Right"
+                                    Command="{Binding NavigateToMedicinesCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock Text="View all" Foreground="#3B82F6" FontSize="12"/>
+                            </Button>
                         </DockPanel>
                         <Border DockPanel.Dock="Top" Height="1" Background="#F3F4F6" Margin="0,0,0,8"/>
                         <ScrollViewer>
@@ -323,8 +358,13 @@
                                 <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" Foreground="#F59E0B"/>
                                 <TextBlock Text="Expiring Soon" Classes="cardTitle"/>
                             </StackPanel>
-                            <TextBlock DockPanel.Dock="Right" Text="View all" Foreground="#3B82F6" FontSize="12"
-                                       VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                            <Button DockPanel.Dock="Right"
+                                    Command="{Binding NavigateToInventoryCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock Text="View all" Foreground="#3B82F6" FontSize="12"/>
+                            </Button>
                         </DockPanel>
                         <Border DockPanel.Dock="Top" Height="1" Background="#F3F4F6" Margin="0,0,0,8"/>
                         <ScrollViewer>
