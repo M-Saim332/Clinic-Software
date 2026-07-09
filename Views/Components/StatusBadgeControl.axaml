@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="30"
+             x:Class="ClinicSystem.UI.Views.Components.StatusBadgeControl"
+             x:Name="Root"
+             x:CompileBindings="False">
+
+    <Border Background="{Binding BadgeBackground, ElementName=Root}"
+            CornerRadius="{DynamicResource CornerRadiusPill}"
+            Padding="10,4"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center">
+        <TextBlock Text="{Binding Status, ElementName=Root}"
+                   Foreground="{Binding BadgeForeground, ElementName=Root}"
+                   FontSize="11"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+    </Border>
+</UserControl>

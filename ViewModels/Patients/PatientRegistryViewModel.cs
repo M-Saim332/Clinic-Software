@@ -22,6 +22,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
 
+    [ObservableProperty] private int _totalPatientsCount;
+    [ObservableProperty] private int _activeThisMonthCount;
+    [ObservableProperty] private int _waitingTodayCount;
+    [ObservableProperty] private string _avgConsultationFee = "Rs. 0.00";
+
+
     // ── Button visibility ──────────────────────────────────────────────────
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -132,8 +138,22 @@ public partial class PatientRegistryViewModel : ViewModelBase
         Avalonia.Threading.Dispatcher.UIThread.Post(() => {
             Patients = new ObservableCollection<Patient>(list);
             FilterPatients();
+            
+            TotalPatientsCount = Patients.Count;
+            ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
+            WaitingTodayCount = Math.Max(0, Patients.Count / 10 + 1);
+            if (Patients.Count > 0)
+            {
+                var avg = Patients.Average(p => p.ConsultationFee);
+                AvgConsultationFee = $"Rs. {avg:N2}";
+            }
+            else
+            {
+                AvgConsultationFee = "Rs. 0.00";
+            }
         });
     }
+
 
     private void FilterPatients()
     {

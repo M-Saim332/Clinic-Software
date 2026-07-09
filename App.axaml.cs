@@ -18,6 +18,8 @@ using ClinicSystem.UI.ViewModels.Sales;
 using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Users;
+using ClinicSystem.UI.ViewModels.Search;
+using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,7 +79,10 @@ public partial class App : Application
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();
+        services.AddSingleton<SearchViewModel>();
+        services.AddSingleton<SettingsViewModel>();
         services.AddTransient<MainWindowViewModel>();
+
 
         _services = services.BuildServiceProvider();
 

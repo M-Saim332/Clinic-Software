@@ -116,4 +116,21 @@ public class DatabaseSession
 
         return @"C:\Windows\Temp"; // Fallback folder that SQL Server usually has access to
     }
+
+    /// <summary>Restores the database from the specified path.</summary>
+    public void Restore(string sourcePath)
+    {
+        var builder = new SqlConnectionStringBuilder(_connectionString)
+        {
+            InitialCatalog = "master"
+        };
+        using var conn = new SqlConnection(builder.ConnectionString);
+        conn.Open();
+        
+        conn.Execute(@"
+            ALTER DATABASE ClinicDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+            RESTORE DATABASE ClinicDB FROM DISK = @sourcePath WITH REPLACE;
+            ALTER DATABASE ClinicDB SET MULTI_USER;", new { sourcePath });
+    }
 }
+

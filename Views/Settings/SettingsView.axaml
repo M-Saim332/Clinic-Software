@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Settings"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="ClinicSystem.UI.Views.Settings.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             Background="{DynamicResource BrushBackground}">
+    <Grid RowDefinitions="Auto,*,Auto" Margin="24">
+        <!-- Header -->
+        <Border Grid.Row="0" Margin="0,0,0,24">
+            <DockPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Settings" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
+                    <TextBlock Text="Manage clinic configuration, defaults, database backups, and security settings." FontSize="14" Foreground="{DynamicResource BrushInk600}"/>
+                </StackPanel>
+                <Button DockPanel.Dock="Right" Content="Save Settings" Command="{Binding SaveSettingsCommand}" Classes="primary" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content Panels -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="20">
+                
+                <!-- Clinic Information Section -->
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="CLINIC INFORMATION" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
+                                <TextBlock Text="Clinic Name" Classes="label"/>
+                                <TextBox Text="{Binding ClinicName}" PlaceholderText="Enter clinic name"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="12,0,0,12">
+                                <TextBlock Text="Contact Number" Classes="label"/>
+                                <TextBox Text="{Binding ClinicPhone}" PlaceholderText="Enter clinic contact number"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,12,12,0">
+                                <TextBlock Text="Email Address" Classes="label"/>
+                                <TextBox Text="{Binding ClinicEmail}" PlaceholderText="Enter clinic email"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" Margin="12,12,0,0">
+                                <TextBlock Text="Physical Address" Classes="label"/>
+                                <TextBox Text="{Binding ClinicAddress}" PlaceholderText="Enter clinic physical address"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- System Defaults -->
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="SYSTEM DEFAULTS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                                <TextBlock Text="Default Tax Rate (%)" Classes="label"/>
+                                <NumericUpDown Value="{Binding DefaultTaxRate}" FormatString="N2" Increment="0.01"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
+                                <TextBlock Text="Default Printer" Classes="label"/>
+                                <TextBox Text="{Binding SelectedPrinter}" PlaceholderText="Enter default system printer name"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Database & Maintenance -->
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20" BoxShadow="0 1 3 0 #0D000000">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <Button Content="Backup Database" Command="{Binding BackupCommand}" Classes="secondary"/>
+                            <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="secondary"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}" Padding="16,8" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Margin="-24,24,-24,-24">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk600}" FontSize="12" VerticalAlignment="Center"/>
+        </Border>
+    </Grid>
+</UserControl>
