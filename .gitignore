@@ -1,57 +1,5 @@
-## ──────────────────────────────────────────────
-##  Clinic Management System — .gitignore
-##  C# / .NET / Avalonia / SQL Server
-## ──────────────────────────────────────────────
-
-# ── Build output ─────────────────────────────────────────────────────────────
 [Bb]in/
 [Oo]bj/
-publish/
-Installer/
-
-# ── Local config / secrets (PER-MACHINE — NEVER COMMIT) ──────────────────────
-appsettings.local.json
-appsettings.*.local.json
-
-# ── Visual Studio / VS Code / Rider ──────────────────────────────────────────
-.vs/
-.vscode/
-.idea/
 *.user
 *.suo
-*.userosscache
-*.sln.docstates
-*.userprefs
-
-# ── NuGet ─────────────────────────────────────────────────────────────────────
-*.nupkg
-*.snupkg
-.nuget/
-packages/
-project.lock.json
-project.fragment.lock.json
-artifacts/
-
-# ── Log files ─────────────────────────────────────────────────────────────────
-*.log
-app_run.log
-
-# ── macOS ─────────────────────────────────────────────────────────────────────
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon?
-._*
-.Spotlight-V100
-.Trashes
-
-# ── Windows ───────────────────────────────────────────────────────────────────
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# ── Backup files ──────────────────────────────────────────────────────────────
-*.bak
-*.tmp
-*.temp
+.vs/
