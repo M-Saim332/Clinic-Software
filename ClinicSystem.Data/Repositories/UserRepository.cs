@@ -43,17 +43,21 @@ public class UserRepository
         u.PasswordHash = BC.HashPassword(plainPassword);
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Users (Username, PasswordHash, Role)
-              VALUES (@Username, @PasswordHash, @Role);
+            @"INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive, Permissions)
+              VALUES (@Username, @PasswordHash, @Role, @FullName, @IsActive, @Permissions);
               SELECT SCOPE_IDENTITY();", u);
     }
 
     public void Update(User u)
     {
+        // Backend guard: Admin account must never be modified via this path
+        var existing = GetById(u.UserID);
+        if (existing?.Role == "Admin") return;
+
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Users SET
-                Username = @Username, Role = @Role
+                Username = @Username, Role = @Role, FullName = @FullName, IsActive = @IsActive, Permissions = @Permissions
               WHERE UserID = @UserID", u);
     }
 
@@ -69,9 +73,15 @@ public class UserRepository
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
-        var count = conn.ExecuteScalar<int>(
+        // Check all foreign-key references before attempting delete
+        var apptCount = conn.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM Appointments WHERE DoctorID = @id", new { id });
-        if (count > 0) return false;
+        if (apptCount > 0) return false;
+
+        var rxCount = conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM Prescriptions WHERE DoctorID = @id", new { id });
+        if (rxCount > 0) return false;
+
         conn.Execute("DELETE FROM Users WHERE UserID = @id", new { id });
         return true;
     }

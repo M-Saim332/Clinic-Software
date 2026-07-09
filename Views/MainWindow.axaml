@@ -42,25 +42,30 @@
             
             <Border Width="1" Background="{DynamicResource BrushLine}" Height="20" VerticalAlignment="Center"/>
             
-            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushPrimaryBlue}">
-                    <TextBlock Text="Dr" Foreground="White" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <StackPanel VerticalAlignment="Center" Spacing="0">
-                    <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
-                    <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
-                </StackPanel>
-            </StackPanel>
-
-            <!-- Change Password button -->
-            <Button Command="{Binding OpenChangePasswordDialogCommand}"
-                    IsVisible="{Binding IsAdmin}"
-                    Background="#F3F4F6" BorderThickness="0"
-                    CornerRadius="8" Padding="10,6"
-                    ToolTip.Tip="Change Password">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13" Foreground="#4B5563" VerticalAlignment="Center"/>
-                    <TextBlock Text="Password" FontSize="12" Foreground="#4B5563" VerticalAlignment="Center"/>
+            <Button Background="Transparent" BorderThickness="0" Padding="8,4" CornerRadius="8">
+                <Button.Flyout>
+                    <MenuFlyout>
+                        <MenuItem Header="Change Password" Command="{Binding OpenChangePasswordDialogCommand}">
+                            <MenuItem.Icon>
+                                <PathIcon Data="{StaticResource IconUsers}" Width="14" Height="14"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator />
+                        <MenuItem Header="Logout" Command="{Binding LogoutCommand}" Foreground="{DynamicResource BrushRose}">
+                            <MenuItem.Icon>
+                                <PathIcon Data="{StaticResource IconLogout}" Width="14" Height="14" Foreground="{DynamicResource BrushRose}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuFlyout>
+                </Button.Flyout>
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushPrimaryBlue}">
+                        <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" Foreground="White"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Spacing="0">
+                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
+                    </StackPanel>
                 </StackPanel>
             </Button>
             <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource BrushTeal}" VerticalAlignment="Center"
@@ -69,16 +74,7 @@
         </DockPanel>
       </Border>
 
-      <!-- Alert Banner -->
-      <Border Grid.Row="1" Background="{DynamicResource BrushAmber50}" BorderBrush="{DynamicResource BrushAmber}" BorderThickness="0,0,0,1" Padding="24,10" IsVisible="{Binding ShowAlert}">
-        <DockPanel>
-          <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource BrushAmber}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-          <Button DockPanel.Dock="Right" Command="{Binding CloseAlertCommand}" Background="Transparent" BorderThickness="0" Padding="4" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" Foreground="{DynamicResource BrushAmber}"/>
-          </Button>
-          <TextBlock Text="{Binding AlertMessage}" Foreground="{DynamicResource BrushAmber}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
-        </DockPanel>
-      </Border>
+
 
 
       <!-- Content area -->
@@ -102,10 +98,47 @@
           </StackPanel>
         </Border>
 
+        <!-- Alert Banner Overlay -->
+        <Border IsVisible="{Binding ShowAlert}" ZIndex="210" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,16,0,0">
+            <Border Background="{DynamicResource BrushAmber50}" BorderBrush="{DynamicResource BrushAmber}" BorderThickness="1" CornerRadius="8" Padding="16,12" BoxShadow="0 4 12 0 rgba(0,0,0,0.1)">
+                <DockPanel>
+                    <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource BrushAmber}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button DockPanel.Dock="Right" Command="{Binding CloseAlertCommand}" Background="Transparent" BorderThickness="0" Padding="4" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" Foreground="{DynamicResource BrushAmber}"/>
+                    </Button>
+                    <TextBlock Text="{Binding AlertMessage}" Foreground="{DynamicResource BrushAmber}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+        </Border>
+
         <!-- Change Password overlay wrapper -->
         <Panel IsVisible="{Binding ShowChangePassword}" ZIndex="200">
             <userviews:ChangePasswordView DataContext="{Binding ChangePasswordVM}"/>
         </Panel>
+
+        <!-- Logout Confirmation Overlay -->
+        <Border IsVisible="{Binding ShowLogoutConfirm}" Background="#80000000" ZIndex="200">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="360">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource BrushRose100}">
+                            <PathIcon Data="{StaticResource IconLogout}" Width="20" Height="20" Foreground="{DynamicResource BrushRose}"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Sign Out" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    
+                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}" Text="Are you sure you want to sign out of the application?"/>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel" Command="{Binding CancelLogoutCommand}" Background="Transparent" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
+                        <Button Content="Sign Out" Command="{Binding ConfirmLogoutCommand}" Background="{DynamicResource BrushRose}" Foreground="White" BorderThickness="0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
       </Panel>
 
       <!-- Status bar -->

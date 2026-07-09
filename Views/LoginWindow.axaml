@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ClinicSystem.UI.ViewModels"
+        xmlns:userviews="using:ClinicSystem.UI.Views.Users"
         x:Class="ClinicSystem.UI.Views.LoginWindow"
         x:DataType="vm:LoginViewModel" x:CompileBindings="True"
         Title="Clinic System — Sign In"
@@ -11,9 +12,10 @@
         Background="#F8FAFC"
         Icon="avares://ClinicSystem.UI/Assets/hospital_logo.png">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto"
-                  HorizontalScrollBarVisibility="Disabled">
-        <Grid MinHeight="520" RowDefinitions="*,Auto,*">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid MinHeight="520" RowDefinitions="*,Auto,*">
             <Border Grid.Row="1"
                     Background="White"
                     CornerRadius="10"
@@ -122,5 +124,10 @@
             </Border>
         </Grid>
     </ScrollViewer>
+    
+    <Grid IsVisible="{Binding IsForcePasswordChange}">
+        <userviews:ChangePasswordView DataContext="{Binding ChangePasswordVM}" />
+    </Grid>
+    </Grid>
 </Window>
 

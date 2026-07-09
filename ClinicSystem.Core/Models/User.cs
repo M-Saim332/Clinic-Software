@@ -10,6 +10,7 @@ public class User
     public string Role { get; set; } = "Receptionist";
     public string FullName { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
+    public string Permissions { get; set; } = string.Empty;
     public DateTime? CreatedAt { get; set; }
 
     public UserRole UserRole =>
@@ -17,5 +18,14 @@ public class User
 
     public bool IsDoctor => UserRole == UserRole.Doctor || UserRole == UserRole.Admin;
     public bool IsAdmin => UserRole == UserRole.Admin;
+    public bool IsPharmacist => UserRole == UserRole.Pharmacist;
+    public bool IsDeletable => Role != "Admin";
+    public bool IsEditable => Role != "Admin";
     public string DisplayName => Username;
+
+    public bool HasAccess(string module)
+    {
+        if (IsAdmin || UserRole == UserRole.Doctor) return true;
+        return Permissions?.Contains(module) ?? false;
+    }
 }

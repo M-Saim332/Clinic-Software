@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj": {}
+    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
+    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj",
+        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj",
         "projectName": "ClinicSystem.Core",
-        "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj",
-        "packagesPath": "C:\\Users\\Khizar's Computer\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\obj\\",
+        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj",
+        "packagesPath": "/Users/mrcom/.nuget/packages/",
+        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Khizar's Computer\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -40,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net10.0": {
@@ -61,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -339,32 +337,30 @@
         }
       }
     },
-    "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
+    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj",
+        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj",
         "projectName": "ClinicSystem.Data",
-        "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj",
-        "packagesPath": "C:\\Users\\Khizar's Computer\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\obj\\",
+        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj",
+        "packagesPath": "/Users/mrcom/.nuget/packages/",
+        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Khizar's Computer\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
-                "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
+              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
+                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj"
               }
             }
           }
@@ -379,7 +375,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net10.0": {
@@ -418,7 +414,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -696,35 +692,33 @@
         }
       }
     },
-    "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj": {
+    "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj",
+        "projectUniqueName": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj",
         "projectName": "ClinicSystem.UI",
-        "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.UI.csproj",
-        "packagesPath": "C:\\Users\\Khizar's Computer\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\obj\\",
+        "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.UI.csproj",
+        "packagesPath": "/Users/mrcom/.nuget/packages/",
+        "outputPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Khizar's Computer\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/mrcom/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net10.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj": {
-                "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Core\\ClinicSystem.Core.csproj"
+              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj": {
+                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Core/ClinicSystem.Core.csproj"
               },
-              "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj": {
-                "projectPath": "C:\\Users\\Khizar's Computer\\Desktop\\Clinic-Software\\ClinicSystem.Data\\ClinicSystem.Data.csproj"
+              "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj": {
+                "projectPath": "/Users/mrcom/Library/Mobile Documents/com~apple~CloudDocs/clinic/Clinic-Software/ClinicSystem.Data/ClinicSystem.Data.csproj"
               }
             }
           }
@@ -739,7 +733,7 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.200"
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net10.0": {
@@ -806,7 +800,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

@@ -23,6 +23,15 @@ public partial class DashboardViewModel : ViewModelBase
     // Wired up by MainWindowViewModel so the dashboard can open the shared popup
     public Action? RequestChangePassword { get; set; }
 
+    // Navigation delegates wired by MainWindowViewModel
+    public Action? RequestNavigatePatients     { get; set; }
+    public Action? RequestNavigateCompanies    { get; set; }
+    public Action? RequestNavigateSuppliers    { get; set; }
+    public Action? RequestNavigateSales        { get; set; }
+    public Action? RequestNavigateAppointments { get; set; }
+    public Action? RequestNavigateMedicines    { get; set; }
+    public Action? RequestNavigateInventory    { get; set; }
+
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     public DashboardViewModel(
@@ -45,6 +54,14 @@ public partial class DashboardViewModel : ViewModelBase
 
     [RelayCommand]
     private void OpenChangePassword() => RequestChangePassword?.Invoke();
+
+    [RelayCommand] private void NavigateToPatients()     => RequestNavigatePatients?.Invoke();
+    [RelayCommand] private void NavigateToCompanies()    => RequestNavigateCompanies?.Invoke();
+    [RelayCommand] private void NavigateToSuppliers()    => RequestNavigateSuppliers?.Invoke();
+    [RelayCommand] private void NavigateToSales()        => RequestNavigateSales?.Invoke();
+    [RelayCommand] private void NavigateToAppointments() => RequestNavigateAppointments?.Invoke();
+    [RelayCommand] private void NavigateToMedicines()    => RequestNavigateMedicines?.Invoke();
+    [RelayCommand] private void NavigateToInventory()    => RequestNavigateInventory?.Invoke();
 
     // ── Summary card counts ────────────────────────────────────────────────
     [ObservableProperty] private int _totalPatients;

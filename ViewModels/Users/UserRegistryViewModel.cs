@@ -32,19 +32,68 @@ public partial class UserRegistryViewModel : ViewModelBase
     [ObservableProperty] private int _activeUsersCount;
     [ObservableProperty] private int _adminCount;
     [ObservableProperty] private int _doctorCount;
+    [ObservableProperty] private int _pharmacistCount;
 
     // Fields
     [ObservableProperty] private string _username = string.Empty;
     [ObservableProperty] private string _fullName = string.Empty;
-    [ObservableProperty] private string _role = "Receptionist";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowModuleAccess))]
+    private string _role = "Receptionist";
+
     [ObservableProperty] private bool _isActive = true;
     [ObservableProperty] private string _password = string.Empty;
     [ObservableProperty] private string _confirmPassword = string.Empty;
 
+    // Module Access properties
+    [ObservableProperty] private bool _accDashboard;
+    [ObservableProperty] private bool _accPatients;
+    [ObservableProperty] private bool _accAppointments;
+    [ObservableProperty] private bool _accMedicines;
+    [ObservableProperty] private bool _accProducts;
+    [ObservableProperty] private bool _accCompanies;
+    [ObservableProperty] private bool _accSuppliers;
+    [ObservableProperty] private bool _accPurchases;
+    [ObservableProperty] private bool _accSales;
+    [ObservableProperty] private bool _accReturns;
+    [ObservableProperty] private bool _accNewVisit;
+    [ObservableProperty] private bool _accVisitHistory;
+    [ObservableProperty] private bool _accInventory;
+    [ObservableProperty] private bool _accReports;
+    [ObservableProperty] private bool _accSearch;
+    [ObservableProperty] private bool _accUsers;
+    [ObservableProperty] private bool _accSettings;
+
+    // Delete confirmation
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PendingDeleteLabel))]
+    private User? _pendingDeleteUser;
+    [ObservableProperty] private bool _showDeleteConfirm;
+    public string PendingDeleteLabel => PendingDeleteUser is { } u
+        ? (u.FullName.Length > 0 ? $"{u.FullName} (@{u.Username})" : $"@{u.Username}")
+        : string.Empty;
+
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
     public bool PasswordVisible => Mode == FormMode.Add;
-    public List<string> RoleOptions { get; } = new() { "Doctor", "Receptionist", "Admin" };
+    public bool ShowModuleAccess => Role != "Doctor" && Role != "Admin";
+    public List<string> RoleOptions { get; } = new() { "Doctor", "Receptionist", "Pharmacist", "Admin" };
+
+    // Auto-set sensible default permissions when switching to Pharmacist in Add mode
+    partial void OnRoleChanged(string value)
+    {
+        if (value == "Pharmacist" && Mode == FormMode.Add)
+        {
+            AccDashboard = AccPatients = AccAppointments = AccCompanies =
+            AccSuppliers = AccPurchases = AccReturns = AccNewVisit =
+            AccVisitHistory = AccInventory = AccReports = AccSearch =
+            AccUsers = AccSettings = false;
+            AccMedicines = true;
+            AccProducts  = true;
+            AccSales     = true;
+        }
+    }
 
     [RelayCommand]
     private void New()
@@ -56,38 +105,60 @@ public partial class UserRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Edit()
+    private void Edit(User? user)
     {
-        if (SelectedUser == null) { StatusMessage = "Select a user first."; return; }
-        FillFields(SelectedUser);
+        if (user == null) return;
+        SelectedUser = user;
         Mode = FormMode.Edit;
+        FillFields(user);
         NotifyButtonStates();
     }
 
+    // Step 1: show confirmation dialog
     [RelayCommand]
-    private async Task DeleteAsync()
+    private void RequestDelete(User? user)
     {
-        if (SelectedUser == null) { StatusMessage = "Select a user first."; return; }
-        if (SelectedUser.UserID == CurrentUser?.UserID) { StatusMessage = "Cannot delete your own account."; return; }
-        
+        if (user == null) return;
+        PendingDeleteUser = user;
+        ShowDeleteConfirm = true;
+    }
+
+    // Step 2a: confirmed
+    [RelayCommand]
+    private async Task ConfirmDeleteAsync()
+    {
+        var targetUser = PendingDeleteUser;
+        ShowDeleteConfirm = false;
+        PendingDeleteUser = null;
+        if (targetUser == null) return;
+        if (targetUser.UserID == CurrentUser?.UserID) { StatusMessage = "Cannot delete your own account."; return; }
+
         try
         {
-            var ok = await Task.Run(() => _repo.Delete(SelectedUser.UserID));
+            var ok = await Task.Run(() => _repo.Delete(targetUser.UserID));
             if (ok)
             {
-                StatusMessage = "User deleted.";
+                StatusMessage = "User deleted successfully.";
                 SelectedUser = null;
                 await InitializeAsync();
             }
             else
             {
-                StatusMessage = "Cannot delete — user has existing appointments.";
+                StatusMessage = "Cannot delete — user has existing records.";
             }
         }
         catch (Exception ex)
         {
             StatusMessage = $"Delete failed: {ex.Message}";
         }
+    }
+
+    // Step 2b: cancelled
+    [RelayCommand]
+    private void CancelDelete()
+    {
+        ShowDeleteConfirm = false;
+        PendingDeleteUser = null;
     }
 
     [RelayCommand]
@@ -102,6 +173,7 @@ public partial class UserRegistryViewModel : ViewModelBase
                 if (Password != ConfirmPassword) { StatusMessage = "Passwords do not match."; return; }
                 if (Password.Length < 6) { StatusMessage = "Password must be at least 6 characters."; return; }
                 var u = new User { Username = Username, FullName = FullName, Role = Role, IsActive = IsActive };
+                u.Permissions = GetPermissionsString();
                 await Task.Run(() => _repo.Insert(u, Password));
                 StatusMessage = "User created.";
             }
@@ -109,6 +181,7 @@ public partial class UserRegistryViewModel : ViewModelBase
             {
                 var u = SelectedUser!;
                 u.Username = Username; u.FullName = FullName; u.Role = Role; u.IsActive = IsActive;
+                u.Permissions = GetPermissionsString();
                 await Task.Run(() => _repo.Update(u));
                 if (!string.IsNullOrWhiteSpace(Password))
                 {
@@ -143,10 +216,11 @@ public partial class UserRegistryViewModel : ViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() => 
             {
                 Users = new ObservableCollection<User>(usersList);
-                TotalUsersCount = Users.Count;
-                ActiveUsersCount = Users.Count(u => u.IsActive);
-                AdminCount = Users.Count(u => u.Role == "Admin");
-                DoctorCount = Users.Count(u => u.Role == "Doctor");
+                TotalUsersCount   = Users.Count;
+                ActiveUsersCount  = Users.Count(u => u.IsActive);
+                AdminCount        = Users.Count(u => u.Role == "Admin");
+                DoctorCount       = Users.Count(u => u.Role == "Doctor");
+                PharmacistCount   = Users.Count(u => u.Role == "Pharmacist");
             });
         }
         catch (Exception ex)
@@ -159,12 +233,55 @@ public partial class UserRegistryViewModel : ViewModelBase
     {
         Username = string.Empty; FullName = string.Empty; Role = "Receptionist"; IsActive = true;
         Password = string.Empty; ConfirmPassword = string.Empty;
+        AccDashboard = AccPatients = AccAppointments = AccMedicines = AccProducts = AccCompanies = AccSuppliers = 
+        AccPurchases = AccSales = AccReturns = AccNewVisit = AccVisitHistory = AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
     }
 
     private void FillFields(User u)
     {
         Username = u.Username; FullName = u.FullName; Role = u.Role; IsActive = u.IsActive;
         Password = string.Empty; ConfirmPassword = string.Empty;
+        var p = u.Permissions ?? "";
+        AccDashboard = p.Contains("Dashboard");
+        AccPatients = p.Contains("Patients");
+        AccAppointments = p.Contains("Appointments");
+        AccMedicines = p.Contains("Medicines");
+        AccProducts = p.Contains("Products");
+        AccCompanies = p.Contains("Companies");
+        AccSuppliers = p.Contains("Suppliers");
+        AccPurchases = p.Contains("Purchases");
+        AccSales = p.Contains("Sales");
+        AccReturns = p.Contains("Returns");
+        AccNewVisit = p.Contains("NewVisit");
+        AccVisitHistory = p.Contains("VisitHistory");
+        AccInventory = p.Contains("Inventory");
+        AccReports = p.Contains("Reports");
+        AccSearch = p.Contains("Search");
+        AccUsers = p.Contains("Users");
+        AccSettings = p.Contains("Settings");
+    }
+
+    private string GetPermissionsString()
+    {
+        var p = new List<string>();
+        if (AccDashboard) p.Add("Dashboard");
+        if (AccPatients) p.Add("Patients");
+        if (AccAppointments) p.Add("Appointments");
+        if (AccMedicines) p.Add("Medicines");
+        if (AccProducts) p.Add("Products");
+        if (AccCompanies) p.Add("Companies");
+        if (AccSuppliers) p.Add("Suppliers");
+        if (AccPurchases) p.Add("Purchases");
+        if (AccSales) p.Add("Sales");
+        if (AccReturns) p.Add("Returns");
+        if (AccNewVisit) p.Add("NewVisit");
+        if (AccVisitHistory) p.Add("VisitHistory");
+        if (AccInventory) p.Add("Inventory");
+        if (AccReports) p.Add("Reports");
+        if (AccSearch) p.Add("Search");
+        if (AccUsers) p.Add("Users");
+        if (AccSettings) p.Add("Settings");
+        return string.Join(",", p);
     }
 
     private void NotifyButtonStates()

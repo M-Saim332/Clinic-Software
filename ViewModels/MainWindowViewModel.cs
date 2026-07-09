@@ -100,8 +100,22 @@ public partial class MainWindowViewModel : ViewModelBase
         // Allow Dashboard to trigger the shared Change Password popup
         _dashboardVM.RequestChangePassword += () => OpenChangePasswordDialogCommand.Execute(null);
 
-        // Start on Dashboard
-        NavigateTo(_dashboardVM, "Dashboard");
+        // Allow Dashboard KPI cards to navigate to their respective pages
+        _dashboardVM.RequestNavigatePatients     += () => ShowPatientsCommand.Execute(null);
+        _dashboardVM.RequestNavigateCompanies    += () => ShowCompaniesCommand.Execute(null);
+        _dashboardVM.RequestNavigateSuppliers    += () => ShowSuppliersCommand.Execute(null);
+        _dashboardVM.RequestNavigateSales        += () => ShowSalesCommand.Execute(null);
+        _dashboardVM.RequestNavigateAppointments += () => ShowAppointmentsCommand.Execute(null);
+        _dashboardVM.RequestNavigateMedicines    += () => ShowMedicinesCommand.Execute(null);
+        _dashboardVM.RequestNavigateInventory    += () => ShowInventoryCommand.Execute(null);
+
+        // Start on the first available page
+        if (CanAccessDashboard) NavigateTo(_dashboardVM, "Dashboard");
+        else if (CanAccessPatients) NavigateTo(_patientVM, "Patients");
+        else if (CanAccessAppointments) NavigateTo(_appointmentVM, "Appointments");
+        else if (CanAccessPurchases) NavigateTo(_purchaseVM, "Purchases");
+        else if (CanAccessSales) NavigateTo(_saleVM, "Sales & Billing");
+        else if (CanAccessUsers) NavigateTo(_userVM, "Users");
 
         // Startup data load
         IsLoading = true;
@@ -163,6 +177,28 @@ public partial class MainWindowViewModel : ViewModelBase
     public string CurrentUserRole  => CurrentUser?.Role ?? string.Empty;
     public bool IsAdmin            => CurrentUser?.IsAdmin ?? false;
 
+    // Module Access properties for UI binding
+    public bool CanAccessDashboard    => CurrentUser?.HasAccess("Dashboard") ?? false;
+    public bool CanAccessPatients     => CurrentUser?.HasAccess("Patients") ?? false;
+    public bool CanAccessAppointments => CurrentUser?.HasAccess("Appointments") ?? false;
+    public bool CanAccessMedicines    => CurrentUser?.HasAccess("Medicines") ?? false;
+    public bool CanAccessProducts     => CurrentUser?.HasAccess("Products") ?? false;
+    public bool CanAccessCompanies    => CurrentUser?.HasAccess("Companies") ?? false;
+    public bool CanAccessSuppliers    => CurrentUser?.HasAccess("Suppliers") ?? false;
+    public bool CanAccessPurchases    => CurrentUser?.HasAccess("Purchases") ?? false;
+    public bool CanAccessSales        => CurrentUser?.HasAccess("Sales") ?? false;
+    public bool CanAccessReturns      => CurrentUser?.HasAccess("Returns") ?? false;
+    public bool CanAccessNewVisit     => CurrentUser?.HasAccess("NewVisit") ?? false;
+    public bool CanAccessVisitHistory => CurrentUser?.HasAccess("VisitHistory") ?? false;
+    public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
+    public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
+    public bool CanAccessUsers        => CurrentUser?.HasAccess("Users") ?? false;
+
+    // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
+    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessUsers;
+    public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns || CanAccessNewVisit || CanAccessVisitHistory;
+    public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
+
     // ── Active nav flags (for sidebar highlight) ───────────────────────────
     [ObservableProperty] private bool _isDashboardActive;
     [ObservableProperty] private bool _isPatientsActive;
@@ -180,10 +216,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isVisitHistoryActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
-    [ObservableProperty] private bool _isSearchActive;
-    [ObservableProperty] private bool _isSettingsActive;
 
     [ObservableProperty] private bool _showChangePassword;
+    [ObservableProperty] private bool _showLogoutConfirm;
 
     private bool _visitHistoryLoaded;
 
@@ -211,8 +246,6 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Visit History": IsVisitHistoryActive = true; break;
             case "Users":        IsUsersActive        = true; break;
             case "Reports":      IsReportsActive      = true; break;
-            case "Search":       IsSearchActive       = true; break;
-            case "Settings":     IsSettingsActive     = true; break;
         }
     }
 
@@ -221,7 +254,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsProductsActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
-        IsUsersActive = IsReportsActive = IsSearchActive = IsSettingsActive = false;
+        IsUsersActive = IsReportsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
@@ -237,11 +270,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowReturns()      { NavigateTo(_returnVM,       "Returns"); }
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
-    [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users"); }
+    [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
     [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
-    [RelayCommand] private void ShowSearch()       { NavigateTo(_searchVM,       "Search"); }
-    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); }
-
 
     [RelayCommand]
     private void ShowPrescriptions()
@@ -261,7 +291,9 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     public event Action? LogoutRequested;
-    [RelayCommand] private void Logout() => LogoutRequested?.Invoke();
+    [RelayCommand] private void Logout() => ShowLogoutConfirm = true;
+    [RelayCommand] private void ConfirmLogout() { ShowLogoutConfirm = false; LogoutRequested?.Invoke(); }
+    [RelayCommand] private void CancelLogout() => ShowLogoutConfirm = false;
 
     [RelayCommand]
     private void CloseAlert() => ShowAlert = false;
