@@ -13,11 +13,17 @@ using ClinicSystem.UI.ViewModels.Purchases;
 using ClinicSystem.UI.ViewModels.Sales;
 using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
+using ClinicSystem.UI.ViewModels.Products;
+using ClinicSystem.UI.ViewModels.Search;
+using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.Data;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+
 
 namespace ClinicSystem.UI.ViewModels;
 
@@ -33,6 +39,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ReportsViewModel          _reportsVM;
     private readonly CompanyRegistryViewModel  _companyVM;
     private readonly SupplierRegistryViewModel _supplierVM;
+    private readonly ProductRegistryViewModel  _productVM;
+    private readonly SearchViewModel            _searchVM;
+    private readonly SettingsViewModel          _settingsVM;
 
     private readonly AppointmentViewModel      _appointmentVM;
     private readonly PurchaseViewModel         _purchaseVM;
@@ -53,6 +62,9 @@ public partial class MainWindowViewModel : ViewModelBase
         ReportsViewModel          reportsVM,
         CompanyRegistryViewModel  companyVM,
         SupplierRegistryViewModel supplierVM,
+        ProductRegistryViewModel  productVM,
+        SearchViewModel           searchVM,
+        SettingsViewModel         settingsVM,
 
         AppointmentViewModel      appointmentVM,
         PurchaseViewModel         purchaseVM,
@@ -71,6 +83,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _reportsVM      = reportsVM;
         _companyVM      = companyVM;
         _supplierVM     = supplierVM;
+        _productVM      = productVM;
+        _searchVM       = searchVM;
+        _settingsVM     = settingsVM;
 
         _appointmentVM  = appointmentVM;
         _purchaseVM     = purchaseVM;
@@ -96,7 +111,28 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _prescriptionVM.InitializeAsync();
                 await _userVM.InitializeAsync();
                 await _companyVM.InitializeAsync();
+                await _productVM.InitializeAsync();
+                await _supplierVM.InitializeAsync();
+                await _appointmentVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
+
+                // Compute alert warnings safely
+                var lowStockCount = _medicineVM.Medicines.Count(m => m.IsLowStock && !m.IsExpired);
+                var waitingTodayCount = _appointmentVM.Appointments.Count(a => a.AppointmentDate.Date == DateTime.Today && a.Status == "Checked-In");
+
+                var alerts = new List<string>();
+                if (waitingTodayCount > 0) alerts.Add($"{waitingTodayCount} patient(s) waiting today");
+                if (lowStockCount > 0) alerts.Add($"{lowStockCount} low-stock medicine(s)");
+
+                if (alerts.Count > 0)
+                {
+                    var msg = string.Join(" | ", alerts);
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        AlertMessage = msg;
+                        ShowAlert = true;
+                    });
+                }
             }
             catch (Exception ex)
             {
@@ -108,6 +144,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => IsLoading = false);
             }
         });
+
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -115,6 +152,8 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _statusText   = string.Empty;
     [ObservableProperty] private string _pageTitle    = "Dashboard";
     [ObservableProperty] private bool   _isLoading;
+    [ObservableProperty] private string _alertMessage = string.Empty;
+    [ObservableProperty] private bool   _showAlert;
 
     public string TodayDate        => DateTime.Now.ToString("dddd, MMM dd yyyy");
     public string CurrentUserName  => CurrentUser?.FullName.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "Unknown";
@@ -125,6 +164,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isDashboardActive;
     [ObservableProperty] private bool _isPatientsActive;
     [ObservableProperty] private bool _isMedicinesActive;
+    [ObservableProperty] private bool _isProductsActive;
     [ObservableProperty] private bool _isCompaniesActive;
     [ObservableProperty] private bool _isSuppliersActive;
 
@@ -134,8 +174,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isInventoryActive;
     [ObservableProperty] private bool _isAppointmentsActive;
     [ObservableProperty] private bool _isPrescriptionsActive;
+    [ObservableProperty] private bool _isVisitHistoryActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
+    [ObservableProperty] private bool _isSearchActive;
+    [ObservableProperty] private bool _isSettingsActive;
 
     [ObservableProperty] private bool _showChangePassword;
 
@@ -152,42 +195,50 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Dashboard":    IsDashboardActive    = true; break;
             case "Patients":     IsPatientsActive     = true; break;
             case "Medicines":    IsMedicinesActive    = true; break;
+            case "Products":     IsProductsActive     = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
 
             case "Purchases":    IsPurchasesActive    = true; break;
-            case "Sales":        IsSalesActive        = true; break;
+            case "Sales & Billing": IsSalesActive     = true; break;
             case "Returns":      IsReturnsActive      = true; break;
             case "Inventory":    IsInventoryActive    = true; break;
             case "Appointments": IsAppointmentsActive = true; break;
             case "New Visit":    IsPrescriptionsActive = true; break;
+            case "Visit History": IsVisitHistoryActive = true; break;
             case "Users":        IsUsersActive        = true; break;
             case "Reports":      IsReportsActive      = true; break;
+            case "Search":       IsSearchActive       = true; break;
+            case "Settings":     IsSettingsActive     = true; break;
         }
     }
 
     private void ClearActiveFlags()
     {
-        IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsCompaniesActive =
-        IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
-        IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive =
-        IsUsersActive = IsReportsActive = false;
+        IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsProductsActive =
+        IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
+        IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
+        IsUsersActive = IsReportsActive = IsSearchActive = IsSettingsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
     [RelayCommand] private void ShowDashboard()    { NavigateTo(_dashboardVM,    "Dashboard");    _ = _dashboardVM.InitializeAsync(); }
     [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients"); }
     [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines"); }
+    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products"); _ = _productVM.InitializeAsync(); }
     [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies"); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
-
+ 
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
-    [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales");        _ = _saleVM.InitializeAsync(); }
+    [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales & Billing"); _ = _saleVM.InitializeAsync(); }
     [RelayCommand] private void ShowReturns()      { NavigateTo(_returnVM,       "Returns"); }
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users"); }
     [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
+    [RelayCommand] private void ShowSearch()       { NavigateTo(_searchVM,       "Search"); }
+    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); }
+
 
     [RelayCommand]
     private void ShowPrescriptions()
@@ -208,6 +259,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public event Action? LogoutRequested;
     [RelayCommand] private void Logout() => LogoutRequested?.Invoke();
+
+    [RelayCommand]
+    private void CloseAlert() => ShowAlert = false;
+
 
     [RelayCommand]
     private void OpenChangePasswordDialog()

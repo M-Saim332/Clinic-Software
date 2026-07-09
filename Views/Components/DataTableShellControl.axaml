@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+             x:Class="ClinicSystem.UI.Views.Components.DataTableShellControl"
+             x:Name="Root"
+             x:CompileBindings="False">
+
+    <Border Background="{DynamicResource BrushCardBackground}"
+            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20"
+            BoxShadow="0 1 3 0 #0D000000">
+        <DockPanel>
+            <!-- Top header of the panel: Title + Record Count Chip -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title, ElementName=Root}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                    <Border Background="{DynamicResource BrushBlue50}" CornerRadius="{DynamicResource CornerRadiusPill}" Padding="8,2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RecordCount, ElementName=Root}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}" FontFamily="{DynamicResource FontMono}"/>
+                    </Border>
+                </StackPanel>
+                
+                <!-- Slot for top-right toolbar actions -->
+                <ContentControl Content="{Binding HeaderActions, ElementName=Root}" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </DockPanel>
+
+            <!-- Filter/Toolbar row -->
+            <Border DockPanel.Dock="Top" Padding="0,0,0,16" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Margin="0,0,0,16">
+                <ContentControl Content="{Binding FilterToolbar, ElementName=Root}" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- Main table content (the DataGrid) -->
+            <ContentControl Content="{Binding TableContent, ElementName=Root}"/>
+        </DockPanel>
+    </Border>
+</UserControl>

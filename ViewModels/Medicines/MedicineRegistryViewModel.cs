@@ -24,6 +24,11 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
 
+    // ── KPI Summary Card properties ────────────────────────────────────
+    [ObservableProperty] private int _lowStockCount;
+    [ObservableProperty] private int _expiredCount;
+    [ObservableProperty] private string _totalInventoryValue = "Rs. 0.00";
+
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
 
@@ -226,4 +231,21 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     }
 
     private static string FormatMoney(decimal value) => $"Rs. {value:N2}";
+
+    public async Task InitializeAsync()
+    {
+        var meds = await Task.Run(() => _repo.GetAll());
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            Companies = new ObservableCollection<Company>(comps);
+            Medicines = new ObservableCollection<Medicine>(meds);
+            FilterMedicines();
+
+            LowStockCount   = Medicines.Count(m => m.IsLowStock && !m.IsExpired);
+            ExpiredCount     = Medicines.Count(m => m.IsExpired);
+            var totalVal     = Medicines.Sum(m => m.Stock * m.SellingPrice);
+            TotalInventoryValue = FormatMoney(totalVal);
+        });
+    }
 }
