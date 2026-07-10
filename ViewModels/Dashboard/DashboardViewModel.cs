@@ -215,32 +215,33 @@ public partial class DashboardViewModel : ViewModelBase
             };
 
             // Donut/Pie series for revenue overview
+            // Use Math.Max(1.0, ...) so slices render even when data is zero
             var donutSeries = new ISeries[]
             {
                 new PieSeries<double>
                 {
-                    Values         = new double[] { totalRevenue },
+                    Values         = new double[] { Math.Max(1.0, totalRevenue) },
                     Name           = "Medicine Sales",
                     Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(0, totalRevenue * 0.15) },
+                    Values         = new double[] { Math.Max(1.0, totalRevenue * 0.15) },
                     Name           = "Consultation",
                     Fill           = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(0, totalExpenses) },
+                    Values         = new double[] { Math.Max(1.0, totalExpenses) },
                     Name           = "Expenses",
                     Fill           = new SolidColorPaint(new SKColor(0xA7, 0x8B, 0xFA)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(0, totalProfit * 0.05) },
+                    Values         = new double[] { Math.Max(1.0, totalProfit * 0.05) },
                     Name           = "Other Income",
                     Fill           = new SolidColorPaint(new SKColor(0xFB, 0xBF, 0x24)),
                     InnerRadius    = 80

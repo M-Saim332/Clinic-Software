@@ -29,9 +29,10 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
 
     // ── Button visibility ──────────────────────────────────────────────────
-    public bool MutationEnabled => Mode == FormMode.View;
-    public bool SaveCancelEnabled => Mode != FormMode.View;
-    public bool PkEditable => Mode == FormMode.Add;
+    public bool MutationEnabled     => Mode == FormMode.View;
+    public bool SaveCancelEnabled   => Mode != FormMode.View;
+    public bool IsListViewVisible   => Mode == FormMode.View;   // explicit — avoids compiled-binding negation issue
+    public bool PkEditable          => Mode == FormMode.Add;
 
     // ── Data ───────────────────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
@@ -198,6 +199,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
+        OnPropertyChanged(nameof(IsListViewVisible));
         OnPropertyChanged(nameof(PkEditable));
     }
 }

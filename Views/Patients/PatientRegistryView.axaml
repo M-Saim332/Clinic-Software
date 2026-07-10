@@ -11,7 +11,7 @@
         <!-- ============================================================ -->
         <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
         <!-- ============================================================ -->
-        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
+        <Grid IsVisible="{Binding IsListViewVisible}" RowDefinitions="Auto,Auto,*">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"

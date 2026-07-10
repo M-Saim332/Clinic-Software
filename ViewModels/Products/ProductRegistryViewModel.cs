@@ -50,21 +50,26 @@ public partial class ProductRegistryViewModel : ViewModelBase
     public bool SaveCancelEnabled => Mode != FormMode.View;
 
     [RelayCommand]
-    private void New()
+    private async Task NewAsync()
     {
         ClearFields();
         Mode = FormMode.Add;
         NotifyButtonStates();
         StatusMessage = "Enter new product details.";
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Companies = new ObservableCollection<Company>(comps);
     }
 
     [RelayCommand]
-    private void Edit()
+    private async Task EditAsync()
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product first."; return; }
         FillFields(SelectedProduct);
         Mode = FormMode.Edit;
         NotifyButtonStates();
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Companies = new ObservableCollection<Company>(comps);
+        SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == SelectedProduct.CompanyID);
     }
 
     [RelayCommand]
@@ -73,7 +78,11 @@ public partial class ProductRegistryViewModel : ViewModelBase
         if (SelectedProduct == null) { StatusMessage = "Select a product first."; return; }
         var ok = await Task.Run(() => _repo.Delete(SelectedProduct.ProductID));
         StatusMessage = ok ? "Product deleted." : "Cannot delete – referenced by purchases/sales.";
-        if (ok) await InitializeAsync();
+        if (ok)
+        {
+            SelectedProduct = null;
+            await InitializeAsync();
+        }
     }
 
     [RelayCommand]

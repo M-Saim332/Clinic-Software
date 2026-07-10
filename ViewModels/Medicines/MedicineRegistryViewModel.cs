@@ -58,21 +58,26 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     private decimal CurrentSellingPrice => decimal.TryParse(SellingPrice, out var value) ? value : 0;
 
     [RelayCommand]
-    private void New()
+    private async Task NewAsync()
     {
         ClearFields();
         Mode = FormMode.Add;
         NotifyButtonStates();
         StatusMessage = "Enter new medicine details.";
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Companies = new ObservableCollection<Company>(comps);
     }
 
     [RelayCommand]
-    private void Edit()
+    private async Task EditAsync()
     {
         if (SelectedMedicine == null) { StatusMessage = "Select a medicine first."; return; }
         FillFields(SelectedMedicine);
         Mode = FormMode.Edit;
         NotifyButtonStates();
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Companies = new ObservableCollection<Company>(comps);
+        SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == SelectedMedicine.CompanyID);
     }
 
     [RelayCommand]

@@ -128,4 +128,58 @@ public partial class SettingsViewModel : ViewModelBase
             }
         }
     }
+    // ── Reset & Rollback (Database Maintenance) ─────────────────────────────
+    [ObservableProperty] private bool _isResetConfirmVisible;
+    [ObservableProperty] private bool _isRollbackAvailable;
+
+    [RelayCommand]
+    private void ShowResetConfirm()
+    {
+        IsResetConfirmVisible = true;
+        StatusMessage = "⚠️ Warning: This will permanently delete ALL patient, medicine, and company data. A rollback backup will be created automatically.";
+    }
+
+    [RelayCommand]
+    private void CancelReset()
+    {
+        IsResetConfirmVisible = false;
+        StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmResetAsync()
+    {
+        IsBusy = true;
+        IsResetConfirmVisible = false;
+        StatusMessage = "Resetting all data… creating rollback backup first…";
+        try
+        {
+            await Task.Run(() => _dbSession.ResetAllData());
+            IsRollbackAvailable = true;
+            StatusMessage = "✅ All data has been reset to zero. A rollback backup was saved automatically — click 'Rollback Reset' to undo.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Reset failed: {ex.Message}";
+        }
+        finally { IsBusy = false; }
+    }
+
+    [RelayCommand]
+    private async Task RollbackResetAsync()
+    {
+        IsBusy = true;
+        StatusMessage = "Rolling back — restoring pre-reset backup…";
+        try
+        {
+            await Task.Run(() => _dbSession.RollbackReset());
+            IsRollbackAvailable = false;
+            StatusMessage = "✅ Data restored successfully! Please restart the application to see the recovered data.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Rollback failed: {ex.Message}";
+        }
+        finally { IsBusy = false; }
+    }
 }
