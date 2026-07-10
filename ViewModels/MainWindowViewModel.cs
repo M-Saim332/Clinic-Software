@@ -193,6 +193,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
     public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
     public bool CanAccessUsers        => CurrentUser?.HasAccess("Users") ?? false;
+    public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessUsers;
@@ -216,6 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
     [ObservableProperty] private bool _isProductsActive;
+    [ObservableProperty] private bool _isSettingsActive;
 
     [ObservableProperty] private bool _showChangePassword;
     [ObservableProperty] private bool _showLogoutConfirm;
@@ -246,6 +248,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Visit History": IsVisitHistoryActive = true; break;
             case "Users":        IsUsersActive        = true; break;
             case "Reports":      IsReportsActive      = true; break;
+            case "Settings":     IsSettingsActive     = true; break;
         }
     }
 
@@ -254,7 +257,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsDashboardActive = IsPatientsActive = IsMedicinesActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
-        IsUsersActive = IsReportsActive = IsProductsActive = false;
+        IsUsersActive = IsReportsActive = IsProductsActive = IsSettingsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
@@ -272,6 +275,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
     [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
+    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); }
 
     [RelayCommand]
     private void ShowPrescriptions()
