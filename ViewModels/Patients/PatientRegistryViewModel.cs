@@ -17,7 +17,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     // ── State ──────────────────────────────────────────────────────────────
-    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MutationEnabled))]
+    [NotifyPropertyChangedFor(nameof(SaveCancelEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsListViewVisible))]
+    [NotifyPropertyChangedFor(nameof(PkEditable))]
+    private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
@@ -135,24 +140,28 @@ public partial class PatientRegistryViewModel : ViewModelBase
     // ── Helpers ────────────────────────────────────────────────────────────
     public async Task InitializeAsync()
     {
-        var list = await Task.Run(() => _repo.GetAll());
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
-            Patients = new ObservableCollection<Patient>(list);
-            FilterPatients();
-            
-            TotalPatientsCount = Patients.Count;
-            ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
-            WaitingTodayCount = Math.Max(0, Patients.Count / 10 + 1);
-            if (Patients.Count > 0)
+        try
+        {
+            var list = await Task.Run(() => _repo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                var avg = Patients.Average(p => p.ConsultationFee);
-                AvgConsultationFee = $"Rs. {avg:N2}";
-            }
-            else
-            {
-                AvgConsultationFee = "Rs. 0.00";
-            }
-        });
+                StatusMessage = string.Empty;
+                Patients = new ObservableCollection<Patient>(list);
+                FilterPatients();
+
+                TotalPatientsCount = Patients.Count;
+                ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
+                WaitingTodayCount = Math.Max(0, Patients.Count / 10 + 1);
+                AvgConsultationFee = Patients.Count > 0
+                    ? $"Rs. {Patients.Average(p => p.ConsultationFee):N2}"
+                    : "Rs. 0.00";
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                StatusMessage = $"Failed to load patients: {ex.Message}");
+        }
     }
 
 

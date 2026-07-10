@@ -196,7 +196,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
-    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessUsers;
+    public bool HasPeopleAccess => CanAccessPatients || CanAccessUsers;
+    public bool HasManagementAccess => CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
     public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns || CanAccessNewVisit || CanAccessVisitHistory;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
 
