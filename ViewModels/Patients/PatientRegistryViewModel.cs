@@ -165,7 +165,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
             var term = SearchTerm.ToLower();
             FilteredPatients = new ObservableCollection<Patient>(
                 Patients.Where(p => p.Name.ToLower().Contains(term)
-                                 || (p.Contact?.ToLower().Contains(term) ?? false)));
+                                 || (p.Phone?.ToLower().Contains(term) ?? false)
+                                 || (p.Address?.ToLower().Contains(term) ?? false)
+                                 || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
         }
     }
 

@@ -215,6 +215,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isVisitHistoryActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
+    [ObservableProperty] private bool _isProductsActive;
 
     [ObservableProperty] private bool _showChangePassword;
     [ObservableProperty] private bool _showLogoutConfirm;
@@ -234,6 +235,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Medicines":    IsMedicinesActive    = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
+            case "Products":     IsProductsActive     = true; break;
 
             case "Purchases":    IsPurchasesActive    = true; break;
             case "Sales & Billing": IsSalesActive     = true; break;
@@ -252,7 +254,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsDashboardActive = IsPatientsActive = IsMedicinesActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
-        IsUsersActive = IsReportsActive = false;
+        IsUsersActive = IsReportsActive = IsProductsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
@@ -261,6 +263,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines");    _ = _medicineVM.InitializeAsync(); }
     [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies");    _ = _companyVM.InitializeAsync(); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
+    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products");     _ = _productVM.InitializeAsync(); }
  
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
     [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales & Billing"); _ = _saleVM.InitializeAsync(); }
