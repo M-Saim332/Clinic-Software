@@ -38,6 +38,52 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- MANAGEMENT SECTION -->
+                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
+                    <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
+
+                    <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Patients" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Appointments" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowMedicinesCommand}" Classes="navbtn" Classes.active="{Binding IsMedicinesActive}" IsVisible="{Binding CanAccessMedicines}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconMedicines}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Medicines" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowCompaniesCommand}" Classes="navbtn" Classes.active="{Binding IsCompaniesActive}" IsVisible="{Binding CanAccessCompanies}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconCompanies}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Companies" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowSuppliersCommand}" Classes="navbtn" Classes.active="{Binding IsSuppliersActive}" IsVisible="{Binding CanAccessSuppliers}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconSuppliers}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Users" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <!-- TRANSACTIONS SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasTransactionsAccess}"/>
                     <TextBlock Text="TRANSACTIONS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasTransactionsAccess}"/>
@@ -74,59 +120,6 @@
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Visit History" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <!-- MANAGEMENT SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
-                    <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
-
-                    <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Patients" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Appointments" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowMedicinesCommand}" Classes="navbtn" Classes.active="{Binding IsMedicinesActive}" IsVisible="{Binding CanAccessMedicines}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconMedicines}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Medicines" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowProductsCommand}" Classes="navbtn" Classes.active="{Binding IsProductsActive}" IsVisible="{Binding CanAccessProducts}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconProducts}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Products" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowCompaniesCommand}" Classes="navbtn" Classes.active="{Binding IsCompaniesActive}" IsVisible="{Binding CanAccessCompanies}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconCompanies}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Companies" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowSuppliersCommand}" Classes="navbtn" Classes.active="{Binding IsSuppliersActive}" IsVisible="{Binding CanAccessSuppliers}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconSuppliers}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Users" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
