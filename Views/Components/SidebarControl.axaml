@@ -9,9 +9,9 @@
              Width="224"
              Background="{DynamicResource BrushCardBackground}">
     <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,1,0">
-        <DockPanel>
+        <Grid RowDefinitions="Auto,*,Auto">
             <!-- Logo / Brand -->
-            <Border DockPanel.Dock="Top" Padding="20,24" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
+            <Border Grid.Row="0" Padding="20,24" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushBlue50}">
                         <PathIcon Data="{StaticResource IconClinic}" Width="18" Height="18"
@@ -24,10 +24,8 @@
                 </StackPanel>
             </Border>
 
-            <!-- Logged-in user chip removed -->
-
             <!-- Navigation -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="4" Margin="12,16">
 
                     <!-- MAIN/DASHBOARD -->
@@ -38,9 +36,9 @@
                         </StackPanel>
                     </Button>
 
-                    <!-- MANAGEMENT SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
-                    <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
+                    <!-- PEOPLE & ACCESS SECTION -->
+                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasPeopleAccess}"/>
+                    <TextBlock Text="PEOPLE &amp; ACCESS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasPeopleAccess}"/>
 
                     <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -48,6 +46,17 @@
                             <TextBlock Text="Patients" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
+                    <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Users" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- MANAGEMENT SECTION -->
+                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
+                    <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
 
                     <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -74,13 +83,6 @@
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <PathIcon Data="{StaticResource IconSuppliers}" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Users" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -141,17 +143,18 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}" IsVisible="{Binding CanAccessSettings}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-
-
                 </StackPanel>
             </ScrollViewer>
-        </DockPanel>
+
+            <!-- Bottom pinned Settings section -->
+            <Border Grid.Row="2" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="12,12">
+                <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}" IsVisible="{Binding CanAccessSettings}">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Border>
+        </Grid>
     </Border>
 </UserControl>

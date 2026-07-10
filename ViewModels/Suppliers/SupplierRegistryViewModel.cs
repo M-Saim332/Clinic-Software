@@ -95,8 +95,20 @@ public partial class SupplierRegistryViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var list = await Task.Run(() => _repo.GetAll());
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => Suppliers = new ObservableCollection<Supplier>(list));
+        try
+        {
+            var list = await Task.Run(() => _repo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                StatusMessage = string.Empty;
+                Suppliers = new ObservableCollection<Supplier>(list);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                StatusMessage = $"Failed to load suppliers: {ex.Message}");
+        }
     }
 
     private void ClearFields()

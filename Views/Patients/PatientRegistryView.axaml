@@ -11,7 +11,7 @@
         <!-- ============================================================ -->
         <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
         <!-- ============================================================ -->
-        <Grid IsVisible="{Binding IsListViewVisible}" RowDefinitions="Auto,Auto,*">
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
@@ -58,8 +58,13 @@
             </Grid>
 
             <!-- Data Panel using DataTableShellControl -->
-            <Grid Grid.Row="2" Margin="28,12,28,24">
-                <comp:DataTableShellControl Title="Patient List" RecordCount="{Binding FilteredPatients.Count}">
+            <Grid Grid.Row="2" Margin="28,12,28,24" RowDefinitions="Auto,*">
+                <!-- Error / Status Message (shown on list view if data load fails) -->
+                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource BrushRose}"
+                           FontSize="13" FontWeight="Medium" Margin="0,0,0,8"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                <comp:DataTableShellControl Grid.Row="1" Title="Patient List" RecordCount="{Binding FilteredPatients.Count}">
                     <!-- Toolbar / Search inside FilterToolbar -->
                     <comp:DataTableShellControl.FilterToolbar>
                         <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">

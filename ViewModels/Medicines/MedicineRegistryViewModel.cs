@@ -229,18 +229,27 @@ public partial class MedicineRegistryViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var meds = await Task.Run(() => _repo.GetAll());
-        var comps = await Task.Run(() => _companyRepo.GetAll());
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        try
         {
-            Companies = new ObservableCollection<Company>(comps);
-            Medicines = new ObservableCollection<Medicine>(meds);
-            FilterMedicines();
+            var meds = await Task.Run(() => _repo.GetAll());
+            var comps = await Task.Run(() => _companyRepo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                StatusMessage = string.Empty;
+                Companies = new ObservableCollection<Company>(comps);
+                Medicines = new ObservableCollection<Medicine>(meds);
+                FilterMedicines();
 
-            LowStockCount   = Medicines.Count(m => m.IsLowStock && !m.IsExpired);
-            ExpiredCount     = Medicines.Count(m => m.IsExpired);
-            var totalVal     = Medicines.Sum(m => m.Stock * m.SellingPrice);
-            TotalInventoryValue = FormatMoney(totalVal);
-        });
+                LowStockCount   = Medicines.Count(m => m.IsLowStock && !m.IsExpired);
+                ExpiredCount     = Medicines.Count(m => m.IsExpired);
+                var totalVal     = Medicines.Sum(m => m.Stock * m.SellingPrice);
+                TotalInventoryValue = FormatMoney(totalVal);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                StatusMessage = $"Failed to load medicines: {ex.Message}");
+        }
     }
 }

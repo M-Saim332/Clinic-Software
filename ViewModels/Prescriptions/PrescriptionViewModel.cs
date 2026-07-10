@@ -34,6 +34,7 @@ public partial class PrescriptionViewModel : ViewModelBase
     [ObservableProperty] private bool _showPatientList;
     [ObservableProperty] private string _patientSearch = string.Empty;
     [ObservableProperty] private ObservableCollection<Patient> _filteredPatients = new();
+    [ObservableProperty] private string _statusMessage = string.Empty;
 
     // ── Prescription fields ───────────────────────────────────────────────
     [ObservableProperty] private DateTimeOffset _visitDate = DateTimeOffset.Now;
@@ -135,13 +136,22 @@ public partial class PrescriptionViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var patients = await Task.Run(() => _patientRepo.GetAll());
-        var medicines = await Task.Run(() => _medicineRepo.GetPrescribable());
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => {
-            Patients = new ObservableCollection<Patient>(patients);
-            AvailableMedicines = new ObservableCollection<Medicine>(medicines);
-            FilterPatients();
-        });
+        try
+        {
+            var patients = await Task.Run(() => _patientRepo.GetAll());
+            var medicines = await Task.Run(() => _medicineRepo.GetPrescribable());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Patients = new ObservableCollection<Patient>(patients);
+                AvailableMedicines = new ObservableCollection<Medicine>(medicines);
+                FilterPatients();
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                StatusMessage = $"Failed to load data: {ex.Message}");
+        }
     }
 
     private void FilterPatients()

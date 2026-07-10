@@ -95,8 +95,20 @@ public partial class CompanyRegistryViewModel : ViewModelBase
 
     public async Task InitializeAsync()
     {
-        var list = await Task.Run(() => _repo.GetAll());
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => Companies = new ObservableCollection<Company>(list));
+        try
+        {
+            var list = await Task.Run(() => _repo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                StatusMessage = string.Empty;
+                Companies = new ObservableCollection<Company>(list);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                StatusMessage = $"Failed to load companies: {ex.Message}");
+        }
     }
 
     private void ClearFields()
