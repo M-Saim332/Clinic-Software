@@ -141,6 +141,13 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}" IsVisible="{Binding CanAccessSettings}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
 
 
                 </StackPanel>
