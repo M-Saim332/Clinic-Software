@@ -203,7 +203,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isDashboardActive;
     [ObservableProperty] private bool _isPatientsActive;
     [ObservableProperty] private bool _isMedicinesActive;
-    [ObservableProperty] private bool _isProductsActive;
     [ObservableProperty] private bool _isCompaniesActive;
     [ObservableProperty] private bool _isSuppliersActive;
 
@@ -233,7 +232,6 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Dashboard":    IsDashboardActive    = true; break;
             case "Patients":     IsPatientsActive     = true; break;
             case "Medicines":    IsMedicinesActive    = true; break;
-            case "Products":     IsProductsActive     = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
 
@@ -251,7 +249,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ClearActiveFlags()
     {
-        IsDashboardActive = IsPatientsActive = IsMedicinesActive = IsProductsActive =
+        IsDashboardActive = IsPatientsActive = IsMedicinesActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
         IsUsersActive = IsReportsActive = false;
@@ -259,10 +257,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ── Navigation commands ────────────────────────────────────────────────
     [RelayCommand] private void ShowDashboard()    { NavigateTo(_dashboardVM,    "Dashboard");    _ = _dashboardVM.InitializeAsync(); }
-    [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients"); }
-    [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines"); }
-    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products"); _ = _productVM.InitializeAsync(); }
-    [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies"); }
+    [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients");     _ = _patientVM.InitializeAsync(); }
+    [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines");    _ = _medicineVM.InitializeAsync(); }
+    [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies");    _ = _companyVM.InitializeAsync(); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
  
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }

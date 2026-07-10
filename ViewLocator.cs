@@ -20,6 +20,8 @@ using ClinicSystem.UI.ViewModels.Purchases;
 using ClinicSystem.UI.ViewModels.Sales;
 using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
+using ClinicSystem.UI.ViewModels.Search;
+using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.Views.Companies;
 using ClinicSystem.UI.Views.Suppliers;
 
@@ -28,6 +30,8 @@ using ClinicSystem.UI.Views.Purchases;
 using ClinicSystem.UI.Views.Sales;
 using ClinicSystem.UI.Views.Inventory;
 using ClinicSystem.UI.Views.Dashboard;
+using ClinicSystem.UI.Views.Search;
+using ClinicSystem.UI.Views.Settings;
 
 namespace ClinicSystem.UI;
 
@@ -51,6 +55,9 @@ public class ViewLocator : IDataTemplate
             PurchaseViewModel          => new PurchaseView          { DataContext = param },
             SaleViewModel              => new SaleView              { DataContext = param },
             InventoryViewModel         => new InventoryView         { DataContext = param },
+            SearchViewModel            => new SearchView            { DataContext = param },
+            SettingsViewModel          => new SettingsView          { DataContext = param },
+            MedicineReturnViewModel    => new MedicineReturnView    { DataContext = param },
             _ => new TextBlock { Text = $"No view for {param?.GetType().Name}" }
         };
     }

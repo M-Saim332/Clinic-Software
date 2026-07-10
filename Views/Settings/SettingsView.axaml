@@ -84,10 +84,72 @@
                     <StackPanel Spacing="16">
                         <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <Button Content="Backup Database" Command="{Binding BackupCommand}" Classes="btn-secondary"/>
-                            <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="btn-secondary"/>
-                        </StackPanel>
+
+                        <!-- Backup / Restore row -->
+                        <DockPanel>
+                            <StackPanel Spacing="4" DockPanel.Dock="Left">
+                                <TextBlock Text="Backup &amp; Restore" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                                <TextBlock Text="Save a full database backup or restore from an existing .bak file."
+                                           FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Backup Database"  Command="{Binding BackupCommand}"  Classes="btn-secondary" IsEnabled="{Binding !IsBusy}"/>
+                                <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="btn-secondary" IsEnabled="{Binding !IsBusy}"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <Separator Height="1" Background="{DynamicResource BrushLine}" Margin="0,4"/>
+
+                        <!-- Reset to Zero row -->
+                        <DockPanel>
+                            <StackPanel Spacing="4" DockPanel.Dock="Left">
+                                <TextBlock Text="Reset All Data to Zero" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                <TextBlock Text="Wipes ALL medicines, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before reset."
+                                           FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="↩ Rollback Reset"
+                                        Command="{Binding RollbackResetCommand}"
+                                        IsVisible="{Binding IsRollbackAvailable}"
+                                        IsEnabled="{Binding !IsBusy}"
+                                        Background="#F59E0B" Foreground="White"
+                                        BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
+                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
+                                <Button Content="⚠ Reset to Zero"
+                                        Command="{Binding ShowResetConfirmCommand}"
+                                        IsEnabled="{Binding !IsBusy}"
+                                        Background="#DC2626" Foreground="White"
+                                        BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
+                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Confirmation Banner (appears after clicking Reset to Zero) -->
+                        <Border IsVisible="{Binding IsResetConfirmVisible}"
+                                Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
+                                CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="⚠️" FontSize="20" VerticalAlignment="Center"/>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Are you absolutely sure?" FontSize="14" FontWeight="Bold" Foreground="#991B1B"/>
+                                        <TextBlock Text="This will permanently delete all clinical data. A rollback backup will be saved first so you can undo this action."
+                                                   FontSize="12" Foreground="#7F1D1D" TextWrapping="Wrap" MaxWidth="500"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Button Content="✓ Yes, Reset Everything"
+                                            Command="{Binding ConfirmResetCommand}"
+                                            Background="#DC2626" Foreground="White"
+                                            BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
+                                            Padding="16,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
+                                    <Button Content="Cancel"
+                                            Command="{Binding CancelResetCommand}"
+                                            Classes="btn-secondary"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
                     </StackPanel>
                 </Border>
 

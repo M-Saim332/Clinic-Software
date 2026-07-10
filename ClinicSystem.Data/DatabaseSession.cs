@@ -150,5 +150,69 @@ public class DatabaseSession
             RESTORE DATABASE ClinicDB FROM DISK = @sourcePath WITH REPLACE;
             ALTER DATABASE ClinicDB SET MULTI_USER;", new { sourcePath });
     }
+
+    /// <summary>
+    /// Returns the auto-rollback backup file path used by ResetAllData.
+    /// </summary>
+    public string GetRollbackBackupPath()
+    {
+        using var conn = new SqlConnection(_connectionString);
+        conn.Open();
+        string dir = GetDefaultBackupDirectory(conn);
+        return Path.Combine(dir, "ClinicDB_PreReset_Rollback.bak");
+    }
+
+    /// <summary>
+    /// Creates a rollback backup, then deletes all clinical data (FK order respected).
+    /// Tables wiped: SaleItems, Sales, PurchaseItems, Purchases, Prescriptions, Appointments,
+    /// Returns, Patients, Medicines, Products, Companies, Suppliers.
+    /// Users and Settings are preserved.
+    /// </summary>
+    public void ResetAllData()
+    {
+        // Step 1 — auto rollback backup so user can recover
+        using var backupConn = new SqlConnection(_connectionString);
+        backupConn.Open();
+        string backupDir = GetDefaultBackupDirectory(backupConn);
+        string rollbackPath = Path.Combine(backupDir, "ClinicDB_PreReset_Rollback.bak");
+        backupConn.Execute("BACKUP DATABASE ClinicDB TO DISK = @rollbackPath WITH FORMAT", new { rollbackPath });
+
+        // Step 2 — delete all data in FK-safe order
+        using var conn = new SqlConnection(_connectionString);
+        conn.Open();
+        conn.Execute(@"
+            DELETE FROM SaleItems;
+            DELETE FROM Sales;
+            DELETE FROM PurchaseItems;
+            DELETE FROM Purchases;
+            DELETE FROM Returns;
+            DELETE FROM Prescriptions;
+            DELETE FROM Appointments;
+            DELETE FROM Patients;
+            DELETE FROM Medicines;
+            DELETE FROM Products;
+            DELETE FROM Companies;
+            DELETE FROM Suppliers;
+        ");
+    }
+
+    /// <summary>
+    /// Restores from the automatic pre-reset rollback backup created by ResetAllData.
+    /// </summary>
+    public void RollbackReset()
+    {
+        string rollbackPath = "";
+        using (var conn = new SqlConnection(_connectionString))
+        {
+            conn.Open();
+            string dir = GetDefaultBackupDirectory(conn);
+            rollbackPath = Path.Combine(dir, "ClinicDB_PreReset_Rollback.bak");
+        }
+
+        if (!File.Exists(rollbackPath))
+            throw new FileNotFoundException("No rollback backup found. A reset must be performed first before rollback is available.");
+
+        Restore(rollbackPath);
+    }
 }
 
