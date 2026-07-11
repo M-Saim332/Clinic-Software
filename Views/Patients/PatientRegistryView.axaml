@@ -1,21 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients"
-             xmlns:models="using:ClinicSystem.Core.Models"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Patients.PatientRegistryView"
              x:DataType="vm:PatientRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
     <Grid>
-        <!-- ============================================================ -->
-        <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
-        <!-- ============================================================ -->
-        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
-            <!-- Header -->
+        <Grid IsVisible="{Binding IsListViewVisible}" RowDefinitions="Auto,*">
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
-                    Padding="28,18">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
@@ -24,78 +18,31 @@
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center" Spacing="1">
-                            <TextBlock Text="Patients" FontSize="20" FontWeight="Bold"
+                            <TextBlock Text="Patient Registry" FontSize="20" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk900}"
                                        FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Manage patient records, diagnoses and consultation history"
+                            <TextBlock Text="Manage patient records and consultation details"
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <!-- Primary action: + Add Patient -->
                     <Button Content="+ Add Patient" Command="{Binding NewCommand}"
                             Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Summary Cards Row -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
-                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
-                    Title="Total Patients"
-                    Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
-                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                    Title="Active This Month"
-                    Value="{Binding ActiveThisMonthCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushTeal}"/>
-                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
-                    Title="Waiting Today"
-                    Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushAmber}"/>
-                <comp:SummaryCardControl Grid.Column="3"
-                    Title="Avg Consultation"
-                    Value="{Binding AvgConsultationFee}"
-                    BorderColor="{DynamicResource BrushRose}"/>
-            </Grid>
+            <Grid Grid.Row="1" Margin="28,16,28,24" RowDefinitions="Auto,*">
+                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" Margin="0,0,0,10"/>
 
-            <!-- Data Panel using DataTableShellControl -->
-            <Grid Grid.Row="2" Margin="28,12,28,24" RowDefinitions="Auto,*">
-                <!-- Error / Status Message (shown on list view if data load fails) -->
-                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}"
-                           Foreground="{DynamicResource BrushRose}"
-                           FontSize="13" FontWeight="Medium" Margin="0,0,0,8"
-                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                <comp:DataTableShellControl Grid.Row="1" Title="Patient List" RecordCount="{Binding FilteredPatients.Count}">
-                    <!-- Toolbar / Search inside FilterToolbar -->
+                <comp:DataTableShellControl Grid.Row="1" Title="Patients" RecordCount="{Binding FilteredPatients.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
                         <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
-                            <!-- Search box -->
-                            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
-                                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                                    CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
-                                    Height="40" MaxWidth="400" HorizontalAlignment="Left">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
-                                              Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
-                                             PlaceholderText="Search by name or phone..."
-                                             Classes="search-input"
-                                             VerticalAlignment="Center" Height="38" Padding="0"/>
-                                </Grid>
-                            </Border>
-
+                            <TextBox Grid.Column="0" Text="{Binding SearchTerm}" PlaceholderText="Search patient by name, phone, diagnosis..." MaxWidth="460"/>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                <!-- Edit, Delete buttons are here for the selected row -->
-                                <Button Content="Edit Details" Command="{Binding EditCommand}"
-                                        IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                        Classes="btn-secondary"/>
-                                <Button Content="Delete" Command="{Binding DeleteCommand}"
-                                        IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                        Classes="btn-danger"/>
+                                <Button Content="Edit" Command="{Binding EditCommand}" Classes="btn-secondary"/>
+                                <Button Content="Delete" Command="{Binding DeleteCommand}" Classes="btn-danger"/>
                             </StackPanel>
                         </Grid>
                     </comp:DataTableShellControl.FilterToolbar>
-
-                    <!-- Main Table -->
                     <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding FilteredPatients}"
                                   SelectedItem="{Binding SelectedPatient}"
@@ -103,14 +50,14 @@
                                   SelectionMode="Single"
                                   Background="Transparent"
                                   BorderThickness="0"
-                                  GridLinesVisibility="Horizontal"
-                                  RowBackground="{DynamicResource BrushCardBackground}">
+                                  GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="100"/>
+                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
                                 <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="120"/>
-                                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="180"/>
-                                <DataGridTextColumn Header="CONSULTATION FEE" Binding="{Binding ConsultationFee, StringFormat='Rs. {0:N2}'}" Width="180"/>
+                                <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
+                                <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
+                                <DataGridTextColumn Header="FEE" Binding="{Binding ConsultationFee}" Width="120"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
@@ -118,114 +65,62 @@
             </Grid>
         </Grid>
 
-        <!-- ============================================================ -->
-        <!-- 2. FORM VIEW (SaveCancelEnabled is true)                       -->
-        <!-- ============================================================ -->
         <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
-            <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
-                    Padding="28,18">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
-                                      Foreground="{DynamicResource BrushPrimaryBlue}"
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="1">
-                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} Patient'}" FontSize="20" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushInk900}"
-                                       FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Fill out the patient details below"
-                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
-                        </StackPanel>
-                    </StackPanel>
-                    <!-- Back Button -->
+                    <TextBlock Text="{Binding Mode, StringFormat='{}{0} Patient'}" FontSize="20" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
                     <Button Content="← Back to Patients" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Scrollable Form Body -->
             <ScrollViewer Grid.Row="1" Padding="28,24">
-                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
-                    <!-- SECTION 1: Personal Info -->
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="PERSONAL INFORMATION" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Full Name *" Classes="label"/>
-                                <TextBox Text="{Binding Name}" PlaceholderText="Enter full name"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Phone Number" Classes="label"/>
-                                <TextBox Text="{Binding Phone}" PlaceholderText="e.g. 0300-1234567"/>
-                            </StackPanel>
+                <StackPanel Spacing="14" MaxWidth="760">
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"/>
+                    <TextBlock Text="Full Name *" Classes="label"/>
+                    <TextBox Text="{Binding Name}"/>
 
-                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Age" Classes="label"/>
-                                <TextBox Text="{Binding Age}" PlaceholderText="Years"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Gender" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <StackPanel Spacing="6" Margin="0,0,0,12">
-                            <TextBlock Text="Address" Classes="label"/>
-                            <TextBox Text="{Binding Address}" PlaceholderText="Enter patient residential address"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <StackPanel>
+                            <TextBlock Text="Age" Classes="label"/>
+                            <TextBox Text="{Binding Age}"/>
                         </StackPanel>
-                    </StackPanel>
-
-                    <!-- SECTION 2: Medical / Consultation Info -->
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="CLINICAL NOTES &amp; BILLING" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        
-                        <StackPanel Spacing="6" Margin="0,0,0,12">
-                            <TextBlock Text="Diagnosis" Classes="label"/>
-                            <TextBox Text="{Binding Diagnosis}" PlaceholderText="Enter diagnosis, symptoms, or medical observations..."
-                                     AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                        <StackPanel>
+                            <TextBlock Text="Gender" Classes="label"/>
+                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}"/>
                         </StackPanel>
+                    </Grid>
 
-                        <StackPanel Spacing="6" Margin="0,0,0,12">
-                            <TextBlock Text="Prescription" Classes="label"/>
-                            <TextBox Text="{Binding Prescription}" PlaceholderText="Enter prescribed medicines, dosages, and instructions..."
-                                     AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                    <TextBlock Text="Phone" Classes="label"/>
+                    <TextBox Text="{Binding Phone}"/>
+                    <TextBlock Text="Address" Classes="label"/>
+                    <TextBox Text="{Binding Address}" AcceptsReturn="True" Height="70"/>
+                    <TextBlock Text="Diagnosis" Classes="label"/>
+                    <TextBox Text="{Binding Diagnosis}" AcceptsReturn="True" Height="70"/>
+                    <TextBlock Text="Prescription" Classes="label"/>
+                    <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="70"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <StackPanel>
+                            <TextBlock Text="Consultation Fee" Classes="label"/>
+                            <TextBox Text="{Binding ConsultationFee}"/>
                         </StackPanel>
-
-                        <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Consultation Fee (Rs.)" Classes="label"/>
-                                <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Discount (Rs.)" Classes="label"/>
-                                <TextBox Text="{Binding Discount}" PlaceholderText="0.00"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Discount" Classes="label"/>
+                            <TextBox Text="{Binding Discount}"/>
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Bottom Action Footer -->
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
-                    Padding="28,16">
-                <DockPanel>
-                    <!-- Error / Status Message on Left -->
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                    <!-- Save / Cancel on Right -->
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
-                        <Button Content="Save Record" Command="{Binding SaveCommand}" Classes="btn-primary"/>
-                    </StackPanel>
-                </DockPanel>
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                    <Button Content="Save Patient" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                </StackPanel>
             </Border>
         </Grid>
     </Grid>
@@ -274,30 +169,6 @@
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#BE123C"/>
-            <Setter Property="TextElement.Foreground" Value="White"/>
-        </Style>
-        <Style Selector="Button:disabled /template/ ContentPresenter">
-            <Setter Property="Opacity" Value="0.40"/>
-        </Style>
-
-        <!-- Search input TextBox adjustments (no focus borders) -->
-        <Style Selector="TextBox.search-input">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-        </Style>
-        <Style Selector="TextBox.search-input:focus /template/ Border#PART_BorderElement">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BoxShadow" Value="None"/>
-        </Style>
-        <Style Selector="TextBox.search-input:pointerover /template/ Border#PART_BorderElement">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </UserControl.Styles>
 </UserControl>
