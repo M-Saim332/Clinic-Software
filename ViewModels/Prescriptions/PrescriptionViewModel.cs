@@ -48,7 +48,6 @@ public partial class PrescriptionViewModel : ViewModelBase
     [ObservableProperty] private string _quantityToAdd = "1";
     [ObservableProperty] private string _dosageToAdd = string.Empty;
 
-    [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
 
     // ── Commands ──────────────────────────────────────────────────────────
