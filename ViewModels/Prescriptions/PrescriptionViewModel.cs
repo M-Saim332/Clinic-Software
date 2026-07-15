@@ -35,6 +35,8 @@ public partial class PrescriptionViewModel : ViewModelBase
     [ObservableProperty] private string _patientSearch = string.Empty;
     [ObservableProperty] private ObservableCollection<Patient> _filteredPatients = new();
     [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private bool _statusIsError;
+    [ObservableProperty] private Patient? _selectedFilteredPatient;
 
     // ── Prescription fields ───────────────────────────────────────────────
     [ObservableProperty] private DateTimeOffset _visitDate = DateTimeOffset.Now;
@@ -112,11 +114,13 @@ public partial class PrescriptionViewModel : ViewModelBase
             };
 
             await Task.Run(() => _prescRepo.Insert(prescription));
+            StatusIsError = false;
             StatusMessage = "Prescription saved successfully.";
             Reset();
         }
         catch (Exception ex)
         {
+            StatusIsError = true;
             StatusMessage = $"Error: {ex.Message}";
         }
         finally { IsBusy = false; }

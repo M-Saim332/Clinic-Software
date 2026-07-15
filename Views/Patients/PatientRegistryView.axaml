@@ -83,13 +83,13 @@
                     <TextBox Text="{Binding Name}"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <StackPanel>
+                        <StackPanel Grid.Column="0">
                             <TextBlock Text="Age" Classes="label"/>
-                            <TextBox Text="{Binding Age}"/>
+                            <TextBox Text="{Binding Age}" PlaceholderText="e.g. 35"/>
                         </StackPanel>
-                        <StackPanel>
+                        <StackPanel Grid.Column="1">
                             <TextBlock Text="Gender" Classes="label"/>
-                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}"/>
+                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch"/>
                         </StackPanel>
                     </Grid>
 
@@ -103,13 +103,13 @@
                     <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="70"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <StackPanel>
+                        <StackPanel Grid.Column="0">
                             <TextBlock Text="Consultation Fee" Classes="label"/>
-                            <TextBox Text="{Binding ConsultationFee}"/>
+                            <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00"/>
                         </StackPanel>
-                        <StackPanel>
+                        <StackPanel Grid.Column="1">
                             <TextBlock Text="Discount" Classes="label"/>
-                            <TextBox Text="{Binding Discount}"/>
+                            <TextBox Text="{Binding Discount}" PlaceholderText="0.00"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>

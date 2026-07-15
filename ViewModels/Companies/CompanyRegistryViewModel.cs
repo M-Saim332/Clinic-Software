@@ -23,6 +23,15 @@ public partial class CompanyRegistryViewModel : ViewModelBase
     private ObservableCollection<Company> _companies = new();
     [ObservableProperty]
     private Company? _selectedCompany;
+    
+    [ObservableProperty]
+    private bool _isConfirmingDelete;
+
+    partial void OnSelectedCompanyChanged(Company? value)
+    {
+        IsConfirmingDelete = false;
+        StatusMessage = string.Empty;
+    }
 
     // Fields for editing/adding
     [ObservableProperty]
@@ -59,8 +68,16 @@ public partial class CompanyRegistryViewModel : ViewModelBase
     private async Task DeleteAsync()
     {
         if (SelectedCompany == null) { StatusMessage = "Select a company first."; return; }
+        if (!IsConfirmingDelete)
+        {
+            IsConfirmingDelete = true;
+            StatusMessage = "Are you sure? Click Delete again to confirm.";
+            return;
+        }
+
         var ok = await Task.Run(() => _repo.Delete(SelectedCompany.CompanyID));
         StatusMessage = ok ? "Company deleted." : "Cannot delete – referenced by products or medicines.";
+        IsConfirmingDelete = false;
         if (ok) await InitializeAsync();
     }
 

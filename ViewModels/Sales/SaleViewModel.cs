@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Sales;
 
@@ -166,6 +168,7 @@ public partial class SaleViewModel : ViewModelBase
             {
                 await Task.Run(() => _repo.Insert(s));
                 StatusMessage = "Sale posted successfully. Stock updated.";
+                WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
             
             Mode = FormMode.View;

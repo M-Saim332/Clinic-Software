@@ -151,6 +151,7 @@
                     <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
                              PlaceholderText="Search patient..." Margin="0,0,0,16"/>
                     <DataGrid ItemsSource="{Binding FilteredPatients}"
+                              SelectedItem="{Binding SelectedFilteredPatient}"
                               AutoGenerateColumns="False" IsReadOnly="True"
                               SelectionMode="Single">
                         <DataGrid.Columns>
@@ -161,13 +162,19 @@
                     </DataGrid>
                     <Button DockPanel.Dock="Bottom" Content="Select" Margin="0,16,0,0"
                             Command="{Binding SelectPatientCommand}"
+                            CommandParameter="{Binding SelectedFilteredPatient}"
                             Classes="primary" HorizontalAlignment="Left"/>
                 </DockPanel>
             </Border>
         </Border>
 
         <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#6B7280" FontSize="12"/>
+            <Panel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#16A34A" FontSize="12"
+                           IsVisible="{Binding !StatusIsError}"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="12"
+                           IsVisible="{Binding StatusIsError}"/>
+            </Panel>
         </Border>
     </Grid>
 

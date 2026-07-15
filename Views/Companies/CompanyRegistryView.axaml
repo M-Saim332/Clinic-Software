@@ -57,7 +57,11 @@
                                     IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Classes="btn-secondary"/>
                             <Button Content="Delete" Command="{Binding DeleteCommand}"
+                                    IsVisible="{Binding !IsConfirmingDelete}"
                                     IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-danger"/>
+                            <Button Content="Confirm Delete?" Command="{Binding DeleteCommand}"
+                                    IsVisible="{Binding IsConfirmingDelete}"
                                     Classes="btn-danger"/>
                         </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
@@ -138,7 +142,7 @@
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
                 <DockPanel>
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
-                               VerticalAlignment="Center" FontSize="13"/>
+                               VerticalAlignment="Center" FontSize="13" TextWrapping="Wrap" MaxWidth="400"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Company" Command="{Binding SaveCommand}" Classes="btn-primary"/>
