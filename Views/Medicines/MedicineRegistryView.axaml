@@ -62,12 +62,12 @@
                 <comp:DataTableShellControl Title="Medicine Inventory" RecordCount="{Binding FilteredMedicines.Count}">
                     <!-- Toolbar / Search inside FilterToolbar -->
                     <comp:DataTableShellControl.FilterToolbar>
-                        <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0,0,0,8">
                             <!-- Search box -->
-                            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+                            <Border Background="{DynamicResource BrushCardBackground}"
                                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                                     CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
-                                    Height="40" MaxWidth="400" HorizontalAlignment="Left">
+                                    Height="40" Width="380" Margin="0,0,16,8">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
                                               Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -78,7 +78,7 @@
                                 </Grid>
                             </Border>
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
                                 <Button Content="Edit Details" Command="{Binding EditCommand}"
                                         IsEnabled="{Binding SelectedMedicine, Converter={x:Static ObjectConverters.IsNotNull}}"
                                         Classes="btn-secondary"/>
@@ -86,7 +86,7 @@
                                         IsEnabled="{Binding SelectedMedicine, Converter={x:Static ObjectConverters.IsNotNull}}"
                                         Classes="btn-danger"/>
                             </StackPanel>
-                        </Grid>
+                        </WrapPanel>
                     </comp:DataTableShellControl.FilterToolbar>
 
                     <!-- Main Table -->
@@ -146,7 +146,7 @@
             </Border>
 
             <!-- Scrollable Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24">
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,60">
                 <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
                     <!-- SECTION 1: Medicine Info -->
                     <StackPanel Spacing="16">

@@ -7,10 +7,12 @@ using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
-public partial class DashboardViewModel : ViewModelBase
+public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryChangedMessage>
 {
     private readonly PatientRepository    _patientRepo;
     private readonly MedicineRepository   _medicineRepo;
@@ -50,6 +52,8 @@ public partial class DashboardViewModel : ViewModelBase
         _appointmentRepo = appointmentRepo;
         _saleRepo        = saleRepo;
         _purchaseRepo    = purchaseRepo;
+
+        WeakReferenceMessenger.Default.Register(this);
     }
 
     [RelayCommand]
@@ -290,5 +294,10 @@ public partial class DashboardViewModel : ViewModelBase
                 RecentActivities = new ObservableCollection<string>
                     { $"Dashboard load error: {ex.Message}" });
         }
+    }
+
+    public void Receive(InventoryChangedMessage message)
+    {
+        _ = InitializeAsync();
     }
 }

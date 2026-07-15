@@ -25,6 +25,7 @@ public partial class VisitHistoryViewModel : ViewModelBase
     [ObservableProperty] private string _patientSearch = string.Empty;
     [ObservableProperty] private bool _showPatientList;
     [ObservableProperty] private ObservableCollection<Patient> _filteredPatients = new();
+    [ObservableProperty] private Patient? _selectedFilteredPatient;
 
     [RelayCommand] private void ShowPatients() { ShowPatientList = true; FilterPatients(); }
     [RelayCommand] private void ClosePatientList() => ShowPatientList = false;

@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Purchases;
 
@@ -167,6 +169,7 @@ public partial class PurchaseViewModel : ViewModelBase
             {
                 await Task.Run(() => _repo.Insert(p));
                 StatusMessage = "Purchase created and stock updated.";
+                WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
             
             Mode = FormMode.View;

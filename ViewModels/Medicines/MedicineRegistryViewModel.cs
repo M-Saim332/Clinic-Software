@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Medicines;
 
@@ -90,6 +92,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
             StatusMessage = "Medicine deleted.";
             _ = InitializeAsync();
             SelectedMedicine = null;
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
         }
         else
         {
@@ -124,6 +127,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
         Mode = FormMode.View;
         NotifyButtonStates();
         _ = InitializeAsync();
+        WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
     }
 
     [RelayCommand]
