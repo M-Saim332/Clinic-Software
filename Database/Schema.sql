@@ -32,6 +32,7 @@ IF OBJECT_ID('Medicines', 'U') IS NOT NULL DROP TABLE Medicines;
 IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
 IF OBJECT_ID('Suppliers', 'U') IS NOT NULL DROP TABLE Suppliers;
 IF OBJECT_ID('Companies', 'U') IS NOT NULL DROP TABLE Companies;
+IF OBJECT_ID('DiscountRefunds', 'U') IS NOT NULL DROP TABLE DiscountRefunds;
 IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users;
 GO
 
@@ -73,7 +74,13 @@ CREATE TABLE Medicines (
     Name              VARCHAR(150) NOT NULL,
     GenericName       VARCHAR(150),
     CompanyID         INT FOREIGN KEY REFERENCES Companies(CompanyID),
+    CompanyName       VARCHAR(150),
+    SupplierID        INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
+    SupplierName      VARCHAR(150),
     BatchNumber       VARCHAR(50),
+    Type              VARCHAR(50),
+    Category          VARCHAR(100),
+    Rack              VARCHAR(50),
     ExpiryDate        DATE,
     PurchasePrice     DECIMAL(10,2) DEFAULT 0,
     SellingPrice      DECIMAL(10,2) DEFAULT 0,
@@ -92,7 +99,9 @@ CREATE TABLE Patients (
     Diagnosis       TEXT,
     Prescription    TEXT,
     ConsultationFee DECIMAL(10,2) DEFAULT 0,
-    Discount        DECIMAL(10,2) DEFAULT 0
+    Discount        DECIMAL(10,2) DEFAULT 0,
+    NextAppointmentDate DATE,
+    NextAppointmentTime TIME
 );
 GO
 
@@ -110,15 +119,18 @@ GO
 
 CREATE TABLE Appointments (
     AppointmentID      INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentNo      VARCHAR(50) NOT NULL,
     PatientID          INT FOREIGN KEY REFERENCES Patients(PatientID),
+    PatientName        VARCHAR(150),
+    Phone              VARCHAR(50),
     DoctorID           INT FOREIGN KEY REFERENCES Users(UserID),
     AppointmentDate    DATE NOT NULL,
     AppointmentTime    TIME NOT NULL,
     Reason             VARCHAR(255),
-    Status             VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (Status IN ('Scheduled', 'Checked-In', 'Completed', 'Cancelled', 'No-Show')),
-    CancellationReason VARCHAR(255) NULL,
-    CreatedAt          DATETIME DEFAULT GETDATE(),
-    LinkedVisitID      INT NULL
+    Status             VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (Status IN ('Scheduled', 'Completed', 'Cancelled', 'Missed')),
+    Remarks            VARCHAR(255),
+    CancellationReason VARCHAR(255),
+    CreatedAt          DATETIME DEFAULT GETDATE()
 );
 GO
 
@@ -127,6 +139,7 @@ CREATE TABLE Purchases (
     InvoiceNumber VARCHAR(50) NOT NULL,
     PurchaseDate  DATETIME DEFAULT GETDATE(),
     SupplierID    INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
+    SupplierName  VARCHAR(150),
     TotalAmount   DECIMAL(12,2) DEFAULT 0
 );
 GO
@@ -149,6 +162,7 @@ CREATE TABLE Sales (
     InvoiceNumber   VARCHAR(50) NOT NULL,
     SaleDate        DATETIME DEFAULT GETDATE(),
     PatientID       INT FOREIGN KEY REFERENCES Patients(PatientID),
+    PatientName     VARCHAR(150),
     ConsultationFee DECIMAL(10,2) DEFAULT 0,
     GrandTotal      DECIMAL(12,2) DEFAULT 0,
     PaymentMethod   VARCHAR(20) CHECK (PaymentMethod IN ('Cash', 'Card', 'Online')),
@@ -167,6 +181,25 @@ CREATE TABLE SaleItems (
 );
 GO
 
+-- DiscountRefunds: doctor-approved refunds with full audit trail
+CREATE TABLE DiscountRefunds (
+    RefundID          INT IDENTITY(1,1) PRIMARY KEY,
+    PatientName       NVARCHAR(150) NOT NULL,
+    TokenNumber       VARCHAR(50),
+    OriginalFee       DECIMAL(10,2) NOT NULL,
+    DiscountedFee     DECIMAL(10,2) NOT NULL,
+    RefundAmount      AS (OriginalFee - DiscountedFee) PERSISTED,
+    Notes             NVARCHAR(500),
+    ApprovedByUserID  INT REFERENCES Users(UserID),
+    ApprovedByName    NVARCHAR(150),
+    ApprovedAt        DATETIME DEFAULT GETDATE(),
+    CompletedByUserID INT REFERENCES Users(UserID),
+    CompletedByName   NVARCHAR(150),
+    CompletedAt       DATETIME,
+    IsCompleted       BIT DEFAULT 0
+);
+GO
+
 -- ============================================================
 --  INDEXES
 -- ============================================================
@@ -178,6 +211,9 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Medicines_Name')
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Appointments_Date')
     CREATE INDEX IX_Appointments_Date ON Appointments(AppointmentDate);
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_DiscountRefunds_IsCompleted')
+    CREATE INDEX IX_DiscountRefunds_IsCompleted ON DiscountRefunds(IsCompleted);
 GO
 
 -- ============================================================

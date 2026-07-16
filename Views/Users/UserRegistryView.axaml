@@ -198,8 +198,6 @@
                             <CheckBox Grid.Column="2" Grid.Row="2" Content="Sales &amp; Billing" IsChecked="{Binding AccSales}"/>
                             
                             <CheckBox Grid.Column="0" Grid.Row="3" Content="Returns" IsChecked="{Binding AccReturns}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="3" Content="New Visit" IsChecked="{Binding AccNewVisit}"/>
-                            <CheckBox Grid.Column="2" Grid.Row="3" Content="Visit History" IsChecked="{Binding AccVisitHistory}"/>
                             
                             <CheckBox Grid.Column="0" Grid.Row="4" Content="Inventory" IsChecked="{Binding AccInventory}"/>
                             <CheckBox Grid.Column="1" Grid.Row="4" Content="Reports" IsChecked="{Binding AccReports}"/>

@@ -29,15 +29,20 @@ public partial class AppointmentViewModel : ViewModelBase
     // KPI Summary counts
     [ObservableProperty] private int _totalAppointmentsCount;
     [ObservableProperty] private int _scheduledCount;
-    [ObservableProperty] private int _checkedInCount;
     [ObservableProperty] private int _completedCount;
+    [ObservableProperty] private int _missedCount;
 
     // Form fields
     [ObservableProperty] private Patient? _selectedPatient;
+    [ObservableProperty] private string _patientName = string.Empty;
+    [ObservableProperty] private string _patientPhone = string.Empty;
     [ObservableProperty] private User? _selectedDoctor;
     [ObservableProperty] private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
     [ObservableProperty] private TimeSpan _appointmentTime = DateTime.Now.TimeOfDay;
     [ObservableProperty] private string _reason = string.Empty;
+    [ObservableProperty] private string _remarks = string.Empty;
+
+    [ObservableProperty] private bool _showCreatePatientPrompt;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -63,19 +68,22 @@ public partial class AppointmentViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (SelectedPatient == null || SelectedDoctor == null)
+        if (SelectedDoctor == null)
         {
-            StatusMessage = "Patient and Doctor are required.";
+            StatusMessage = "Doctor is required.";
             return;
         }
 
         var appt = new Appointment
         {
-            PatientID = SelectedPatient.PatientID,
+            PatientID = SelectedPatient?.PatientID,
+            PatientName = SelectedPatient == null ? PatientName : null,
+            Phone = SelectedPatient == null ? PatientPhone : null,
             DoctorID = SelectedDoctor.UserID,
             AppointmentDate = AppointmentDate.Date,
             AppointmentTime = AppointmentTime,
             Reason = Reason,
+            Remarks = Remarks,
             Status = Mode == FormMode.Add ? "Scheduled" : SelectedAppointment!.Status
         };
 
@@ -121,28 +129,33 @@ public partial class AppointmentViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CheckInAsync()
-    {
-        if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be checked in."; return; }
-        try
-        {
-            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Checked-In", null));
-            StatusMessage = "Patient checked in.";
-            await InitializeAsync();
-        }
-        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
-    }
-
-    [RelayCommand]
     private async Task CompleteAsync()
     {
         if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status != "Checked-In") { StatusMessage = "Only Checked-In appointments can be completed."; return; }
+        if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be completed."; return; }
         try
         {
             await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Completed", null));
             StatusMessage = "Appointment completed.";
+            await InitializeAsync();
+
+            if (SelectedAppointment.PatientID == null)
+            {
+                ShowCreatePatientPrompt = true;
+            }
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
+    }
+    
+    [RelayCommand]
+    private async Task MarkMissedAsync()
+    {
+        if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
+        if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be marked missed."; return; }
+        try
+        {
+            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Missed", null));
+            StatusMessage = "Appointment marked missed.";
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
@@ -152,7 +165,7 @@ public partial class AppointmentViewModel : ViewModelBase
     private async Task MarkCancelledAsync()
     {
         if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status == "Completed") { StatusMessage = "Cannot cancel completed appointments."; return; }
+        if (SelectedAppointment.Status == "Completed" || SelectedAppointment.Status == "Missed") { StatusMessage = "Cannot cancel completed/missed appointments."; return; }
         try
         {
             await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Cancelled", "Cancelled by user"));
@@ -160,6 +173,40 @@ public partial class AppointmentViewModel : ViewModelBase
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
+    }
+    
+    [RelayCommand]
+    private async Task CreatePatientFromAppointmentAsync()
+    {
+        if (SelectedAppointment == null || SelectedAppointment.PatientID != null) return;
+        
+        try
+        {
+            var p = new Patient
+            {
+                Name = SelectedAppointment.PatientName ?? "Unknown",
+                Phone = SelectedAppointment.Phone
+            };
+            int newId = await Task.Run(() => _patientRepo.Insert(p));
+            
+            var a = _repo.GetById(SelectedAppointment.AppointmentID);
+            if (a != null)
+            {
+                a.PatientID = newId;
+                await Task.Run(() => _repo.Update(a));
+            }
+            
+            ShowCreatePatientPrompt = false;
+            StatusMessage = "Patient created and linked to appointment.";
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
+    }
+    
+    [RelayCommand]
+    private void DismissCreatePatientPrompt()
+    {
+        ShowCreatePatientPrompt = false;
     }
 
     public async Task InitializeAsync()
@@ -180,8 +227,8 @@ public partial class AppointmentViewModel : ViewModelBase
 
                 TotalAppointmentsCount = Appointments.Count;
                 ScheduledCount = Appointments.Count(a => a.Status == "Scheduled");
-                CheckedInCount = Appointments.Count(a => a.Status == "Checked-In");
                 CompletedCount = Appointments.Count(a => a.Status == "Completed" && a.AppointmentDate.Date == DateTime.Today);
+                MissedCount = Appointments.Count(a => a.Status == "Missed");
             });
         }
         catch (Exception ex)
@@ -193,19 +240,27 @@ public partial class AppointmentViewModel : ViewModelBase
     private void ClearFields()
     {
         SelectedPatient = null;
+        PatientName = string.Empty;
+        PatientPhone = string.Empty;
         SelectedDoctor = Doctors.FirstOrDefault();
         AppointmentDate = DateTimeOffset.Now;
         AppointmentTime = DateTime.Now.TimeOfDay;
         Reason = string.Empty;
+        Remarks = string.Empty;
+        ShowCreatePatientPrompt = false;
     }
 
     private void FillFields(Appointment a)
     {
         SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == a.PatientID);
+        PatientName = a.PatientName ?? string.Empty;
+        PatientPhone = a.Phone ?? string.Empty;
         SelectedDoctor = Doctors.FirstOrDefault(d => d.UserID == a.DoctorID);
         AppointmentDate = new DateTimeOffset(a.AppointmentDate);
         AppointmentTime = a.AppointmentTime;
         Reason = a.Reason ?? string.Empty;
+        Remarks = a.Remarks ?? string.Empty;
+        ShowCreatePatientPrompt = false;
     }
 
     private void NotifyButtonStates()

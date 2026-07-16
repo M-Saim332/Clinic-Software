@@ -39,6 +39,7 @@ public partial class PurchaseViewModel : ViewModelBase
     // Header Fields
     [ObservableProperty] private string _invoiceNumber = string.Empty;
     [ObservableProperty] private Supplier? _selectedSupplier;
+    [ObservableProperty] private string _supplierName = string.Empty;
     [ObservableProperty] private DateTimeOffset _purchaseDate = DateTimeOffset.Now;
 
     // Line Items for the current purchase
@@ -62,7 +63,7 @@ public partial class PurchaseViewModel : ViewModelBase
     private void New()
     {
         ClearFields();
-        InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
+        InvoiceNumber = "Auto-generated";
         Mode = FormMode.Add;
         ShowForm = true;
         NotifyButtonStates();
@@ -78,6 +79,7 @@ public partial class PurchaseViewModel : ViewModelBase
         {
             InvoiceNumber = SelectedPurchase.InvoiceNumber;
             SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == SelectedPurchase.SupplierID);
+            SupplierName = SelectedPurchase.SupplierName ?? string.Empty;
             PurchaseDate = new DateTimeOffset(SelectedPurchase.PurchaseDate);
             
             var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
@@ -142,9 +144,9 @@ public partial class PurchaseViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (SelectedSupplier == null)
+        if (SelectedSupplier == null && string.IsNullOrWhiteSpace(SupplierName))
         {
-            StatusMessage = "Supplier is required.";
+            StatusMessage = "Supplier (or Supplier Name) is required.";
             return;
         }
 
@@ -158,7 +160,8 @@ public partial class PurchaseViewModel : ViewModelBase
         {
             InvoiceNumber = InvoiceNumber,
             PurchaseDate = PurchaseDate.DateTime,
-            SupplierID = SelectedSupplier.SupplierID,
+            SupplierID = SelectedSupplier?.SupplierID,
+            SupplierName = SelectedSupplier == null ? SupplierName : null,
             TotalAmount = GrandTotal,
             Items = LineItems.ToList()
         };
@@ -222,6 +225,7 @@ public partial class PurchaseViewModel : ViewModelBase
     {
         InvoiceNumber = string.Empty;
         SelectedSupplier = null;
+        SupplierName = string.Empty;
         PurchaseDate = DateTimeOffset.Now;
         LineItems.Clear();
         OnPropertyChanged(nameof(GrandTotal));

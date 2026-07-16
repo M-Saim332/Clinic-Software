@@ -82,9 +82,9 @@ public class MedicineRepository
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
             @"INSERT INTO Medicines
-                (Name, GenericName, CompanyID, BatchNumber, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+                (Name, GenericName, CompanyID, CompanyName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
               VALUES
-                (@Name, @GenericName, @CompanyID, @BatchNumber, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
+                (@Name, @GenericName, @CompanyID, @CompanyName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
               SELECT SCOPE_IDENTITY();", m);
     }
 
@@ -93,9 +93,9 @@ public class MedicineRepository
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Medicines SET
-                Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID,
-                BatchNumber = @BatchNumber, ExpiryDate = @ExpiryDate,
-                PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice,
+                Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID, CompanyName = @CompanyName,
+                BatchNumber = @BatchNumber, Type = @Type, Category = @Category, Rack = @Rack,
+                ExpiryDate = @ExpiryDate, PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice,
                 Stock = @Stock, MinimumStockLevel = @MinimumStockLevel
               WHERE MedicineID = @MedicineID", m);
     }

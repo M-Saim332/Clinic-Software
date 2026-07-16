@@ -100,19 +100,7 @@
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowPrescriptionsCommand}" Classes="navbtn" Classes.active="{Binding IsPrescriptionsActive}" IsVisible="{Binding CanAccessNewVisit}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconVisit}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="New Visit" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{Binding ShowVisitHistoryCommand}" Classes="navbtn" Classes.active="{Binding IsVisitHistoryActive}" IsVisible="{Binding CanAccessVisitHistory}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Visit History" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
+                    <!-- Removed New Visit and Visit History per user request -->
 
                     <!-- ANALYSIS SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasAnalysisAccess}"/>

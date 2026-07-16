@@ -57,8 +57,6 @@ public partial class UserRegistryViewModel : ViewModelBase
     [ObservableProperty] private bool _accPurchases;
     [ObservableProperty] private bool _accSales;
     [ObservableProperty] private bool _accReturns;
-    [ObservableProperty] private bool _accNewVisit;
-    [ObservableProperty] private bool _accVisitHistory;
     [ObservableProperty] private bool _accInventory;
     [ObservableProperty] private bool _accReports;
     [ObservableProperty] private bool _accSearch;
@@ -86,8 +84,8 @@ public partial class UserRegistryViewModel : ViewModelBase
         if (value == "Pharmacist" && Mode == FormMode.Add)
         {
             AccDashboard = AccPatients = AccAppointments = AccCompanies =
-            AccSuppliers = AccPurchases = AccReturns = AccNewVisit =
-            AccVisitHistory = AccInventory = AccReports = AccSearch =
+            AccSuppliers = AccPurchases = AccReturns =
+            AccInventory = AccReports = AccSearch =
             AccUsers = AccSettings = false;
             AccMedicines = true;
             AccProducts  = true;
@@ -234,7 +232,7 @@ public partial class UserRegistryViewModel : ViewModelBase
         Username = string.Empty; FullName = string.Empty; Role = "Receptionist"; IsActive = true;
         Password = string.Empty; ConfirmPassword = string.Empty;
         AccDashboard = AccPatients = AccAppointments = AccMedicines = AccProducts = AccCompanies = AccSuppliers = 
-        AccPurchases = AccSales = AccReturns = AccNewVisit = AccVisitHistory = AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
+        AccPurchases = AccSales = AccReturns = AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
     }
 
     private void FillFields(User u)
@@ -252,8 +250,6 @@ public partial class UserRegistryViewModel : ViewModelBase
         AccPurchases = p.Contains("Purchases");
         AccSales = p.Contains("Sales");
         AccReturns = p.Contains("Returns");
-        AccNewVisit = p.Contains("NewVisit");
-        AccVisitHistory = p.Contains("VisitHistory");
         AccInventory = p.Contains("Inventory");
         AccReports = p.Contains("Reports");
         AccSearch = p.Contains("Search");
@@ -274,8 +270,6 @@ public partial class UserRegistryViewModel : ViewModelBase
         if (AccPurchases) p.Add("Purchases");
         if (AccSales) p.Add("Sales");
         if (AccReturns) p.Add("Returns");
-        if (AccNewVisit) p.Add("NewVisit");
-        if (AccVisitHistory) p.Add("VisitHistory");
         if (AccInventory) p.Add("Inventory");
         if (AccReports) p.Add("Reports");
         if (AccSearch) p.Add("Search");

@@ -7,6 +7,21 @@
              Background="{DynamicResource BrushBackground}">
 
     <Grid>
+        <!-- CREATE PATIENT PROMPT DIALOG -->
+        <Border Background="#80000000" IsVisible="{Binding ShowCreatePatientPrompt}" ZIndex="100">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="24"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Create Patient?" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="This appointment was completed but has no linked patient record. Would you like to create one?" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="No, Skip" Command="{Binding DismissCreatePatientPromptCommand}" Classes="btn-secondary"/>
+                        <Button Content="Yes, Create Patient" Command="{Binding CreatePatientFromAppointmentCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+
         <!-- LIST VIEW -->
         <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
             <!-- Header -->
@@ -43,8 +58,8 @@
                     Value="{Binding ScheduledCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushAmber}"/>
                 <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
-                    Title="Checked-In"
-                    Value="{Binding CheckedInCount, StringFormat={}{0}}"
+                    Title="Missed"
+                    Value="{Binding MissedCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
                 <comp:SummaryCardControl Grid.Column="3"
                     Title="Completed Today"
@@ -57,7 +72,7 @@
                 <comp:DataTableShellControl Title="Appointment List" RecordCount="{Binding Appointments.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Check-In" Command="{Binding CheckInCommand}"
+                            <Button Content="Mark Missed" Command="{Binding MarkMissedCommand}"
                                     IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Classes="btn-secondary"/>
                             <Button Content="Complete" Command="{Binding CompleteCommand}"
@@ -127,11 +142,11 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Patient *" Classes="label"/>
+                                <TextBlock Text="Patient (Optional)" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                          HorizontalAlignment="Stretch">
+                                          HorizontalAlignment="Stretch" PlaceholderText="Select Patient (Optional)">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -146,15 +161,23 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </StackPanel>
-                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
+                                <TextBlock Text="Patient Name (If no patient selected)" Classes="label"/>
+                                <TextBox Text="{Binding PatientName}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
+                                <TextBlock Text="Phone (If no patient selected)" Classes="label"/>
+                                <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Date *" Classes="label"/>
                                 <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="Time *" Classes="label"/>
                                 <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2" Spacing="6" Margin="0,0,0,12">
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Spacing="6" Margin="0,0,0,12">
                                 <TextBlock Text="Reason for Visit" Classes="label"/>
                                 <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
                                          AcceptsReturn="True" Height="80" TextWrapping="Wrap"
@@ -172,7 +195,6 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Appointment" Command="{Binding SaveCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </DockPanel>

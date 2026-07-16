@@ -188,8 +188,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessPurchases    => CurrentUser?.HasAccess("Purchases") ?? false;
     public bool CanAccessSales        => CurrentUser?.HasAccess("Sales") ?? false;
     public bool CanAccessReturns      => CurrentUser?.HasAccess("Returns") ?? false;
-    public bool CanAccessNewVisit     => CurrentUser?.HasAccess("NewVisit") ?? false;
-    public bool CanAccessVisitHistory => CurrentUser?.HasAccess("VisitHistory") ?? false;
     public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
     public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
     public bool CanAccessUsers        => CurrentUser?.HasAccess("Users") ?? false;
@@ -197,7 +195,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
-    public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns || CanAccessNewVisit || CanAccessVisitHistory;
+    public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
     public bool HasUserSettingsAccess => CanAccessUsers || CanAccessSettings;
 
@@ -213,8 +211,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isReturnsActive;
     [ObservableProperty] private bool _isInventoryActive;
     [ObservableProperty] private bool _isAppointmentsActive;
-    [ObservableProperty] private bool _isPrescriptionsActive;
-    [ObservableProperty] private bool _isVisitHistoryActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
     [ObservableProperty] private bool _isProductsActive;
@@ -245,8 +241,6 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Returns":      IsReturnsActive      = true; break;
             case "Inventory":    IsInventoryActive    = true; break;
             case "Appointments": IsAppointmentsActive = true; break;
-            case "New Visit":    IsPrescriptionsActive = true; break;
-            case "Visit History": IsVisitHistoryActive = true; break;
             case "Users":        IsUsersActive        = true; break;
             case "Reports":      IsReportsActive      = true; break;
             case "Settings":     IsSettingsActive     = true; break;
@@ -257,8 +251,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsDashboardActive = IsPatientsActive = IsMedicinesActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
-        IsInventoryActive = IsAppointmentsActive = IsPrescriptionsActive = IsVisitHistoryActive =
-        IsUsersActive = IsReportsActive = IsProductsActive = IsSettingsActive = false;
+        IsInventoryActive = IsAppointmentsActive =
+        IsProductsActive = IsUsersActive = IsReportsActive = IsSettingsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────

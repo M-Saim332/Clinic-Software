@@ -13,10 +13,18 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Sale>(
-            @"SELECT s.*, p.Name AS PatientName
+            @"SELECT s.*, COALESCE(p.Name, s.PatientName) AS PatientName
               FROM Sales s
               LEFT JOIN Patients p ON s.PatientID = p.PatientID
               ORDER BY s.SaleDate DESC");
+    }
+
+    public int GetCountForDate(DateTime date)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM Sales WHERE CAST(SaleDate AS DATE) = @date",
+            new { date });
     }
 
     public Sale? GetByIdWithItems(int id)
@@ -46,8 +54,8 @@ public class SaleRepository
         try
         {
             var saleId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Sales (InvoiceNumber, SaleDate, PatientID, ConsultationFee, GrandTotal, PaymentMethod, IsPosted)
-                  VALUES (@InvoiceNumber, @SaleDate, @PatientID, @ConsultationFee, @GrandTotal, @PaymentMethod, @IsPosted);
+                @"INSERT INTO Sales (InvoiceNumber, SaleDate, PatientID, PatientName, ConsultationFee, GrandTotal, PaymentMethod, IsPosted)
+                  VALUES (@InvoiceNumber, @SaleDate, @PatientID, @PatientName, @ConsultationFee, @GrandTotal, @PaymentMethod, @IsPosted);
                   SELECT SCOPE_IDENTITY();", s, tx);
 
             foreach (var item in s.Items)

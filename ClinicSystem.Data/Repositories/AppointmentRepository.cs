@@ -15,7 +15,7 @@ public class AppointmentRepository
         return conn.Query<Appointment>(
             @"SELECT a.*, p.Name AS PatientName, p.Phone AS PatientPhone, u.Username AS DoctorName
               FROM Appointments a
-              JOIN Patients p ON a.PatientID = p.PatientID
+              LEFT JOIN Patients p ON a.PatientID = p.PatientID
               JOIN Users u ON a.DoctorID = u.UserID
               ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC");
     }
@@ -26,7 +26,7 @@ public class AppointmentRepository
         return conn.QuerySingleOrDefault<Appointment>(
             @"SELECT a.*, p.Name AS PatientName, p.Phone AS PatientPhone, u.Username AS DoctorName
               FROM Appointments a
-              JOIN Patients p ON a.PatientID = p.PatientID
+              LEFT JOIN Patients p ON a.PatientID = p.PatientID
               JOIN Users u ON a.DoctorID = u.UserID
               WHERE a.AppointmentID = @id", new { id });
     }
@@ -37,7 +37,7 @@ public class AppointmentRepository
         return conn.Query<Appointment>(
             @"SELECT a.*, p.Name AS PatientName, p.Phone AS PatientPhone, u.Username AS DoctorName
               FROM Appointments a
-              JOIN Patients p ON a.PatientID = p.PatientID
+              LEFT JOIN Patients p ON a.PatientID = p.PatientID
               JOIN Users u ON a.DoctorID = u.UserID
               WHERE a.AppointmentDate = @date
               ORDER BY a.AppointmentTime ASC", new { date = date.Date });
@@ -66,11 +66,22 @@ public class AppointmentRepository
         }
 
         using var conn = _session.CreateConnection();
+
+        // Auto-generate AppointmentNo
+        if (string.IsNullOrEmpty(a.AppointmentNo))
+        {
+            string datePrefix = a.AppointmentDate.ToString("yyyyMMdd");
+            int nextSeq = conn.ExecuteScalar<int>(
+                "SELECT COUNT(*) FROM Appointments WHERE AppointmentDate = @date", 
+                new { date = a.AppointmentDate.Date }) + 1;
+            a.AppointmentNo = $"APT-{datePrefix}-{nextSeq:D3}";
+        }
+
         return conn.ExecuteScalar<int>(
             @"INSERT INTO Appointments 
-                (PatientID, DoctorID, AppointmentDate, AppointmentTime, Reason, Status, CancellationReason, CreatedAt, LinkedVisitID)
+                (AppointmentNo, PatientID, PatientName, Phone, DoctorID, AppointmentDate, AppointmentTime, Reason, Status, Remarks, CancellationReason, CreatedAt)
               VALUES 
-                (@PatientID, @DoctorID, @AppointmentDate, @AppointmentTime, @Reason, @Status, @CancellationReason, @CreatedAt, @LinkedVisitID);
+                (@AppointmentNo, @PatientID, @PatientName, @Phone, @DoctorID, @AppointmentDate, @AppointmentTime, @Reason, @Status, @Remarks, @CancellationReason, @CreatedAt);
               SELECT SCOPE_IDENTITY();", a);
     }
 
@@ -84,9 +95,10 @@ public class AppointmentRepository
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Appointments SET
-                PatientID = @PatientID, DoctorID = @DoctorID, AppointmentDate = @AppointmentDate,
+                PatientID = @PatientID, PatientName = @PatientName, Phone = @Phone, 
+                DoctorID = @DoctorID, AppointmentDate = @AppointmentDate,
                 AppointmentTime = @AppointmentTime, Reason = @Reason, Status = @Status,
-                CancellationReason = @CancellationReason, LinkedVisitID = @LinkedVisitID
+                Remarks = @Remarks, CancellationReason = @CancellationReason
               WHERE AppointmentID = @AppointmentID", a);
     }
 

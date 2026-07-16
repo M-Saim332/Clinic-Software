@@ -9,10 +9,14 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using CommunityToolkit.Mvvm.Messaging;
 using ClinicSystem.UI.Messages;
+using System.Timers;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
-public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryChangedMessage>
+public partial class DashboardViewModel : ViewModelBase,
+    IRecipient<InventoryChangedMessage>,
+    IRecipient<RefundIssuedMessage>,
+    IRecipient<RefundCompletedMessage>
 {
     private readonly PatientRepository    _patientRepo;
     private readonly MedicineRepository   _medicineRepo;
@@ -21,6 +25,10 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
     private readonly AppointmentRepository _appointmentRepo;
     private readonly SaleRepository       _saleRepo;
     private readonly PurchaseRepository   _purchaseRepo;
+    private readonly DiscountRefundRepository _refundRepo;
+
+    // 30-second auto-refresh timer for pending refunds
+    private readonly System.Timers.Timer _refundPollTimer;
 
     // Wired up by MainWindowViewModel so the dashboard can open the shared popup
     public Action? RequestChangePassword { get; set; }
@@ -43,7 +51,9 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
         SupplierRepository   supplierRepo,
         AppointmentRepository appointmentRepo,
         SaleRepository       saleRepo,
-        PurchaseRepository   purchaseRepo)
+        PurchaseRepository   purchaseRepo,
+        DiscountRefundRepository refundRepo,
+        DiscountRefundViewModel discountRefundVM)
     {
         _patientRepo     = patientRepo;
         _medicineRepo    = medicineRepo;
@@ -52,8 +62,19 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
         _appointmentRepo = appointmentRepo;
         _saleRepo        = saleRepo;
         _purchaseRepo    = purchaseRepo;
+        _refundRepo      = refundRepo;
+        DiscountRefundVM = discountRefundVM;
 
-        WeakReferenceMessenger.Default.Register(this);
+        WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this);
+        WeakReferenceMessenger.Default.Register<RefundIssuedMessage>(this);
+        WeakReferenceMessenger.Default.Register<RefundCompletedMessage>(this);
+
+        // Poll every 30 seconds so the receptionist sees refunds even if
+        // the doctor is logged in on the same machine in a different session.
+        _refundPollTimer = new System.Timers.Timer(30_000);
+        _refundPollTimer.Elapsed += (_, _) => _ = LoadPendingRefundsAsync();
+        _refundPollTimer.AutoReset = true;
+        _refundPollTimer.Start();
     }
 
     [RelayCommand]
@@ -67,25 +88,27 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
     [RelayCommand] private void NavigateToMedicines()    => RequestNavigateMedicines?.Invoke();
     [RelayCommand] private void NavigateToInventory()    => RequestNavigateInventory?.Invoke();
 
+    public DiscountRefundViewModel DiscountRefundVM { get; }
+
+    // ── Pending refund notifications (receptionist sees these) ────────────────
+    [ObservableProperty] private ObservableCollection<DiscountRefund> _pendingRefunds = new();
+    [ObservableProperty] private bool _hasPendingRefunds;
+    [ObservableProperty] private ObservableCollection<DiscountRefund> _refundHistory = new();
+
     // ── Summary card counts ────────────────────────────────────────────────
-    [ObservableProperty] private int _totalPatients;
-    [ObservableProperty] private int _totalCompanies;
-    [ObservableProperty] private int _totalSuppliers;
     [ObservableProperty] private int _totalMedicines;
     [ObservableProperty] private int _totalAppointmentsToday;
-    [ObservableProperty] private int _todaySalesCount;
 
     // ── Today's summary panel ─────────────────────────────────────────────
     [ObservableProperty] private string _todayDate = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
     [ObservableProperty] private string _todayRevenue   = "Rs. 0.00";
     [ObservableProperty] private string _todayProfit    = "Rs. 0.00";
-    [ObservableProperty] private string _todayLoss      = "Rs. 0.00";
     [ObservableProperty] private int    _todayPatients;
 
     // ── Financials summary under charts ────────────────────────────────────
     [ObservableProperty] private string _summaryTotalRevenue  = "Rs. 0.00";
     [ObservableProperty] private string _summaryTotalProfit   = "Rs. 0.00";
-    [ObservableProperty] private string _summaryTotalLoss     = "Rs. 0.00";
+    [ObservableProperty] private string _totalStockValue      = "Rs. 0.00";
 
     // ── Charts Data ────────────────────────────────────────────────────────
     [ObservableProperty] private ISeries[] _profitSeries  = Array.Empty<ISeries>();
@@ -112,6 +135,9 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
             var appointments = await Task.Run(() => _appointmentRepo.GetAll());
             var sales        = await Task.Run(() => _saleRepo.GetAll());
             var purchases    = await Task.Run(() => _purchaseRepo.GetAll());
+
+            // Load pending refund notifications
+            await LoadPendingRefundsAsync();
 
             var medicineList    = medicines.ToList();
             var appointmentList = appointments.ToList();
@@ -143,7 +169,6 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
             var thirtyDaysAgo = today.AddDays(-29);
             var dateLabels  = new List<string>();
             var revenueData = new List<double>();
-            var expenseData = new List<double>();
             var profitData  = new List<double>();
 
             double totalRevenue = 0, totalExpenses = 0;
@@ -158,7 +183,6 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
                 var dayPurchases = purchaseList.Where(p => p.PurchaseDate.Date == d).Sum(p => (double)p.TotalAmount);
 
                 revenueData.Add(daySales);
-                expenseData.Add(dayPurchases);
                 profitData.Add(Math.Max(0, daySales - dayPurchases));
 
                 totalRevenue   += daySales;
@@ -166,12 +190,11 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
             }
 
             double totalProfit = Math.Max(0, totalRevenue - totalExpenses);
-            double totalLoss   = totalExpenses > totalRevenue ? totalExpenses - totalRevenue : 0;
+            double stockValue = medicineList.Sum(m => (double)(m.PurchasePrice * m.Stock));
 
             // ── Build chart series ─────────────────────────────────────────
             var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
             var bluePaint   = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)) { StrokeThickness = 2.5f };
-            var redPaint    = new SolidColorPaint(new SKColor(0xF8, 0x71, 0x71)) { StrokeThickness = 2.5f };
 
             var lineSeries = new ISeries[]
             {
@@ -194,16 +217,6 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
                     GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
                     GeometrySize      = 8,
                     Fill              = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8, 30))
-                },
-                new LineSeries<double>
-                {
-                    Values            = expenseData,
-                    Name              = "Loss",
-                    Stroke            = redPaint,
-                    GeometryFill      = new SolidColorPaint(new SKColor(0xF8, 0x71, 0x71)),
-                    GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
-                    GeometrySize      = 8,
-                    Fill              = new SolidColorPaint(new SKColor(0xF8, 0x71, 0x71, 30))
                 }
             };
 
@@ -254,21 +267,16 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                TotalPatients          = patients.Count();
-                TotalCompanies         = companies.Count();
-                TotalSuppliers         = suppliers.Count();
                 TotalMedicines         = medicineList.Count;
                 TotalAppointmentsToday = todayAppts.Count;
-                TodaySalesCount        = salesList.Count(s => s.SaleDate.Date == today);
                 TodayPatients          = appointmentList.Where(a => a.AppointmentDate.Date == today).Select(a => a.PatientID).Distinct().Count();
 
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";
                 TodayProfit  = $"Rs. {Math.Max(0, todayProfitAmt):N2}";
-                TodayLoss    = $"Rs. {Math.Max(0, -todayProfitAmt):N2}";
 
                 SummaryTotalRevenue = $"Rs. {totalRevenue:N2}";
                 SummaryTotalProfit  = $"Rs. {totalProfit:N2}";
-                SummaryTotalLoss    = $"Rs. {totalLoss:N2}";
+                TotalStockValue     = $"Rs. {stockValue:N2}";
 
                 LowStockMedicines     = new ObservableCollection<Medicine>(lowStock);
                 ExpiringSoonMedicines = new ObservableCollection<Medicine>(expiringSoon);
@@ -296,8 +304,48 @@ public partial class DashboardViewModel : ViewModelBase, IRecipient<InventoryCha
         }
     }
 
-    public void Receive(InventoryChangedMessage message)
+    public void Receive(InventoryChangedMessage message) => _ = InitializeAsync();
+
+    public void Receive(RefundIssuedMessage message)   => _ = LoadPendingRefundsAsync();
+    public void Receive(RefundCompletedMessage message) => _ = LoadPendingRefundsAsync();
+
+    // ── Refund Commands ───────────────────────────────────────────────────────
+    [RelayCommand]
+    private async Task MarkRefundCompletedAsync(DiscountRefund refund)
     {
-        _ = InitializeAsync();
+        if (refund == null) return;
+        try
+        {
+            var completedBy     = CurrentUser?.UserID ?? 0;
+            var completedByName = CurrentUser?.FullName.Length > 0
+                                      ? CurrentUser.FullName
+                                      : CurrentUser?.Username ?? "Receptionist";
+
+            await Task.Run(() => _refundRepo.MarkCompleted(refund.RefundID, completedBy, completedByName));
+
+            WeakReferenceMessenger.Default.Send(new RefundCompletedMessage { RefundID = refund.RefundID });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                RecentActivities.Insert(0, $"Refund error: {ex.Message}"));
+        }
+    }
+
+    public async Task LoadPendingRefundsAsync()
+    {
+        try
+        {
+            var pending = await Task.Run(() => _refundRepo.GetAllPending());
+            var history = await Task.Run(() => _refundRepo.GetAllHistory(50));
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                PendingRefunds    = new ObservableCollection<DiscountRefund>(pending);
+                HasPendingRefunds = PendingRefunds.Count > 0;
+                RefundHistory     = new ObservableCollection<DiscountRefund>(history);
+            });
+        }
+        catch { /* silent — dashboard still loads */ }
     }
 }
