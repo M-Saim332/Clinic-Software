@@ -13,9 +13,9 @@ public class PurchaseRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Purchase>(
-            @"SELECT p.*, s.Name AS SupplierName
+            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName
               FROM Purchases p
-              JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
               ORDER BY p.PurchaseDate DESC");
     }
 
@@ -23,9 +23,9 @@ public class PurchaseRepository
     {
         using var conn = _session.CreateConnection();
         var purchase = conn.QuerySingleOrDefault<Purchase>(
-            @"SELECT p.*, s.Name AS SupplierName
+            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName
               FROM Purchases p
-              JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
               WHERE p.PurchaseID = @id", new { id });
 
         if (purchase == null) return null;
@@ -45,9 +45,18 @@ public class PurchaseRepository
         using var tx = conn.BeginTransaction();
         try
         {
+            if (string.IsNullOrEmpty(p.InvoiceNumber) || p.InvoiceNumber == "Auto-generated")
+            {
+                string datePrefix = p.PurchaseDate.ToString("yyyyMMdd");
+                int nextSeq = conn.ExecuteScalar<int>(
+                    "SELECT COUNT(*) FROM Purchases WHERE CONVERT(DATE, PurchaseDate) = @date", 
+                    new { date = p.PurchaseDate.Date }, tx) + 1;
+                p.InvoiceNumber = $"PUR-{datePrefix}-{nextSeq:D3}";
+            }
+
             var purchaseId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Purchases (InvoiceNumber, PurchaseDate, SupplierID, TotalAmount)
-                  VALUES (@InvoiceNumber, @PurchaseDate, @SupplierID, @TotalAmount);
+                @"INSERT INTO Purchases (InvoiceNumber, PurchaseDate, SupplierID, SupplierName, TotalAmount)
+                  VALUES (@InvoiceNumber, @PurchaseDate, @SupplierID, @SupplierName, @TotalAmount);
                   SELECT SCOPE_IDENTITY();", p, tx);
 
             foreach (var item in p.Items)

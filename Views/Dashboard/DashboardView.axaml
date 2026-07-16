@@ -1,8 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
+             xmlns:models="using:ClinicSystem.Core.Models"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="ClinicSystem.UI.Views.Dashboard.DashboardView"
+             x:Name="Root"
              x:DataType="vm:DashboardViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
@@ -10,88 +12,46 @@
         <StackPanel Margin="20,16,20,20" Spacing="16">
 
             <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- ROW 1: Stat Cards (6 cards in one row)                     -->
+            <!-- URGENT: Receptionist Refund Banner                         -->
             <!-- ═══════════════════════════════════════════════════════════ -->
-            <Grid ColumnDefinitions="*,*,*,*,*,*" Height="100">
+            <Border Background="#FFF7ED" BorderBrush="#F97316" BorderThickness="1"
+                    CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20"
+                    IsVisible="{Binding HasPendingRefunds}">
+                <StackPanel Spacing="12">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="{StaticResource IconAlert}" Width="20" Height="20" Foreground="#EA580C"/>
+                        <TextBlock Text="URGENT: Refunds Pending" FontWeight="Bold" FontSize="16" Foreground="#EA580C"/>
+                    </StackPanel>
+                    
+                    <ItemsControl ItemsSource="{Binding PendingRefunds}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:DiscountRefund">
+                                <Border Background="White" BorderBrush="#FED7AA" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="4">
+                                            <TextBlock Text="{Binding RefundSummary}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushInk900}"/>
+                                            <TextBlock Text="{Binding FeeSummary}" FontSize="13" Foreground="{DynamicResource BrushInk600}"/>
+                                            <TextBlock Text="{Binding Notes, StringFormat='Notes: {0}'}" FontSize="12" Foreground="{DynamicResource BrushInk500}" IsVisible="{Binding Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="✓ Mark Completed" 
+                                                Command="{Binding #Root.((vm:DashboardViewModel)DataContext).MarkRefundCompletedCommand}" 
+                                                CommandParameter="{Binding}"
+                                                Background="#22C55E" Foreground="White" FontWeight="SemiBold" CornerRadius="6" VerticalAlignment="Center" Padding="16,8"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
 
-                <!-- Patients -->
-                <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Border Grid.Column="0" Classes="kpiIcon" Background="#EFF6FF">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="22" Height="22" Foreground="#3B82F6"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Patients" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalPatients}" Classes="kpiValue"/>
-                            <Button Command="{Binding NavigateToPatientsCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Padding="0" Cursor="Hand"
-                                    HorizontalAlignment="Left">
-                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#3B82F6"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Companies -->
-                <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDF4">
-                            <PathIcon Data="{StaticResource IconCompanies}" Width="22" Height="22" Foreground="#16A34A"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Companies" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalCompanies}" Classes="kpiValue"/>
-                            <Button Command="{Binding NavigateToCompaniesCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Padding="0" Cursor="Hand"
-                                    HorizontalAlignment="Left">
-                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#16A34A"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Suppliers -->
-                <Border Grid.Column="2" Classes="kpiCard" Margin="5,0,5,0">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF7ED">
-                            <PathIcon Data="{StaticResource IconSuppliers}" Width="22" Height="22" Foreground="#EA580C"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Suppliers" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalSuppliers}" Classes="kpiValue"/>
-                            <Button Command="{Binding NavigateToSuppliersCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Padding="0" Cursor="Hand"
-                                    HorizontalAlignment="Left">
-                                <TextBlock Text="View all →" Classes="kpiLink" Foreground="#EA580C"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Sales Today -->
-                <Border Grid.Column="3" Classes="kpiCard" Margin="5,0,5,0">
-                    <Grid ColumnDefinitions="Auto,*">
-                        <Border Grid.Column="0" Classes="kpiIcon" Background="#FDF4FF">
-                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#9333EA"/>
-                        </Border>
-                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Today's Sales" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TodaySalesCount}" Classes="kpiValue"/>
-                            <Button Command="{Binding NavigateToSalesCommand}"
-                                    Background="Transparent" BorderThickness="0"
-                                    Padding="0" Cursor="Hand"
-                                    HorizontalAlignment="Left">
-                                <TextBlock Text="View invoices →" Classes="kpiLink" Foreground="#9333EA"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <!-- ROW 1: Stat Cards (3 cards in one row)                     -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <Grid ColumnDefinitions="*,*,*" Height="100">
 
                 <!-- Appointments -->
-                <Border Grid.Column="4" Classes="kpiCard" Margin="5,0,5,0">
+                <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF1F2">
                             <PathIcon Data="{StaticResource IconAppointments}" Width="22" Height="22" Foreground="#E11D48"/>
@@ -110,7 +70,7 @@
                 </Border>
 
                 <!-- Medicines -->
-                <Border Grid.Column="5" Classes="kpiCard" Margin="10,0,0,0">
+                <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDFA">
                             <PathIcon Data="{StaticResource IconMedicines}" Width="22" Height="22" Foreground="#0D9488"/>
@@ -128,7 +88,30 @@
                     </Grid>
                 </Border>
 
+                <!-- Stock Value -->
+                <Border Grid.Column="2" Classes="kpiCard" Margin="10,0,0,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Classes="kpiIcon" Background="#FDF4FF">
+                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#9333EA"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Stock Value" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TotalStockValue}" Classes="kpiValue"/>
+                            <Button Command="{Binding NavigateToInventoryCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="View inventory →" Classes="kpiLink" Foreground="#9333EA"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
+
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <!-- DOCTOR: Apply Discount Panel                               -->
+            <!-- ═══════════════════════════════════════════════════════════ -->
+            <ContentControl Content="{Binding DiscountRefundVM}" IsVisible="{Binding IsDoctor}" />
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- ADMIN QUICK ACTIONS (Admin only)                            -->
@@ -191,29 +174,18 @@
                                     <Border Width="12" Height="3" Background="#3799F8" VerticalAlignment="Center" CornerRadius="2"/>
                                     <TextBlock Text="Profit" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <Border Width="12" Height="3" Background="#F87171" VerticalAlignment="Center" CornerRadius="2"/>
-                                    <TextBlock Text="Loss" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center"/>
-                                </StackPanel>
                             </StackPanel>
                         </DockPanel>
 
                         <!-- Summary Totals Strip -->
-                        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*,*" Margin="0,10,0,0">
+                        <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" Margin="0,10,0,0">
                             <StackPanel Grid.Column="0" Spacing="2">
                                 <TextBlock Text="Total Revenue" FontSize="11" Foreground="#6B7280"/>
                                 <TextBlock Text="{Binding SummaryTotalRevenue}" FontSize="15" FontWeight="Bold" Foreground="#10B981"/>
-                                <TextBlock Text="▲ from last month" FontSize="10" Foreground="#10B981"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="2">
                                 <TextBlock Text="Total Profit" FontSize="11" Foreground="#6B7280"/>
                                 <TextBlock Text="{Binding SummaryTotalProfit}" FontSize="15" FontWeight="Bold" Foreground="#3799F8"/>
-                                <TextBlock Text="▲ from last month" FontSize="10" Foreground="#3799F8"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="2">
-                                <TextBlock Text="Total Loss" FontSize="11" Foreground="#6B7280"/>
-                                <TextBlock Text="{Binding SummaryTotalLoss}" FontSize="15" FontWeight="Bold" Foreground="#F87171"/>
-                                <TextBlock Text="▼ from last month" FontSize="10" Foreground="#F87171"/>
                             </StackPanel>
                         </Grid>
 
@@ -297,12 +269,6 @@
                                 <TextBlock Text="Today's Profit" Foreground="#6B7280" FontSize="13" VerticalAlignment="Center"/>
                                 <TextBlock DockPanel.Dock="Right" Text="{Binding TodayProfit}"
                                            FontWeight="SemiBold" Foreground="#3B82F6" FontSize="13" HorizontalAlignment="Right"/>
-                            </DockPanel>
-                            <!-- Today's Loss -->
-                            <DockPanel>
-                                <TextBlock Text="Today's Loss" Foreground="#6B7280" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding TodayLoss}"
-                                           FontWeight="SemiBold" Foreground="#EF4444" FontSize="13" HorizontalAlignment="Right"/>
                             </DockPanel>
                             <!-- Today's Patients -->
                             <DockPanel>

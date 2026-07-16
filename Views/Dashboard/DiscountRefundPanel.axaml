@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
+             xmlns:models="using:ClinicSystem.Core.Models"
+             x:Class="ClinicSystem.UI.Views.Dashboard.DiscountRefundPanel"
+             x:DataType="vm:DiscountRefundViewModel">
+    
+    <Border Background="{DynamicResource BrushCardBackground}"
+            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+        <StackPanel Spacing="16">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <PathIcon Data="{StaticResource IconSales}" Width="16" Height="16" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                <TextBlock Text="Apply Discount &amp; Refund" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource BrushInk900}"/>
+            </StackPanel>
+            
+            <TextBlock Text="Apply a discount to a patient's consultation fee after they have paid."
+                       Foreground="{DynamicResource BrushInk600}" FontSize="12" TextWrapping="Wrap"/>
+            
+            <Separator Margin="0,4"/>
+            
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushPrimaryBlue}" 
+                       IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       FontWeight="SemiBold" TextWrapping="Wrap"/>
+            
+            <!-- Patient Selection -->
+            <StackPanel Spacing="6">
+                <TextBlock Text="Patient" Classes="label"/>
+                <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" HorizontalAlignment="Stretch" PlaceholderText="Select Patient...">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="models:Patient">
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            
+            <Grid ColumnDefinitions="*,*">
+                <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
+                    <TextBlock Text="Original Fee" Classes="label"/>
+                    <NumericUpDown Value="{Binding OriginalFee}" FormatString="N2" Minimum="0"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
+                    <TextBlock Text="Discounted Fee" Classes="label"/>
+                    <NumericUpDown Value="{Binding DiscountedFee}" FormatString="N2" Minimum="0"/>
+                </StackPanel>
+            </Grid>
+            
+            <StackPanel Spacing="6">
+                <TextBlock Text="Token / Queue Number (Optional)" Classes="label"/>
+                <TextBox Text="{Binding TokenNumber}" PlaceholderText="e.g. 104"/>
+            </StackPanel>
+            
+            <StackPanel Spacing="6">
+                <TextBlock Text="Notes" Classes="label"/>
+                <TextBox Text="{Binding Notes}" PlaceholderText="Reason for discount..."/>
+            </StackPanel>
+            
+            <Border Background="#F0FDF4" BorderBrush="#DCFCE7" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                    <TextBlock Text="Refund Amount:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding ComputedRefund, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="18" Foreground="#16A34A" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            
+            <Grid ColumnDefinitions="*,*">
+                <Button Grid.Column="0" Content="Clear" Command="{Binding ClearCommand}" Classes="btn-secondary" HorizontalAlignment="Stretch" Margin="0,0,8,0"/>
+                <Button Grid.Column="1" Content="Apply Discount" Command="{Binding ApplyDiscountCommand}" Classes="btn-primary" HorizontalAlignment="Stretch" Margin="8,0,0,0"/>
+            </Grid>
+        </StackPanel>
+    </Border>
+</UserControl>

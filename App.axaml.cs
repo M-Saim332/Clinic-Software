@@ -60,6 +60,7 @@ public partial class App : Application
         services.AddSingleton<PurchaseRepository>();
         services.AddSingleton<SaleRepository>();
         services.AddSingleton<ReturnRepository>();
+        services.AddSingleton<DiscountRefundRepository>();
 
         // ViewModels
         services.AddTransient<LoginViewModel>();
@@ -81,6 +82,7 @@ public partial class App : Application
         services.AddSingleton<ChangePasswordViewModel>();
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<DiscountRefundViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
 

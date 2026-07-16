@@ -128,15 +128,19 @@
                                     <DatePicker SelectedDate="{Binding PurchaseDate}" IsEnabled="{Binding SaveCancelEnabled}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="Supplier *" Classes="label"/>
+                                    <TextBlock Text="Supplier (Optional)" Classes="label"/>
                                     <ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
-                                              IsEnabled="{Binding SaveCancelEnabled}" HorizontalAlignment="Stretch">
+                                              IsEnabled="{Binding SaveCancelEnabled}" HorizontalAlignment="Stretch" PlaceholderText="Select Supplier (Optional)">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="models:Supplier">
                                                 <TextBlock Text="{Binding Name}"/>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
+                                </StackPanel>
+                                <StackPanel Spacing="6" IsVisible="{Binding SelectedSupplier, Converter={x:Static ObjectConverters.IsNull}}">
+                                    <TextBlock Text="Supplier Name (If no supplier selected)" Classes="label"/>
+                                    <TextBox Text="{Binding SupplierName}" IsEnabled="{Binding SaveCancelEnabled}"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -239,7 +243,6 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center" IsVisible="{Binding SaveCancelEnabled}">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Invoice" Command="{Binding SaveCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </DockPanel>

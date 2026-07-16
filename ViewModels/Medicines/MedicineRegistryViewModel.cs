@@ -45,6 +45,10 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     // Fields
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _genericName = string.Empty;
+    [ObservableProperty] private string _type = string.Empty;
+    [ObservableProperty] private string _category = string.Empty;
+    [ObservableProperty] private string _rack = string.Empty;
+    [ObservableProperty] private string _companyName = string.Empty;
     [ObservableProperty] private string _batchNumber = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private string _purchasePrice = "0.00";
@@ -176,6 +180,9 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     {
         Name = string.Empty;
         GenericName = string.Empty;
+        Type = string.Empty;
+        Category = string.Empty;
+        Rack = string.Empty;
         BatchNumber = string.Empty;
         ExpiryDate = null;
         PurchasePrice = "0.00";
@@ -183,6 +190,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
         Stock = "0";
         MinimumStockLevel = "10";
         SelectedCompany = null;
+        CompanyName = string.Empty;
         NotifyCalculatedTotals();
     }
 
@@ -190,6 +198,9 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     {
         Name = m.Name;
         GenericName = m.GenericName ?? string.Empty;
+        Type = m.Type ?? string.Empty;
+        Category = m.Category ?? string.Empty;
+        Rack = m.Rack ?? string.Empty;
         BatchNumber = m.BatchNumber ?? string.Empty;
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
         PurchasePrice = m.PurchasePrice.ToString("F2");
@@ -197,6 +208,7 @@ public partial class MedicineRegistryViewModel : ViewModelBase
         Stock = m.Stock.ToString();
         MinimumStockLevel = m.MinimumStockLevel.ToString();
         SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID);
+        CompanyName = m.CompanyName ?? string.Empty;
         NotifyCalculatedTotals();
     }
 
@@ -204,13 +216,17 @@ public partial class MedicineRegistryViewModel : ViewModelBase
     {
         Name = Name,
         GenericName = string.IsNullOrWhiteSpace(GenericName) ? null : GenericName.Trim(),
+        Type = string.IsNullOrWhiteSpace(Type) ? null : Type.Trim(),
+        Category = string.IsNullOrWhiteSpace(Category) ? null : Category.Trim(),
+        Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
         BatchNumber = string.IsNullOrWhiteSpace(BatchNumber) ? null : BatchNumber.Trim(),
         ExpiryDate = ExpiryDate?.Date,
         PurchasePrice = decimal.TryParse(PurchasePrice, out var bp) ? bp : 0,
         SellingPrice = decimal.TryParse(SellingPrice, out var sp) ? sp : 0,
         Stock = int.TryParse(Stock, out var s) ? s : 0,
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
-        CompanyID = SelectedCompany?.CompanyID
+        CompanyID = SelectedCompany?.CompanyID,
+        CompanyName = SelectedCompany != null ? SelectedCompany.Name : (string.IsNullOrWhiteSpace(CompanyName) ? null : CompanyName.Trim())
     };
 
     private void NotifyButtonStates()

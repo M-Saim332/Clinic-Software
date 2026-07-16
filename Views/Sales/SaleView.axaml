@@ -128,16 +128,24 @@
                                     <TextBlock Text="Date" Classes="label"/>
                                     <DatePicker SelectedDate="{Binding SaleDate}" IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
+                                <!-- Patient (Optional) -->
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="Patient *" Classes="label"/>
+                                    <TextBlock Text="Patient (Optional)" Classes="label"/>
                                     <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                              IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch">
+                                              IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"
+                                              PlaceholderText="Select Patient (Optional)">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="models:Patient">
                                                 <TextBlock Text="{Binding Name}"/>
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
+                                    <!-- Walk-in name if no patient selected -->
+                                    <TextBox Text="{Binding WalkInPatientName}"
+                                             PlaceholderText="Walk-in name (e.g. John, Counter Sale...)"
+                                             IsVisible="{Binding IsWalkIn}"
+                                             IsEnabled="{Binding IsNewSale}"
+                                             Margin="0,4,0,0"/>
                                 </StackPanel>
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,6,0">
@@ -152,22 +160,46 @@
                                 </Grid>
                             </StackPanel>
 
-                            <!-- Add line items (only visible when in Add mode) -->
+                            <!-- ADD MEDICINE section -->
                             <StackPanel Spacing="12" IsVisible="{Binding IsNewSale}">
                                 <TextBlock Text="ADD MEDICINE" FontSize="11" FontWeight="Bold"
                                            Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                            FontFamily="{DynamicResource FontLexend}"/>
                                 <Separator/>
+                                <!-- Medicine search box -->
                                 <StackPanel Spacing="6">
-                                    <TextBlock Text="Medicine *" Classes="label"/>
-                                    <ComboBox ItemsSource="{Binding Medicines}" SelectedItem="{Binding SelectedMedicine}" HorizontalAlignment="Stretch">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Medicine">
-                                                <TextBlock Text="{Binding Name, StringFormat='{}{0}'}"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
+                                    <TextBlock Text="Search Medicine" Classes="label"/>
+                                    <TextBox Text="{Binding MedicineSearchTerm}"
+                                             PlaceholderText="Type name, generic, or company..."/>
                                 </StackPanel>
+                                <!-- Medicine list (searchable) -->
+                                <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                        CornerRadius="{DynamicResource CornerRadiusInput}" Height="160">
+                                    <ListBox ItemsSource="{Binding FilteredMedicines}"
+                                             SelectedItem="{Binding SelectedMedicine}"
+                                             Background="Transparent">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Medicine">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <StackPanel Grid.Column="0" Spacing="2">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"/>
+                                                        <TextBlock Text="{Binding GenericName}" FontSize="11"
+                                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="2">
+                                                        <TextBlock Text="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}"
+                                                                   FontWeight="SemiBold" FontSize="13" HorizontalAlignment="Right"
+                                                                   Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                                        <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
+                                                                   FontSize="11" HorizontalAlignment="Right"
+                                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Border>
+                                <!-- Qty / Price / Discount -->
                                 <Grid ColumnDefinitions="*,*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,6,0">
                                         <TextBlock Text="Qty" Classes="label"/>
@@ -182,7 +214,7 @@
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
                                 </Grid>
-                                <Button Content="+ Add Item" Command="{Binding AddLineItemCommand}" Classes="btn-secondary" HorizontalAlignment="Stretch" Margin="0,8,0,0"/>
+                                <Button Content="+ Add to Invoice" Command="{Binding AddLineItemCommand}" Classes="btn-secondary" HorizontalAlignment="Stretch" Margin="0,8,0,0"/>
                             </StackPanel>
 
                             <!-- Grand Total Box -->

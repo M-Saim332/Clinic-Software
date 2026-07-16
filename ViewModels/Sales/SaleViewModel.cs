@@ -39,6 +39,7 @@ public partial class SaleViewModel : ViewModelBase
     // Header Fields
     [ObservableProperty] private string _invoiceNumber = string.Empty;
     [ObservableProperty] private Patient? _selectedPatient;
+    [ObservableProperty] private string _walkInPatientName = string.Empty;
     [ObservableProperty] private DateTimeOffset _saleDate = DateTimeOffset.Now;
     [ObservableProperty] private decimal _consultationFee;
     [ObservableProperty] private string _paymentMethod = "Cash";
@@ -47,13 +48,18 @@ public partial class SaleViewModel : ViewModelBase
 
     // Line Items
     [ObservableProperty] private ObservableCollection<SaleItem> _lineItems = new();
-    
+
     // Line Item Input
     [ObservableProperty] private Medicine? _selectedMedicine;
+    [ObservableProperty] private string _medicineSearchTerm = string.Empty;
+    [ObservableProperty] private ObservableCollection<Medicine> _filteredMedicines = new();
     [ObservableProperty] private int _quantity = 1;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
     [ObservableProperty] private decimal _medicinePrice;
+
+    public bool PatientIsSelected => SelectedPatient != null;
+    public bool IsWalkIn => SelectedPatient == null;
 
     public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.Quantity * x.MedicinePrice - x.Discount + x.Tax);
 
@@ -62,10 +68,13 @@ public partial class SaleViewModel : ViewModelBase
     public bool IsNewSale => Mode == FormMode.Add;
 
     [RelayCommand]
-    private void New()
+    private async Task NewAsync()
     {
         ClearFields();
-        InvoiceNumber = $"INV-{DateTime.Now:yyyyMMddHHmmss}";
+        // Generate SAL-YYYYMMDD-XXX invoice number
+        var today = DateTime.Today;
+        var count = await Task.Run(() => _repo.GetCountForDate(today));
+        InvoiceNumber = $"SAL-{today:yyyyMMdd}-{(count + 1):D3}";
         Mode = FormMode.Add;
         ShowForm = true;
         NotifyButtonStates();
@@ -144,17 +153,16 @@ public partial class SaleViewModel : ViewModelBase
     [RelayCommand]
     private async Task PostSaleAsync()
     {
-        if (SelectedPatient == null)
-        {
-            StatusMessage = "Patient is required.";
-            return;
-        }
+        // Patient is optional — allow walk-in
+        string patientNameForSale = SelectedPatient?.Name ?? 
+            (string.IsNullOrWhiteSpace(WalkInPatientName) ? "Walk-in" : WalkInPatientName.Trim());
 
         var s = new Sale
         {
             InvoiceNumber = InvoiceNumber,
             SaleDate = SaleDate.DateTime,
-            PatientID = SelectedPatient.PatientID,
+            PatientID = SelectedPatient?.PatientID,
+            PatientName = patientNameForSale,
             ConsultationFee = ConsultationFee,
             GrandTotal = GrandTotal,
             PaymentMethod = PaymentMethod,
@@ -204,6 +212,7 @@ public partial class SaleViewModel : ViewModelBase
                 Patients = new ObservableCollection<Patient>(patients);
                 Medicines = new ObservableCollection<Medicine>(
                     medicines.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
+                FilteredMedicines = new ObservableCollection<Medicine>(Medicines);
                 Sales = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
 
                 TotalInvoicesCount = Sales.Count;
@@ -222,10 +231,12 @@ public partial class SaleViewModel : ViewModelBase
     {
         InvoiceNumber = string.Empty;
         SelectedPatient = null;
+        WalkInPatientName = string.Empty;
         SaleDate = DateTimeOffset.Now;
         ConsultationFee = 0;
         PaymentMethod = "Cash";
         LineItems.Clear();
+        MedicineSearchTerm = string.Empty;
         OnPropertyChanged(nameof(GrandTotal));
     }
 
@@ -234,6 +245,26 @@ public partial class SaleViewModel : ViewModelBase
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
         OnPropertyChanged(nameof(IsNewSale));
+        OnPropertyChanged(nameof(PatientIsSelected));
+        OnPropertyChanged(nameof(IsWalkIn));
+    }
+
+    partial void OnSelectedPatientChanged(Patient? value)
+    {
+        OnPropertyChanged(nameof(PatientIsSelected));
+        OnPropertyChanged(nameof(IsWalkIn));
+    }
+
+    partial void OnMedicineSearchTermChanged(string value)
+    {
+        var term = value?.Trim().ToLower() ?? string.Empty;
+        FilteredMedicines = string.IsNullOrEmpty(term)
+            ? new ObservableCollection<Medicine>(Medicines)
+            : new ObservableCollection<Medicine>(
+                Medicines.Where(m =>
+                    m.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (m.GenericName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (m.CompanyName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)));
     }
 
     partial void OnSelectedMedicineChanged(Medicine? value)
