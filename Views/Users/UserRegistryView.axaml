@@ -189,7 +189,7 @@
                             <CheckBox Grid.Column="1" Grid.Row="0" Content="Patients" IsChecked="{Binding AccPatients}"/>
                             <CheckBox Grid.Column="2" Grid.Row="0" Content="Appointments" IsChecked="{Binding AccAppointments}"/>
                             
-                            <CheckBox Grid.Column="0" Grid.Row="1" Content="Medicines" IsChecked="{Binding AccMedicines}"/>
+                            <CheckBox Grid.Column="0" Grid.Row="1" Content="Products" IsChecked="{Binding AccProducts}"/>
                             <CheckBox Grid.Column="1" Grid.Row="1" Content="Products" IsChecked="{Binding AccProducts}"/>
                             <CheckBox Grid.Column="2" Grid.Row="1" Content="Companies" IsChecked="{Binding AccCompanies}"/>
                             

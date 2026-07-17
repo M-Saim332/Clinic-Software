@@ -21,7 +21,7 @@
                         <TextBlock Text="Global Search" FontSize="20" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk900}"
                                    FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Search instantly across patients, appointments, and medicines"
+                        <TextBlock Text="Search instantly across patients, appointments, and products"
                                    FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                     </StackPanel>
                 </StackPanel>
@@ -83,14 +83,14 @@
                     </comp:DataTableShellControl.TableContent>
                 </comp:DataTableShellControl>
 
-                <!-- Medicines Results -->
-                <comp:DataTableShellControl Title="Matching Medicines" RecordCount="{Binding MedicineCount, StringFormat='{}{0}'}">
+                <!-- Products Results -->
+                <comp:DataTableShellControl Title="Matching Products" RecordCount="{Binding ProductCount, StringFormat='{}{0}'}">
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Medicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                        <DataGrid ItemsSource="{Binding Products}" AutoGenerateColumns="False" IsReadOnly="True"
                                   Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" Height="200">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding MedicineID}" Width="70"/>
-                                <DataGridTextColumn Header="MEDICINE NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="ID" Binding="{Binding ProductID}" Width="70"/>
+                                <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
                                 <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*"/>
                                 <DataGridTextColumn Header="BATCH NO." Binding="{Binding BatchNumber}" Width="120"/>
                                 <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>

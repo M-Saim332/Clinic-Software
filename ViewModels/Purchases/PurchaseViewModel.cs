@@ -241,8 +241,8 @@ public partial class PurchaseViewModel : ViewModelBase
     {
         if (value != null)
         {
-            PurchasePrice = value.PurchaseRate;
-            Tax = value.Tax;
+            PurchasePrice = value.PurchasePrice;
+            Tax = 0;
         }
     }
 }

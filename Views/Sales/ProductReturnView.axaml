@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
-             x:Class="ClinicSystem.UI.Views.Sales.MedicineReturnView"
-             x:DataType="vm:MedicineReturnViewModel" x:CompileBindings="True"
+             x:Class="ClinicSystem.UI.Views.Sales.ProductReturnView"
+             x:DataType="vm:ProductReturnViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
     <Grid RowDefinitions="Auto,*">
@@ -18,23 +18,23 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="Medicine Returns" FontSize="20" FontWeight="Bold"
+                        <TextBlock Text="Product Returns" FontSize="20" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk900}"
                                    FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Process customer medicine returns and issue refunds"
+                        <TextBlock Text="Process customer product returns and issue refunds"
                                    FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                     </StackPanel>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Main Body split -->
-        <Grid Grid.Row="1" ColumnDefinitions="380,*" Margin="28,24">
-            <!-- Left: Find Sale -->
-            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+        <!-- Main Body full-width -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="28,24">
+            <!-- Top: Find Sale -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="{DynamicResource CornerRadiusCard}"
-                    Padding="24" Margin="0,0,24,0">
+                    Padding="24" Margin="0,0,0,24">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Text="STEP 1: FIND SALE" FontSize="11" FontWeight="Bold"
                                Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
@@ -50,13 +50,13 @@
                     <comp:DataTableShellControl Title="Found Sales" RecordCount="{Binding FoundSales.Count}">
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FoundSales}" SelectedItem="{Binding SelectedSale}"
-                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      AutoGenerateColumns="False" IsReadOnly="True" Height="160"
                                       SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                       GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="INVOICE" Binding="{Binding InvoiceNumber}" Width="*"/>
                                     <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
-                                    <DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat=\{0:dd MMM yyyy\}}" Width="100"/>
+                                    <DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat=\{0:dd MMM yyyy\}}" Width="*"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </comp:DataTableShellControl.TableContent>
@@ -64,8 +64,8 @@
                 </DockPanel>
             </Border>
 
-            <!-- Right: Return Items -->
-            <Grid Grid.Column="1" RowDefinitions="*,Auto">
+            <!-- Bottom: Return Items -->
+            <Grid Grid.Row="1" RowDefinitions="*,Auto">
                 <comp:DataTableShellControl Grid.Row="0" Title="STEP 2: SELECT ITEMS TO RETURN" RecordCount="{Binding ReturnableItems.Count}">
                     <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding ReturnableItems}"
@@ -73,8 +73,8 @@
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                   GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="MEDICINE" Binding="{Binding Item.MedicineName}" IsReadOnly="True" Width="*"/>
-                                <DataGridTextColumn Header="PRICE" Binding="{Binding Item.MedicinePrice, StringFormat='Rs. {0:N2}'}" IsReadOnly="True" Width="100"/>
+                                <DataGridTextColumn Header="PRODUCT" Binding="{Binding Item.ProductName}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="PRICE" Binding="{Binding Item.ProductPrice, StringFormat='Rs. {0:N2}'}" IsReadOnly="True" Width="100"/>
                                 <DataGridTextColumn Header="MAX QTY" Binding="{Binding MaxReturnable}" IsReadOnly="True" Width="80"/>
                                 
                                 <DataGridTemplateColumn Header="RETURN QTY" Width="110">

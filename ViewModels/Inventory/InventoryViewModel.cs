@@ -8,20 +8,20 @@ namespace ClinicSystem.UI.ViewModels.Inventory;
 
 public partial class InventoryViewModel : ViewModelBase
 {
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
 
-    public InventoryViewModel(MedicineRepository medicineRepo)
+    public InventoryViewModel(ProductRepository productRepo)
     {
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
     }
 
     [ObservableProperty] private string _statusMessage = string.Empty;
 
-    [ObservableProperty] private ObservableCollection<Medicine> _allStock = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _lowStock = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _outOfStock = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _expired = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _nearExpiry = new();
+    [ObservableProperty] private ObservableCollection<Product> _allStock = new();
+    [ObservableProperty] private ObservableCollection<Product> _lowStock = new();
+    [ObservableProperty] private ObservableCollection<Product> _outOfStock = new();
+    [ObservableProperty] private ObservableCollection<Product> _expired = new();
+    [ObservableProperty] private ObservableCollection<Product> _nearExpiry = new();
 
     // KPI Summary counts
     [ObservableProperty] private int _totalStockItems;
@@ -30,7 +30,7 @@ public partial class InventoryViewModel : ViewModelBase
     [ObservableProperty] private int _expiredCount;
 
     // Adjustment fields
-    [ObservableProperty] private Medicine? _selectedMedicine;
+    [ObservableProperty] private Product? _selectedProduct;
     [ObservableProperty] private int _adjustmentQuantity;
     [ObservableProperty] private string _adjustmentReason = string.Empty;
 
@@ -38,24 +38,24 @@ public partial class InventoryViewModel : ViewModelBase
     {
         try
         {
-            var medicines = await Task.Run(() => _medicineRepo.GetAll());
-            var list = medicines.ToList();
+            var products = await Task.Run(() => _productRepo.GetAll());
+            var list = products.ToList();
             var today = DateTime.Today;
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => 
             {
-                AllStock = new ObservableCollection<Medicine>(list.OrderBy(m => m.Name));
+                AllStock = new ObservableCollection<Product>(list.OrderBy(m => m.Name));
                 
-                LowStock = new ObservableCollection<Medicine>(
+                LowStock = new ObservableCollection<Product>(
                     list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
                     
-                OutOfStock = new ObservableCollection<Medicine>(
+                OutOfStock = new ObservableCollection<Product>(
                     list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
                     
-                Expired = new ObservableCollection<Medicine>(
+                Expired = new ObservableCollection<Product>(
                     list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
                     
-                NearExpiry = new ObservableCollection<Medicine>(
+                NearExpiry = new ObservableCollection<Product>(
                     list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30))
                         .OrderBy(m => m.ExpiryDate));
 
@@ -74,9 +74,9 @@ public partial class InventoryViewModel : ViewModelBase
     [RelayCommand]
     private async Task AdjustStockAsync()
     {
-        if (SelectedMedicine == null)
+        if (SelectedProduct == null)
         {
-            StatusMessage = "Please select a medicine.";
+            StatusMessage = "Please select a product.";
             return;
         }
 
@@ -86,7 +86,7 @@ public partial class InventoryViewModel : ViewModelBase
             return;
         }
 
-        if (SelectedMedicine.Stock + AdjustmentQuantity < 0)
+        if (SelectedProduct.Stock + AdjustmentQuantity < 0)
         {
             StatusMessage = "Cannot adjust below zero stock.";
             return;
@@ -94,10 +94,10 @@ public partial class InventoryViewModel : ViewModelBase
 
         try
         {
-            await Task.Run(() => _medicineRepo.AddStock(SelectedMedicine.MedicineID, AdjustmentQuantity));
-            StatusMessage = $"Stock adjusted for {SelectedMedicine.Name} by {AdjustmentQuantity}.";
+            await Task.Run(() => _productRepo.AddStock(SelectedProduct.ProductID, AdjustmentQuantity));
+            StatusMessage = $"Stock adjusted for {SelectedProduct.Name} by {AdjustmentQuantity}.";
             
-            SelectedMedicine = null;
+            SelectedProduct = null;
             AdjustmentQuantity = 0;
             AdjustmentReason = string.Empty;
             

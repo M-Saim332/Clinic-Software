@@ -3,7 +3,7 @@ using BC = BCrypt.Net.BCrypt;
 using Microsoft.Data.SqlClient;
 
 const string connStr = "Server=localhost;Database=ClinicDB;Integrated Security=True;TrustServerCertificate=True;";
-const string newPassword = "Admin@123";
+const string newPassword = "Admin@786";
 
 var hash = BC.HashPassword(newPassword);
 Console.WriteLine($"Generated hash: {hash}");

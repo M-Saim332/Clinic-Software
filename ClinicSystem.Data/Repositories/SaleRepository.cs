@@ -39,9 +39,9 @@ public class SaleRepository
         if (sale == null) return null;
 
         sale.Items = conn.Query<SaleItem>(
-            @"SELECT si.*, m.Name AS MedicineName, m.SellingPrice AS MedicinePrice
+            @"SELECT si.*, m.Name AS ProductName, m.SellingPrice AS ProductPrice
               FROM SaleItems si
-              JOIN Medicines m ON si.MedicineID = m.MedicineID
+              JOIN Products m ON si.ProductID = m.ProductID
               WHERE si.SaleID = @id", new { id }).ToList();
 
         return sale;
@@ -62,16 +62,16 @@ public class SaleRepository
             {
                 item.SaleID = saleId;
                 conn.Execute(
-                    @"INSERT INTO SaleItems (SaleID, MedicineID, Quantity, Discount, Tax, LineTotal)
-                      VALUES (@SaleID, @MedicineID, @Quantity, @Discount, @Tax, @LineTotal)",
+                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, Discount, Tax, LineTotal)
+                      VALUES (@SaleID, @ProductID, @Quantity, @Discount, @Tax, @LineTotal)",
                     item, tx);
 
-                // If posted on insert, decrement medicine stock
+                // If posted on insert, decrement product stock
                 if (s.IsPosted)
                 {
                     conn.Execute(
-                        "UPDATE Medicines SET Stock = Stock - @Quantity WHERE MedicineID = @MedicineID",
-                        new { item.Quantity, item.MedicineID }, tx);
+                        "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
+                        new { item.Quantity, item.ProductID }, tx);
                 }
             }
 
@@ -113,16 +113,16 @@ public class SaleRepository
             {
                 item.SaleID = s.SaleID;
                 conn.Execute(
-                    @"INSERT INTO SaleItems (SaleID, MedicineID, Quantity, Discount, Tax, LineTotal)
-                      VALUES (@SaleID, @MedicineID, @Quantity, @Discount, @Tax, @LineTotal)",
+                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, Discount, Tax, LineTotal)
+                      VALUES (@SaleID, @ProductID, @Quantity, @Discount, @Tax, @LineTotal)",
                     item, tx);
 
-                // If now posting, decrement medicine stock
+                // If now posting, decrement product stock
                 if (s.IsPosted)
                 {
                     conn.Execute(
-                        "UPDATE Medicines SET Stock = Stock - @Quantity WHERE MedicineID = @MedicineID",
-                        new { item.Quantity, item.MedicineID }, tx);
+                        "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
+                        new { item.Quantity, item.ProductID }, tx);
                 }
             }
 

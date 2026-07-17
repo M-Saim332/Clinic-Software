@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.UI.ViewModels.Patients;
-using ClinicSystem.UI.ViewModels.Medicines;
+using ClinicSystem.UI.ViewModels.Products;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Reports;
@@ -32,21 +32,20 @@ public partial class MainWindowViewModel : ViewModelBase
     // ── Injected ViewModels ────────────────────────────────────────────────
     private readonly DashboardViewModel        _dashboardVM;
     private readonly PatientRegistryViewModel  _patientVM;
-    private readonly MedicineRegistryViewModel _medicineVM;
+    private readonly ProductRegistryViewModel _productVM;
     private readonly PrescriptionViewModel     _prescriptionVM;
     private readonly VisitHistoryViewModel     _visitHistoryVM;
     private readonly UserRegistryViewModel     _userVM;
     private readonly ReportsViewModel          _reportsVM;
     private readonly CompanyRegistryViewModel  _companyVM;
     private readonly SupplierRegistryViewModel _supplierVM;
-    private readonly ProductRegistryViewModel  _productVM;
     private readonly SearchViewModel            _searchVM;
     private readonly SettingsViewModel          _settingsVM;
 
     private readonly AppointmentViewModel      _appointmentVM;
     private readonly PurchaseViewModel         _purchaseVM;
     private readonly SaleViewModel             _saleVM;
-    private readonly MedicineReturnViewModel   _returnVM;
+    private readonly ProductReturnViewModel   _returnVM;
     private readonly InventoryViewModel        _inventoryVM;
     private readonly DatabaseSession           _dbSession;
 
@@ -55,35 +54,33 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowViewModel(
         DashboardViewModel        dashboardVM,
         PatientRegistryViewModel  patientVM,
-        MedicineRegistryViewModel medicineVM,
+        ProductRegistryViewModel productVM,
         PrescriptionViewModel     prescriptionVM,
         VisitHistoryViewModel     visitHistoryVM,
         UserRegistryViewModel     userVM,
         ReportsViewModel          reportsVM,
         CompanyRegistryViewModel  companyVM,
         SupplierRegistryViewModel supplierVM,
-        ProductRegistryViewModel  productVM,
         SearchViewModel           searchVM,
         SettingsViewModel         settingsVM,
 
         AppointmentViewModel      appointmentVM,
         PurchaseViewModel         purchaseVM,
         SaleViewModel             saleVM,
-        MedicineReturnViewModel   returnVM,
+        ProductReturnViewModel   returnVM,
         InventoryViewModel        inventoryVM,
         ChangePasswordViewModel   changePasswordVM,
         DatabaseSession           dbSession)
     {
         _dashboardVM    = dashboardVM;
         _patientVM      = patientVM;
-        _medicineVM     = medicineVM;
+        _productVM     = productVM;
         _prescriptionVM = prescriptionVM;
         _visitHistoryVM = visitHistoryVM;
         _userVM         = userVM;
         _reportsVM      = reportsVM;
         _companyVM      = companyVM;
         _supplierVM     = supplierVM;
-        _productVM      = productVM;
         _searchVM       = searchVM;
         _settingsVM     = settingsVM;
 
@@ -106,8 +103,15 @@ public partial class MainWindowViewModel : ViewModelBase
         _dashboardVM.RequestNavigateSuppliers    += () => ShowSuppliersCommand.Execute(null);
         _dashboardVM.RequestNavigateSales        += () => ShowSalesCommand.Execute(null);
         _dashboardVM.RequestNavigateAppointments += () => ShowAppointmentsCommand.Execute(null);
-        _dashboardVM.RequestNavigateMedicines    += () => ShowMedicinesCommand.Execute(null);
+        _dashboardVM.RequestNavigateProducts    += () => ShowProductsCommand.Execute(null);
         _dashboardVM.RequestNavigateInventory    += () => ShowInventoryCommand.Execute(null);
+
+        // Allow Patients view to navigate to Appointments
+        _patientVM.RequestBookAppointment += (patient) => 
+        {
+            ShowAppointmentsCommand.Execute(null);
+            _appointmentVM.PreselectPatient(patient);
+        };
 
         // Start on the first available page
         if (CanAccessDashboard) NavigateTo(_dashboardVM, "Dashboard");
@@ -124,22 +128,21 @@ public partial class MainWindowViewModel : ViewModelBase
             try
             {
                 await _patientVM.InitializeAsync();
-                await _medicineVM.InitializeAsync();
+                await _productVM.InitializeAsync();
                 await _prescriptionVM.InitializeAsync();
                 await _userVM.InitializeAsync();
                 await _companyVM.InitializeAsync();
-                await _productVM.InitializeAsync();
                 await _supplierVM.InitializeAsync();
                 await _appointmentVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
 
                 // Compute alert warnings safely
-                var lowStockCount = _medicineVM.Medicines.Count(m => m.IsLowStock && !m.IsExpired);
+                var lowStockCount = _productVM.Products.Count(m => m.IsLowStock && !m.IsExpired);
                 var waitingTodayCount = _appointmentVM.Appointments.Count(a => a.AppointmentDate.Date == DateTime.Today && a.Status == "Checked-In");
 
                 var alerts = new List<string>();
                 if (waitingTodayCount > 0) alerts.Add($"{waitingTodayCount} patient(s) waiting today");
-                if (lowStockCount > 0) alerts.Add($"{lowStockCount} low-stock medicine(s)");
+                if (lowStockCount > 0) alerts.Add($"{lowStockCount} low-stock product(s)");
 
                 if (alerts.Count > 0)
                 {
@@ -181,7 +184,6 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessDashboard    => CurrentUser?.HasAccess("Dashboard") ?? false;
     public bool CanAccessPatients     => CurrentUser?.HasAccess("Patients") ?? false;
     public bool CanAccessAppointments => CurrentUser?.HasAccess("Appointments") ?? false;
-    public bool CanAccessMedicines    => CurrentUser?.HasAccess("Medicines") ?? false;
     public bool CanAccessProducts     => CurrentUser?.HasAccess("Products") ?? false;
     public bool CanAccessCompanies    => CurrentUser?.HasAccess("Companies") ?? false;
     public bool CanAccessSuppliers    => CurrentUser?.HasAccess("Suppliers") ?? false;
@@ -194,7 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
-    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessMedicines || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
+    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
     public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
     public bool HasUserSettingsAccess => CanAccessUsers || CanAccessSettings;
@@ -202,7 +204,7 @@ public partial class MainWindowViewModel : ViewModelBase
     // ── Active nav flags (for sidebar highlight) ───────────────────────────
     [ObservableProperty] private bool _isDashboardActive;
     [ObservableProperty] private bool _isPatientsActive;
-    [ObservableProperty] private bool _isMedicinesActive;
+    [ObservableProperty] private bool _isProductsActive;
     [ObservableProperty] private bool _isCompaniesActive;
     [ObservableProperty] private bool _isSuppliersActive;
 
@@ -213,7 +215,6 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isAppointmentsActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
-    [ObservableProperty] private bool _isProductsActive;
     [ObservableProperty] private bool _isSettingsActive;
 
     [ObservableProperty] private bool _showChangePassword;
@@ -231,10 +232,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             case "Dashboard":    IsDashboardActive    = true; break;
             case "Patients":     IsPatientsActive     = true; break;
-            case "Medicines":    IsMedicinesActive    = true; break;
+            case "Products":    IsProductsActive    = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
-            case "Products":     IsProductsActive     = true; break;
 
             case "Purchases":    IsPurchasesActive    = true; break;
             case "Sales & Billing": IsSalesActive     = true; break;
@@ -249,19 +249,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ClearActiveFlags()
     {
-        IsDashboardActive = IsPatientsActive = IsMedicinesActive =
+        IsDashboardActive = IsPatientsActive = IsProductsActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive =
-        IsProductsActive = IsUsersActive = IsReportsActive = IsSettingsActive = false;
+        IsUsersActive = IsReportsActive = IsSettingsActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
     [RelayCommand] private void ShowDashboard()    { NavigateTo(_dashboardVM,    "Dashboard");    _ = _dashboardVM.InitializeAsync(); }
     [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients");     _ = _patientVM.InitializeAsync(); }
-    [RelayCommand] private void ShowMedicines()    { NavigateTo(_medicineVM,     "Medicines");    _ = _medicineVM.InitializeAsync(); }
+    [RelayCommand] private void ShowProducts()    { NavigateTo(_productVM,     "Products");    _ = _productVM.InitializeAsync(); }
     [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies");    _ = _companyVM.InitializeAsync(); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
-    [RelayCommand] private void ShowProducts()     { NavigateTo(_productVM,      "Products");     _ = _productVM.InitializeAsync(); }
  
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
     [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales & Billing"); _ = _saleVM.InitializeAsync(); }

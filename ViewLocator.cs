@@ -3,12 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using ClinicSystem.UI.ViewModels;
 using ClinicSystem.UI.ViewModels.Patients;
-using ClinicSystem.UI.ViewModels.Medicines;
+using ClinicSystem.UI.ViewModels.Products;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Reports;
 using ClinicSystem.UI.Views.Patients;
-using ClinicSystem.UI.Views.Medicines;
+using ClinicSystem.UI.Views.Products;
 using ClinicSystem.UI.Views.Prescriptions;
 using ClinicSystem.UI.Views.Users;
 using ClinicSystem.UI.Views.Reports;
@@ -42,7 +42,7 @@ public class ViewLocator : IDataTemplate
         return param switch
         {
             PatientRegistryViewModel   => new PatientRegistryView   { DataContext = param },
-            MedicineRegistryViewModel  => new MedicineRegistryView  { DataContext = param },
+            ProductRegistryViewModel  => new ProductRegistryView  { DataContext = param },
             PrescriptionViewModel      => new PrescriptionView      { DataContext = param },
             VisitHistoryViewModel      => new VisitHistoryView      { DataContext = param },
             UserRegistryViewModel      => new UserRegistryView      { DataContext = param },
@@ -57,7 +57,7 @@ public class ViewLocator : IDataTemplate
             InventoryViewModel         => new InventoryView         { DataContext = param },
             SearchViewModel            => new SearchView            { DataContext = param },
             SettingsViewModel          => new SettingsView          { DataContext = param },
-            MedicineReturnViewModel    => new MedicineReturnView    { DataContext = param },
+            ProductReturnViewModel    => new ProductReturnView    { DataContext = param },
             _ => new TextBlock { Text = $"No view for {param?.GetType().Name}" }
         };
     }

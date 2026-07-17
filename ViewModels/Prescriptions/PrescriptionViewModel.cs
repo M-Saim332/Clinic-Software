@@ -10,16 +10,16 @@ public partial class PrescriptionViewModel : ViewModelBase
 {
     private readonly PrescriptionRepository _prescRepo;
     private readonly PatientRepository _patientRepo;
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
 
     public PrescriptionViewModel(
         PrescriptionRepository prescRepo,
         PatientRepository patientRepo,
-        MedicineRepository medicineRepo)
+        ProductRepository productRepo)
     {
         _prescRepo = prescRepo;
         _patientRepo = patientRepo;
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
     }
 
     // ── Patient selection ─────────────────────────────────────────────────
@@ -44,9 +44,9 @@ public partial class PrescriptionViewModel : ViewModelBase
     [ObservableProperty] private string _notes = string.Empty;
 
     // ── Prescription items ────────────────────────────────────────────────
-    [ObservableProperty] private ObservableCollection<Medicine> _availableMedicines = new();
+    [ObservableProperty] private ObservableCollection<Product> _availableProducts = new();
     [ObservableProperty] private ObservableCollection<PrescriptionItemRow> _items = new();
-    [ObservableProperty] private Medicine? _selectedMedicineToAdd;
+    [ObservableProperty] private Product? _selectedProductToAdd;
     [ObservableProperty] private string _quantityToAdd = "1";
     [ObservableProperty] private string _dosageToAdd = string.Empty;
 
@@ -66,20 +66,20 @@ public partial class PrescriptionViewModel : ViewModelBase
     [RelayCommand]
     private void AddItem()
     {
-        if (SelectedMedicineToAdd == null) { StatusMessage = "Select a medicine."; return; }
+        if (SelectedProductToAdd == null) { StatusMessage = "Select a product."; return; }
         if (!int.TryParse(QuantityToAdd, out var qty) || qty <= 0) { StatusMessage = "Enter a valid quantity."; return; }
-        if (qty > SelectedMedicineToAdd.Stock) { StatusMessage = $"Insufficient stock (available: {SelectedMedicineToAdd.Stock})."; return; }
+        if (qty > SelectedProductToAdd.Stock) { StatusMessage = $"Insufficient stock (available: {SelectedProductToAdd.Stock})."; return; }
 
         Items.Add(new PrescriptionItemRow
         {
-            MedicineID = SelectedMedicineToAdd.MedicineID,
-            MedicineName = SelectedMedicineToAdd.Name,
+            ProductID = SelectedProductToAdd.ProductID,
+            ProductName = SelectedProductToAdd.Name,
             Quantity = qty,
             Dosage = DosageToAdd,
-            AvailableStock = SelectedMedicineToAdd.Stock
+            AvailableStock = SelectedProductToAdd.Stock
         });
 
-        SelectedMedicineToAdd = null; QuantityToAdd = "1"; DosageToAdd = string.Empty;
+        SelectedProductToAdd = null; QuantityToAdd = "1"; DosageToAdd = string.Empty;
         StatusMessage = string.Empty;
     }
 
@@ -93,7 +93,7 @@ public partial class PrescriptionViewModel : ViewModelBase
     private async Task SaveAsync()
     {
         if (SelectedPatient == null) { StatusMessage = "Select a patient."; return; }
-        if (!Items.Any()) { StatusMessage = "Add at least one medicine."; return; }
+        if (!Items.Any()) { StatusMessage = "Add at least one product."; return; }
 
         IsBusy = true;
         try
@@ -107,7 +107,7 @@ public partial class PrescriptionViewModel : ViewModelBase
                 Notes = Notes,
                 Items = Items.Select(i => new PrescriptionItem
                 {
-                    MedicineID = i.MedicineID,
+                    ProductID = i.ProductID,
                     Quantity = i.Quantity,
                     Dosage = i.Dosage
                 }).ToList()
@@ -142,11 +142,11 @@ public partial class PrescriptionViewModel : ViewModelBase
         try
         {
             var patients = await Task.Run(() => _patientRepo.GetAll());
-            var medicines = await Task.Run(() => _medicineRepo.GetPrescribable());
+            var products = await Task.Run(() => _productRepo.GetPrescribable());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 Patients = new ObservableCollection<Patient>(patients);
-                AvailableMedicines = new ObservableCollection<Medicine>(medicines);
+                AvailableProducts = new ObservableCollection<Product>(products);
                 FilterPatients();
             });
         }
@@ -173,8 +173,8 @@ public partial class PrescriptionViewModel : ViewModelBase
 /// <summary>Row in the prescription items grid.</summary>
 public partial class PrescriptionItemRow : ObservableObject
 {
-    public int MedicineID { get; set; }
-    [ObservableProperty] private string _medicineName = string.Empty;
+    public int ProductID { get; set; }
+    [ObservableProperty] private string _productName = string.Empty;
     [ObservableProperty] private int _quantity;
     [ObservableProperty] private string _dosage = string.Empty;
     public int AvailableStock { get; set; }

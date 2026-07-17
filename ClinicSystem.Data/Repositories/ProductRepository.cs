@@ -13,70 +13,117 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT p.*, c.Name AS CompanyName
-              FROM Products p
-              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
-              ORDER BY p.Name");
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              ORDER BY m.Name");
     }
 
     public Product? GetById(int id)
     {
         using var conn = _session.CreateConnection();
         return conn.QuerySingleOrDefault<Product>(
-            @"SELECT p.*, c.Name AS CompanyName
-              FROM Products p
-              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
-              WHERE p.ProductID = @id", new { id });
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              WHERE m.ProductID = @id", new { id });
     }
 
     public IEnumerable<Product> Search(string term)
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT p.*, c.Name AS CompanyName
-              FROM Products p
-              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
-              WHERE p.Name LIKE @term OR c.Name LIKE @term
-              ORDER BY p.Name",
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              WHERE m.Name LIKE @term
+                 OR m.GenericName LIKE @term
+                 OR c.Name LIKE @term
+              ORDER BY m.Name",
             new { term = $"%{term}%" });
     }
 
-    public int Insert(Product p)
+    public IEnumerable<Product> GetExpired()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<Product>(
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              WHERE m.ExpiryDate IS NOT NULL AND m.ExpiryDate <= CAST(GETDATE() AS DATE)
+              ORDER BY m.ExpiryDate");
+    }
+
+    public IEnumerable<Product> GetLowStock()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<Product>(
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              WHERE m.Stock <= m.MinimumStockLevel
+              ORDER BY m.Stock");
+    }
+
+    public IEnumerable<Product> GetPrescribable()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<Product>(
+            @"SELECT m.*, c.Name AS CompanyName
+              FROM Products m
+              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
+              WHERE m.Stock > 0
+                AND (m.ExpiryDate IS NULL OR m.ExpiryDate > CAST(GETDATE() AS DATE))
+              ORDER BY m.Name");
+    }
+
+    public int Insert(Product m)
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Products (CompanyID, Name, PurchaseRate, SellingPrice, Tax, StockQuantity)
-              VALUES (@CompanyID, @Name, @PurchaseRate, @SellingPrice, @Tax, @StockQuantity);
-              SELECT SCOPE_IDENTITY();", p);
+            @"INSERT INTO Products
+                (Name, GenericName, CompanyID, CompanyName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+              VALUES
+                (@Name, @GenericName, @CompanyID, @CompanyName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
+              SELECT SCOPE_IDENTITY();", m);
     }
 
-    public void Update(Product p)
+    public void Update(Product m)
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Products SET
-                CompanyID = @CompanyID, Name = @Name, PurchaseRate = @PurchaseRate,
-                SellingPrice = @SellingPrice, Tax = @Tax, StockQuantity = @StockQuantity
-              WHERE ProductID = @ProductID", p);
+                Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID, CompanyName = @CompanyName,
+                BatchNumber = @BatchNumber, Type = @Type, Category = @Category, Rack = @Rack,
+                ExpiryDate = @ExpiryDate, PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice,
+                Stock = @Stock, MinimumStockLevel = @MinimumStockLevel
+              WHERE ProductID = @ProductID", m);
     }
 
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
-        // Check if referenced by purchase items
+        // Check if there are sales referencing this product
         var count = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM PurchaseItems WHERE ProductID = @id", new { id });
+            "SELECT COUNT(*) FROM SaleItems WHERE ProductID = @id", new { id });
         if (count > 0) return false;
-
         conn.Execute("DELETE FROM Products WHERE ProductID = @id", new { id });
         return true;
+    }
+
+    public void DecrementStock(int productId, int quantity)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(
+            "UPDATE Products SET Stock = Stock - @quantity WHERE ProductID = @productId",
+            new { quantity, productId });
     }
 
     public void AddStock(int productId, int quantity)
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
-            "UPDATE Products SET StockQuantity = StockQuantity + @quantity WHERE ProductID = @productId",
+            "UPDATE Products SET Stock = Stock + @quantity WHERE ProductID = @productId",
             new { quantity, productId });
     }
 }

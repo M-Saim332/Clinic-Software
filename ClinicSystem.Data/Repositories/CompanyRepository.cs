@@ -53,12 +53,10 @@ public class CompanyRepository
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
-        // Check if referenced by medicines or products
+        // Check if referenced by products
         var productCount = conn.ExecuteScalar<int>(
             "SELECT COUNT(*) FROM Products WHERE CompanyID = @id", new { id });
-        var medicineCount = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Medicines WHERE CompanyID = @id", new { id });
-        if (productCount > 0 || medicineCount > 0) return false;
+        if (productCount > 0) return false;
 
         conn.Execute("DELETE FROM Companies WHERE CompanyID = @id", new { id });
         return true;

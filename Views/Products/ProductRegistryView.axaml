@@ -1,165 +1,320 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Products"
+             xmlns:models="using:ClinicSystem.Core.Models"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Products.ProductRegistryView"
              x:DataType="vm:ProductRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
     <Grid>
-        <!-- LIST VIEW -->
+        <!-- ============================================================ -->
+        <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
+        <!-- ============================================================ -->
         <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushAmber50}">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushTeal50}">
                             <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20"
-                                      Foreground="{DynamicResource BrushAmber}"
+                                      Foreground="{DynamicResource BrushTeal}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center" Spacing="1">
                             <TextBlock Text="Product Registry" FontSize="20" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk900}"
                                        FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Manage products, pricing, and stock quantities"
+                            <TextBlock Text="Track products, stocks, expiry dates, and pricing"
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
+                    <!-- Primary action: + Add Product -->
                     <Button Content="+ Add Product" Command="{Binding NewCommand}"
                             Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Summary Cards -->
+            <!-- Summary Cards Row -->
             <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
                 <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
                     Title="Total Products"
                     Value="{Binding Products.Count, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushAmber}"/>
-                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                    Title="In Stock"
-                    Value="{Binding InStockCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
-                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
                     Title="Low Stock"
                     Value="{Binding LowStockCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Expired"
+                    Value="{Binding ExpiredCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushRose}"/>
                 <comp:SummaryCardControl Grid.Column="3"
-                    Title="Companies"
-                    Value="{Binding Companies.Count, StringFormat={}{0}}"
+                    Title="Inventory Value"
+                    Value="{Binding TotalInventoryValue}"
                     BorderColor="{DynamicResource BrushPrimaryBlue}"/>
             </Grid>
 
             <!-- Data Panel -->
             <Grid Grid.Row="2" Margin="28,12,28,24">
-                <comp:DataTableShellControl Title="All Products" RecordCount="{Binding Products.Count}">
+                <comp:DataTableShellControl Title="Product Inventory" RecordCount="{Binding FilteredProducts.Count}">
+                    <!-- Toolbar / Search inside FilterToolbar -->
                     <comp:DataTableShellControl.FilterToolbar>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Edit" Command="{Binding EditCommand}"
-                                    IsEnabled="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-secondary"/>
-                            <Button Content="Delete" Command="{Binding DeleteCommand}"
-                                    IsEnabled="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-danger"/>
-                        </StackPanel>
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Stretch" Margin="0,0,0,8">
+                            <!-- Search box -->
+                            <Border Background="{DynamicResource BrushCardBackground}"
+                                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                    CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0"
+                                    Height="40" Width="380" Margin="0,0,16,8">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                                              Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}"
+                                             PlaceholderText="Search by name, generic, batch or company..."
+                                             Classes="search-input"
+                                             VerticalAlignment="Center" Height="38" Padding="0"/>
+                                </Grid>
+                            </Border>
+                        </WrapPanel>
                     </comp:DataTableShellControl.FilterToolbar>
+
+                    <!-- Main Table -->
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                        <DataGrid x:Name="ProductGrid"
+                                  ItemsSource="{Binding FilteredProducts}"
+                                  SelectedItem="{Binding SelectedProduct}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
-                                  SelectionMode="Single" Background="Transparent" BorderThickness="0"
-                                  GridLinesVisibility="Horizontal">
+                                  SelectionMode="Single"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  RowBackground="{DynamicResource BrushCardBackground}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="PRODUCT NAME"  Binding="{Binding Name}"                                  Width="*"/>
-                                <DataGridTextColumn Header="COMPANY"       Binding="{Binding CompanyName}"                           Width="160"/>
-                                <DataGridTextColumn Header="PURCHASE RATE" Binding="{Binding PurchaseRate, StringFormat=\{0:C2\}}"   Width="130"/>
-                                <DataGridTextColumn Header="SELLING PRICE" Binding="{Binding SellingPrice, StringFormat=\{0:C2\}}"   Width="130"/>
-                                <DataGridTextColumn Header="TAX %"         Binding="{Binding Tax, StringFormat=\{0:N1\}%}"           Width="80"/>
-                                <DataGridTextColumn Header="STOCK"         Binding="{Binding StockQuantity}"                         Width="80"/>
+                                <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="180"/>
+                                <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*" MinWidth="140"/>
+                                <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="150"/>
+                                <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
+                                <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="80"/>
+                                <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="Edit Details"
+                                                        Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).EditSpecificCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="btn-secondary" Padding="12,4" Height="28" FontSize="11"/>
+                                                <Button Content="Delete"
+                                                        Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).RequestDeleteSpecificCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="btn-danger" Padding="12,4" Height="28" FontSize="11"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
                 </comp:DataTableShellControl>
             </Grid>
+
+            <!-- Delete Confirmation Overlay -->
+            <Border Grid.Row="0" Grid.RowSpan="3"
+                    IsVisible="{Binding ShowDeleteConfirm}"
+                    Background="#80000000" ZIndex="100">
+                <Border Background="{DynamicResource BrushCardBackground}"
+                        CornerRadius="12" Padding="32,28"
+                        MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="0 8 32 0 #30000000">
+                    <StackPanel Spacing="20">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Delete Product?" FontSize="18" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="{Binding PendingDeleteLabel}"
+                                       FontSize="14" Foreground="{DynamicResource BrushInk600}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="This action cannot be undone. The product will be permanently removed."
+                                       FontSize="12" Foreground="{DynamicResource BrushInk400}"
+                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                            <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Classes="btn-ghost"/>
+                            <Button Content="Yes, Delete" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Border>
         </Grid>
 
-        <!-- FORM VIEW -->
+        <!-- ============================================================ -->
+        <!-- 2. FORM VIEW (SaveCancelEnabled is true)                       -->
+        <!-- ============================================================ -->
         <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                    Padding="28,18">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushAmber50}">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushTeal50}">
                             <PathIcon Data="{StaticResource IconProducts}" Width="20" Height="20"
-                                      Foreground="{DynamicResource BrushAmber}"
+                                      Foreground="{DynamicResource BrushTeal}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center" Spacing="1">
                             <TextBlock Text="{Binding Mode, StringFormat='{}{0} Product'}" FontSize="20" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Fill in the product details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill out the product details below"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Products" Command="{Binding CancelCommand}"
+                    <!-- Back Button -->
+                    <Button Content="← Back to Registry" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24">
-                <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
+            <!-- Scrollable Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,60">
+                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+                    <!-- SECTION 1: Quick Entry -->
                     <StackPanel Spacing="16">
-                        <TextBlock Text="PRODUCT DETAILS" FontSize="11" FontWeight="Bold"
+                        <TextBlock Text="QUICK ENTRY" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Product Name *" Classes="label"/>
-                            <TextBox Text="{Binding Name}" PlaceholderText="Enter product name"/>
-                        </StackPanel>
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Company" Classes="label"/>
-                            <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
-                                      HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
-                                <TextBlock Text="Purchase Rate" Classes="label"/>
-                                <NumericUpDown Value="{Binding PurchaseRate}" FormatString="N2" Minimum="0"/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                            <!-- Name -->
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Product Name *" Classes="label"/>
+                                <TextBox Text="{Binding Name}" PlaceholderText="e.g. Amoxicillin 500mg"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
-                                <TextBlock Text="Selling Price" Classes="label"/>
-                                <NumericUpDown Value="{Binding SellingPrice}" FormatString="N2" Minimum="0"/>
+                            <!-- Type -->
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Type" Classes="label"/>
+                                <TextBox Text="{Binding Type}" PlaceholderText="e.g. Tablet, Syrup, Injection"/>
                             </StackPanel>
-                        </Grid>
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
-                                <TextBlock Text="Tax (%)" Classes="label"/>
-                                <NumericUpDown Value="{Binding Tax}" FormatString="N2" Minimum="0" Maximum="100"/>
+                            
+                            <!-- Purchase Price -->
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Purchase Price (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
-                                <TextBlock Text="Stock Quantity" Classes="label"/>
-                                <NumericUpDown Value="{Binding StockQuantity}" FormatString="N0" Minimum="0"/>
+                            <!-- Selling Price -->
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Selling Price (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding SellingPrice}" PlaceholderText="0.00"/>
+                            </StackPanel>
+                            
+                            <!-- Current Stock -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Current Stock" Classes="label"/>
+                                <TextBox Text="{Binding Stock}" PlaceholderText="0"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
-                </StackPanel>
+
+                    <!-- SECTION 2: Advanced Fields (Accordion) -->
+                    <Expander Header="Advanced Details" HorizontalAlignment="Stretch" 
+                              Background="Transparent" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}" 
+                              CornerRadius="{DynamicResource CornerRadiusCard}" Padding="16,8">
+                        <StackPanel Spacing="16" Margin="0,12,0,0">
+                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                <!-- Generic Name -->
+                                <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                                    <TextBlock Text="Generic Name" Classes="label"/>
+                                    <TextBox Text="{Binding GenericName}" PlaceholderText="e.g. Amoxicillin Trihydrate"/>
+                                </StackPanel>
+                                <!-- Company -->
+                                <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                                    <TextBlock Text="Company" Classes="label"/>
+                                    <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}" HorizontalAlignment="Stretch" PlaceholderText="Select Company (Optional)">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="models:Company">
+                                                <TextBlock Text="{Binding Name}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBox Text="{Binding CompanyName}" PlaceholderText="Or type Company Name here..." Margin="0,4,0,0"
+                                             IsVisible="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                </StackPanel>
+                                <!-- Category -->
+                                <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                    <TextBlock Text="Category" Classes="label"/>
+                                    <TextBox Text="{Binding Category}" PlaceholderText="e.g. Antibiotics"/>
+                                </StackPanel>
+                                <!-- Rack -->
+                                <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                    <TextBlock Text="Rack" Classes="label"/>
+                                    <TextBox Text="{Binding Rack}" PlaceholderText="e.g. A1, Shelf 3"/>
+                                </StackPanel>
+                                <!-- Batch Number -->
+                                <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                                    <TextBlock Text="Batch Number" Classes="label"/>
+                                    <TextBox Text="{Binding BatchNumber}" PlaceholderText="e.g. B-9988"/>
+                                </StackPanel>
+                                <!-- Expiry Date -->
+                                <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
+                                    <TextBlock Text="Expiry Date" Classes="label"/>
+                                    <DatePicker SelectedDate="{Binding ExpiryDate}" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <!-- Minimum Stock Level -->
+                                <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
+                                    <TextBlock Text="Reorder Level (Min Stock)" Classes="label"/>
+                                    <TextBox Text="{Binding MinimumStockLevel}" PlaceholderText="10"/>
+                                </StackPanel>
+                             </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                        <!-- Snapshot Card -->
+                        <Border Background="{DynamicResource BrushBlue50}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="{DynamicResource CornerRadiusInput}"
+                                Padding="20,16" Margin="0,8,0,0" MaxWidth="500" HorizontalAlignment="Left">
+                            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
+                                <TextBlock Grid.ColumnSpan="2" Text="Financial Snapshot"
+                                           Foreground="{DynamicResource BrushInk900}"
+                                           FontWeight="Bold" Margin="0,0,0,10" FontSize="13"
+                                           FontFamily="{DynamicResource FontLexend}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                           Text="{Binding ProfitPerUnitText}"
+                                           Foreground="{DynamicResource BrushPrimaryBlue}"
+                                           FontSize="16" FontWeight="SemiBold"
+                                           FontFamily="{DynamicResource FontMono}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding InventoryValueText}"
+                                           Foreground="{DynamicResource BrushPrimaryBlue}"
+                                           FontSize="16" FontWeight="SemiBold"
+                                           FontFamily="{DynamicResource FontMono}" Margin="0,0,0,4"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0"
+                                           Text="Profit / unit"
+                                           Foreground="{DynamicResource BrushInk600}" FontSize="11"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="Inventory Value"
+                                           Foreground="{DynamicResource BrushInk600}" FontSize="11"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                
             </ScrollViewer>
 
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0"
+                    Padding="28,16">
                 <DockPanel>
+                    <!-- Error or info messages go here -->
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
-                               VerticalAlignment="Center" FontSize="13"/>
+                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Product" Command="{Binding SaveCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </DockPanel>

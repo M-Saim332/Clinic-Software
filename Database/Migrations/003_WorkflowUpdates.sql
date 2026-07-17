@@ -60,21 +60,21 @@ FROM Purchases p
 JOIN Suppliers s ON p.SupplierID = s.SupplierID
 WHERE p.SupplierName IS NULL;
 
--- Medicines: company/supplier names + barcode
-IF COL_LENGTH('Medicines', 'CompanyName') IS NULL
-    ALTER TABLE Medicines ADD CompanyName VARCHAR(150) NULL;
+-- Products: company/supplier names + barcode
+IF COL_LENGTH('Products', 'CompanyName') IS NULL
+    ALTER TABLE Products ADD CompanyName VARCHAR(150) NULL;
 
-IF COL_LENGTH('Medicines', 'SupplierID') IS NULL
-    ALTER TABLE Medicines ADD SupplierID INT NULL;
+IF COL_LENGTH('Products', 'SupplierID') IS NULL
+    ALTER TABLE Products ADD SupplierID INT NULL;
 
-IF COL_LENGTH('Medicines', 'SupplierName') IS NULL
-    ALTER TABLE Medicines ADD SupplierName VARCHAR(150) NULL;
+IF COL_LENGTH('Products', 'SupplierName') IS NULL
+    ALTER TABLE Products ADD SupplierName VARCHAR(150) NULL;
 
-IF COL_LENGTH('Medicines', 'Barcode') IS NULL
-    ALTER TABLE Medicines ADD Barcode VARCHAR(50) NULL;
+IF COL_LENGTH('Products', 'Barcode') IS NULL
+    ALTER TABLE Products ADD Barcode VARCHAR(50) NULL;
 
 UPDATE m SET m.CompanyName = c.Name
-FROM Medicines m
+FROM Products m
 JOIN Companies c ON m.CompanyID = c.CompanyID
 WHERE m.CompanyName IS NULL AND m.CompanyID IS NOT NULL;
 

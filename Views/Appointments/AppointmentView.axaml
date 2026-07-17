@@ -3,6 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Appointments"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Appointments.AppointmentView"
+             x:Name="Root"
              x:DataType="vm:AppointmentViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
@@ -72,18 +73,7 @@
                 <comp:DataTableShellControl Title="Appointment List" RecordCount="{Binding Appointments.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Mark Missed" Command="{Binding MarkMissedCommand}"
-                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-secondary"/>
-                            <Button Content="Complete" Command="{Binding CompleteCommand}"
-                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-success"/>
-                            <Button Content="Cancel Appt" Command="{Binding MarkCancelledCommand}"
-                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-danger"/>
-                            <Button Content="Edit" Command="{Binding EditCommand}"
-                                    IsEnabled="{Binding SelectedAppointment, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-secondary"/>
+                            <!-- Removed toolbar buttons -->
                         </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
@@ -97,10 +87,23 @@
                                 <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
                                 <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="160"/>
                                 <DataGridTextColumn Header="REASON" Binding="{Binding Reason}" Width="*"/>
-                                <DataGridTemplateColumn Header="STATUS" Width="140">
+                                <DataGridTemplateColumn Header="STATUS" Width="100">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <comp:StatusBadgeControl Status="{Binding Status}" VerticalAlignment="Center" Margin="4,0"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="360">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="View" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
+                                                <Button Content="Edit" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
+                                                <Button Content="Complete" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).CompleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-success" Padding="8,4" Height="28" FontSize="11"/>
+                                                <Button Content="Missed" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkMissedSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
+                                                <Button Content="Cancel" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkCancelledSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
+                                            </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
@@ -146,7 +149,7 @@
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Patient (Optional)" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                          HorizontalAlignment="Stretch" PlaceholderText="Select Patient (Optional)">
+                                          HorizontalAlignment="Stretch" PlaceholderText="Select Patient (Optional)" IsEnabled="{Binding !IsReadOnly}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -155,7 +158,7 @@
                             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="Doctor *" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}"
-                                          HorizontalAlignment="Stretch">
+                                          HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate><TextBlock Text="{Binding FullName}"/></DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -163,25 +166,25 @@
                             </StackPanel>
                             <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
                                 <TextBlock Text="Patient Name (If no patient selected)" Classes="label"/>
-                                <TextBox Text="{Binding PatientName}" HorizontalAlignment="Stretch"/>
+                                <TextBox Text="{Binding PatientName}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
                                 <TextBlock Text="Phone (If no patient selected)" Classes="label"/>
-                                <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch"/>
+                                <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Date *" Classes="label"/>
-                                <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch"/>
+                                <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="Time *" Classes="label"/>
-                                <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch"/>
+                                <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Spacing="6" Margin="0,0,0,12">
                                 <TextBlock Text="Reason for Visit" Classes="label"/>
                                 <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
                                          AcceptsReturn="True" Height="80" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" Padding="12,10"/>
+                                         VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -195,7 +198,8 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Save Appointment" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                        <Button Content="Edit Appointment" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedAppointment}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
+                        <Button Content="Save Appointment" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

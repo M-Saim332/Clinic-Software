@@ -6,12 +6,12 @@ namespace ClinicSystem.Data.Repositories;
 public class PrescriptionRepository
 {
     private readonly DatabaseSession _session;
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
 
-    public PrescriptionRepository(DatabaseSession session, MedicineRepository medicineRepo)
+    public PrescriptionRepository(DatabaseSession session, ProductRepository productRepo)
     {
         _session = session;
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
     }
 
     public IEnumerable<Prescription> GetAll()
@@ -52,9 +52,9 @@ public class PrescriptionRepository
         if (prescription == null) return null;
 
         prescription.Items = conn.Query<PrescriptionItem>(
-            @"SELECT pi.*, m.Name AS MedicineName
+            @"SELECT pi.*, m.Name AS ProductName
               FROM PrescriptionItems pi
-              JOIN Medicines m ON pi.MedicineID = m.MedicineID
+              JOIN Products m ON pi.ProductID = m.ProductID
               WHERE pi.PrescriptionID = @prescriptionId",
             new { prescriptionId }).ToList();
 
@@ -79,14 +79,14 @@ public class PrescriptionRepository
             {
                 item.PrescriptionID = prescId;
                 conn.Execute(
-                    @"INSERT INTO PrescriptionItems (PrescriptionID, MedicineID, Quantity, Dosage)
-                      VALUES (@PrescriptionID, @MedicineID, @Quantity, @Dosage)",
+                    @"INSERT INTO PrescriptionItems (PrescriptionID, ProductID, Quantity, Dosage)
+                      VALUES (@PrescriptionID, @ProductID, @Quantity, @Dosage)",
                     item, tx);
 
                 // Decrement stock
                 conn.Execute(
-                    "UPDATE Medicines SET Stock = Stock - @Quantity WHERE MedicineID = @MedicineID",
-                    new { item.Quantity, item.MedicineID }, tx);
+                    "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
+                    new { item.Quantity, item.ProductID }, tx);
             }
 
             tx.Commit();

@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 using ClinicSystem.Data;
 using ClinicSystem.Data.Repositories;
 using ClinicSystem.UI.ViewModels;
-using ClinicSystem.UI.ViewModels.Medicines;
+using ClinicSystem.UI.ViewModels.Products;
 using ClinicSystem.UI.ViewModels.Patients;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Reports;
@@ -50,33 +50,32 @@ public partial class App : Application
 
         // Repositories
         services.AddSingleton<PatientRepository>();
-        services.AddSingleton<MedicineRepository>();
+        services.AddSingleton<ProductRepository>();
         services.AddSingleton<UserRepository>();
         services.AddSingleton<PrescriptionRepository>();
         services.AddSingleton<CompanyRepository>();
         services.AddSingleton<SupplierRepository>();
-        services.AddSingleton<ProductRepository>();
         services.AddSingleton<AppointmentRepository>();
         services.AddSingleton<PurchaseRepository>();
         services.AddSingleton<SaleRepository>();
         services.AddSingleton<ReturnRepository>();
         services.AddSingleton<DiscountRefundRepository>();
+        services.AddSingleton<ActivityLogRepository>();
 
         // ViewModels
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<PatientRegistryViewModel>();
-        services.AddSingleton<MedicineRegistryViewModel>();
+        services.AddSingleton<ProductRegistryViewModel>();
         services.AddSingleton<PrescriptionViewModel>();
         services.AddSingleton<VisitHistoryViewModel>();
         services.AddSingleton<UserRegistryViewModel>();
         services.AddSingleton<ReportsViewModel>();
         services.AddSingleton<CompanyRegistryViewModel>();
         services.AddSingleton<SupplierRegistryViewModel>();
-        services.AddSingleton<ProductRegistryViewModel>();
         services.AddSingleton<AppointmentViewModel>();
         services.AddSingleton<PurchaseViewModel>();
         services.AddSingleton<SaleViewModel>();
-        services.AddSingleton<MedicineReturnViewModel>();
+        services.AddSingleton<ProductReturnViewModel>();
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();

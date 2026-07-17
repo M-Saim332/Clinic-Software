@@ -12,13 +12,13 @@ public partial class SaleViewModel : ViewModelBase
 {
     private readonly SaleRepository _repo;
     private readonly PatientRepository _patientRepo;
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
 
-    public SaleViewModel(SaleRepository repo, PatientRepository patientRepo, MedicineRepository medicineRepo)
+    public SaleViewModel(SaleRepository repo, PatientRepository patientRepo, ProductRepository productRepo)
     {
         _repo = repo;
         _patientRepo = patientRepo;
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
     }
 
     [ObservableProperty] private FormMode _mode = FormMode.View;
@@ -27,7 +27,7 @@ public partial class SaleViewModel : ViewModelBase
     
     [ObservableProperty] private ObservableCollection<Sale> _sales = new();
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _medicines = new(); // non-expired
+    [ObservableProperty] private ObservableCollection<Product> _products = new(); // non-expired
     [ObservableProperty] private Sale? _selectedSale;
 
     // KPI summary counts
@@ -50,18 +50,18 @@ public partial class SaleViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<SaleItem> _lineItems = new();
 
     // Line Item Input
-    [ObservableProperty] private Medicine? _selectedMedicine;
-    [ObservableProperty] private string _medicineSearchTerm = string.Empty;
-    [ObservableProperty] private ObservableCollection<Medicine> _filteredMedicines = new();
+    [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private string _productSearchTerm = string.Empty;
+    [ObservableProperty] private ObservableCollection<Product> _filteredProducts = new();
     [ObservableProperty] private int _quantity = 1;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
-    [ObservableProperty] private decimal _medicinePrice;
+    [ObservableProperty] private decimal _productPrice;
 
     public bool PatientIsSelected => SelectedPatient != null;
     public bool IsWalkIn => SelectedPatient == null;
 
-    public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.Quantity * x.MedicinePrice - x.Discount + x.Tax);
+    public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.Quantity * x.ProductPrice - x.Discount + x.Tax);
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
@@ -114,29 +114,29 @@ public partial class SaleViewModel : ViewModelBase
     [RelayCommand]
     private void AddLineItem()
     {
-        if (SelectedMedicine == null) { StatusMessage = "Select a medicine."; return; }
+        if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
-        if (Quantity > SelectedMedicine.Stock) { StatusMessage = $"Only {SelectedMedicine.Stock} in stock."; return; }
+        if (Quantity > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock} in stock."; return; }
 
         var item = new SaleItem
         {
-            MedicineID = SelectedMedicine.MedicineID,
-            MedicineName = SelectedMedicine.Name,
+            ProductID = SelectedProduct.ProductID,
+            ProductName = SelectedProduct.Name,
             Quantity = Quantity,
             Discount = Discount,
             Tax = Tax,
-            MedicinePrice = MedicinePrice
+            ProductPrice = ProductPrice
         };
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
         
         // Reset inputs
-        SelectedMedicine = null;
+        SelectedProduct = null;
         Quantity = 1;
         Discount = 0;
         Tax = 0;
-        MedicinePrice = 0;
+        ProductPrice = 0;
         StatusMessage = string.Empty;
     }
 
@@ -204,15 +204,15 @@ public partial class SaleViewModel : ViewModelBase
         try
         {
             var patients = await Task.Run(() => _patientRepo.GetAll());
-            var medicines = await Task.Run(() => _medicineRepo.GetAll());
+            var products = await Task.Run(() => _productRepo.GetAll());
             var sales = await Task.Run(() => _repo.GetAll());
             
             Avalonia.Threading.Dispatcher.UIThread.Post(() => 
             {
                 Patients = new ObservableCollection<Patient>(patients);
-                Medicines = new ObservableCollection<Medicine>(
-                    medicines.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
-                FilteredMedicines = new ObservableCollection<Medicine>(Medicines);
+                Products = new ObservableCollection<Product>(
+                    products.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
+                FilteredProducts = new ObservableCollection<Product>(Products);
                 Sales = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
 
                 TotalInvoicesCount = Sales.Count;
@@ -236,7 +236,7 @@ public partial class SaleViewModel : ViewModelBase
         ConsultationFee = 0;
         PaymentMethod = "Cash";
         LineItems.Clear();
-        MedicineSearchTerm = string.Empty;
+        ProductSearchTerm = string.Empty;
         OnPropertyChanged(nameof(GrandTotal));
     }
 
@@ -255,23 +255,23 @@ public partial class SaleViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsWalkIn));
     }
 
-    partial void OnMedicineSearchTermChanged(string value)
+    partial void OnProductSearchTermChanged(string value)
     {
         var term = value?.Trim().ToLower() ?? string.Empty;
-        FilteredMedicines = string.IsNullOrEmpty(term)
-            ? new ObservableCollection<Medicine>(Medicines)
-            : new ObservableCollection<Medicine>(
-                Medicines.Where(m =>
+        FilteredProducts = string.IsNullOrEmpty(term)
+            ? new ObservableCollection<Product>(Products)
+            : new ObservableCollection<Product>(
+                Products.Where(m =>
                     m.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                     (m.GenericName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (m.CompanyName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)));
     }
 
-    partial void OnSelectedMedicineChanged(Medicine? value)
+    partial void OnSelectedProductChanged(Product? value)
     {
         if (value != null)
         {
-            MedicinePrice = value.SellingPrice;
+            ProductPrice = value.SellingPrice;
         }
     }
     

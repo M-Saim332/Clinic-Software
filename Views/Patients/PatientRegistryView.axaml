@@ -3,6 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Patients.PatientRegistryView"
+             x:Name="Root"
              x:DataType="vm:PatientRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
@@ -37,10 +38,6 @@
                     <comp:DataTableShellControl.FilterToolbar>
                         <Grid ColumnDefinitions="*,Auto" HorizontalAlignment="Stretch">
                             <TextBox Grid.Column="0" Text="{Binding SearchTerm}" PlaceholderText="Search patient by name, phone, diagnosis..." MaxWidth="460"/>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                <Button Content="Edit" Command="{Binding EditCommand}" Classes="btn-secondary"/>
-                                <Button Content="Delete" Command="{Binding DeleteCommand}" Classes="btn-danger"/>
-                            </StackPanel>
                         </Grid>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
@@ -57,7 +54,18 @@
                                 <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="120"/>
                                 <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
                                 <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
-                                <DataGridTextColumn Header="FEE" Binding="{Binding ConsultationFee}" Width="120"/>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="240">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="View" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="12,4" Height="28" FontSize="11"/>
+                                                <Button Content="Edit" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="12,4" Height="28" FontSize="11"/>
+                                                <Button Content="Delete" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).DeleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="12,4" Height="28" FontSize="11"/>
+                                                <Button Content="Book" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).BookAppointmentSpecificCommand}" CommandParameter="{Binding}" Classes="btn-primary" Padding="12,4" Height="28" FontSize="11"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
@@ -80,36 +88,36 @@
                 <StackPanel Spacing="14" MaxWidth="760">
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"/>
                     <TextBlock Text="Full Name *" Classes="label"/>
-                    <TextBox Text="{Binding Name}"/>
+                    <TextBox Text="{Binding Name}" IsReadOnly="{Binding IsReadOnly}"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Age" Classes="label"/>
-                            <TextBox Text="{Binding Age}" PlaceholderText="e.g. 35"/>
+                            <TextBox Text="{Binding Age}" PlaceholderText="e.g. 35" IsReadOnly="{Binding IsReadOnly}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Gender" Classes="label"/>
-                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch"/>
+                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                         </StackPanel>
                     </Grid>
 
                     <TextBlock Text="Phone" Classes="label"/>
-                    <TextBox Text="{Binding Phone}"/>
+                    <TextBox Text="{Binding Phone}" IsReadOnly="{Binding IsReadOnly}"/>
                     <TextBlock Text="Address" Classes="label"/>
-                    <TextBox Text="{Binding Address}" AcceptsReturn="True" Height="70"/>
+                    <TextBox Text="{Binding Address}" AcceptsReturn="True" Height="70" IsReadOnly="{Binding IsReadOnly}"/>
                     <TextBlock Text="Diagnosis" Classes="label"/>
-                    <TextBox Text="{Binding Diagnosis}" AcceptsReturn="True" Height="70"/>
+                    <TextBox Text="{Binding Diagnosis}" AcceptsReturn="True" Height="70" IsReadOnly="{Binding IsReadOnly}"/>
                     <TextBlock Text="Prescription" Classes="label"/>
-                    <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="70"/>
+                    <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="70" IsReadOnly="{Binding IsReadOnly}"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Consultation Fee" Classes="label"/>
-                            <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00"/>
+                            <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <TextBlock Text="Discount" Classes="label"/>
-                            <TextBox Text="{Binding Discount}" PlaceholderText="0.00"/>
+                            <TextBox Text="{Binding Discount}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}"/>
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -118,8 +126,9 @@
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                    <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
-                    <Button Content="Save Patient" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    <Button Content="Back" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                    <Button Content="Edit Patient" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
+                    <Button Content="Save Patient" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
                 </StackPanel>
             </Border>
         </Grid>

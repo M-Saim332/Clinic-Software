@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace ClinicSystem.UI.Views.Sales;
 
-public partial class MedicineReturnView : UserControl
+public partial class ProductReturnView : UserControl
 {
-    public MedicineReturnView()
+    public ProductReturnView()
     {
         InitializeComponent();
     }

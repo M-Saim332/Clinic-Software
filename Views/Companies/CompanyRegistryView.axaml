@@ -52,21 +52,11 @@
             <Grid Grid.Row="2" Margin="28,12,28,24">
                 <comp:DataTableShellControl Title="All Companies" RecordCount="{Binding Companies.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="Edit" Command="{Binding EditCommand}"
-                                    IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-secondary"/>
-                            <Button Content="Delete" Command="{Binding DeleteCommand}"
-                                    IsVisible="{Binding !IsConfirmingDelete}"
-                                    IsEnabled="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="btn-danger"/>
-                            <Button Content="Confirm Delete?" Command="{Binding DeleteCommand}"
-                                    IsVisible="{Binding IsConfirmingDelete}"
-                                    Classes="btn-danger"/>
-                        </StackPanel>
+                        <StackPanel/>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
+                        <DataGrid x:Name="CompanyGrid"
+                                  ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                   GridLinesVisibility="Horizontal">
@@ -75,14 +65,61 @@
                                 <DataGridTextColumn Header="PHONE"         Binding="{Binding Phone}" Width="160"/>
                                 <DataGridTextColumn Header="EMAIL"         Binding="{Binding Email}" Width="220"/>
                                 <DataGridTextColumn Header="ADDRESS"       Binding="{Binding Address}" Width="*"/>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Content="Edit Details"
+                                                        Command="{Binding #CompanyGrid.((vm:CompanyRegistryViewModel)DataContext).EditSpecificCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="btn-secondary" Padding="12,4" Height="28" FontSize="11"/>
+                                                <Button Content="Delete"
+                                                        Command="{Binding #CompanyGrid.((vm:CompanyRegistryViewModel)DataContext).RequestDeleteSpecificCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Classes="btn-danger" Padding="12,4" Height="28" FontSize="11"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
                 </comp:DataTableShellControl>
             </Grid>
+
+            <!-- Delete Confirmation Overlay -->
+            <Border Grid.Row="0" Grid.RowSpan="3"
+                    IsVisible="{Binding ShowDeleteConfirm}"
+                    Background="#80000000" ZIndex="100">
+                <Border Background="{DynamicResource BrushCardBackground}"
+                        CornerRadius="12" Padding="32,28"
+                        MaxWidth="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="0 8 32 0 #30000000">
+                    <StackPanel Spacing="20">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Delete Company?" FontSize="18" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="{Binding PendingDeleteLabel}"
+                                       FontSize="14" Foreground="{DynamicResource BrushInk600}"
+                                       TextWrapping="Wrap"/>
+                            <TextBlock Text="This action cannot be undone. All products linked to this company will lose their company reference."
+                                       FontSize="12" Foreground="{DynamicResource BrushInk400}"
+                                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                            <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Classes="btn-ghost"/>
+                            <Button Content="Yes, Delete" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Border>
         </Grid>
 
+
         <!-- FORM VIEW -->
+
         <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"

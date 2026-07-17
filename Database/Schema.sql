@@ -28,7 +28,7 @@ IF OBJECT_ID('PurchaseItems', 'U') IS NOT NULL DROP TABLE PurchaseItems;
 IF OBJECT_ID('Purchases', 'U') IS NOT NULL DROP TABLE Purchases;
 IF OBJECT_ID('Appointments', 'U') IS NOT NULL DROP TABLE Appointments;
 IF OBJECT_ID('Patients', 'U') IS NOT NULL DROP TABLE Patients;
-IF OBJECT_ID('Medicines', 'U') IS NOT NULL DROP TABLE Medicines;
+IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
 IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
 IF OBJECT_ID('Suppliers', 'U') IS NOT NULL DROP TABLE Suppliers;
 IF OBJECT_ID('Companies', 'U') IS NOT NULL DROP TABLE Companies;
@@ -58,19 +58,9 @@ CREATE TABLE Suppliers (
 );
 GO
 
-CREATE TABLE Products (
-    ProductID     INT IDENTITY(1,1) PRIMARY KEY,
-    CompanyID     INT FOREIGN KEY REFERENCES Companies(CompanyID),
-    Name          VARCHAR(150) NOT NULL,
-    PurchaseRate  DECIMAL(10,2) DEFAULT 0,
-    SellingPrice  DECIMAL(10,2) DEFAULT 0,
-    Tax           DECIMAL(5,2) DEFAULT 0,
-    StockQuantity INT DEFAULT 0
-);
-GO
 
-CREATE TABLE Medicines (
-    MedicineID        INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE Products (
+    ProductID        INT IDENTITY(1,1) PRIMARY KEY,
     Name              VARCHAR(150) NOT NULL,
     GenericName       VARCHAR(150),
     CompanyID         INT FOREIGN KEY REFERENCES Companies(CompanyID),
@@ -173,12 +163,16 @@ GO
 CREATE TABLE SaleItems (
     SaleItemID INT IDENTITY(1,1) PRIMARY KEY,
     SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
-    MedicineID INT FOREIGN KEY REFERENCES Medicines(MedicineID),
+    ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
     Quantity   INT NOT NULL,
     Discount   DECIMAL(10,2) DEFAULT 0,
     Tax        DECIMAL(5,2) DEFAULT 0,
     LineTotal  DECIMAL(10,2) DEFAULT 0
 );
+GO
+
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
 GO
 
 -- DiscountRefunds: doctor-approved refunds with full audit trail
@@ -206,8 +200,8 @@ GO
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Patients_Name')
     CREATE INDEX IX_Patients_Name ON Patients(Name);
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Medicines_Name')
-    CREATE INDEX IX_Medicines_Name ON Medicines(Name);
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Products_Name')
+    CREATE INDEX IX_Products_Name ON Products(Name);
 
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_Appointments_Date')
     CREATE INDEX IX_Appointments_Date ON Appointments(AppointmentDate);

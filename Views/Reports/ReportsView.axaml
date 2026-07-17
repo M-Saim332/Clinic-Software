@@ -57,11 +57,11 @@
                 </comp:DataTableShellControl>
             </TabItem>
 
-            <!-- Tab 2: Medicine Stock -->
-            <TabItem Header="Medicine Stock">
-                <comp:DataTableShellControl Title="Stock Level Listing" RecordCount="{Binding MedicineStockList.Count}">
+            <!-- Tab 2: Product Stock -->
+            <TabItem Header="Product Stock">
+                <comp:DataTableShellControl Title="Stock Level Listing" RecordCount="{Binding ProductStockList.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
-                        <Button Command="{Binding LoadMedicineStockCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
+                        <Button Command="{Binding LoadProductStockCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
@@ -69,10 +69,10 @@
                         </Button>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding MedicineStockList}" AutoGenerateColumns="False" IsReadOnly="True"
+                        <DataGrid ItemsSource="{Binding ProductStockList}" AutoGenerateColumns="False" IsReadOnly="True"
                                   Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="MEDICINE NAME" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
                                 <DataGridTextColumn Header="CURRENT STOCK" Binding="{Binding Stock}" Width="140"/>
                                 <DataGridTextColumn Header="MINIMUM LEVEL" Binding="{Binding MinStock}" Width="140"/>
                                 <DataGridTextColumn Header="STATUS" Binding="{Binding StockStatus}" Width="130"/>
@@ -88,15 +88,15 @@
             <!-- Tab 3: Alerts -->
             <TabItem Header="Alerts">
                 <Grid ColumnDefinitions="*,*" Margin="0,12,0,0">
-                    <!-- Expired medicines panel -->
+                    <!-- Expired products panel -->
                     <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                             CornerRadius="{DynamicResource CornerRadiusCard}" Margin="0,0,12,0" Padding="16">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="EXPIRED MEDICINES (DO NOT SELL)" FontSize="11" FontWeight="Bold"
+                            <TextBlock DockPanel.Dock="Top" Text="EXPIRED PRODUCTS (DO NOT SELL)" FontSize="11" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushRose}" LetterSpacing="1.5"
                                        FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
-                            <DataGrid ItemsSource="{Binding ExpiredMedicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                            <DataGrid ItemsSource="{Binding ExpiredProducts}" AutoGenerateColumns="False" IsReadOnly="True"
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
@@ -107,7 +107,7 @@
                         </DockPanel>
                     </Border>
 
-                    <!-- Low Stock medicines panel -->
+                    <!-- Low Stock products panel -->
                     <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}"
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                             CornerRadius="{DynamicResource CornerRadiusCard}" Margin="12,0,0,0" Padding="16">
@@ -115,7 +115,7 @@
                             <TextBlock DockPanel.Dock="Top" Text="LOW STOCK ALERTS (REORDER SOON)" FontSize="11" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushAmber}" LetterSpacing="1.5"
                                        FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
-                            <DataGrid ItemsSource="{Binding LowStockMedicines}" AutoGenerateColumns="False" IsReadOnly="True"
+                            <DataGrid ItemsSource="{Binding LowStockProducts}" AutoGenerateColumns="False" IsReadOnly="True"
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>

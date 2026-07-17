@@ -19,13 +19,14 @@ public partial class DashboardViewModel : ViewModelBase,
     IRecipient<RefundCompletedMessage>
 {
     private readonly PatientRepository    _patientRepo;
-    private readonly MedicineRepository   _medicineRepo;
+    private readonly ProductRepository   _productRepo;
     private readonly CompanyRepository    _companyRepo;
     private readonly SupplierRepository   _supplierRepo;
     private readonly AppointmentRepository _appointmentRepo;
     private readonly SaleRepository       _saleRepo;
     private readonly PurchaseRepository   _purchaseRepo;
     private readonly DiscountRefundRepository _refundRepo;
+    private readonly ActivityLogRepository _activityRepo;
 
     // 30-second auto-refresh timer for pending refunds
     private readonly System.Timers.Timer _refundPollTimer;
@@ -39,30 +40,32 @@ public partial class DashboardViewModel : ViewModelBase,
     public Action? RequestNavigateSuppliers    { get; set; }
     public Action? RequestNavigateSales        { get; set; }
     public Action? RequestNavigateAppointments { get; set; }
-    public Action? RequestNavigateMedicines    { get; set; }
+    public Action? RequestNavigateProducts    { get; set; }
     public Action? RequestNavigateInventory    { get; set; }
 
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     public DashboardViewModel(
         PatientRepository    patientRepo,
-        MedicineRepository   medicineRepo,
+        ProductRepository   productRepo,
         CompanyRepository    companyRepo,
         SupplierRepository   supplierRepo,
         AppointmentRepository appointmentRepo,
         SaleRepository       saleRepo,
         PurchaseRepository   purchaseRepo,
         DiscountRefundRepository refundRepo,
-        DiscountRefundViewModel discountRefundVM)
+        DiscountRefundViewModel discountRefundVM,
+        ActivityLogRepository activityRepo)
     {
         _patientRepo     = patientRepo;
-        _medicineRepo    = medicineRepo;
+        _productRepo    = productRepo;
         _companyRepo     = companyRepo;
         _supplierRepo    = supplierRepo;
         _appointmentRepo = appointmentRepo;
         _saleRepo        = saleRepo;
         _purchaseRepo    = purchaseRepo;
         _refundRepo      = refundRepo;
+        _activityRepo    = activityRepo;
         DiscountRefundVM = discountRefundVM;
 
         WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this);
@@ -85,7 +88,7 @@ public partial class DashboardViewModel : ViewModelBase,
     [RelayCommand] private void NavigateToSuppliers()    => RequestNavigateSuppliers?.Invoke();
     [RelayCommand] private void NavigateToSales()        => RequestNavigateSales?.Invoke();
     [RelayCommand] private void NavigateToAppointments() => RequestNavigateAppointments?.Invoke();
-    [RelayCommand] private void NavigateToMedicines()    => RequestNavigateMedicines?.Invoke();
+    [RelayCommand] private void NavigateToProducts()    => RequestNavigateProducts?.Invoke();
     [RelayCommand] private void NavigateToInventory()    => RequestNavigateInventory?.Invoke();
 
     public DiscountRefundViewModel DiscountRefundVM { get; }
@@ -96,7 +99,7 @@ public partial class DashboardViewModel : ViewModelBase,
     [ObservableProperty] private ObservableCollection<DiscountRefund> _refundHistory = new();
 
     // ── Summary card counts ────────────────────────────────────────────────
-    [ObservableProperty] private int _totalMedicines;
+    [ObservableProperty] private int _totalProducts;
     [ObservableProperty] private int _totalAppointmentsToday;
 
     // ── Today's summary panel ─────────────────────────────────────────────
@@ -116,12 +119,12 @@ public partial class DashboardViewModel : ViewModelBase,
     [ObservableProperty] private ISeries[] _revenueSeries = Array.Empty<ISeries>();
 
     // ── Lists ──────────────────────────────────────────────────────────────
-    [ObservableProperty] private ObservableCollection<Medicine>    _lowStockMedicines     = new();
-    [ObservableProperty] private ObservableCollection<Medicine>    _expiringSoonMedicines = new();
+    [ObservableProperty] private ObservableCollection<Product>    _lowStockProducts     = new();
+    [ObservableProperty] private ObservableCollection<Product>    _expiringSoonProducts = new();
     [ObservableProperty] private ObservableCollection<Appointment> _todayAppointments     = new();
 
     // ── Recent activity feed ───────────────────────────────────────────────
-    [ObservableProperty] private ObservableCollection<string> _recentActivities = new();
+    [ObservableProperty] private ObservableCollection<ActivityLog> _recentActivities = new();
 
     [RelayCommand]
     public async Task InitializeAsync()
@@ -129,7 +132,7 @@ public partial class DashboardViewModel : ViewModelBase,
         try
         {
             var patients     = await Task.Run(() => _patientRepo.GetAll());
-            var medicines    = await Task.Run(() => _medicineRepo.GetAll());
+            var products    = await Task.Run(() => _productRepo.GetAll());
             var companies    = await Task.Run(() => _companyRepo.GetAll());
             var suppliers    = await Task.Run(() => _supplierRepo.GetAll());
             var appointments = await Task.Run(() => _appointmentRepo.GetAll());
@@ -139,15 +142,15 @@ public partial class DashboardViewModel : ViewModelBase,
             // Load pending refund notifications
             await LoadPendingRefundsAsync();
 
-            var medicineList    = medicines.ToList();
+            var productList    = products.ToList();
             var appointmentList = appointments.ToList();
             var today           = DateTime.Today;
 
-            var lowStock = medicineList
+            var lowStock = productList
                 .Where(m => m.IsLowStock && !m.IsExpired)
                 .OrderBy(m => m.Stock).Take(6).ToList();
 
-            var expiringSoon = medicineList
+            var expiringSoon = productList
                 .Where(m => m.ExpiryDate.HasValue && !m.IsExpired
                          && m.ExpiryDate.Value <= today.AddDays(30))
                 .OrderBy(m => m.ExpiryDate).Take(6).ToList();
@@ -190,7 +193,7 @@ public partial class DashboardViewModel : ViewModelBase,
             }
 
             double totalProfit = Math.Max(0, totalRevenue - totalExpenses);
-            double stockValue = medicineList.Sum(m => (double)(m.PurchasePrice * m.Stock));
+            double stockValue = productList.Sum(m => (double)(m.PurchasePrice * m.Stock));
 
             // ── Build chart series ─────────────────────────────────────────
             var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
@@ -238,7 +241,7 @@ public partial class DashboardViewModel : ViewModelBase,
                 new PieSeries<double>
                 {
                     Values         = new double[] { Math.Max(1.0, totalRevenue) },
-                    Name           = "Medicine Sales",
+                    Name           = "Product Sales",
                     Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
                     InnerRadius    = 80
                 },
@@ -267,7 +270,7 @@ public partial class DashboardViewModel : ViewModelBase,
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                TotalMedicines         = medicineList.Count;
+                TotalProducts         = productList.Count;
                 TotalAppointmentsToday = todayAppts.Count;
                 TodayPatients          = appointmentList.Where(a => a.AppointmentDate.Date == today).Select(a => a.PatientID).Distinct().Count();
 
@@ -278,29 +281,27 @@ public partial class DashboardViewModel : ViewModelBase,
                 SummaryTotalProfit  = $"Rs. {totalProfit:N2}";
                 TotalStockValue     = $"Rs. {stockValue:N2}";
 
-                LowStockMedicines     = new ObservableCollection<Medicine>(lowStock);
-                ExpiringSoonMedicines = new ObservableCollection<Medicine>(expiringSoon);
+                LowStockProducts     = new ObservableCollection<Product>(lowStock);
+                ExpiringSoonProducts = new ObservableCollection<Product>(expiringSoon);
                 TodayAppointments     = new ObservableCollection<Appointment>(todayAppts);
 
                 ProfitSeries  = lineSeries;
                 XAxes         = xAxes;
                 RevenueSeries = donutSeries;
+            });
 
-                RecentActivities = new ObservableCollection<string>
-                {
-                    $"New patient registered",
-                    $"Invoice created",
-                    $"Payment received",
-                    $"New purchase added",
-                    $"{todayAppts.Count} appointment(s) today"
-                };
+            // ── Load real recent activities (outside UIThread.Post because it needs await) ──
+            var activities = await Task.Run(() => _activityRepo.GetLatest(15));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                RecentActivities = new ObservableCollection<ActivityLog>(activities);
             });
         }
         catch (Exception ex)
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                RecentActivities = new ObservableCollection<string>
-                    { $"Dashboard load error: {ex.Message}" });
+                RecentActivities = new ObservableCollection<ActivityLog>
+                    { new ActivityLog { Title = "Dashboard load error", Description = ex.Message, Module = "Dashboard" } });
         }
     }
 
@@ -328,7 +329,7 @@ public partial class DashboardViewModel : ViewModelBase,
         catch (Exception ex)
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                RecentActivities.Insert(0, $"Refund error: {ex.Message}"));
+                RecentActivities.Insert(0, new ActivityLog { Title = "Refund error", Description = ex.Message, Module = "Sales" }));
         }
     }
 

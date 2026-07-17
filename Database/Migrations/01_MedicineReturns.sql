@@ -1,24 +1,24 @@
 USE ClinicDB;
 GO
 
--- Add IsReturnable column to Medicines if it doesn't exist
+-- Add IsReturnable column to Products if it doesn't exist
 IF NOT EXISTS (
     SELECT * FROM sys.columns 
-    WHERE Name = N'IsReturnable' AND Object_ID = Object_ID(N'Medicines')
+    WHERE Name = N'IsReturnable' AND Object_ID = Object_ID(N'Products')
 )
 BEGIN
-    ALTER TABLE Medicines
+    ALTER TABLE Products
     ADD IsReturnable BIT NOT NULL DEFAULT 1;
 END
 GO
 
--- Create MedicineReturns table
-IF OBJECT_ID('MedicineReturns', 'U') IS NULL
+-- Create ProductReturns table
+IF OBJECT_ID('ProductReturns', 'U') IS NULL
 BEGIN
-    CREATE TABLE MedicineReturns (
+    CREATE TABLE ProductReturns (
         ReturnId INT IDENTITY(1,1) PRIMARY KEY,
         SaleId INT NOT NULL FOREIGN KEY REFERENCES Sales(SaleId),
-        MedicineId INT NOT NULL FOREIGN KEY REFERENCES Medicines(MedicineId),
+        ProductId INT NOT NULL FOREIGN KEY REFERENCES Products(ProductId),
         PatientId INT NOT NULL FOREIGN KEY REFERENCES Patients(PatientId),
         QuantityReturned INT NOT NULL CHECK (QuantityReturned > 0),
         UnitPriceAtSale DECIMAL(10,2) NOT NULL,
