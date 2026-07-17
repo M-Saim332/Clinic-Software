@@ -19,7 +19,13 @@ public partial class AppointmentViewModel : ViewModelBase
         _userRepo = userRepo;
     }
 
-    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MutationEnabled))]
+    [NotifyPropertyChangedFor(nameof(SaveCancelEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsReadOnly))]
+    [NotifyPropertyChangedFor(nameof(ShowSaveButton))]
+    [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+    private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private ObservableCollection<Appointment> _appointments = new();
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
@@ -46,6 +52,15 @@ public partial class AppointmentViewModel : ViewModelBase
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
+    public bool IsReadOnly => Mode == FormMode.Details || Mode == FormMode.View;
+    public bool ShowSaveButton => Mode == FormMode.Add || Mode == FormMode.Edit;
+    public bool ShowEditButton => Mode == FormMode.Details;
+
+    public void PreselectPatient(Patient p)
+    {
+        New();
+        SelectedPatient = Patients.FirstOrDefault(x => x.PatientID == p.PatientID);
+    }
 
     [RelayCommand]
     private void New()
@@ -57,12 +72,24 @@ public partial class AppointmentViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Edit()
+    private void EditSpecific(Appointment a)
     {
-        if (SelectedAppointment == null) { StatusMessage = "Select an appointment first."; return; }
-        FillFields(SelectedAppointment);
+        if (a == null) return;
+        SelectedAppointment = a;
+        FillFields(a);
         Mode = FormMode.Edit;
         NotifyButtonStates();
+    }
+
+    [RelayCommand]
+    private void ViewSpecific(Appointment a)
+    {
+        if (a == null) return;
+        SelectedAppointment = a;
+        FillFields(a);
+        Mode = FormMode.Details;
+        NotifyButtonStates();
+        StatusMessage = "Viewing appointment details.";
     }
 
     [RelayCommand]
@@ -129,18 +156,19 @@ public partial class AppointmentViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CompleteAsync()
+    private async Task CompleteSpecificAsync(Appointment a)
     {
-        if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be completed."; return; }
+        if (a == null) return;
+        if (a.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be completed."; return; }
         try
         {
-            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Completed", null));
+            await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Completed", null));
             StatusMessage = "Appointment completed.";
             await InitializeAsync();
 
-            if (SelectedAppointment.PatientID == null)
+            if (a.PatientID == null)
             {
+                SelectedAppointment = a;
                 ShowCreatePatientPrompt = true;
             }
         }
@@ -148,13 +176,13 @@ public partial class AppointmentViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private async Task MarkMissedAsync()
+    private async Task MarkMissedSpecificAsync(Appointment a)
     {
-        if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be marked missed."; return; }
+        if (a == null) return;
+        if (a.Status != "Scheduled") { StatusMessage = "Only Scheduled appointments can be marked missed."; return; }
         try
         {
-            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Missed", null));
+            await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Missed", null));
             StatusMessage = "Appointment marked missed.";
             await InitializeAsync();
         }
@@ -162,13 +190,13 @@ public partial class AppointmentViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task MarkCancelledAsync()
+    private async Task MarkCancelledSpecificAsync(Appointment a)
     {
-        if (SelectedAppointment == null) { StatusMessage = "Select an appointment."; return; }
-        if (SelectedAppointment.Status == "Completed" || SelectedAppointment.Status == "Missed") { StatusMessage = "Cannot cancel completed/missed appointments."; return; }
+        if (a == null) return;
+        if (a.Status == "Completed" || a.Status == "Missed") { StatusMessage = "Cannot cancel completed/missed appointments."; return; }
         try
         {
-            await Task.Run(() => _repo.UpdateStatus(SelectedAppointment.AppointmentID, "Cancelled", "Cancelled by user"));
+            await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Cancelled", "Cancelled by user"));
             StatusMessage = "Appointment cancelled.";
             await InitializeAsync();
         }
@@ -267,5 +295,8 @@ public partial class AppointmentViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
+        OnPropertyChanged(nameof(IsReadOnly));
+        OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(ShowEditButton));
     }
 }

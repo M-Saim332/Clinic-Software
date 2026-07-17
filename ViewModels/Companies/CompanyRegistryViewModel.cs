@@ -24,12 +24,8 @@ public partial class CompanyRegistryViewModel : ViewModelBase
     [ObservableProperty]
     private Company? _selectedCompany;
     
-    [ObservableProperty]
-    private bool _isConfirmingDelete;
-
     partial void OnSelectedCompanyChanged(Company? value)
     {
-        IsConfirmingDelete = false;
         StatusMessage = string.Empty;
     }
 
@@ -46,6 +42,13 @@ public partial class CompanyRegistryViewModel : ViewModelBase
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
 
+    // ── Delete confirmation state ──────────────────────────────────────
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PendingDeleteLabel))]
+    private Company? _pendingDeleteCompany;
+    [ObservableProperty] private bool _showDeleteConfirm;
+    public string PendingDeleteLabel => PendingDeleteCompany is { } c ? c.Name : string.Empty;
+
     [RelayCommand]
     private void New()
     {
@@ -55,30 +58,62 @@ public partial class CompanyRegistryViewModel : ViewModelBase
         StatusMessage = "Enter new company details.";
     }
 
+    // ── Row-level commands (match Patients pattern) ────────────────────
+    [RelayCommand]
+    private void EditSpecific(Company company)
+    {
+        if (company == null) return;
+        SelectedCompany = company;
+        FillFields(company);
+        Mode = FormMode.Edit;
+        NotifyButtonStates();
+        StatusMessage = "Edit company details and click Save.";
+    }
+
+    [RelayCommand]
+    private void RequestDeleteSpecific(Company company)
+    {
+        if (company == null) return;
+        PendingDeleteCompany = company;
+        ShowDeleteConfirm = true;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAsync()
+    {
+        var target = PendingDeleteCompany;
+        ShowDeleteConfirm = false;
+        PendingDeleteCompany = null;
+        if (target == null) return;
+
+        var ok = await Task.Run(() => _repo.Delete(target.CompanyID));
+        StatusMessage = ok ? "Company deleted." : "Cannot delete — company is referenced by products.";
+        if (ok)
+        {
+            if (SelectedCompany?.CompanyID == target.CompanyID) SelectedCompany = null;
+            await InitializeAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void CancelDelete()
+    {
+        ShowDeleteConfirm = false;
+        PendingDeleteCompany = null;
+    }
+
     [RelayCommand]
     private void Edit()
     {
         if (SelectedCompany == null) { StatusMessage = "Select a company first."; return; }
-        FillFields(SelectedCompany);
-        Mode = FormMode.Edit;
-        NotifyButtonStates();
+        EditSpecific(SelectedCompany);
     }
 
     [RelayCommand]
-    private async Task DeleteAsync()
+    private void Delete()
     {
         if (SelectedCompany == null) { StatusMessage = "Select a company first."; return; }
-        if (!IsConfirmingDelete)
-        {
-            IsConfirmingDelete = true;
-            StatusMessage = "Are you sure? Click Delete again to confirm.";
-            return;
-        }
-
-        var ok = await Task.Run(() => _repo.Delete(SelectedCompany.CompanyID));
-        StatusMessage = ok ? "Company deleted." : "Cannot delete – referenced by products or medicines.";
-        IsConfirmingDelete = false;
-        if (ok) await InitializeAsync();
+        RequestDeleteSpecificCommand.Execute(SelectedCompany);
     }
 
     [RelayCommand]

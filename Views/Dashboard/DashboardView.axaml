@@ -69,16 +69,16 @@
                     </Grid>
                 </Border>
 
-                <!-- Medicines -->
+                <!-- Products -->
                 <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDFA">
-                            <PathIcon Data="{StaticResource IconMedicines}" Width="22" Height="22" Foreground="#0D9488"/>
+                            <PathIcon Data="{StaticResource IconProducts}" Width="22" Height="22" Foreground="#0D9488"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Medicines" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalMedicines}" Classes="kpiValue"/>
-                            <Button Command="{Binding NavigateToMedicinesCommand}"
+                            <TextBlock Text="Products" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TotalProducts}" Classes="kpiValue"/>
+                            <Button Command="{Binding NavigateToProductsCommand}"
                                     Background="Transparent" BorderThickness="0"
                                     Padding="0" Cursor="Hand"
                                     HorizontalAlignment="Left">
@@ -102,6 +102,56 @@
                                     Padding="0" Cursor="Hand"
                                     HorizontalAlignment="Left">
                                 <TextBlock Text="View inventory →" Classes="kpiLink" Foreground="#9333EA"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- KPI Row 2: Today's financials -->
+            <Grid ColumnDefinitions="*,*,*" Height="100" Margin="0,-6,0,0">
+                <!-- Today's Revenue -->
+                <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDF4">
+                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#16A34A"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Today's Revenue" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TodayRevenue}" Classes="kpiValue" FontSize="18"/>
+                            <Button Command="{Binding NavigateToSalesCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="View sales →" Classes="kpiLink" Foreground="#16A34A"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!-- Today's Profit -->
+                <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Classes="kpiIcon" Background="#EFF6FF">
+                            <PathIcon Data="{StaticResource IconReports}" Width="22" Height="22" Foreground="#3B82F6"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Today's Profit" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TodayProfit}" Classes="kpiValue" FontSize="18"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!-- Today's Patients -->
+                <Border Grid.Column="2" Classes="kpiCard" Margin="10,0,0,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF7ED">
+                            <PathIcon Data="{StaticResource IconPatients}" Width="22" Height="22" Foreground="#F97316"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Today's Patients" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TodayPatients}" Classes="kpiValue"/>
+                            <Button Command="{Binding NavigateToPatientsCommand}"
+                                    Background="Transparent" BorderThickness="0"
+                                    Padding="0" Cursor="Hand" HorizontalAlignment="Left">
+                                <TextBlock Text="View patients →" Classes="kpiLink" Foreground="#F97316"/>
                             </Button>
                         </StackPanel>
                     </Grid>
@@ -206,7 +256,7 @@
                         <StackPanel DockPanel.Dock="Bottom" Spacing="6">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Border Width="10" Height="10" CornerRadius="5" Background="#10B981" VerticalAlignment="Center"/>
-                                <TextBlock Text="Medicine Sales" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
+                                <TextBlock Text="Product Sales" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Border Width="10" Height="10" CornerRadius="5" Background="#3799F8" VerticalAlignment="Center"/>
@@ -289,7 +339,7 @@
                                 <TextBlock Text="Low Stock Alert" Classes="cardTitle" Foreground="#F59E0B"/>
                             </StackPanel>
                             <Button DockPanel.Dock="Right"
-                                    Command="{Binding NavigateToMedicinesCommand}"
+                                    Command="{Binding NavigateToProductsCommand}"
                                     Background="Transparent" BorderThickness="0"
                                     Padding="0" Cursor="Hand"
                                     HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -298,7 +348,7 @@
                         </DockPanel>
                         <Border DockPanel.Dock="Top" Height="1" Background="#F3F4F6" Margin="0,0,0,8"/>
                         <ScrollViewer>
-                            <ItemsControl ItemsSource="{Binding LowStockMedicines}">
+                            <ItemsControl ItemsSource="{Binding LowStockProducts}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel Margin="0,4">
@@ -335,7 +385,7 @@
                         </DockPanel>
                         <Border DockPanel.Dock="Top" Height="1" Background="#F3F4F6" Margin="0,0,0,8"/>
                         <ScrollViewer>
-                            <ItemsControl ItemsSource="{Binding ExpiringSoonMedicines}">
+                            <ItemsControl ItemsSource="{Binding ExpiringSoonProducts}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel Margin="0,4">
@@ -368,13 +418,25 @@
                         <ScrollViewer>
                             <ItemsControl ItemsSource="{Binding RecentActivities}">
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5">
-                                            <Border Width="7" Height="7" CornerRadius="4" Background="#3B82F6"
-                                                    VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding}" Foreground="#374151" FontSize="13"
-                                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                        </StackPanel>
+                                    <DataTemplate x:DataType="models:ActivityLog">
+                                        <Border Margin="0,2" Padding="8,6" CornerRadius="6"
+                                                Background="Transparent">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <Border Grid.Column="0" Width="7" Height="7" CornerRadius="4"
+                                                        Background="#3B82F6" VerticalAlignment="Top" Margin="0,5,10,0"/>
+                                                <StackPanel Grid.Column="1" Spacing="1">
+                                                    <TextBlock Text="{Binding Title}" Foreground="#1F2937"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Description}" Foreground="#6B7280"
+                                                               FontSize="11" TextTrimming="CharacterEllipsis"
+                                                               IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding TimeAgo}"
+                                                           Foreground="#9CA3AF" FontSize="10"
+                                                           VerticalAlignment="Top" Margin="8,2,0,0"/>
+                                            </Grid>
+                                        </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

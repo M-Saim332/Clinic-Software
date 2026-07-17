@@ -6,7 +6,7 @@ using ClinicSystem.Data.Repositories;
 
 namespace ClinicSystem.UI.ViewModels.Sales;
 
-public partial class MedicineReturnViewModel : ViewModelBase
+public partial class ProductReturnViewModel : ViewModelBase
 {
     private readonly ReturnRepository _returnRepo;
     private readonly SaleRepository _saleRepo;
@@ -32,7 +32,7 @@ public partial class MedicineReturnViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isProcessing;
 
-    public MedicineReturnViewModel(ReturnRepository returnRepo, SaleRepository saleRepo)
+    public ProductReturnViewModel(ReturnRepository returnRepo, SaleRepository saleRepo)
     {
         _returnRepo = returnRepo;
         _saleRepo = saleRepo;
@@ -81,7 +81,7 @@ public partial class MedicineReturnViewModel : ViewModelBase
             
             foreach (var item in sale.Items)
             {
-                var alreadyReturned = pastReturns.Where(r => r.MedicineId == item.MedicineID).Sum(r => r.QuantityReturned);
+                var alreadyReturned = pastReturns.Where(r => r.ProductId == item.ProductID).Sum(r => r.QuantityReturned);
                 var returnable = item.Quantity - alreadyReturned;
                 
                 if (returnable > 0)
@@ -129,23 +129,23 @@ public partial class MedicineReturnViewModel : ViewModelBase
                 {
                     if (item.QuantityToReturn > item.MaxReturnable)
                     {
-                        throw new InvalidOperationException($"Cannot return {item.QuantityToReturn} of {item.Item.MedicineName} (Max: {item.MaxReturnable})");
+                        throw new InvalidOperationException($"Cannot return {item.QuantityToReturn} of {item.Item.ProductName} (Max: {item.MaxReturnable})");
                     }
                     if (string.IsNullOrWhiteSpace(item.Reason))
                     {
-                        throw new InvalidOperationException($"Please specify a reason for returning {item.Item.MedicineName}.");
+                        throw new InvalidOperationException($"Please specify a reason for returning {item.Item.ProductName}.");
                     }
                 }
                 
                 foreach (var item in itemsToReturn)
                 {
-                    var ret = new MedicineReturn
+                    var ret = new ProductReturn
                     {
                         SaleId = SelectedSale!.SaleID,
-                        MedicineId = item.Item.MedicineID,
+                        ProductId = item.Item.ProductID,
                         PatientId = SelectedSale.PatientID,
                         QuantityReturned = item.QuantityToReturn,
-                        UnitPriceAtSale = item.Item.MedicinePrice, // actually should be price from SaleItem
+                        UnitPriceAtSale = item.Item.ProductPrice, // actually should be price from SaleItem
                         RefundAmount = item.RefundAmount,
                         Reason = item.Reason,
                         ReturnDate = DateTime.Now,
@@ -186,12 +186,12 @@ public partial class ReturnableItemViewModel : ObservableObject
     {
         "Patient Changed Mind",
         "Expired",
-        "Wrong Medicine",
+        "Wrong Product",
         "Adverse Reaction",
         "Other"
     };
 
-    public decimal RefundAmount => QuantityToReturn * Item.MedicinePrice;
+    public decimal RefundAmount => QuantityToReturn * Item.ProductPrice;
 
     public ReturnableItemViewModel(SaleItem item, int maxReturnable)
     {

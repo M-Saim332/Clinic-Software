@@ -50,7 +50,6 @@ public partial class UserRegistryViewModel : ViewModelBase
     [ObservableProperty] private bool _accDashboard;
     [ObservableProperty] private bool _accPatients;
     [ObservableProperty] private bool _accAppointments;
-    [ObservableProperty] private bool _accMedicines;
     [ObservableProperty] private bool _accProducts;
     [ObservableProperty] private bool _accCompanies;
     [ObservableProperty] private bool _accSuppliers;
@@ -87,8 +86,7 @@ public partial class UserRegistryViewModel : ViewModelBase
             AccSuppliers = AccPurchases = AccReturns =
             AccInventory = AccReports = AccSearch =
             AccUsers = AccSettings = false;
-            AccMedicines = true;
-            AccProducts  = true;
+            AccProducts = true;
             AccSales     = true;
         }
     }
@@ -231,7 +229,7 @@ public partial class UserRegistryViewModel : ViewModelBase
     {
         Username = string.Empty; FullName = string.Empty; Role = "Receptionist"; IsActive = true;
         Password = string.Empty; ConfirmPassword = string.Empty;
-        AccDashboard = AccPatients = AccAppointments = AccMedicines = AccProducts = AccCompanies = AccSuppliers = 
+        AccDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies = AccSuppliers = 
         AccPurchases = AccSales = AccReturns = AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
     }
 
@@ -243,7 +241,6 @@ public partial class UserRegistryViewModel : ViewModelBase
         AccDashboard = p.Contains("Dashboard");
         AccPatients = p.Contains("Patients");
         AccAppointments = p.Contains("Appointments");
-        AccMedicines = p.Contains("Medicines");
         AccProducts = p.Contains("Products");
         AccCompanies = p.Contains("Companies");
         AccSuppliers = p.Contains("Suppliers");
@@ -263,7 +260,6 @@ public partial class UserRegistryViewModel : ViewModelBase
         if (AccDashboard) p.Add("Dashboard");
         if (AccPatients) p.Add("Patients");
         if (AccAppointments) p.Add("Appointments");
-        if (AccMedicines) p.Add("Medicines");
         if (AccProducts) p.Add("Products");
         if (AccCompanies) p.Add("Companies");
         if (AccSuppliers) p.Add("Suppliers");

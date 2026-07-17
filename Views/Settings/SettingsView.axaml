@@ -104,7 +104,7 @@
                         <DockPanel>
                             <StackPanel Spacing="4" DockPanel.Dock="Left">
                                 <TextBlock Text="Reset All Data to Zero" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
-                                <TextBlock Text="Wipes ALL medicines, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before reset."
+                                <TextBlock Text="Wipes ALL products, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before reset."
                                            FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">

@@ -21,7 +21,7 @@
                         <TextBlock Text="Inventory Management" FontSize="20" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk900}"
                                    FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Monitor medicine stocks, expiry dates, and perform manual adjustments"
+                        <TextBlock Text="Monitor product stocks, expiry dates, and perform manual adjustments"
                                    FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                     </StackPanel>
                 </StackPanel>
@@ -69,8 +69,8 @@
                     <ScrollViewer>
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Select Medicine *" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedMedicine}"
+                                <TextBlock Text="Select Product *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
                                           HorizontalAlignment="Stretch">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
@@ -108,7 +108,7 @@
                                 <DataGrid ItemsSource="{Binding AllStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="MEDICINE" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="120"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
@@ -125,7 +125,7 @@
                                 <DataGrid ItemsSource="{Binding LowStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="MEDICINE" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="CURRENT STOCK" Binding="{Binding Stock}" Width="140"/>
                                         <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinimumStockLevel}" Width="160"/>
                                     </DataGrid.Columns>
@@ -141,7 +141,7 @@
                                 <DataGrid ItemsSource="{Binding OutOfStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="MEDICINE" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="CURRENT STOCK" Binding="{Binding Stock}" Width="140"/>
                                         <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinimumStockLevel}" Width="160"/>
                                     </DataGrid.Columns>
@@ -157,7 +157,7 @@
                                 <DataGrid ItemsSource="{Binding NearExpiry}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="MEDICINE" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="120"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
@@ -174,7 +174,7 @@
                                 <DataGrid ItemsSource="{Binding Expired}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="MEDICINE" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="120"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>

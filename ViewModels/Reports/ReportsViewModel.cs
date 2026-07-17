@@ -19,20 +19,20 @@ namespace ClinicSystem.UI.ViewModels.Reports;
 public partial class ReportsViewModel : ViewModelBase
 {
     private readonly PatientRepository _patientRepo;
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
     private readonly PrescriptionRepository _prescriptionRepo;
     private readonly SaleRepository _saleRepo;
     private readonly PurchaseRepository _purchaseRepo;
 
     public ReportsViewModel(
         PatientRepository patientRepo, 
-        MedicineRepository medicineRepo, 
+        ProductRepository productRepo, 
         PrescriptionRepository prescriptionRepo,
         SaleRepository saleRepo,
         PurchaseRepository purchaseRepo)
     {
         _patientRepo = patientRepo;
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
         _prescriptionRepo = prescriptionRepo;
         _saleRepo = saleRepo;
         _purchaseRepo = purchaseRepo;
@@ -40,9 +40,9 @@ public partial class ReportsViewModel : ViewModelBase
 
     [ObservableProperty] private int _selectedTabIndex;
     [ObservableProperty] private ObservableCollection<Patient> _patientList = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _medicineStockList = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _expiredMedicines = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _lowStockMedicines = new();
+    [ObservableProperty] private ObservableCollection<Product> _productStockList = new();
+    [ObservableProperty] private ObservableCollection<Product> _expiredProducts = new();
+    [ObservableProperty] private ObservableCollection<Product> _lowStockProducts = new();
     [ObservableProperty] private ObservableCollection<Prescription> _allVisits = new();
     
     [ObservableProperty] private decimal _totalRevenue;
@@ -62,11 +62,11 @@ public partial class ReportsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task LoadMedicineStockAsync()
+    private async Task LoadProductStockAsync()
     {
         IsBusy = true;
-        MedicineStockList = new ObservableCollection<Medicine>(await Task.Run(_medicineRepo.GetAll));
-        StatusMessage = $"{MedicineStockList.Count} medicines.";
+        ProductStockList = new ObservableCollection<Product>(await Task.Run(_productRepo.GetAll));
+        StatusMessage = $"{ProductStockList.Count} products.";
         IsBusy = false;
     }
 
@@ -74,9 +74,9 @@ public partial class ReportsViewModel : ViewModelBase
     private async Task LoadExpiredLowStockAsync()
     {
         IsBusy = true;
-        ExpiredMedicines = new ObservableCollection<Medicine>(await Task.Run(_medicineRepo.GetExpired));
-        LowStockMedicines = new ObservableCollection<Medicine>(await Task.Run(_medicineRepo.GetLowStock));
-        StatusMessage = $"{ExpiredMedicines.Count} expired, {LowStockMedicines.Count} low-stock.";
+        ExpiredProducts = new ObservableCollection<Product>(await Task.Run(_productRepo.GetExpired));
+        LowStockProducts = new ObservableCollection<Product>(await Task.Run(_productRepo.GetLowStock));
+        StatusMessage = $"{ExpiredProducts.Count} expired, {LowStockProducts.Count} low-stock.";
         IsBusy = false;
     }
 
@@ -109,7 +109,7 @@ public partial class ReportsViewModel : ViewModelBase
         _ = value switch
         {
             0 => LoadPatientListAsync(),
-            1 => LoadMedicineStockAsync(),
+            1 => LoadProductStockAsync(),
             2 => LoadExpiredLowStockAsync(),
             3 => LoadAllVisitsAsync(),
             4 => LoadFinancialsAsync(),

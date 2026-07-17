@@ -136,7 +136,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void ShowResetConfirm()
     {
         IsResetConfirmVisible = true;
-        StatusMessage = "⚠️ Warning: This will permanently delete ALL patient, medicine, and company data. A rollback backup will be created automatically.";
+        StatusMessage = "⚠️ Warning: This will permanently delete ALL patient, product, and company data. A rollback backup will be created automatically.";
     }
 
     [RelayCommand]

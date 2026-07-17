@@ -71,7 +71,7 @@
                 <Border Grid.Column="1" Background="#FFFFFF" Padding="24"
                         BorderBrush="#E5E7EB" BorderThickness="1,0,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Prescribed Medicines" Foreground="#1F2937"
+                        <TextBlock Text="Prescribed Products" Foreground="#1F2937"
                                    FontSize="15" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding SelectedPrescription.Diagnosis, FallbackValue='Select a visit to see details'}"
                                    Foreground="#6B7280" FontSize="13" TextWrapping="Wrap"/>
@@ -82,7 +82,7 @@
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   Background="Transparent" BorderThickness="0">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Medicine" Binding="{Binding MedicineName}" Width="*"/>
+                                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*"/>
                                 <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}"     Width="50"/>
                                 <DataGridTextColumn Header="Dosage"   Binding="{Binding Dosage}"       Width="*"/>
                             </DataGrid.Columns>

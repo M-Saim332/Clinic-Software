@@ -13,16 +13,16 @@ public partial class SearchViewModel : ViewModelBase
 {
     private readonly PatientRepository _patientRepo;
     private readonly AppointmentRepository _appointmentRepo;
-    private readonly MedicineRepository _medicineRepo;
+    private readonly ProductRepository _productRepo;
 
     public SearchViewModel(
         PatientRepository patientRepo,
         AppointmentRepository appointmentRepo,
-        MedicineRepository medicineRepo)
+        ProductRepository productRepo)
     {
         _patientRepo = patientRepo;
         _appointmentRepo = appointmentRepo;
-        _medicineRepo = medicineRepo;
+        _productRepo = productRepo;
     }
 
     [ObservableProperty] private string _searchText = string.Empty;
@@ -30,11 +30,11 @@ public partial class SearchViewModel : ViewModelBase
 
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
     [ObservableProperty] private ObservableCollection<Appointment> _appointments = new();
-    [ObservableProperty] private ObservableCollection<Medicine> _medicines = new();
+    [ObservableProperty] private ObservableCollection<Product> _products = new();
 
     [ObservableProperty] private int _patientCount;
     [ObservableProperty] private int _appointmentCount;
-    [ObservableProperty] private int _medicineCount;
+    [ObservableProperty] private int _productCount;
 
     partial void OnSearchTextChanged(string value)
     {
@@ -47,8 +47,8 @@ public partial class SearchViewModel : ViewModelBase
         {
             Patients.Clear();
             Appointments.Clear();
-            Medicines.Clear();
-            PatientCount = AppointmentCount = MedicineCount = 0;
+            Products.Clear();
+            PatientCount = AppointmentCount = ProductCount = 0;
             return;
         }
 
@@ -60,9 +60,9 @@ public partial class SearchViewModel : ViewModelBase
 
             var patientTask = Task.Run(() => _patientRepo.GetAll());
             var appointmentTask = Task.Run(() => _appointmentRepo.GetAll());
-            var medicineTask = Task.Run(() => _medicineRepo.GetAll());
+            var productTask = Task.Run(() => _productRepo.GetAll());
 
-            await Task.WhenAll(patientTask, appointmentTask, medicineTask);
+            await Task.WhenAll(patientTask, appointmentTask, productTask);
 
             var patientsList = patientTask.Result.Where(p => 
                 (p.Name?.ToLowerInvariant().Contains(query) ?? false) || 
@@ -75,7 +75,7 @@ public partial class SearchViewModel : ViewModelBase
                 (a.Reason?.ToLowerInvariant().Contains(query) ?? false)
             ).ToList();
 
-            var medicinesList = medicineTask.Result.Where(m => 
+            var productsList = productTask.Result.Where(m => 
                 (m.Name?.ToLowerInvariant().Contains(query) ?? false) || 
                 (m.GenericName?.ToLowerInvariant().Contains(query) ?? false)
             ).ToList();
@@ -84,11 +84,11 @@ public partial class SearchViewModel : ViewModelBase
             {
                 Patients = new ObservableCollection<Patient>(patientsList);
                 Appointments = new ObservableCollection<Appointment>(appointmentsList);
-                Medicines = new ObservableCollection<Medicine>(medicinesList);
+                Products = new ObservableCollection<Product>(productsList);
 
                 PatientCount = patientsList.Count;
                 AppointmentCount = appointmentsList.Count;
-                MedicineCount = medicinesList.Count;
+                ProductCount = productsList.Count;
             });
         }
         catch (Exception)

@@ -22,6 +22,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(SaveCancelEnabled))]
     [NotifyPropertyChangedFor(nameof(IsListViewVisible))]
     [NotifyPropertyChangedFor(nameof(PkEditable))]
+    [NotifyPropertyChangedFor(nameof(IsReadOnly))]
+    [NotifyPropertyChangedFor(nameof(ShowSaveButton))]
+    [NotifyPropertyChangedFor(nameof(ShowEditButton))]
     private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
@@ -38,6 +41,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
     public bool SaveCancelEnabled   => Mode != FormMode.View;
     public bool IsListViewVisible   => Mode == FormMode.View;   // explicit — avoids compiled-binding negation issue
     public bool PkEditable          => Mode == FormMode.Add;
+    public bool IsReadOnly          => Mode == FormMode.Details || Mode == FormMode.View;
+    public bool ShowSaveButton      => Mode == FormMode.Add || Mode == FormMode.Edit;
+    public bool ShowEditButton      => Mode == FormMode.Details;
+
+    // Navigation delegates
+    public Action<Patient>? RequestBookAppointment { get; set; }
 
     // ── Data ───────────────────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
@@ -68,22 +77,41 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Edit()
+    private void EditSpecific(Patient p)
     {
-        if (SelectedPatient == null) { StatusMessage = "Select a patient first."; return; }
-        FillFields(SelectedPatient);
+        if (p == null) return;
+        SelectedPatient = p;
+        FillFields(p);
         Mode = FormMode.Edit;
         NotifyButtonStates();
         StatusMessage = "Edit patient details and click Save.";
     }
 
     [RelayCommand]
-    private async Task DeleteAsync()
+    private void ViewSpecific(Patient p)
     {
-        if (SelectedPatient == null) { StatusMessage = "Select a patient first."; return; }
-        var ok = await Task.Run(() => _repo.Delete(SelectedPatient.PatientID));
-        if (ok) { StatusMessage = "Patient deleted."; _ = InitializeAsync(); SelectedPatient = null; }
+        if (p == null) return;
+        SelectedPatient = p;
+        FillFields(p);
+        Mode = FormMode.Details;
+        NotifyButtonStates();
+        StatusMessage = "Viewing patient details.";
+    }
+
+    [RelayCommand]
+    private async Task DeleteSpecificAsync(Patient p)
+    {
+        if (p == null) return;
+        var ok = await Task.Run(() => _repo.Delete(p.PatientID));
+        if (ok) { StatusMessage = "Patient deleted."; _ = InitializeAsync(); if (SelectedPatient?.PatientID == p.PatientID) SelectedPatient = null; }
         else StatusMessage = "Cannot delete — patient has existing prescriptions.";
+    }
+
+    [RelayCommand]
+    private void BookAppointmentSpecific(Patient p)
+    {
+        if (p == null) return;
+        RequestBookAppointment?.Invoke(p);
     }
 
     [RelayCommand]
@@ -212,5 +240,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SaveCancelEnabled));
         OnPropertyChanged(nameof(IsListViewVisible));
         OnPropertyChanged(nameof(PkEditable));
+        OnPropertyChanged(nameof(IsReadOnly));
+        OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(ShowEditButton));
     }
 }

@@ -25,8 +25,8 @@ VALUES
     (2, 'Syringes (Pack of 100)', 15.00, 25.00, 1.25, 50),
     (1, 'First Aid Kit', 20.00, 35.00, 1.75, 20);
 
--- 4. Add Medicines (associated with Companies)
-INSERT INTO Medicines (Name, GenericName, CompanyID, BatchNumber, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+-- 4. Add Products (associated with Companies)
+INSERT INTO Products (Name, GenericName, CompanyID, BatchNumber, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
 VALUES 
     ('Paracetamol 500mg', 'Paracetamol', 1, 'B001', '2027-12-31', 1.00, 2.50, 200, 50),
     ('Amoxicillin 250mg', 'Amoxicillin', 2, 'B002', '2026-10-31', 3.00, 8.00, 150, 30),
@@ -69,7 +69,7 @@ VALUES
     ('SALE-002', DATEADD(day, -1, GETDATE()), 2, 45.00, 53.00, 'Card', 1);
 
 -- 10. Add Sale Items
-INSERT INTO SaleItems (SaleID, MedicineID, Quantity, Discount, Tax, LineTotal)
+INSERT INTO SaleItems (SaleID, ProductID, Quantity, Discount, Tax, LineTotal)
 VALUES 
     ((SELECT TOP 1 SaleID FROM Sales WHERE InvoiceNumber = 'SALE-001'), 1, 2, 0, 0, 5.00),
     ((SELECT TOP 1 SaleID FROM Sales WHERE InvoiceNumber = 'SALE-002'), 3, 1, 0, 0, 8.00);

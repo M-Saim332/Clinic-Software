@@ -38,10 +38,31 @@ public class DatabaseSession
         _schemaChecked = true;
         try
         {
+            // Ensure Permissions column exists on Users
             conn.Execute(@"
                 IF COL_LENGTH('Users', 'Permissions') IS NULL
                 BEGIN
                     ALTER TABLE Users ADD Permissions VARCHAR(1000) NULL;
+                END
+            ");
+        }
+        catch { }
+
+        try
+        {
+            // Ensure ActivityLogs table exists for the dashboard feed
+            conn.Execute(@"
+                IF OBJECT_ID('ActivityLogs', 'U') IS NULL
+                BEGIN
+                    CREATE TABLE ActivityLogs (
+                        ActivityId  INT IDENTITY(1,1) PRIMARY KEY,
+                        Title       NVARCHAR(200)  NOT NULL,
+                        Description NVARCHAR(500)  NOT NULL DEFAULT '',
+                        Module      NVARCHAR(100)  NOT NULL DEFAULT '',
+                        UserId      INT            NOT NULL DEFAULT 0,
+                        UserName    NVARCHAR(100)  NOT NULL DEFAULT '',
+                        CreatedAt   DATETIME2      NOT NULL DEFAULT GETDATE()
+                    );
                 END
             ");
         }
@@ -165,7 +186,7 @@ public class DatabaseSession
     /// <summary>
     /// Creates a rollback backup, then deletes all clinical data (FK order respected).
     /// Tables wiped: SaleItems, Sales, PurchaseItems, Purchases, Prescriptions, Appointments,
-    /// Returns, Patients, Medicines, Products, Companies, Suppliers.
+    /// Returns, Patients, Products, Products, Companies, Suppliers.
     /// Users and Settings are preserved.
     /// </summary>
     public void ResetAllData()
@@ -180,20 +201,21 @@ public class DatabaseSession
         // Step 2 — delete all data in FK-safe order
         using var conn = new SqlConnection(_connectionString);
         conn.Open();
-        conn.Execute(@"
-            DELETE FROM SaleItems;
-            DELETE FROM Sales;
-            DELETE FROM PurchaseItems;
-            DELETE FROM Purchases;
-            DELETE FROM Returns;
-            DELETE FROM Prescriptions;
-            DELETE FROM Appointments;
-            DELETE FROM Patients;
-            DELETE FROM Medicines;
-            DELETE FROM Products;
-            DELETE FROM Companies;
-            DELETE FROM Suppliers;
-        ");
+        // Delete all data in FK-safe order; skip tables that may not exist yet
+        var tables = new[]
+        {
+            "SaleItems", "Sales", "PurchaseItems", "Purchases",
+            "ProductReturns", "PrescriptionItems", "Prescriptions",
+            "Appointments", "Patients", "Products", "Companies", "Suppliers"
+        };
+        foreach (var t in tables)
+        {
+            try
+            {
+                conn.Execute($"IF OBJECT_ID('{t}', 'U') IS NOT NULL DELETE FROM [{t}]");
+            }
+            catch { /* ignore if table does not exist */ }
+        }
     }
 
     /// <summary>
