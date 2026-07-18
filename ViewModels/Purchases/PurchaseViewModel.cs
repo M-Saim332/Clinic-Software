@@ -172,6 +172,8 @@ public partial class PurchaseViewModel : ViewModelBase
             {
                 await Task.Run(() => _repo.Insert(p));
                 StatusMessage = "Purchase created and stock updated.";
+                var supplierLabel = SelectedSupplier?.Name ?? SupplierName;
+                LogActivity("Purchase Created", $"Invoice #{p.InvoiceNumber} from {supplierLabel} — Rs. {p.TotalAmount:N2}", "Purchases");
                 WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
             

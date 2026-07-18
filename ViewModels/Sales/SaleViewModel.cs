@@ -176,6 +176,7 @@ public partial class SaleViewModel : ViewModelBase
             {
                 await Task.Run(() => _repo.Insert(s));
                 StatusMessage = "Sale posted successfully. Stock updated.";
+                LogActivity("Sale Completed", $"Invoice #{s.InvoiceNumber} posted for {s.PatientName} — Rs. {s.GrandTotal:N2}", "Sales");
                 WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
             

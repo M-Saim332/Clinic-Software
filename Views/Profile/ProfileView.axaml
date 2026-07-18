@@ -1,0 +1,207 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Profile"
+             x:Class="ClinicSystem.UI.Views.Profile.ProfileView"
+             x:DataType="vm:ProfileViewModel" x:CompileBindings="True"
+             Background="{DynamicResource BrushBackground}">
+
+    <ScrollViewer>
+        <StackPanel MaxWidth="700" HorizontalAlignment="Center" Margin="28,32,28,32" Spacing="24">
+
+            <!-- Header -->
+            <Border Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="14" Padding="28,24">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Avatar Circle -->
+                    <Border Grid.Column="0" Width="72" Height="72" CornerRadius="36"
+                            Background="{DynamicResource BrushPrimaryBlue}" Margin="0,0,20,0">
+                        <TextBlock Text="{Binding Username, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                   FontSize="28" FontWeight="Bold" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <Binding Path="FullName">
+                                    <Binding.StringFormat>{}{0}</Binding.StringFormat>
+                                </Binding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Border>
+                    <!-- Name / Role -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                        <TextBlock Text="{Binding DisplayName}" FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk900}"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
+                                   FontSize="13" Foreground="{DynamicResource BrushInk600}"/>
+                        <Border Background="{DynamicResource BrushBlue50}" CornerRadius="20"
+                                Padding="10,3" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding RoleDisplay}" FontSize="12"
+                                       Foreground="{DynamicResource BrushPrimaryBlue}"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                    </StackPanel>
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <Button Content="Edit Profile" Command="{Binding StartEditProfileCommand}"
+                                Classes="btn-secondary"
+                                IsVisible="{Binding !IsEditingProfile}"/>
+                        <Button Content="Change Password" Command="{Binding StartChangePasswordCommand}"
+                                Classes="btn-ghost"
+                                IsVisible="{Binding !IsChangingPassword}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status Message -->
+            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    CornerRadius="8" Padding="16,12">
+                <Border.Background>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <!-- Using IsSuccess for colour selection -->
+                    </MultiBinding>
+                </Border.Background>
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{DynamicResource BrushPrimaryBlue}"
+                           FontWeight="Medium" FontSize="13"/>
+            </Border>
+
+            <!-- Edit Profile Form -->
+            <Border IsVisible="{Binding IsEditingProfile}"
+                    Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="14" Padding="28,24">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="EDIT PROFILE" FontSize="11" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                               FontFamily="{DynamicResource FontLexend}"/>
+                    <Separator/>
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                        <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                            <TextBlock Text="Full Name" Classes="label"/>
+                            <TextBox Text="{Binding FullName}" PlaceholderText="Enter your full name"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                            <TextBlock Text="Username *" Classes="label"/>
+                            <TextBox Text="{Binding Username}" PlaceholderText="Enter username"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,0">
+                            <TextBlock Text="Role" Classes="label"/>
+                            <TextBox Text="{Binding Role}" IsReadOnly="True"
+                                     Opacity="0.6"/>
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Command="{Binding CancelEditProfileCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Changes" Command="{Binding SaveProfileCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Change Password Form -->
+            <Border IsVisible="{Binding IsChangingPassword}"
+                    Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="14" Padding="28,24">
+                <StackPanel Spacing="20">
+                    <TextBlock Text="CHANGE PASSWORD" FontSize="11" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                               FontFamily="{DynamicResource FontLexend}"/>
+                    <Separator/>
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Current Password *" Classes="label"/>
+                        <TextBox Text="{Binding CurrentPassword}" PasswordChar="•"
+                                 PlaceholderText="Enter current password"/>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
+                            <TextBlock Text="New Password *" Classes="label"/>
+                            <TextBox Text="{Binding NewPassword}" PasswordChar="•"
+                                     PlaceholderText="Min. 6 characters"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
+                            <TextBlock Text="Confirm New Password *" Classes="label"/>
+                            <TextBox Text="{Binding ConfirmPassword}" PasswordChar="•"
+                                     PlaceholderText="Re-enter new password"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Password Status -->
+                    <TextBlock Text="{Binding PasswordStatus}"
+                               Foreground="{DynamicResource BrushRose}"
+                               FontSize="13"
+                               IsVisible="{Binding PasswordStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Command="{Binding CancelChangePasswordCommand}" Classes="btn-ghost"/>
+                        <Button Content="Update Password" Command="{Binding SavePasswordCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Profile Info (View Mode) -->
+            <Border IsVisible="{Binding !IsEditingProfile}"
+                    Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="14" Padding="28,24">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="ACCOUNT INFORMATION" FontSize="11" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                               FontFamily="{DynamicResource FontLexend}"/>
+                    <Separator/>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" >
+                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Full Name"
+                                   Foreground="{DynamicResource BrushInk600}" FontSize="13" Margin="0,0,0,12"/>
+                        <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding FullName, FallbackValue='Not set'}"
+                                   FontWeight="Medium" FontSize="13" Margin="0,0,0,12"/>
+                        <TextBlock Grid.Column="0" Grid.Row="1" Text="Username"
+                                   Foreground="{DynamicResource BrushInk600}" FontSize="13" Margin="0,0,0,12"/>
+                        <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Username}"
+                                   FontWeight="Medium" FontSize="13" Margin="0,0,0,12"/>
+                        <TextBlock Grid.Column="0" Grid.Row="2" Text="Role"
+                                   Foreground="{DynamicResource BrushInk600}" FontSize="13"/>
+                        <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding Role}"
+                                   FontWeight="Medium" FontSize="13"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="18,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

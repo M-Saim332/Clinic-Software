@@ -70,6 +70,14 @@ public class UserRepository
             new { hash, userId });
     }
 
+    public void UpdateProfile(int userId, string fullName, string username)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(
+            "UPDATE Users SET FullName = @fullName, Username = @username WHERE UserID = @userId",
+            new { fullName, username, userId });
+    }
+
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();

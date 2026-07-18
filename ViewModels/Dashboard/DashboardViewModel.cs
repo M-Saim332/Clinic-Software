@@ -16,7 +16,8 @@ namespace ClinicSystem.UI.ViewModels.Dashboard;
 public partial class DashboardViewModel : ViewModelBase,
     IRecipient<InventoryChangedMessage>,
     IRecipient<RefundIssuedMessage>,
-    IRecipient<RefundCompletedMessage>
+    IRecipient<RefundCompletedMessage>,
+    IRecipient<ActivityLogMessage>
 {
     private readonly PatientRepository    _patientRepo;
     private readonly ProductRepository   _productRepo;
@@ -71,6 +72,7 @@ public partial class DashboardViewModel : ViewModelBase,
         WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this);
         WeakReferenceMessenger.Default.Register<RefundIssuedMessage>(this);
         WeakReferenceMessenger.Default.Register<RefundCompletedMessage>(this);
+        WeakReferenceMessenger.Default.Register<ActivityLogMessage>(this);
 
         // Poll every 30 seconds so the receptionist sees refunds even if
         // the doctor is logged in on the same machine in a different session.
@@ -309,6 +311,20 @@ public partial class DashboardViewModel : ViewModelBase,
 
     public void Receive(RefundIssuedMessage message)   => _ = LoadPendingRefundsAsync();
     public void Receive(RefundCompletedMessage message) => _ = LoadPendingRefundsAsync();
+
+    public void Receive(ActivityLogMessage message)
+    {
+        // Fire-and-forget DB insertion and refresh
+        Task.Run(async () =>
+        {
+            _activityRepo.Insert(message.Log);
+            var activities = await Task.Run(() => _activityRepo.GetLatest(15));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                RecentActivities = new ObservableCollection<ActivityLog>(activities);
+            });
+        });
+    }
 
     // ── Refund Commands ───────────────────────────────────────────────────────
     [RelayCommand]

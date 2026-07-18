@@ -42,7 +42,9 @@ public partial class AppointmentViewModel : ViewModelBase
     [ObservableProperty] private Patient? _selectedPatient;
     [ObservableProperty] private string _patientName = string.Empty;
     [ObservableProperty] private string _patientPhone = string.Empty;
-    [ObservableProperty] private User? _selectedDoctor;
+    [ObservableProperty] private string _gender = string.Empty;
+    [ObservableProperty] private int? _age;
+    // Removed doctor selection, using CurrentUser
     [ObservableProperty] private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
     [ObservableProperty] private TimeSpan _appointmentTime = DateTime.Now.TimeOfDay;
     [ObservableProperty] private string _reason = string.Empty;
@@ -60,6 +62,24 @@ public partial class AppointmentViewModel : ViewModelBase
     {
         New();
         SelectedPatient = Patients.FirstOrDefault(x => x.PatientID == p.PatientID);
+    }
+
+    partial void OnSelectedPatientChanged(Patient? value)
+    {
+        if (value != null)
+        {
+            PatientName = value.Name;
+            PatientPhone = value.Phone ?? string.Empty;
+            Gender = value.Gender ?? string.Empty;
+            Age = value.Age;
+        }
+        else if (Mode == FormMode.Add)
+        {
+            PatientName = string.Empty;
+            PatientPhone = string.Empty;
+            Gender = string.Empty;
+            Age = null;
+        }
     }
 
     [RelayCommand]
@@ -95,18 +115,15 @@ public partial class AppointmentViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (SelectedDoctor == null)
-        {
-            StatusMessage = "Doctor is required.";
-            return;
-        }
 
         var appt = new Appointment
         {
             PatientID = SelectedPatient?.PatientID,
-            PatientName = SelectedPatient == null ? PatientName : null,
-            Phone = SelectedPatient == null ? PatientPhone : null,
-            DoctorID = SelectedDoctor.UserID,
+            PatientName = SelectedPatient == null ? PatientName : SelectedPatient.Name,
+            Phone = SelectedPatient == null ? PatientPhone : SelectedPatient.Phone,
+            Gender = SelectedPatient == null ? Gender : SelectedPatient.Gender,
+            Age = SelectedPatient == null ? Age : SelectedPatient.Age,
+            DoctorID = ViewModelBase.CurrentUser?.UserID ?? 1,
             AppointmentDate = AppointmentDate.Date,
             AppointmentTime = AppointmentTime,
             Reason = Reason,
@@ -125,6 +142,7 @@ public partial class AppointmentViewModel : ViewModelBase
                 }
                 await Task.Run(() => _repo.Insert(appt));
                 StatusMessage = "Appointment booked.";
+                LogActivity("Appointment Created", $"Appointment booked for {appt.PatientName} on {appt.AppointmentDate:dd MMM yyyy}", "Appointments");
             }
             else
             {
@@ -136,6 +154,7 @@ public partial class AppointmentViewModel : ViewModelBase
                 }
                 await Task.Run(() => _repo.Update(appt));
                 StatusMessage = "Appointment updated.";
+                LogActivity("Appointment Updated", $"Appointment #{appt.AppointmentID} updated", "Appointments");
             }
             Mode = FormMode.View;
             NotifyButtonStates();
@@ -213,7 +232,9 @@ public partial class AppointmentViewModel : ViewModelBase
             var p = new Patient
             {
                 Name = SelectedAppointment.PatientName ?? "Unknown",
-                Phone = SelectedAppointment.Phone
+                Phone = SelectedAppointment.Phone,
+                Gender = SelectedAppointment.Gender ?? "Other",
+                Age = SelectedAppointment.Age ?? 0
             };
             int newId = await Task.Run(() => _patientRepo.Insert(p));
             
@@ -270,7 +291,8 @@ public partial class AppointmentViewModel : ViewModelBase
         SelectedPatient = null;
         PatientName = string.Empty;
         PatientPhone = string.Empty;
-        SelectedDoctor = Doctors.FirstOrDefault();
+        Gender = string.Empty;
+        Age = null;
         AppointmentDate = DateTimeOffset.Now;
         AppointmentTime = DateTime.Now.TimeOfDay;
         Reason = string.Empty;
@@ -283,7 +305,8 @@ public partial class AppointmentViewModel : ViewModelBase
         SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == a.PatientID);
         PatientName = a.PatientName ?? string.Empty;
         PatientPhone = a.Phone ?? string.Empty;
-        SelectedDoctor = Doctors.FirstOrDefault(d => d.UserID == a.DoctorID);
+        Gender = a.Gender ?? string.Empty;
+        Age = a.Age;
         AppointmentDate = new DateTimeOffset(a.AppointmentDate);
         AppointmentTime = a.AppointmentTime;
         Reason = a.Reason ?? string.Empty;

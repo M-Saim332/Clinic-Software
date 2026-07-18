@@ -103,7 +103,13 @@ public partial class PatientRegistryViewModel : ViewModelBase
     {
         if (p == null) return;
         var ok = await Task.Run(() => _repo.Delete(p.PatientID));
-        if (ok) { StatusMessage = "Patient deleted."; _ = InitializeAsync(); if (SelectedPatient?.PatientID == p.PatientID) SelectedPatient = null; }
+        if (ok)
+        {
+            StatusMessage = "Patient deleted.";
+            LogActivity("Patient Deleted", $"Patient '{p.Name}' record deleted", "Patients");
+            _ = InitializeAsync();
+            if (SelectedPatient?.PatientID == p.PatientID) SelectedPatient = null;
+        }
         else StatusMessage = "Cannot delete — patient has existing prescriptions.";
     }
 
@@ -127,6 +133,10 @@ public partial class PatientRegistryViewModel : ViewModelBase
         });
 
         StatusMessage = Mode == FormMode.Add ? "Patient added." : "Patient updated.";
+        if (Mode == FormMode.Add)
+            LogActivity("Patient Registered", $"New patient '{p.Name}' registered", "Patients");
+        else
+            LogActivity("Patient Updated", $"Patient '{p.Name}' profile updated", "Patients");
         Mode = FormMode.View;
         NotifyButtonStates();
         _ = InitializeAsync();

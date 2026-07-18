@@ -36,6 +36,9 @@ public partial class SupplierRegistryViewModel : ViewModelBase
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
+    public bool IsReadOnly => Mode == FormMode.Details || Mode == FormMode.View;
+    public bool ShowSaveButton => Mode == FormMode.Add || Mode == FormMode.Edit;
+    public bool ShowEditButton => Mode == FormMode.Details;
 
     [RelayCommand]
     private void New()
@@ -47,21 +50,36 @@ public partial class SupplierRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Edit()
+    private async Task DeleteSpecificAsync(Supplier s)
     {
-        if (SelectedSupplier == null) { StatusMessage = "Select a supplier first."; return; }
-        FillFields(SelectedSupplier);
-        Mode = FormMode.Edit;
+        if (s == null) return;
+        var ok = await Task.Run(() => _repo.Delete(s.SupplierID));
+        StatusMessage = ok ? "Supplier deleted." : "Cannot delete – referenced by purchases.";
+        if (ok)
+        {
+            LogActivity("Supplier Deleted", $"Supplier '{s.Name}' deleted", "Suppliers");
+            await InitializeAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void ViewSpecific(Supplier s)
+    {
+        if (s == null) return;
+        SelectedSupplier = s;
+        FillFields(s);
+        Mode = FormMode.Details;
         NotifyButtonStates();
     }
 
     [RelayCommand]
-    private async Task DeleteAsync()
+    private void EditSpecific(Supplier s)
     {
-        if (SelectedSupplier == null) { StatusMessage = "Select a supplier first."; return; }
-        var ok = await Task.Run(() => _repo.Delete(SelectedSupplier.SupplierID));
-        StatusMessage = ok ? "Supplier deleted." : "Cannot delete – referenced by purchases.";
-        if (ok) await InitializeAsync();
+        if (s == null) return;
+        SelectedSupplier = s;
+        FillFields(s);
+        Mode = FormMode.Edit;
+        NotifyButtonStates();
     }
 
     [RelayCommand]
@@ -73,12 +91,14 @@ public partial class SupplierRegistryViewModel : ViewModelBase
         {
             await Task.Run(() => _repo.Insert(s));
             StatusMessage = "Supplier created.";
+            LogActivity("Supplier Added", $"New supplier '{s.Name}' added", "Suppliers");
         }
         else
         {
             s.SupplierID = SelectedSupplier!.SupplierID;
             await Task.Run(() => _repo.Update(s));
             StatusMessage = "Supplier updated.";
+            LogActivity("Supplier Updated", $"Supplier '{s.Name}' updated", "Suppliers");
         }
         Mode = FormMode.View;
         NotifyButtonStates();
@@ -125,5 +145,8 @@ public partial class SupplierRegistryViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
+        OnPropertyChanged(nameof(IsReadOnly));
+        OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(ShowEditButton));
     }
 }

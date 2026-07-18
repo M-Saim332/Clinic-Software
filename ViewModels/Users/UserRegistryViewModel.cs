@@ -135,6 +135,7 @@ public partial class UserRegistryViewModel : ViewModelBase
             if (ok)
             {
                 StatusMessage = "User deleted successfully.";
+                LogActivity("User Deleted", $"User '{targetUser.Username}' was deleted", "Users");
                 SelectedUser = null;
                 await InitializeAsync();
             }
@@ -172,6 +173,7 @@ public partial class UserRegistryViewModel : ViewModelBase
                 u.Permissions = GetPermissionsString();
                 await Task.Run(() => _repo.Insert(u, Password));
                 StatusMessage = "User created.";
+                LogActivity("User Created", $"New user '{u.Username}' ({u.Role}) created", "Users");
             }
             else
             {
@@ -185,6 +187,7 @@ public partial class UserRegistryViewModel : ViewModelBase
                     await Task.Run(() => _repo.ChangePassword(u.UserID, Password));
                 }
                 StatusMessage = "User updated.";
+                LogActivity("User Updated", $"User '{u.Username}' profile updated", "Users");
             }
             Mode = FormMode.View;
             NotifyButtonStates();
