@@ -31,7 +31,22 @@
             </Border>
 
             <!-- Main table content (the DataGrid) -->
-            <ContentControl Content="{Binding TableContent, ElementName=Root}"/>
+            <Panel>
+                <ContentControl Content="{Binding TableContent, ElementName=Root}" IsVisible="{Binding !ShowEmptyState, ElementName=Root}"/>
+                
+                <!-- Empty State Overlay -->
+                <StackPanel IsVisible="{Binding ShowEmptyState, ElementName=Root}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Margin="0,40,0,40" Spacing="16">
+                    <Border Width="64" Height="64" CornerRadius="32" Background="{DynamicResource BrushBackground}">
+                        <PathIcon Data="{StaticResource IconSearch}" Width="28" Height="28" Foreground="{DynamicResource BrushInk400}"/>
+                    </Border>
+                    <StackPanel Spacing="4" HorizontalAlignment="Center">
+                        <TextBlock Text="No records found" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Try adjusting your filters or adding new data." FontSize="13" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Panel>
         </DockPanel>
     </Border>
 </UserControl>

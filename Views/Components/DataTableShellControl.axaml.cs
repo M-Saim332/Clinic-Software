@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using System.ComponentModel;
 
 namespace ClinicSystem.UI.Views.Components;
 
@@ -27,6 +28,25 @@ public partial class DataTableShellControl : UserControl
     {
         get => GetValue(RecordCountProperty);
         set => SetValue(RecordCountProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> ShowEmptyStateProperty =
+        AvaloniaProperty.Register<DataTableShellControl, bool>(nameof(ShowEmptyState), true);
+
+    public bool ShowEmptyState
+    {
+        get => GetValue(ShowEmptyStateProperty);
+        set => SetValue(ShowEmptyStateProperty, value);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == RecordCountProperty)
+        {
+            var val = change.NewValue as string;
+            ShowEmptyState = string.IsNullOrEmpty(val) || val == "0";
+        }
     }
 
     public static readonly StyledProperty<object?> HeaderActionsProperty =

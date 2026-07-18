@@ -127,6 +127,12 @@
             <Border Grid.Row="2" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="12,12">
                 <StackPanel Spacing="8">
                     <TextBlock Text="SETTINGS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,4" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}"/>
+                    <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <PathIcon Data="{StaticResource IconProfile}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Profile" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                     <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" VerticalAlignment="Center"/>

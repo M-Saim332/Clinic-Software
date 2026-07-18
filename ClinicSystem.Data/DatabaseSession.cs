@@ -45,6 +45,20 @@ public class DatabaseSession
                     ALTER TABLE Users ADD Permissions VARCHAR(1000) NULL;
                 END
             ");
+            
+            // Profile fields for Users
+            conn.Execute(@"
+                IF COL_LENGTH('Users', 'Email') IS NULL ALTER TABLE Users ADD Email NVARCHAR(100) NULL;
+                IF COL_LENGTH('Users', 'Phone') IS NULL ALTER TABLE Users ADD Phone NVARCHAR(50) NULL;
+                IF COL_LENGTH('Users', 'CNIC') IS NULL ALTER TABLE Users ADD CNIC NVARCHAR(50) NULL;
+                IF COL_LENGTH('Users', 'Address') IS NULL ALTER TABLE Users ADD Address NVARCHAR(500) NULL;
+                IF COL_LENGTH('Users', 'Gender') IS NULL ALTER TABLE Users ADD Gender NVARCHAR(20) NULL;
+                IF COL_LENGTH('Users', 'Qualification') IS NULL ALTER TABLE Users ADD Qualification NVARCHAR(200) NULL;
+                IF COL_LENGTH('Users', 'Designation') IS NULL ALTER TABLE Users ADD Designation NVARCHAR(200) NULL;
+                IF COL_LENGTH('Users', 'LicenseNumber') IS NULL ALTER TABLE Users ADD LicenseNumber NVARCHAR(100) NULL;
+                IF COL_LENGTH('Users', 'DateOfBirth') IS NULL ALTER TABLE Users ADD DateOfBirth DATETIME2 NULL;
+                IF COL_LENGTH('Users', 'ProfilePicture') IS NULL ALTER TABLE Users ADD ProfilePicture VARBINARY(MAX) NULL;
+            ");
         }
         catch { }
 
