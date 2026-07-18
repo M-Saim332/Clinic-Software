@@ -79,9 +79,9 @@ public class AppointmentRepository
 
         return conn.ExecuteScalar<int>(
             @"INSERT INTO Appointments 
-                (AppointmentNo, PatientID, PatientName, Phone, DoctorID, AppointmentDate, AppointmentTime, Reason, Status, Remarks, CancellationReason, CreatedAt)
+                (AppointmentNo, PatientID, PatientName, Phone, Gender, Age, DoctorID, AppointmentDate, AppointmentTime, Reason, Status, Remarks, CancellationReason, CreatedAt)
               VALUES 
-                (@AppointmentNo, @PatientID, @PatientName, @Phone, @DoctorID, @AppointmentDate, @AppointmentTime, @Reason, @Status, @Remarks, @CancellationReason, @CreatedAt);
+                (@AppointmentNo, @PatientID, @PatientName, @Phone, @Gender, @Age, @DoctorID, @AppointmentDate, @AppointmentTime, @Reason, @Status, @Remarks, @CancellationReason, @CreatedAt);
               SELECT SCOPE_IDENTITY();", a);
     }
 
@@ -96,6 +96,7 @@ public class AppointmentRepository
         conn.Execute(
             @"UPDATE Appointments SET
                 PatientID = @PatientID, PatientName = @PatientName, Phone = @Phone, 
+                Gender = @Gender, Age = @Age,
                 DoctorID = @DoctorID, AppointmentDate = @AppointmentDate,
                 AppointmentTime = @AppointmentTime, Reason = @Reason, Status = @Status,
                 Remarks = @Remarks, CancellationReason = @CancellationReason

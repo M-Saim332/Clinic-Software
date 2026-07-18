@@ -116,6 +116,7 @@ public partial class ProductRegistryViewModel : ViewModelBase
         if (ok)
         {
             StatusMessage = "Product deleted.";
+            LogActivity("Product Deleted", $"Deleted product '{target.Name}'", "Products");
             if (SelectedProduct?.ProductID == target.ProductID) SelectedProduct = null;
             _ = InitializeAsync();
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
@@ -171,6 +172,10 @@ public partial class ProductRegistryViewModel : ViewModelBase
         });
 
         StatusMessage = Mode == FormMode.Add ? "Product added." : "Product updated.";
+        if (Mode == FormMode.Add)
+            LogActivity("Product Added", $"New product '{m.Name}' added to inventory", "Products");
+        else
+            LogActivity("Product Updated", $"Product '{m.Name}' was updated", "Products");
         Mode = FormMode.View;
         NotifyButtonStates();
         _ = InitializeAsync();

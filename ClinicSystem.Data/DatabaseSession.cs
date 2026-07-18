@@ -50,6 +50,22 @@ public class DatabaseSession
 
         try
         {
+            // Ensure Gender and Age columns exist on Appointments
+            conn.Execute(@"
+                IF COL_LENGTH('Appointments', 'Gender') IS NULL
+                BEGIN
+                    ALTER TABLE Appointments ADD Gender NVARCHAR(20) NULL;
+                END
+                IF COL_LENGTH('Appointments', 'Age') IS NULL
+                BEGIN
+                    ALTER TABLE Appointments ADD Age INT NULL;
+                END
+            ");
+        }
+        catch { }
+
+        try
+        {
             // Ensure ActivityLogs table exists for the dashboard feed
             conn.Execute(@"
                 IF OBJECT_ID('ActivityLogs', 'U') IS NULL
