@@ -78,6 +78,42 @@ public class UserRepository
             new { fullName, username, userId });
     }
 
+    public void UpdateFullProfile(int userId, User u)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(@"
+            UPDATE Users SET
+                FullName = @FullName,
+                Username = @Username,
+                Email = @Email,
+                Phone = @Phone,
+                CNIC = @CNIC,
+                Address = @Address,
+                Gender = @Gender,
+                Qualification = @Qualification,
+                Designation = @Designation,
+                LicenseNumber = @LicenseNumber,
+                DateOfBirth = @DateOfBirth,
+                ProfilePicture = @ProfilePicture
+            WHERE UserID = @userId",
+            new
+            {
+                userId,
+                u.FullName,
+                u.Username,
+                u.Email,
+                u.Phone,
+                u.CNIC,
+                u.Address,
+                u.Gender,
+                u.Qualification,
+                u.Designation,
+                u.LicenseNumber,
+                u.DateOfBirth,
+                u.ProfilePicture
+            });
+    }
+
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();

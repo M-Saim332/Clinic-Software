@@ -34,12 +34,26 @@
             <TabItem Header="Patient List">
                 <comp:DataTableShellControl Title="Patients Database Summary" RecordCount="{Binding PatientList.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
-                        <Button Command="{Binding LoadPatientListCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{Binding LoadPatientListCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ExportPatientListToPdfCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ExportPatientListToExcelCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding PatientList}" AutoGenerateColumns="False" IsReadOnly="True"
@@ -61,12 +75,26 @@
             <TabItem Header="Product Stock">
                 <comp:DataTableShellControl Title="Stock Level Listing" RecordCount="{Binding ProductStockList.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
-                        <Button Command="{Binding LoadProductStockCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Command="{Binding LoadProductStockCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ExportProductStockToPdfCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding ExportProductStockToExcelCommand}" Classes="btn-secondary">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding ProductStockList}" AutoGenerateColumns="False" IsReadOnly="True"
@@ -174,6 +202,12 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Download Monthly PDF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ExportFinancialsToExcelCommand}" Classes="btn-secondary">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Export to Excel" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

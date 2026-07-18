@@ -3,6 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Suppliers"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Suppliers.SupplierRegistryView"
+             x:Name="Root"
              x:DataType="vm:SupplierRegistryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 

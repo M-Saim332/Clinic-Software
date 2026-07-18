@@ -28,26 +28,26 @@
                     </Border>
                     <!-- Name / Role -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                        <TextBlock Text="{Binding DisplayName}" FontSize="22" FontWeight="Bold"
+                        <TextBlock Text="{Binding FullName}" FontSize="22" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk900}"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
                                    FontSize="13" Foreground="{DynamicResource BrushInk600}"/>
                         <Border Background="{DynamicResource BrushBlue50}" CornerRadius="20"
                                 Padding="10,3" HorizontalAlignment="Left">
-                            <TextBlock Text="{Binding RoleDisplay}" FontSize="12"
+                            <TextBlock Text="{Binding Role}" FontSize="12"
                                        Foreground="{DynamicResource BrushPrimaryBlue}"
                                        FontWeight="SemiBold"/>
                         </Border>
                     </StackPanel>
                     <!-- Action Buttons -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Button Content="Edit Profile" Command="{Binding StartEditProfileCommand}"
+                        <Button Content="Edit Profile" Command="{Binding StartEditCommand}"
                                 Classes="btn-secondary"
-                                IsVisible="{Binding !IsEditingProfile}"/>
-                        <Button Content="Change Password" Command="{Binding StartChangePasswordCommand}"
+                                IsVisible="{Binding !IsEditing}"/>
+                        <Button Content="Change Password" Command="{Binding OpenChangePasswordCommand}"
                                 Classes="btn-ghost"
-                                IsVisible="{Binding !IsChangingPassword}"/>
+                                IsVisible="{Binding !ShowChangePassword}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -66,7 +66,7 @@
             </Border>
 
             <!-- Edit Profile Form -->
-            <Border IsVisible="{Binding IsEditingProfile}"
+            <Border IsVisible="{Binding IsEditing}"
                     Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="14" Padding="28,24">
@@ -91,14 +91,14 @@
                         </StackPanel>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Command="{Binding CancelEditProfileCommand}" Classes="btn-ghost"/>
+                        <Button Content="Cancel" Command="{Binding CancelEditCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Changes" Command="{Binding SaveProfileCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Change Password Form -->
-            <Border IsVisible="{Binding IsChangingPassword}"
+            <Border IsVisible="{Binding ShowChangePassword}"
                     Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="14" Padding="28,24">
@@ -109,7 +109,7 @@
                     <Separator/>
                     <StackPanel Spacing="6">
                         <TextBlock Text="Current Password *" Classes="label"/>
-                        <TextBox Text="{Binding CurrentPassword}" PasswordChar="•"
+                        <TextBox Text="{Binding OldPassword}" PasswordChar="•"
                                  PlaceholderText="Enter current password"/>
                     </StackPanel>
                     <Grid ColumnDefinitions="*,*">
@@ -126,20 +126,20 @@
                     </Grid>
 
                     <!-- Password Status -->
-                    <TextBlock Text="{Binding PasswordStatus}"
+                    <TextBlock Text="{Binding PasswordStatusMessage}"
                                Foreground="{DynamicResource BrushRose}"
                                FontSize="13"
-                               IsVisible="{Binding PasswordStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                               IsVisible="{Binding PasswordStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Command="{Binding CancelChangePasswordCommand}" Classes="btn-ghost"/>
+                        <Button Content="Cancel" Command="{Binding CloseChangePasswordCommand}" Classes="btn-ghost"/>
                         <Button Content="Update Password" Command="{Binding SavePasswordCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
             <!-- Profile Info (View Mode) -->
-            <Border IsVisible="{Binding !IsEditingProfile}"
+            <Border IsVisible="{Binding !IsEditing}"
                     Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="14" Padding="28,24">

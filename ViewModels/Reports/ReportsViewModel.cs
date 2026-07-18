@@ -13,6 +13,7 @@ using System.Text;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using ClosedXML.Excel;
 
 namespace ClinicSystem.UI.ViewModels.Reports;
 
@@ -115,6 +116,185 @@ public partial class ReportsViewModel : ViewModelBase
             4 => LoadFinancialsAsync(),
             _ => Task.CompletedTask
         };
+    }
+
+    // ── Per-Tab Export: Patient List ───────────────────────────────────────
+    [RelayCommand]
+    private async Task ExportPatientListToPdfAsync()
+    {
+        if (PatientList.Count == 0) { StatusMessage = "Load patient data first."; return; }
+        var file = await PickSaveFileAsync("PatientList", "pdf");
+        if (file == null) return;
+        IsBusy = true; StatusMessage = "Exporting PDF...";
+        try
+        {
+            using var stream = new MemoryStream();
+            Document.Create(c => c.Page(page =>
+            {
+                page.Size(PageSizes.A4); page.Margin(2, Unit.Centimetre);
+                page.Header().Text("Patient List Report").FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
+                {
+                    table.ColumnsDefinition(cols => { cols.ConstantColumn(50); cols.RelativeColumn(3); cols.ConstantColumn(60); cols.ConstantColumn(80); cols.RelativeColumn(2); cols.RelativeColumn(2); });
+                    table.Header(h => { h.Cell().Text("ID").SemiBold(); h.Cell().Text("Name").SemiBold(); h.Cell().Text("Age").SemiBold(); h.Cell().Text("Gender").SemiBold(); h.Cell().Text("Phone").SemiBold(); h.Cell().Text("Address").SemiBold(); h.Cell().ColumnSpan(6).PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Black); });
+                    foreach (var p in PatientList)
+                    {
+                        table.Cell().Text($"{p.PatientID}"); table.Cell().Text(p.Name); table.Cell().Text($"{p.Age}");
+                        table.Cell().Text(p.Gender ?? ""); table.Cell().Text(p.Contact ?? ""); table.Cell().Text(p.Address ?? "");
+                    }
+                });
+                page.Footer().AlignCenter().Text(x => { x.Span("Page "); x.CurrentPageNumber(); x.Span(" of "); x.TotalPages(); });
+            })).GeneratePdf(stream);
+            stream.Position = 0;
+            await using var fs = await file.OpenWriteAsync();
+            await stream.CopyToAsync(fs);
+            StatusMessage = $"PDF exported ({PatientList.Count} patients).";
+        }
+        catch (Exception ex) { StatusMessage = $"Export failed: {ex.Message}"; }
+        IsBusy = false;
+    }
+
+    [RelayCommand]
+    private async Task ExportPatientListToExcelAsync()
+    {
+        if (PatientList.Count == 0) { StatusMessage = "Load patient data first."; return; }
+        var file = await PickSaveFileAsync("PatientList", "xlsx");
+        if (file == null) return;
+        IsBusy = true; StatusMessage = "Exporting Excel...";
+        try
+        {
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Patients");
+            ws.Cell(1, 1).Value = "ID"; ws.Cell(1, 2).Value = "Name"; ws.Cell(1, 3).Value = "Age";
+            ws.Cell(1, 4).Value = "Gender"; ws.Cell(1, 5).Value = "Phone"; ws.Cell(1, 6).Value = "Address";
+            ws.Row(1).Style.Font.Bold = true;
+            int row = 2;
+            foreach (var p in PatientList)
+            { ws.Cell(row, 1).Value = p.PatientID; ws.Cell(row, 2).Value = p.Name; ws.Cell(row, 3).Value = p.Age; ws.Cell(row, 4).Value = p.Gender ?? ""; ws.Cell(row, 5).Value = p.Contact ?? ""; ws.Cell(row, 6).Value = p.Address ?? ""; row++; }
+            ws.Columns().AdjustToContents();
+            using var stream = new MemoryStream();
+            wb.SaveAs(stream); stream.Position = 0;
+            await using var fs = await file.OpenWriteAsync();
+            await stream.CopyToAsync(fs);
+            StatusMessage = $"Excel exported ({PatientList.Count} patients).";
+        }
+        catch (Exception ex) { StatusMessage = $"Export failed: {ex.Message}"; }
+        IsBusy = false;
+    }
+
+    // ── Per-Tab Export: Product Stock ───────────────────────────────────────
+    [RelayCommand]
+    private async Task ExportProductStockToPdfAsync()
+    {
+        if (ProductStockList.Count == 0) { StatusMessage = "Load stock data first."; return; }
+        var file = await PickSaveFileAsync("ProductStock", "pdf");
+        if (file == null) return;
+        IsBusy = true; StatusMessage = "Exporting PDF...";
+        try
+        {
+            using var stream = new MemoryStream();
+            Document.Create(c => c.Page(page =>
+            {
+                page.Size(PageSizes.A4); page.Margin(2, Unit.Centimetre);
+                page.Header().Text("Product Stock Report").FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
+                {
+                    table.ColumnsDefinition(cols => { cols.RelativeColumn(3); cols.ConstantColumn(80); cols.ConstantColumn(80); cols.ConstantColumn(90); cols.RelativeColumn(2); });
+                    table.Header(h => { h.Cell().Text("Product").SemiBold(); h.Cell().Text("Stock").SemiBold(); h.Cell().Text("Min").SemiBold(); h.Cell().Text("Expiry").SemiBold(); h.Cell().Text("Manufacturer").SemiBold(); h.Cell().ColumnSpan(5).PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Black); });
+                    foreach (var p in ProductStockList)
+                    { table.Cell().Text(p.Name); table.Cell().Text($"{p.Stock}"); table.Cell().Text($"{p.MinStock}"); table.Cell().Text(p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""); table.Cell().Text(p.Manufacturer ?? ""); }
+                });
+                page.Footer().AlignCenter().Text(x => { x.Span("Page "); x.CurrentPageNumber(); x.Span(" of "); x.TotalPages(); });
+            })).GeneratePdf(stream);
+            stream.Position = 0;
+            await using var fs = await file.OpenWriteAsync();
+            await stream.CopyToAsync(fs);
+            StatusMessage = $"PDF exported ({ProductStockList.Count} products).";
+        }
+        catch (Exception ex) { StatusMessage = $"Export failed: {ex.Message}"; }
+        IsBusy = false;
+    }
+
+    [RelayCommand]
+    private async Task ExportProductStockToExcelAsync()
+    {
+        if (ProductStockList.Count == 0) { StatusMessage = "Load stock data first."; return; }
+        var file = await PickSaveFileAsync("ProductStock", "xlsx");
+        if (file == null) return;
+        IsBusy = true; StatusMessage = "Exporting Excel...";
+        try
+        {
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("ProductStock");
+            ws.Cell(1, 1).Value = "Product"; ws.Cell(1, 2).Value = "Stock"; ws.Cell(1, 3).Value = "Min Stock";
+            ws.Cell(1, 4).Value = "Status"; ws.Cell(1, 5).Value = "Expiry"; ws.Cell(1, 6).Value = "Price"; ws.Cell(1, 7).Value = "Manufacturer";
+            ws.Row(1).Style.Font.Bold = true;
+            int row = 2;
+            foreach (var p in ProductStockList)
+            { ws.Cell(row, 1).Value = p.Name; ws.Cell(row, 2).Value = p.Stock; ws.Cell(row, 3).Value = p.MinStock; ws.Cell(row, 4).Value = p.StockStatus; ws.Cell(row, 5).Value = p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""; ws.Cell(row, 6).Value = (double)p.SellingPrice; ws.Cell(row, 7).Value = p.Manufacturer ?? ""; row++; }
+            ws.Columns().AdjustToContents();
+            using var stream = new MemoryStream();
+            wb.SaveAs(stream); stream.Position = 0;
+            await using var fs = await file.OpenWriteAsync();
+            await stream.CopyToAsync(fs);
+            StatusMessage = $"Excel exported ({ProductStockList.Count} products).";
+        }
+        catch (Exception ex) { StatusMessage = $"Export failed: {ex.Message}"; }
+        IsBusy = false;
+    }
+
+    // ── Per-Tab Export: Financials ──────────────────────────────────────────
+    [RelayCommand]
+    private async Task ExportFinancialsToExcelAsync()
+    {
+        var file = await PickSaveFileAsync("Financials", "xlsx");
+        if (file == null) return;
+        IsBusy = true; StatusMessage = "Exporting Excel...";
+        try
+        {
+            var sales = await Task.Run(_saleRepo.GetAll);
+            var purchases = await Task.Run(_purchaseRepo.GetAll);
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Financials");
+            ws.Cell(1, 1).Value = "Type"; ws.Cell(1, 2).Value = "Date"; ws.Cell(1, 3).Value = "Reference"; ws.Cell(1, 4).Value = "Amount";
+            ws.Row(1).Style.Font.Bold = true;
+            int row = 2;
+            foreach (var s in sales.Where(s => s.IsPosted))
+            { ws.Cell(row, 1).Value = "Revenue"; ws.Cell(row, 2).Value = s.SaleDate.ToString("yyyy-MM-dd"); ws.Cell(row, 3).Value = s.InvoiceNumber; ws.Cell(row, 4).Value = (double)s.GrandTotal; row++; }
+            foreach (var p in purchases)
+            { ws.Cell(row, 1).Value = "Expense"; ws.Cell(row, 2).Value = p.PurchaseDate.ToString("yyyy-MM-dd"); ws.Cell(row, 3).Value = p.InvoiceNumber; ws.Cell(row, 4).Value = (double)p.TotalAmount; row++; }
+            row += 2;
+            ws.Cell(row, 3).Value = "Total Revenue:"; ws.Cell(row, 4).Value = (double)TotalRevenue;
+            row++; ws.Cell(row, 3).Value = "Total Expenses:"; ws.Cell(row, 4).Value = (double)TotalExpenses;
+            row++; ws.Cell(row, 3).Value = "Net Profit:"; ws.Cell(row, 4).Value = (double)NetProfit;
+            ws.Row(row).Style.Font.Bold = true;
+            ws.Columns().AdjustToContents();
+            using var stream = new MemoryStream();
+            wb.SaveAs(stream); stream.Position = 0;
+            await using var fs = await file.OpenWriteAsync();
+            await stream.CopyToAsync(fs);
+            StatusMessage = "Financials exported to Excel.";
+        }
+        catch (Exception ex) { StatusMessage = $"Export failed: {ex.Message}"; }
+        IsBusy = false;
+    }
+
+    // ── Shared: File Picker Helper ─────────────────────────────────────────
+    private static async Task<IStorageFile?> PickSaveFileAsync(string prefix, string ext)
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return null;
+        var storage = desktop.MainWindow?.StorageProvider;
+        if (storage == null) return null;
+        var fileType = ext == "pdf"
+            ? new FilePickerFileType("PDF File") { Patterns = new[] { "*.pdf" } }
+            : new FilePickerFileType("Excel File") { Patterns = new[] { "*.xlsx" } };
+        return await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = $"Export {prefix}",
+            SuggestedFileName = $"{prefix}_{DateTime.Now:yyyyMMdd_HHmmss}.{ext}",
+            DefaultExtension = ext,
+            FileTypeChoices = new[] { fileType }
+        });
     }
 
     [RelayCommand]

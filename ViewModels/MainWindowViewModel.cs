@@ -16,6 +16,7 @@ using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Products;
 using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
+using ClinicSystem.UI.ViewModels.Profile;
 using ClinicSystem.Data;
 using System;
 using System.Collections.Generic;
@@ -47,6 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SaleViewModel             _saleVM;
     private readonly ProductReturnViewModel   _returnVM;
     private readonly InventoryViewModel        _inventoryVM;
+    private readonly ProfileViewModel          _profileVM;
     private readonly DatabaseSession           _dbSession;
 
     public ChangePasswordViewModel ChangePasswordVM { get; }
@@ -69,6 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SaleViewModel             saleVM,
         ProductReturnViewModel   returnVM,
         InventoryViewModel        inventoryVM,
+        ProfileViewModel          profileVM,
         ChangePasswordViewModel   changePasswordVM,
         DatabaseSession           dbSession)
     {
@@ -89,6 +92,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _saleVM         = saleVM;
         _returnVM       = returnVM;
         _inventoryVM    = inventoryVM;
+        _profileVM      = profileVM;
         _dbSession      = dbSession;
 
         ChangePasswordVM = changePasswordVM;
@@ -216,6 +220,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
     [ObservableProperty] private bool _isSettingsActive;
+    [ObservableProperty] private bool _isProfileActive;
 
     [ObservableProperty] private bool _showChangePassword;
     [ObservableProperty] private bool _showLogoutConfirm;
@@ -244,6 +249,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Users":        IsUsersActive        = true; break;
             case "Reports":      IsReportsActive      = true; break;
             case "Settings":     IsSettingsActive     = true; break;
+            case "Profile":      IsProfileActive      = true; break;
         }
     }
 
@@ -252,7 +258,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsDashboardActive = IsPatientsActive = IsProductsActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive =
-        IsUsersActive = IsReportsActive = IsSettingsActive = false;
+        IsUsersActive = IsReportsActive = IsSettingsActive = IsProfileActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
@@ -270,6 +276,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
     [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
     [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); }
+    [RelayCommand] private void ShowProfile()
+    {
+        _profileVM.LoadFromCurrentUser();
+        NavigateTo(_profileVM, "Profile");
+    }
 
     [RelayCommand]
     private void ShowPrescriptions()

@@ -20,6 +20,7 @@ using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
+using ClinicSystem.UI.ViewModels.Profile;
 using ClinicSystem.UI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -82,6 +83,7 @@ public partial class App : Application
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<DiscountRefundViewModel>();
+        services.AddSingleton<ProfileViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
 
