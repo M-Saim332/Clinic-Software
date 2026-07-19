@@ -95,7 +95,7 @@
 
                     <Button Command="{Binding ShowReturnsCommand}" Classes="navbtn" Classes.active="{Binding IsReturnsActive}" IsVisible="{Binding CanAccessReturns}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconCart}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <PathIcon Data="{StaticResource IconReturns}" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Returns" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

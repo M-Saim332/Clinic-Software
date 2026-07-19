@@ -102,7 +102,7 @@
                             <TextBlock Text="Enter details and items for this invoice" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Invoices" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>

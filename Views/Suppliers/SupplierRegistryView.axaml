@@ -103,7 +103,7 @@
                             <TextBlock Text="Fill in the supplier details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Suppliers" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
@@ -148,8 +148,8 @@
                                VerticalAlignment="Center" FontSize="13"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="Edit Supplier" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedSupplier}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost" IsVisible="{Binding ShowSaveButton}"/>
                         <Button Content="Save Supplier" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
+                        <Button Content="Back" Command="{Binding CancelCommand}" Classes="btn-secondary"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

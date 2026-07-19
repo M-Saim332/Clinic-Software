@@ -129,7 +129,7 @@
                             <TextBlock Text="Enter login credentials and choose system role" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Users" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>

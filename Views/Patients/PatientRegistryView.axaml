@@ -79,7 +79,7 @@
                 <DockPanel>
                     <TextBlock Text="{Binding Mode, StringFormat='{}{0} Patient'}" FontSize="20" FontWeight="Bold"
                                Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
-                    <Button Content="← Back to Patients" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
@@ -126,9 +126,9 @@
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
                 <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                    <Button Content="Back" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                     <Button Content="Edit Patient" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
                     <Button Content="Save Patient" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
+                    <Button Content="Back" Command="{Binding CancelCommand}" Classes="btn-secondary"/>
                 </StackPanel>
             </Border>
         </Grid>

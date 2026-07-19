@@ -1,0 +1,136 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
+             xmlns:models="using:ClinicSystem.Core.Models"
+             x:Class="ClinicSystem.UI.Views.Sales.InvoiceView"
+             x:DataType="vm:InvoiceViewModel" x:CompileBindings="True"
+             Background="{DynamicResource BrushBackground}">
+
+    <ScrollViewer>
+        <StackPanel Margin="28,24" Spacing="24">
+            <!-- Header Toolbar -->
+            <Border Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="10" Padding="20,14">
+                <DockPanel>
+                    <Button Content="Back" Command="{Binding GoBackCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Left"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center"/>
+                        <Button Content="Print Invoice" Command="{Binding PrintCommand}"
+                                Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Printable Invoice Paper -->
+            <Border Background="White" Width="800" HorizontalAlignment="Center"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                    CornerRadius="0" Padding="40,50"
+                    BoxShadow="0 4 12 0 #10000000">
+                <StackPanel Spacing="32">
+                    
+                    <!-- Top: Clinic Brand & Invoice Info -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource BrushBlue50}">
+                                    <PathIcon Data="{StaticResource IconClinic}" Width="24" Height="24"
+                                              Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Spacing="1">
+                                    <TextBlock Text="CLINIC MANAGEMENT" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                    <TextBlock Text="123 Medical Center Blvd, Health City" FontSize="13" Foreground="{DynamicResource BrushInk500}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
+                            <TextBlock Text="INVOICE" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource BrushInk200}" HorizontalAlignment="Right" LetterSpacing="2"/>
+                            <TextBlock Text="{Binding SaleData.InvoiceNumber, StringFormat='No. {0}'}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="{Binding SaleData.SaleDate, StringFormat='Date: {0:MMM dd, yyyy}'}" FontSize="13" Foreground="{DynamicResource BrushInk600}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="{Binding SaleData.PaymentMethod, StringFormat='Payment: {0}'}" FontSize="13" Foreground="{DynamicResource BrushInk600}" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Patient Info -->
+                    <Border Background="#F9FAFB" CornerRadius="8" Padding="20">
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="BILL TO:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                                <TextBlock Text="{Binding SaleData.PatientName}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
+                                <TextBlock Text="AMOUNT DUE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding SaleData.GrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Line Items -->
+                    <DataGrid ItemsSource="{Binding LineItems}"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              SelectionMode="Single" Background="White" BorderThickness="0,1,0,1"
+                              BorderBrush="{DynamicResource BrushLine}"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F3F4F6">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ITEM DESCRIPTION" Binding="{Binding ProductName}" Width="*"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
+                            <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                            <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                            <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    
+                    <!-- Totals -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                            <TextBlock Text="Thank you for your visit!" FontSize="14" FontStyle="Italic" Foreground="{DynamicResource BrushInk500}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="12" Width="260">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="Consultation Fee:" Foreground="{DynamicResource BrushInk600}" FontSize="14"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SaleData.ConsultationFee, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushInk900}" FontSize="14" FontWeight="Medium"/>
+                            </Grid>
+                            <Border Height="1" Background="{DynamicResource BrushLine}"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="GRAND TOTAL:" Foreground="{DynamicResource BrushInk900}" FontSize="16" FontWeight="Bold"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SaleData.GrandTotal, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushPrimaryBlue}" FontSize="18" FontWeight="Bold"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                    
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+
+    <UserControl.Styles>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F3F4F6"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

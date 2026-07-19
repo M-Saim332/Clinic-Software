@@ -9,9 +9,9 @@
 
     <Grid>
         <!-- ============================================================ -->
-        <!-- 1. LIST/GRID VIEW (ShowForm is false)                         -->
+        <!-- 1. LIST/GRID VIEW (ShowList is true)                         -->
         <!-- ============================================================ -->
-        <Grid IsVisible="{Binding !ShowForm}" RowDefinitions="Auto,Auto,*">
+        <Grid IsVisible="{Binding ShowList}" RowDefinitions="Auto,Auto,*">
             <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
@@ -63,6 +63,9 @@
                             <Button Content="View Details" Command="{Binding ViewDetailsCommand}"
                                     IsEnabled="{Binding SelectedSale, Converter={x:Static ObjectConverters.IsNotNull}}"
                                     Classes="btn-secondary"/>
+                            <Button Content="Print Invoice" Command="{Binding PrintInvoiceCommand}"
+                                    IsEnabled="{Binding SelectedSale, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="btn-secondary"/>
                         </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
@@ -103,7 +106,7 @@
                             <TextBlock Text="Enter details and items for this sale" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Invoices" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
@@ -295,6 +298,11 @@
                 </DockPanel>
             </Border>
         </Grid>
+        
+        <!-- ============================================================ -->
+        <!-- 3. INVOICE PRINT VIEW                                        -->
+        <!-- ============================================================ -->
+        <ContentControl IsVisible="{Binding ShowInvoicePrint}" Content="{Binding InvoiceVM}"/>
     </Grid>
 
     <UserControl.Styles>

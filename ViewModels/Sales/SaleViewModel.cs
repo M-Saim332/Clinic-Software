@@ -14,16 +14,35 @@ public partial class SaleViewModel : ViewModelBase
     private readonly PatientRepository _patientRepo;
     private readonly ProductRepository _productRepo;
 
-    public SaleViewModel(SaleRepository repo, PatientRepository patientRepo, ProductRepository productRepo)
+    private readonly ActivityLogRepository _activityRepo;
+
+    public InvoiceViewModel InvoiceVM { get; }
+
+    public SaleViewModel(
+        SaleRepository repo, 
+        PatientRepository patientRepo, 
+        ProductRepository productRepo,
+        ActivityLogRepository activityRepo,
+        InvoiceViewModel invoiceVM)
     {
         _repo = repo;
         _patientRepo = patientRepo;
         _productRepo = productRepo;
+        _activityRepo = activityRepo;
+        InvoiceVM = invoiceVM;
+
+        InvoiceVM.RequestGoBack += () => ShowInvoicePrint = false;
     }
 
     [ObservableProperty] private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showForm;
+    [ObservableProperty] private bool _showInvoicePrint;
+    
+    // Auto-update visibility flags
+    partial void OnShowFormChanged(bool value) => OnPropertyChanged(nameof(ShowList));
+    partial void OnShowInvoicePrintChanged(bool value) => OnPropertyChanged(nameof(ShowList));
+    public bool ShowList => !ShowForm && !ShowInvoicePrint;
     
     [ObservableProperty] private ObservableCollection<Sale> _sales = new();
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
@@ -109,6 +128,15 @@ public partial class SaleViewModel : ViewModelBase
         {
             StatusMessage = $"Error loading sale details: {ex.Message}";
         }
+    }
+
+    [RelayCommand]
+    private void PrintInvoice()
+    {
+        if (SelectedSale == null) { StatusMessage = "Select a sale first."; return; }
+        InvoiceVM.LoadInvoice(SelectedSale);
+        ShowInvoicePrint = true;
+        StatusMessage = $"Opening invoice {SelectedSale.InvoiceNumber}";
     }
 
     [RelayCommand]

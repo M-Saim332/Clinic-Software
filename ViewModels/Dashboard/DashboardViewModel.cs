@@ -293,7 +293,7 @@ public partial class DashboardViewModel : ViewModelBase,
             });
 
             // ── Load real recent activities (outside UIThread.Post because it needs await) ──
-            var activities = await Task.Run(() => _activityRepo.GetLatest(15));
+            var activities = await Task.Run(() => _activityRepo.GetLatest(20));
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 RecentActivities = new ObservableCollection<ActivityLog>(activities);
@@ -318,7 +318,7 @@ public partial class DashboardViewModel : ViewModelBase,
         Task.Run(async () =>
         {
             _activityRepo.Insert(message.Log);
-            var activities = await Task.Run(() => _activityRepo.GetLatest(15));
+            var activities = await Task.Run(() => _activityRepo.GetLatest(20));
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 RecentActivities = new ObservableCollection<ActivityLog>(activities);
