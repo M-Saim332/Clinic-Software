@@ -90,6 +90,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase
         StatusMessage = ok ? "Company deleted." : "Cannot delete — company is referenced by products.";
         if (ok)
         {
+            LogActivity("Company Deleted", $"Company '{target.Name}' deleted", "Companies");
             if (SelectedCompany?.CompanyID == target.CompanyID) SelectedCompany = null;
             await InitializeAsync();
         }
@@ -125,12 +126,14 @@ public partial class CompanyRegistryViewModel : ViewModelBase
         {
             await Task.Run(() => _repo.Insert(c));
             StatusMessage = "Company created.";
+            LogActivity("Company Added", $"New company '{c.Name}' added", "Companies");
         }
         else
         {
             c.CompanyID = SelectedCompany!.CompanyID;
             await Task.Run(() => _repo.Update(c));
             StatusMessage = "Company updated.";
+            LogActivity("Company Updated", $"Company '{c.Name}' updated", "Companies");
         }
         Mode = FormMode.View;
         NotifyButtonStates();

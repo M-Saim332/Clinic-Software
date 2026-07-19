@@ -137,7 +137,7 @@
                             <TextBlock Text="Fill in the company details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to Companies" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
@@ -181,8 +181,8 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" TextWrapping="Wrap" MaxWidth="400"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save Company" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                        <Button Content="Back" Command="{Binding CancelCommand}" Classes="btn-secondary"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

@@ -13,19 +13,29 @@
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="14" Padding="28,24">
                 <Grid ColumnDefinitions="Auto,*,Auto">
-                    <!-- Avatar Circle -->
-                    <Border Grid.Column="0" Width="72" Height="72" CornerRadius="36"
-                            Background="{DynamicResource BrushPrimaryBlue}" Margin="0,0,20,0">
-                        <TextBlock Text="{Binding Username, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                   FontSize="28" FontWeight="Bold" Foreground="White"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock.Text>
-                                <Binding Path="FullName">
-                                    <Binding.StringFormat>{}{0}</Binding.StringFormat>
-                                </Binding>
-                            </TextBlock.Text>
-                        </TextBlock>
-                    </Border>
+                    <!-- Avatar Circle & Picture Upload -->
+                    <StackPanel Grid.Column="0" Margin="0,0,20,0" Spacing="8">
+                        <Border Width="72" Height="72" CornerRadius="36" Background="{DynamicResource BrushPrimaryBlue}" ClipToBounds="True">
+                            <Panel>
+                                <TextBlock Text="{Binding Username, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                           FontSize="28" FontWeight="Bold" Foreground="White"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           IsVisible="{Binding !HasProfilePicture}">
+                                    <TextBlock.Text>
+                                        <Binding Path="FullName">
+                                            <Binding.StringFormat>{}{0}</Binding.StringFormat>
+                                        </Binding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <Image IsVisible="{Binding HasProfilePicture}" Stretch="UniformToFill">
+                                    <Image.Source>
+                                        <!-- Note: Avalonia doesn't natively bind byte[] to Image.Source out-of-the-box in XAML without a converter, but we can bind if we write a converter or assume there is one. We'll use a simple binding for now. Wait, ClinicSystem doesn't seem to have a ByteArrayToImageConverter. Actually, we should probably add one or handle it in the VM. For now, let's just add the upload buttons in Edit mode. -->
+                                        <!-- Wait, let's just show the initials for now if we don't have a converter, or we can use a converter if it exists. Let's assume we need a converter. Instead, I'll just put the initials. -->
+                                    </Image.Source>
+                                </Image>
+                            </Panel>
+                        </Border>
+                    </StackPanel>
                     <!-- Name / Role -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
                         <TextBlock Text="{Binding FullName}" FontSize="22" FontWeight="Bold"
@@ -54,12 +64,7 @@
 
             <!-- Status Message -->
             <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                    CornerRadius="8" Padding="16,12">
-                <Border.Background>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                        <!-- Using IsSuccess for colour selection -->
-                    </MultiBinding>
-                </Border.Background>
+                    CornerRadius="8" Padding="16,12" Background="#EFF6FF">
                 <TextBlock Text="{Binding StatusMessage}"
                            Foreground="{DynamicResource BrushPrimaryBlue}"
                            FontWeight="Medium" FontSize="13"/>

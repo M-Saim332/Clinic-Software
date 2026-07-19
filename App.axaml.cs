@@ -11,7 +11,7 @@ using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.ViewModels.Reports;
 using ClinicSystem.UI.ViewModels.Companies;
 using ClinicSystem.UI.ViewModels.Suppliers;
-using ClinicSystem.UI.ViewModels.Products;
+
 using ClinicSystem.UI.ViewModels.Appointments;
 using ClinicSystem.UI.ViewModels.Purchases;
 using ClinicSystem.UI.ViewModels.Sales;
@@ -76,6 +76,7 @@ public partial class App : Application
         services.AddSingleton<AppointmentViewModel>();
         services.AddSingleton<PurchaseViewModel>();
         services.AddSingleton<SaleViewModel>();
+        services.AddSingleton<InvoiceViewModel>();
         services.AddSingleton<ProductReturnViewModel>();
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();

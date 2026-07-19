@@ -176,7 +176,7 @@
                         </StackPanel>
                     </StackPanel>
                     <!-- Back Button -->
-                    <Button Content="← Back to Registry" Command="{Binding CancelCommand}"
+                    <Button Content="Back" Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>

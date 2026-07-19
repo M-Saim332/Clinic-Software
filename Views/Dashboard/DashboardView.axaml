@@ -297,41 +297,10 @@
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- ROW 3: Bottom Info Panels                                   -->
             <!-- ═══════════════════════════════════════════════════════════ -->
-            <Grid ColumnDefinitions="*,*,*,*" Height="230">
-
-                <!-- Today's Summary -->
-                <Border Grid.Column="0" Classes="dashCard" Margin="0,0,8,0">
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-                            <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" Foreground="#3B82F6"/>
-                            <TextBlock Text="Today's Summary" Classes="cardTitle"/>
-                        </StackPanel>
-                        <Border DockPanel.Dock="Top" Height="1" Background="#F3F4F6" Margin="0,0,0,12"/>
-                        <StackPanel Spacing="10">
-                            <!-- Today's Revenue -->
-                            <DockPanel>
-                                <TextBlock Text="Today's Revenue" Foreground="#6B7280" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding TodayRevenue}"
-                                           FontWeight="SemiBold" Foreground="#10B981" FontSize="13" HorizontalAlignment="Right"/>
-                            </DockPanel>
-                            <!-- Today's Profit -->
-                            <DockPanel>
-                                <TextBlock Text="Today's Profit" Foreground="#6B7280" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding TodayProfit}"
-                                           FontWeight="SemiBold" Foreground="#3B82F6" FontSize="13" HorizontalAlignment="Right"/>
-                            </DockPanel>
-                            <!-- Today's Patients -->
-                            <DockPanel>
-                                <TextBlock Text="Today's Patients" Foreground="#6B7280" FontSize="13" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding TodayPatients}"
-                                           FontWeight="SemiBold" Foreground="#1F2937" FontSize="13" HorizontalAlignment="Right"/>
-                            </DockPanel>
-                        </StackPanel>
-                    </DockPanel>
-                </Border>
+            <Grid ColumnDefinitions="*,*,*" Height="230">
 
                 <!-- Low Stock Alert -->
-                <Border Grid.Column="1" Classes="dashCard" Margin="8,0,8,0">
+                <Border Grid.Column="0" Classes="dashCard" Margin="0,0,8,0">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -368,7 +337,7 @@
                 </Border>
 
                 <!-- Expiring Soon -->
-                <Border Grid.Column="2" Classes="dashCard" Margin="8,0,8,0">
+                <Border Grid.Column="1" Classes="dashCard" Margin="8,0,8,0">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -404,7 +373,7 @@
                 </Border>
 
                 <!-- Recent Activities -->
-                <Border Grid.Column="3" Classes="dashCard" Margin="8,0,0,0">
+                <Border Grid.Column="2" Classes="dashCard" Margin="8,0,0,0">
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -425,12 +394,21 @@
                                                 <Border Grid.Column="0" Width="7" Height="7" CornerRadius="4"
                                                         Background="#3B82F6" VerticalAlignment="Top" Margin="0,5,10,0"/>
                                                 <StackPanel Grid.Column="1" Spacing="1">
-                                                    <TextBlock Text="{Binding Title}" Foreground="#1F2937"
-                                                               FontSize="12" FontWeight="SemiBold"
-                                                               TextTrimming="CharacterEllipsis"/>
-                                                    <TextBlock Text="{Binding Description}" Foreground="#6B7280"
-                                                               FontSize="11" TextTrimming="CharacterEllipsis"
+                                                    <DockPanel>
+                                                        <Border DockPanel.Dock="Right" Background="#F3F4F6" CornerRadius="4" Padding="4,2" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Module}" FontSize="9" Foreground="#6B7280" FontWeight="SemiBold"/>
+                                                        </Border>
+                                                        <TextBlock Text="{Binding Title}" Foreground="#1F2937"
+                                                                   FontSize="12" FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding Description}" Foreground="#4B5563"
+                                                               FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
                                                                IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2,0,0">
+                                                        <PathIcon Data="{StaticResource IconProfile}" Width="10" Height="10" Foreground="#9CA3AF"/>
+                                                        <TextBlock Text="{Binding UserName}" FontSize="10" Foreground="#9CA3AF"/>
+                                                    </StackPanel>
                                                 </StackPanel>
                                                 <TextBlock Grid.Column="2" Text="{Binding TimeAgo}"
                                                            Foreground="#9CA3AF" FontSize="10"

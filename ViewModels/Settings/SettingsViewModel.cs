@@ -48,6 +48,7 @@ public partial class SettingsViewModel : ViewModelBase
     private void SaveSettings()
     {
         StatusMessage = "Settings saved successfully!";
+        LogActivity("Settings Updated", "Application settings were updated", "Settings");
     }
 
     [RelayCommand]
