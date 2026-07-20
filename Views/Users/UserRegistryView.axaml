@@ -7,96 +7,159 @@
              Background="{DynamicResource BrushBackground}">
 
     <Grid>
+
         <!-- ============================================================ -->
-        <!-- 1. LIST/GRID VIEW (SaveCancelEnabled is false)                -->
+        <!-- 1. LIST VIEW                                                  -->
         <!-- ============================================================ -->
         <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,Auto,*">
-            <!-- Header -->
+
+            <!-- Header Bar -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                    <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                        <Border Width="42" Height="42" CornerRadius="10" Background="#EFF6FF">
                             <PathIcon Data="{StaticResource IconUsers}" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="1">
-                            <TextBlock Text="User Registry" FontSize="20" FontWeight="Bold"
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="User Management" FontSize="20" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk900}"
                                        FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Manage user accounts, roles, access levels, and credentials"
-                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Text="Manage accounts, roles, permissions and access control"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                         </StackPanel>
                     </StackPanel>
                     <Button Content="+ Add User" Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            Classes="btn-primary" DockPanel.Dock="Right"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Summary Cards Row -->
+            <!-- Summary Cards -->
             <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*" Margin="28,16,28,4">
-                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,10,0"
                     Title="Total Users"
                     Value="{Binding TotalUsersCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushPrimaryBlue}"/>
-                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                    Title="Active Accounts"
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,10,0"
+                    Title="Active"
                     Value="{Binding ActiveUsersCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
-                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,10,0"
                     Title="Doctors"
                     Value="{Binding DoctorCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushAmber}"/>
-                <comp:SummaryCardControl Grid.Column="3" Margin="0,0,12,0"
+                <comp:SummaryCardControl Grid.Column="3" Margin="0,0,10,0"
                     Title="Pharmacists"
                     Value="{Binding PharmacistCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
                 <comp:SummaryCardControl Grid.Column="4"
-                    Title="Administrators"
+                    Title="Admins"
                     Value="{Binding AdminCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushRose}"/>
             </Grid>
 
-            <!-- Data Panel -->
-            <Grid Grid.Row="2" Margin="28,12,28,24" RowDefinitions="Auto,*">
-                <!-- Status Message for List View -->
-                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" 
-                           FontSize="13" FontWeight="Medium" Margin="0,0,0,12"
-                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                           
-                <comp:DataTableShellControl Grid.Row="1" Title="Registered Users" RecordCount="{Binding Users.Count}">
+            <!-- Data Table -->
+            <Grid Grid.Row="2" Margin="28,12,28,24">
+                <comp:DataTableShellControl Title="All Users" RecordCount="{Binding Users.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                        </StackPanel>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                                   FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
+                                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
                         <DataGrid ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}"
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
-                                  GridLinesVisibility="Horizontal">
+                                  GridLinesVisibility="Horizontal"
+                                  RowBackground="{DynamicResource BrushCardBackground}">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="USERNAME" Binding="{Binding Username}" Width="*"/>
-                                <DataGridTextColumn Header="FULL NAME" Binding="{Binding FullName}" Width="*"/>
-                                <DataGridTextColumn Header="ROLE" Binding="{Binding Role}" Width="160"/>
-                                <DataGridTextColumn Header="CREATED DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Width="180"/>
-                                <DataGridTemplateColumn Header="ACTIONS" Width="120">
+                                <!-- Avatar + Name column -->
+                                <DataGridTemplateColumn Header="USER" Width="*" MinWidth="200">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                                <Button Background="Transparent" Padding="4"
+                                            <StackPanel Orientation="Horizontal" Spacing="10"
+                                                        VerticalAlignment="Center" Margin="8,4">
+                                                <Border Width="34" Height="34" CornerRadius="17"
+                                                        Background="#EFF6FF">
+                                                    <TextBlock Text="{Binding FullName}"
+                                                               FontSize="13" FontWeight="Bold"
+                                                               Foreground="{DynamicResource BrushPrimaryBlue}"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel VerticalAlignment="Center" Spacing="1">
+                                                    <TextBlock Text="{Binding FullName}"
+                                                               FontWeight="SemiBold" FontSize="13"
+                                                               Foreground="{DynamicResource BrushInk900}"/>
+                                                    <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource BrushInk500}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Role badge column -->
+                                <DataGridTemplateColumn Header="ROLE" Width="150">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border HorizontalAlignment="Left" Margin="8,0"
+                                                    CornerRadius="12" Padding="10,3"
+                                                    Background="#EFF6FF">
+                                                <TextBlock Text="{Binding Role}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Status badge -->
+                                <DataGridTemplateColumn Header="STATUS" Width="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border HorizontalAlignment="Left" Margin="8,0"
+                                                    CornerRadius="12" Padding="10,3"
+                                                    Background="#F0FDF4"
+                                                    IsVisible="{Binding IsActive}">
+                                                <TextBlock Text="Active" FontSize="11"
+                                                           FontWeight="SemiBold" Foreground="#16A34A"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <DataGridTextColumn Header="CREATED" Width="160"
+                                    Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}"/>
+
+                                <!-- Actions -->
+                                <DataGridTemplateColumn Header="ACTIONS" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="4"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Button Background="Transparent" Padding="6"
+                                                        CornerRadius="6"
                                                         Command="{Binding $parent[UserControl].((vm:UserRegistryViewModel)DataContext).EditCommand}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip.Tip="Edit User"
                                                         IsVisible="{Binding IsEditable}">
-                                                    <PathIcon Data="{StaticResource IconEdit}" Width="16" Height="16" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                                    <PathIcon Data="{StaticResource IconEdit}"
+                                                              Width="15" Height="15"
+                                                              Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                                 </Button>
-                                                <Button Background="Transparent" Padding="4"
+                                                <Button Background="Transparent" Padding="6"
+                                                        CornerRadius="6"
                                                         Command="{Binding $parent[UserControl].((vm:UserRegistryViewModel)DataContext).RequestDeleteCommand}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip.Tip="Delete User"
                                                         IsVisible="{Binding IsDeletable}">
-                                                    <PathIcon Data="{StaticResource IconTrash}" Width="16" Height="16" Foreground="{DynamicResource BrushRose}"/>
+                                                    <PathIcon Data="{StaticResource IconTrash}"
+                                                              Width="15" Height="15"
+                                                              Foreground="{DynamicResource BrushRose}"/>
                                                 </Button>
                                             </StackPanel>
                                         </DataTemplate>
@@ -110,103 +173,268 @@
         </Grid>
 
         <!-- ============================================================ -->
-        <!-- 2. FORM VIEW (SaveCancelEnabled is true)                       -->
+        <!-- 2. ADD / EDIT FORM VIEW                                       -->
         <!-- ============================================================ -->
         <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
-            <!-- Header -->
+
+            <!-- Form Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
-                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                    <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                        <Border Width="42" Height="42" CornerRadius="10" Background="#EFF6FF">
                             <PathIcon Data="{StaticResource IconUsers}" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="1">
-                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} User Account'}" FontSize="20" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Enter login credentials and choose system role" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{Binding Mode, StringFormat='{}{0} User Account'}"
+                                       FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Fill in account credentials, role, and module access"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="Back" Command="{Binding CancelCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Button Content="← Back" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Scrollable Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24">
-                <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="USER DETAILS" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Username *" Classes="label"/>
-                                <TextBox Text="{Binding Username}" PlaceholderText="Enter login username"/>
+            <!-- Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,0">
+                <Grid ColumnDefinitions="*,340" Margin="0,0,0,24">
+
+                    <!-- Left: Form Fields -->
+                    <StackPanel Grid.Column="0" Spacing="24" Margin="0,0,20,0">
+
+                        <!-- SECTION: Credentials -->
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" Padding="24">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="LOGIN CREDENTIALS" FontSize="10" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}"/>
+                                <Separator/>
+                                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                    <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5" Margin="0,0,12,14">
+                                        <TextBlock Text="Username *" Classes="lbl"/>
+                                        <TextBox Text="{Binding Username}" PlaceholderText="e.g. dr_john"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Spacing="5" Margin="12,0,0,14">
+                                        <TextBlock Text="Full Display Name" Classes="lbl"/>
+                                        <TextBox Text="{Binding FullName}" PlaceholderText="Dr. John Smith"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="0" Grid.Row="1" Spacing="5" Margin="0,0,12,0">
+                                        <TextBlock Text="Password *" Classes="lbl"/>
+                                        <TextBox Text="{Binding Password}" PasswordChar="●"
+                                                 PlaceholderText="{Binding PasswordWatermark}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Grid.Row="1" Spacing="5" Margin="12,0,0,0">
+                                        <TextBlock Text="Confirm Password *" Classes="lbl"/>
+                                        <TextBox Text="{Binding ConfirmPassword}" PasswordChar="●"
+                                                 PlaceholderText="Re-enter password"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Display Name" Classes="label"/>
-                                <TextBox Text="{Binding FullName}" PlaceholderText="Enter user display name"/>
+                        </Border>
+
+                        <!-- SECTION: Role & Status -->
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" Padding="24">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="ROLE &amp; STATUS" FontSize="10" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}"/>
+                                <Separator/>
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,12,0">
+                                        <TextBlock Text="System Role *" Classes="lbl"/>
+                                        <ComboBox ItemsSource="{Binding RoleOptions}"
+                                                  SelectedItem="{Binding Role}"
+                                                  HorizontalAlignment="Stretch"
+                                                  PlaceholderText="Select role"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="5" Margin="12,0,0,0"
+                                                VerticalAlignment="Bottom">
+                                        <CheckBox Content="Account is Active"
+                                                  IsChecked="{Binding IsActive}"
+                                                  Foreground="{DynamicResource BrushInk800}"
+                                                  FontSize="13" FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="System Role *" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding RoleOptions}" SelectedItem="{Binding Role}" HorizontalAlignment="Stretch"/>
+                        </Border>
+
+                        <!-- SECTION: Module Access -->
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" Padding="24"
+                                IsVisible="{Binding ShowModuleAccess}">
+                            <StackPanel Spacing="16">
+                                <DockPanel>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="MODULE ACCESS" FontSize="10" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                                   FontFamily="{DynamicResource FontLexend}"/>
+                                        <TextBlock Text="Choose which modules this user can access"
+                                                   FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
+                                    </StackPanel>
+                                </DockPanel>
+                                <Separator/>
+
+                                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                                    <!-- Row 0 -->
+                                    <Border Grid.Column="0" Grid.Row="0" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Dashboard" IsChecked="{Binding AccDashboard}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Grid.Row="0" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Patients" IsChecked="{Binding AccPatients}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="2" Grid.Row="0" Classes="perm-box" Margin="0,0,0,8">
+                                        <CheckBox Content="Appointments" IsChecked="{Binding AccAppointments}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <!-- Row 1 -->
+                                    <Border Grid.Column="0" Grid.Row="1" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Products" IsChecked="{Binding AccProducts}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Grid.Row="1" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Companies" IsChecked="{Binding AccCompanies}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="2" Grid.Row="1" Classes="perm-box" Margin="0,0,0,8">
+                                        <CheckBox Content="Suppliers" IsChecked="{Binding AccSuppliers}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <!-- Row 2 -->
+                                    <Border Grid.Column="0" Grid.Row="2" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Purchases" IsChecked="{Binding AccPurchases}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Grid.Row="2" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Sales &amp; Billing" IsChecked="{Binding AccSales}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="2" Grid.Row="2" Classes="perm-box" Margin="0,0,0,8">
+                                        <CheckBox Content="Returns" IsChecked="{Binding AccReturns}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <!-- Row 3 -->
+                                    <Border Grid.Column="0" Grid.Row="3" Classes="perm-box" Margin="0,0,8,0">
+                                        <CheckBox Content="Inventory" IsChecked="{Binding AccInventory}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Grid.Row="3" Classes="perm-box" Margin="0,0,8,0">
+                                        <CheckBox Content="Reports" IsChecked="{Binding AccReports}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="2" Grid.Row="3" Classes="perm-box" Margin="0">
+                                        <CheckBox Content="Users (Admin)" IsChecked="{Binding AccUsers}"
+                                                  Classes="perm-chk"/>
+                                    </Border>
+                                </Grid>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12" VerticalAlignment="Center">
-                                <CheckBox Content="Account Active" IsChecked="{Binding IsActive}" Foreground="{DynamicResource BrushInk800}"/>
-                            </StackPanel>
-                        </Grid>
+                        </Border>
+
                     </StackPanel>
 
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="SECURITY CREDENTIALS" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
-                                <TextBlock Text="Password" Classes="label"/>
-                                <TextBox Text="{Binding Password}" PasswordChar="●" PlaceholderText="{Binding PasswordWatermark}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
-                                <TextBlock Text="Confirm Password" Classes="label"/>
-                                <TextBox Text="{Binding ConfirmPassword}" PasswordChar="●" PlaceholderText="Re-enter password to confirm"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
+                    <!-- Right: Role Info Card -->
+                    <StackPanel Grid.Column="1" Spacing="16">
 
-                    <!-- Module Access Section -->
-                    <StackPanel Spacing="16" IsVisible="{Binding ShowModuleAccess}">
-                        <TextBlock Text="MODULE ACCESS" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                            <CheckBox Grid.Column="0" Grid.Row="0" Content="Dashboard" IsChecked="{Binding AccDashboard}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="0" Content="Patients" IsChecked="{Binding AccPatients}"/>
-                            <CheckBox Grid.Column="2" Grid.Row="0" Content="Appointments" IsChecked="{Binding AccAppointments}"/>
-                            
-                            <CheckBox Grid.Column="0" Grid.Row="1" Content="Products" IsChecked="{Binding AccProducts}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="1" Content="Products" IsChecked="{Binding AccProducts}"/>
-                            <CheckBox Grid.Column="2" Grid.Row="1" Content="Companies" IsChecked="{Binding AccCompanies}"/>
-                            
-                            <CheckBox Grid.Column="0" Grid.Row="2" Content="Suppliers" IsChecked="{Binding AccSuppliers}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="2" Content="Purchases" IsChecked="{Binding AccPurchases}"/>
-                            <CheckBox Grid.Column="2" Grid.Row="2" Content="Sales &amp; Billing" IsChecked="{Binding AccSales}"/>
-                            
-                            <CheckBox Grid.Column="0" Grid.Row="3" Content="Returns" IsChecked="{Binding AccReturns}"/>
-                            
-                            <CheckBox Grid.Column="0" Grid.Row="4" Content="Inventory" IsChecked="{Binding AccInventory}"/>
-                            <CheckBox Grid.Column="1" Grid.Row="4" Content="Reports" IsChecked="{Binding AccReports}"/>
-                            
-                            <CheckBox Grid.Column="0" Grid.Row="5" Content="Users" IsChecked="{Binding AccUsers}"/>
-                        </Grid>
-                    </StackPanel>
+                        <!-- Role descriptions card -->
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" Padding="20">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="ROLE DESCRIPTIONS" FontSize="10" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}"/>
+                                <Separator/>
 
-                </StackPanel>
+                                <!-- Admin -->
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Width="8" Height="8" CornerRadius="4"
+                                                Background="{DynamicResource BrushRose}"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="Administrator" FontSize="13" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Full access to all modules, can manage users and system settings."
+                                               FontSize="12" Foreground="{DynamicResource BrushInk500}"
+                                               TextWrapping="Wrap" Margin="16,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- Doctor -->
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Width="8" Height="8" CornerRadius="4"
+                                                Background="{DynamicResource BrushAmber}"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="Doctor" FontSize="13" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Access to patients, appointments, prescriptions, and visits."
+                                               FontSize="12" Foreground="{DynamicResource BrushInk500}"
+                                               TextWrapping="Wrap" Margin="16,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- Pharmacist -->
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Width="8" Height="8" CornerRadius="4"
+                                                Background="{DynamicResource BrushTeal}"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="Pharmacist" FontSize="13" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Access to products, sales, purchases, inventory and returns."
+                                               FontSize="12" Foreground="{DynamicResource BrushInk500}"
+                                               TextWrapping="Wrap" Margin="16,0,0,0"/>
+                                </StackPanel>
+
+                                <!-- Receptionist -->
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border Width="8" Height="8" CornerRadius="4"
+                                                Background="{DynamicResource BrushPrimaryBlue}"
+                                                VerticalAlignment="Center"/>
+                                        <TextBlock Text="Receptionist" FontSize="13" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Access to patients, appointments, and billing only."
+                                               FontSize="12" Foreground="{DynamicResource BrushInk500}"
+                                               TextWrapping="Wrap" Margin="16,0,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tip card -->
+                        <Border Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
+                                CornerRadius="14" Padding="16,14">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconAlert}" Width="14" Height="14"
+                                              Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                    <TextBlock Text="Tip" FontSize="13" FontWeight="Bold"
+                                               Foreground="#1E40AF"/>
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="12"
+                                           Foreground="#1D4ED8" LineHeight="18">
+                                    Admins always have full access regardless of module checkboxes. Module access only applies to non-admin roles.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </Grid>
             </ScrollViewer>
 
             <!-- Footer -->
@@ -215,41 +443,48 @@
                 <DockPanel>
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="12"
+                                HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
                         <Button Content="Save User" Command="{Binding SaveCommand}" Classes="btn-primary"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
         </Grid>
-        
+
         <!-- ============================================================ -->
-        <!-- 3. DELETE CONFIRMATION OVERLAY                               -->
+        <!-- 3. DELETE CONFIRMATION OVERLAY                                -->
         <!-- ============================================================ -->
-        <Border IsVisible="{Binding ShowDeleteConfirm}" Background="#80000000" ZIndex="100">
-            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="24"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
-                <StackPanel Spacing="16">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <Border Width="40" Height="40" CornerRadius="20" Background="{DynamicResource BrushRose100}">
-                            <PathIcon Data="{StaticResource IconTrash}" Width="20" Height="20" Foreground="{DynamicResource BrushRose}"/>
+        <Border IsVisible="{Binding ShowDeleteConfirm}" Background="#90000000" ZIndex="100">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="16"
+                    Padding="32,28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="420" BoxShadow="0 20 60 0 #40000000">
+                <StackPanel Spacing="20">
+                    <StackPanel Orientation="Horizontal" Spacing="14">
+                        <Border Width="48" Height="48" CornerRadius="24" Background="#FEF2F2">
+                            <PathIcon Data="{StaticResource IconTrash}" Width="22" Height="22"
+                                      Foreground="{DynamicResource BrushRose}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Delete User" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                        <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="Delete User Account" FontSize="18" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"/>
+                            <TextBlock Text="This action cannot be undone" FontSize="12"
+                                       Foreground="{DynamicResource BrushRose}"/>
                         </StackPanel>
                     </StackPanel>
-                    
-                    <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}">
-                        <Run Text="Are you sure you want to delete the user account "/>
-                        <Run Text="{Binding PendingDeleteLabel}" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-                        <Run Text="?"/>
-                        <LineBreak/><LineBreak/>
-                        <Run Text="This action cannot be undone."/>
+
+                    <TextBlock TextWrapping="Wrap" FontSize="13"
+                               Foreground="{DynamicResource BrushInk600}" LineHeight="20">
+                        <Run Text="You are about to permanently delete the account "/>
+                        <Run Text="{Binding PendingDeleteLabel}" FontWeight="Bold"
+                             Foreground="{DynamicResource BrushInk900}"/>
+                        <Run Text=". This will remove all their login access."/>
                     </TextBlock>
-                    
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Classes="btn-ghost"/>
-                        <Button Content="Delete User" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
+                        <Button Content="Yes, Delete" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -257,6 +492,37 @@
     </Grid>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.lbl">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Border.perm-box">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+        <Style Selector="CheckBox.perm-chk">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk800}"/>
+        </Style>
         <Style Selector="Button.btn-primary">
             <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>

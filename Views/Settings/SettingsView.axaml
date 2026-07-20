@@ -33,12 +33,12 @@
 
         <!-- Main Content Panels -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24">
-            <StackPanel Spacing="20" MaxWidth="800" HorizontalAlignment="Left">
+            <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
                 
-                <!-- Clinic Information Section -->
+                <!-- GENERAL SETTINGS -->
                 <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="CLINIC INFORMATION" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="GENERAL SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
@@ -61,25 +61,69 @@
                     </StackPanel>
                 </Border>
 
-                <!-- System Defaults -->
+                <!-- BILLING SETTINGS -->
                 <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="SYSTEM DEFAULTS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="BILLING SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                                <TextBlock Text="Invoice Prefix" Classes="label"/>
+                                <TextBox Text="{Binding InvoicePrefix}" PlaceholderText="e.g. INV-"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,12,0">
+                                <TextBlock Text="Default Tax Rate (%)" Classes="label"/>
+                                <NumericUpDown Value="{Binding DefaultTaxRate}" FormatString="N2" Increment="0.1"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
+                                <TextBlock Text="Currency" Classes="label"/>
+                                <TextBox Text="{Binding Currency}" PlaceholderText="e.g. USD, PKR"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- INVENTORY SETTINGS -->
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="INVENTORY SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
                         <Separator Height="1" Background="{DynamicResource BrushLine}"/>
                         <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
-                                <TextBlock Text="Default Tax Rate (%)" Classes="label"/>
-                                <NumericUpDown Value="{Binding DefaultTaxRate}" FormatString="N2" Increment="0.01"/>
+                                <TextBlock Text="Low Stock Threshold" Classes="label"/>
+                                <NumericUpDown Value="{Binding LowStockThreshold}" Minimum="1" Maximum="1000"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
-                                <TextBlock Text="Default Printer" Classes="label"/>
-                                <TextBox Text="{Binding SelectedPrinter}" PlaceholderText="Enter default system printer name"/>
+                                <TextBlock Text="Expiry Alert Days" Classes="label"/>
+                                <NumericUpDown Value="{Binding ExpiryAlertDays}" Minimum="1" Maximum="365"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                
+                <!-- SYSTEM SETTINGS -->
+                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="SYSTEM SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                                <TextBlock Text="Date Format" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding DateFormatOptions}" SelectedItem="{Binding DateFormat}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,12,0">
+                                <TextBlock Text="Time Format" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding TimeFormatOptions}" SelectedItem="{Binding TimeFormat}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
+                                <TextBlock Text="Language" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding Language}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- Database & Maintenance -->
+                <!-- DATABASE & MAINTENANCE -->
                 <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
                         <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
@@ -205,6 +249,30 @@
     </Panel>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="NumericUpDown">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
         <Style Selector="Button.btn-primary">
             <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>

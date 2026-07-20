@@ -190,7 +190,7 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <!-- Name -->
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
@@ -202,19 +202,30 @@
                                 <TextBox Text="{Binding Type}" PlaceholderText="e.g. Tablet, Syrup, Injection"/>
                             </StackPanel>
                             
-                            <!-- Purchase Price -->
+                            <!-- Category -->
                             <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Category" Classes="label"/>
+                                <TextBox Text="{Binding Category}" PlaceholderText="e.g. Antibiotics"/>
+                            </StackPanel>
+                            <!-- Batch Number -->
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Batch Number" Classes="label"/>
+                                <TextBox Text="{Binding BatchNumber}" PlaceholderText="e.g. B-9988"/>
+                            </StackPanel>
+                            
+                            <!-- Purchase Price -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Purchase Price (Rs.)" Classes="label"/>
                                 <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
                             <!-- Selling Price -->
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="Selling Price (Rs.)" Classes="label"/>
                                 <TextBox Text="{Binding SellingPrice}" PlaceholderText="0.00"/>
                             </StackPanel>
                             
                             <!-- Current Stock -->
-                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                            <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Current Stock" Classes="label"/>
                                 <TextBox Text="{Binding Stock}" PlaceholderText="0"/>
                             </StackPanel>
@@ -226,7 +237,7 @@
                               Background="Transparent" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}" 
                               CornerRadius="{DynamicResource CornerRadiusCard}" Padding="16,8">
                         <StackPanel Spacing="16" Margin="0,12,0,0">
-                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
                                 <!-- Generic Name -->
                                 <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                     <TextBlock Text="Generic Name" Classes="label"/>
@@ -245,28 +256,20 @@
                                     <TextBox Text="{Binding CompanyName}" PlaceholderText="Or type Company Name here..." Margin="0,4,0,0"
                                              IsVisible="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNull}}"/>
                                 </StackPanel>
-                                <!-- Category -->
-                                <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
-                                    <TextBlock Text="Category" Classes="label"/>
-                                    <TextBox Text="{Binding Category}" PlaceholderText="e.g. Antibiotics"/>
-                                </StackPanel>
+                                
                                 <!-- Rack -->
-                                <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
                                     <TextBlock Text="Rack" Classes="label"/>
                                     <TextBox Text="{Binding Rack}" PlaceholderText="e.g. A1, Shelf 3"/>
                                 </StackPanel>
-                                <!-- Batch Number -->
-                                <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
-                                    <TextBlock Text="Batch Number" Classes="label"/>
-                                    <TextBox Text="{Binding BatchNumber}" PlaceholderText="e.g. B-9988"/>
-                                </StackPanel>
                                 <!-- Expiry Date -->
-                                <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
+                                <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
                                     <TextBlock Text="Expiry Date" Classes="label"/>
                                     <DatePicker SelectedDate="{Binding ExpiryDate}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
+                                
                                 <!-- Minimum Stock Level -->
-                                <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
+                                <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
                                     <TextBlock Text="Reorder Level (Min Stock)" Classes="label"/>
                                     <TextBox Text="{Binding MinimumStockLevel}" PlaceholderText="10"/>
                                 </StackPanel>

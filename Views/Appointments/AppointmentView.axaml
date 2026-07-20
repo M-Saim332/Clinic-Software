@@ -189,7 +189,7 @@
                             <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="4" Spacing="6" Margin="0,0,0,12">
                                 <TextBlock Text="Reason for Visit" Classes="label"/>
                                 <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
-                                         AcceptsReturn="True" Height="80" TextWrapping="Wrap"
+                                         AcceptsReturn="True" Height="60" TextWrapping="Wrap"
                                          VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}"/>
                             </StackPanel>
                         </Grid>

@@ -4,10 +4,6 @@ namespace ClinicSystem.UI.Messages;
 
 public class ActivityLogMessage
 {
-    public ActivityLog Log { get; set; }
-
-    public ActivityLogMessage(ActivityLog log)
-    {
-        Log = log;
-    }
+    public ActivityLog Log { get; }
+    public ActivityLogMessage(ActivityLog log) => Log = log;
 }

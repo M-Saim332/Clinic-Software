@@ -1,23 +1,27 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Data;
+using ClinicSystem.Data.Repositories;
 using ClinicSystem.UI.ViewModels.Users;
 using System;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-
+using System.Globalization;
+using System.Collections.Generic;
 
 namespace ClinicSystem.UI.ViewModels.Settings;
 
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly DatabaseSession _dbSession;
+    private readonly SettingsRepository _repo;
     public ChangePasswordViewModel ChangePasswordVM { get; }
 
-    public SettingsViewModel(DatabaseSession dbSession, ChangePasswordViewModel changePasswordVM)
+    public SettingsViewModel(DatabaseSession dbSession, SettingsRepository repo, ChangePasswordViewModel changePasswordVM)
     {
         _dbSession = dbSession;
+        _repo = repo;
         ChangePasswordVM = changePasswordVM;
         ChangePasswordVM.CloseRequested += () => IsChangePasswordVisible = false;
     }
@@ -33,24 +37,107 @@ public partial class SettingsViewModel : ViewModelBase
         IsChangePasswordVisible = true;
     }
 
+    // -- General Settings
     [ObservableProperty] private string _clinicName = "Care & Cure Clinic";
     [ObservableProperty] private string _clinicAddress = "123 Health Ave, Medical District";
     [ObservableProperty] private string _clinicPhone = "+92 300 1234567";
     [ObservableProperty] private string _clinicEmail = "info@careandcure.com";
 
-    [ObservableProperty] private decimal _defaultTaxRate = 17.5m;
-    [ObservableProperty] private string _selectedPrinter = "Microsoft Print to PDF";
+    // -- Billing Settings
+    [ObservableProperty] private string _invoicePrefix = "INV-";
+    [ObservableProperty] private decimal _defaultTaxRate = 0m;
+    [ObservableProperty] private string _currency = "PKR";
+
+    // -- Inventory Settings
+    [ObservableProperty] private int _lowStockThreshold = 10;
+    [ObservableProperty] private int _expiryAlertDays = 30;
+
+    // -- System Settings
+    [ObservableProperty] private string _dateFormat = "yyyy-MM-dd";
+    [ObservableProperty] private string _timeFormat = "HH:mm";
+    [ObservableProperty] private string _language = "English";
+
+    // Selectable options
+    public List<string> DateFormatOptions { get; } = new() { "yyyy-MM-dd", "dd-MM-yyyy", "MM/dd/yyyy", "dd/MM/yyyy" };
+    public List<string> TimeFormatOptions { get; } = new() { "HH:mm", "hh:mm tt" };
+    public List<string> LanguageOptions { get; } = new() { "English", "Urdu", "Arabic" };
 
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
 
-    [RelayCommand]
-    private void SaveSettings()
+    public async Task InitializeAsync()
     {
-        StatusMessage = "Settings saved successfully!";
-        LogActivity("Settings Updated", "Application settings were updated", "Settings");
+        IsBusy = true;
+        try
+        {
+            var dict = await Task.Run(() => _repo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (dict.TryGetValue("ClinicName", out var val)) ClinicName = val;
+                if (dict.TryGetValue("ClinicAddress", out val)) ClinicAddress = val;
+                if (dict.TryGetValue("ClinicPhone", out val)) ClinicPhone = val;
+                if (dict.TryGetValue("ClinicEmail", out val)) ClinicEmail = val;
+                
+                if (dict.TryGetValue("InvoicePrefix", out val)) InvoicePrefix = val;
+                if (dict.TryGetValue("DefaultTaxRate", out val) && decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out var t)) DefaultTaxRate = t;
+                if (dict.TryGetValue("Currency", out val)) Currency = val;
+                
+                if (dict.TryGetValue("LowStockThreshold", out val) && int.TryParse(val, out var ls)) LowStockThreshold = ls;
+                if (dict.TryGetValue("ExpiryAlertDays", out val) && int.TryParse(val, out var ed)) ExpiryAlertDays = ed;
+                
+                if (dict.TryGetValue("DateFormat", out val)) DateFormat = val;
+                if (dict.TryGetValue("TimeFormat", out val)) TimeFormat = val;
+                if (dict.TryGetValue("Language", out val)) Language = val;
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load settings: {ex.Message}");
+        }
+        finally
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBusy = false);
+        }
     }
 
+    [RelayCommand]
+    private async Task SaveSettingsAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            await Task.Run(() =>
+            {
+                _repo.SetValue("ClinicName", ClinicName);
+                _repo.SetValue("ClinicAddress", ClinicAddress);
+                _repo.SetValue("ClinicPhone", ClinicPhone);
+                _repo.SetValue("ClinicEmail", ClinicEmail);
+                
+                _repo.SetValue("InvoicePrefix", InvoicePrefix);
+                _repo.SetValue("DefaultTaxRate", DefaultTaxRate.ToString(CultureInfo.InvariantCulture));
+                _repo.SetValue("Currency", Currency);
+                
+                _repo.SetValue("LowStockThreshold", LowStockThreshold.ToString());
+                _repo.SetValue("ExpiryAlertDays", ExpiryAlertDays.ToString());
+                
+                _repo.SetValue("DateFormat", DateFormat);
+                _repo.SetValue("TimeFormat", TimeFormat);
+                _repo.SetValue("Language", Language);
+            });
+            StatusMessage = "Settings saved successfully!";
+            LogActivity("Settings Updated", "Application settings were updated", "Settings");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save settings: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    // ── Backup & Restore ──────────────────────────────────────────────────
     [RelayCommand]
     private async Task BackupAsync()
     {
@@ -129,6 +216,7 @@ public partial class SettingsViewModel : ViewModelBase
             }
         }
     }
+
     // ── Reset & Rollback (Database Maintenance) ─────────────────────────────
     [ObservableProperty] private bool _isResetConfirmVisible;
     [ObservableProperty] private bool _isRollbackAvailable;

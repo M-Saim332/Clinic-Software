@@ -1,4 +1,8 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
@@ -8,201 +12,117 @@ namespace ClinicSystem.UI.ViewModels.Sales;
 
 public partial class ProductReturnViewModel : ViewModelBase
 {
-    private readonly ReturnRepository _returnRepo;
-    private readonly SaleRepository _saleRepo;
+    private readonly ReturnRepository _repo;
+    private readonly ProductRepository _productRepo;
 
-    [ObservableProperty]
-    private string _searchQuery = string.Empty;
-
-    [ObservableProperty]
-    private ObservableCollection<Sale> _foundSales = new();
-
-    [ObservableProperty]
-    private Sale? _selectedSale;
-
-    [ObservableProperty]
-    private ObservableCollection<ReturnableItemViewModel> _returnableItems = new();
-
-    [ObservableProperty]
-    private decimal _totalRefundAmount;
-
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
-
-    [ObservableProperty]
-    private bool _isProcessing;
-
-    public ProductReturnViewModel(ReturnRepository returnRepo, SaleRepository saleRepo)
+    public ProductReturnViewModel(ReturnRepository repo, ProductRepository productRepo)
     {
-        _returnRepo = returnRepo;
-        _saleRepo = saleRepo;
+        _repo = repo;
+        _productRepo = productRepo;
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MutationEnabled))]
+    [NotifyPropertyChangedFor(nameof(SaveCancelEnabled))]
+    private FormMode _mode = FormMode.View;
+
+    [ObservableProperty] private string _statusMessage = string.Empty;
+    [ObservableProperty] private ObservableCollection<ProductReturn> _returns = new();
+    
+    // Dropdown sources
+    [ObservableProperty] private ObservableCollection<Product> _products = new();
+    public List<string> ReturnTypes { get; } = new() { "Patient Return", "Supplier Return" };
+    public List<string> Reasons { get; } = new() { "Expired", "Damaged", "Wrong Item", "Patient Changed Mind", "Other" };
+
+    // Form Fields
+    [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private string _batchNo = string.Empty;
+    [ObservableProperty] private int _quantity = 1;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(InventoryEffectHint))]
+    private string _returnType = "Patient Return";
+    [ObservableProperty] private string _reason = "Damaged";
+    [ObservableProperty] private string _notes = string.Empty;
+
+    public string InventoryEffectHint => ReturnType == "Patient Return"
+        ? "Inventory Effect: Patient Return — Stock will increase (+Qty)"
+        : "Inventory Effect: Supplier Return — Stock will decrease (-Qty)";
+
+    public bool MutationEnabled => Mode == FormMode.View;
+    public bool SaveCancelEnabled => Mode != FormMode.View;
+
+    public async Task InitializeAsync()
+    {
+        try
+        {
+            var returnsList = await Task.Run(() => _repo.GetAll());
+            var productsList = await Task.Run(() => _productRepo.GetAll());
+            
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+            {
+                Returns = new ObservableCollection<ProductReturn>(returnsList);
+                Products = new ObservableCollection<Product>(productsList);
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load returns: {ex.Message}");
+        }
     }
 
     [RelayCommand]
-    private void SearchSales()
+    private void New()
     {
-        StatusMessage = "Searching...";
+        SelectedProduct = null;
+        BatchNo = string.Empty;
+        Quantity = 1;
+        ReturnType = "Patient Return";
+        Reason = "Damaged";
+        Notes = string.Empty;
+        
+        Mode = FormMode.Add;
+        StatusMessage = "Enter return details.";
+    }
+
+    [RelayCommand]
+    private void Cancel()
+    {
+        Mode = FormMode.View;
+        StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task SaveAsync()
+    {
+        if (SelectedProduct == null) { StatusMessage = "Please select a product."; return; }
+        if (Quantity <= 0) { StatusMessage = "Quantity must be greater than zero."; return; }
+
         try
         {
-            var sales = _saleRepo.GetAll();
-            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            var ret = new ProductReturn
             {
-                var q = SearchQuery.ToLowerInvariant();
-                sales = sales.Where(s => 
-                    s.InvoiceNumber.ToLowerInvariant().Contains(q) || 
-                    (s.PatientName != null && s.PatientName.ToLowerInvariant().Contains(q)));
-            }
+                ReturnNo = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
+                ProductId = SelectedProduct.ProductID,
+                BatchNo = BatchNo,
+                Quantity = Quantity,
+                ReturnType = ReturnType,
+                Reason = Reason,
+                Notes = Notes,
+                CreatedBy = CurrentUser?.UserID,
+                CreatedAt = DateTime.Now
+            };
+
+            await Task.Run(() => _repo.Insert(ret));
+
+            StatusMessage = "Return processed successfully and inventory updated.";
+            LogActivity("Return Processed", $"Processed {ret.ReturnType} for {SelectedProduct.Name} (Qty: {ret.Quantity})", "Returns");
             
-            FoundSales = new ObservableCollection<Sale>(sales);
-            SelectedSale = null;
-            ReturnableItems.Clear();
-            CalculateTotalRefund();
-            StatusMessage = $"Found {FoundSales.Count} sales.";
+            Mode = FormMode.View;
+            await InitializeAsync();
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Search failed: {ex.Message}";
+            StatusMessage = $"Error processing return: {ex.Message}";
         }
-    }
-
-    partial void OnSelectedSaleChanged(Sale? value)
-    {
-        ReturnableItems.Clear();
-        CalculateTotalRefund();
-        
-        if (value == null) return;
-        
-        try
-        {
-            var sale = _saleRepo.GetByIdWithItems(value.SaleID);
-            if (sale == null) return;
-            
-            var pastReturns = _returnRepo.GetBySaleId(sale.SaleID).ToList();
-            
-            foreach (var item in sale.Items)
-            {
-                var alreadyReturned = pastReturns.Where(r => r.ProductId == item.ProductID).Sum(r => r.QuantityReturned);
-                var returnable = item.Quantity - alreadyReturned;
-                
-                if (returnable > 0)
-                {
-                    var vm = new ReturnableItemViewModel(item, returnable);
-                    vm.PropertyChanged += (s, e) => {
-                        if (e.PropertyName == nameof(ReturnableItemViewModel.QuantityToReturn))
-                        {
-                            CalculateTotalRefund();
-                        }
-                    };
-                    ReturnableItems.Add(vm);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Failed to load sale details: {ex.Message}";
-        }
-    }
-
-    private void CalculateTotalRefund()
-    {
-        TotalRefundAmount = ReturnableItems.Sum(x => x.RefundAmount);
-    }
-
-    private bool CanConfirmReturn()
-    {
-        return !IsProcessing && ReturnableItems.Any(x => x.QuantityToReturn > 0);
-    }
-
-    [RelayCommand(CanExecute = nameof(CanConfirmReturn))]
-    private async Task ConfirmReturnAsync()
-    {
-        IsProcessing = true;
-        ConfirmReturnCommand.NotifyCanExecuteChanged();
-        StatusMessage = "Processing returns...";
-        
-        try
-        {
-            await Task.Run(() => 
-            {
-                var itemsToReturn = ReturnableItems.Where(x => x.QuantityToReturn > 0).ToList();
-                foreach (var item in itemsToReturn)
-                {
-                    if (item.QuantityToReturn > item.MaxReturnable)
-                    {
-                        throw new InvalidOperationException($"Cannot return {item.QuantityToReturn} of {item.Item.ProductName} (Max: {item.MaxReturnable})");
-                    }
-                    if (string.IsNullOrWhiteSpace(item.Reason))
-                    {
-                        throw new InvalidOperationException($"Please specify a reason for returning {item.Item.ProductName}.");
-                    }
-                }
-                
-                foreach (var item in itemsToReturn)
-                {
-                    var ret = new ProductReturn
-                    {
-                        SaleId = SelectedSale!.SaleID,
-                        ProductId = item.Item.ProductID,
-                        PatientId = SelectedSale.PatientID,
-                        QuantityReturned = item.QuantityToReturn,
-                        UnitPriceAtSale = item.Item.ProductPrice, // actually should be price from SaleItem
-                        RefundAmount = item.RefundAmount,
-                        Reason = item.Reason,
-                        ReturnDate = DateTime.Now,
-                        ProcessedBy = CurrentUser?.UserID,
-                        Status = "Completed"
-                    };
-                    _returnRepo.Insert(ret);
-                }
-            });
-            
-            StatusMessage = $"Successfully processed returns. Refund Total: {TotalRefundAmount:C}";
-            SearchSales(); // Reset view
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Return failed: {ex.Message}";
-        }
-        finally
-        {
-            IsProcessing = false;
-            ConfirmReturnCommand.NotifyCanExecuteChanged();
-        }
-    }
-}
-
-public partial class ReturnableItemViewModel : ObservableObject
-{
-    public SaleItem Item { get; }
-    public int MaxReturnable { get; }
-    
-    [ObservableProperty]
-    private int _quantityToReturn;
-    
-    [ObservableProperty]
-    private string _reason = "Patient Changed Mind";
-
-    public List<string> Reasons { get; } = new() 
-    {
-        "Patient Changed Mind",
-        "Expired",
-        "Wrong Product",
-        "Adverse Reaction",
-        "Other"
-    };
-
-    public decimal RefundAmount => QuantityToReturn * Item.ProductPrice;
-
-    public ReturnableItemViewModel(SaleItem item, int maxReturnable)
-    {
-        Item = item;
-        MaxReturnable = maxReturnable;
-    }
-    
-    partial void OnQuantityToReturnChanged(int value)
-    {
-        if (value < 0) QuantityToReturn = 0;
-        if (value > MaxReturnable) QuantityToReturn = MaxReturnable;
-        OnPropertyChanged(nameof(RefundAmount));
     }
 }

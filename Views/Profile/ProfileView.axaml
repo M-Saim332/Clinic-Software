@@ -5,175 +5,401 @@
              x:DataType="vm:ProfileViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
-    <ScrollViewer>
-        <StackPanel MaxWidth="700" HorizontalAlignment="Center" Margin="28,32,28,32" Spacing="24">
+    <Grid RowDefinitions="Auto,*">
 
-            <!-- Header -->
-            <Border Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="14" Padding="28,24">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <!-- Avatar Circle & Picture Upload -->
-                    <StackPanel Grid.Column="0" Margin="0,0,20,0" Spacing="8">
-                        <Border Width="72" Height="72" CornerRadius="36" Background="{DynamicResource BrushPrimaryBlue}" ClipToBounds="True">
-                            <Panel>
-                                <TextBlock Text="{Binding Username, Converter={x:Static StringConverters.IsNullOrEmpty}}"
-                                           FontSize="28" FontWeight="Bold" Foreground="White"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           IsVisible="{Binding !HasProfilePicture}">
-                                    <TextBlock.Text>
-                                        <Binding Path="FullName">
-                                            <Binding.StringFormat>{}{0}</Binding.StringFormat>
-                                        </Binding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                                <Image IsVisible="{Binding HasProfilePicture}" Stretch="UniformToFill">
-                                    <Image.Source>
-                                        <!-- Note: Avalonia doesn't natively bind byte[] to Image.Source out-of-the-box in XAML without a converter, but we can bind if we write a converter or assume there is one. We'll use a simple binding for now. Wait, ClinicSystem doesn't seem to have a ByteArrayToImageConverter. Actually, we should probably add one or handle it in the VM. For now, let's just add the upload buttons in Edit mode. -->
-                                        <!-- Wait, let's just show the initials for now if we don't have a converter, or we can use a converter if it exists. Let's assume we need a converter. Instead, I'll just put the initials. -->
-                                    </Image.Source>
-                                </Image>
-                            </Panel>
-                        </Border>
-                    </StackPanel>
-                    <!-- Name / Role -->
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                        <TextBlock Text="{Binding FullName}" FontSize="22" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk900}"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
-                                   FontSize="13" Foreground="{DynamicResource BrushInk600}"/>
-                        <Border Background="{DynamicResource BrushBlue50}" CornerRadius="20"
-                                Padding="10,3" HorizontalAlignment="Left">
-                            <TextBlock Text="{Binding Role}" FontSize="12"
+        <!-- ══════════════════════ HERO BANNER ══════════════════════ -->
+        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1"
+                Padding="32,24">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Avatar -->
+                <Border Grid.Column="0" Width="80" Height="80" CornerRadius="40"
+                        Background="#EFF6FF" Margin="0,0,24,0"
+                        BorderBrush="{DynamicResource BrushPrimaryBlue}" BorderThickness="2">
+                    <Panel>
+                        <!-- Initials fallback -->
+                        <TextBlock IsVisible="{Binding !HasProfilePicture}"
+                                   FontSize="30" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Text="{Binding FullName}">
+                            <TextBlock.Text>
+                                <Binding Path="FullName" FallbackValue="?"/>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </Panel>
+                </Border>
+
+                <!-- Name / Role info -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                    <TextBlock Text="{Binding FullName, FallbackValue='Your Name'}"
+                               FontSize="22" FontWeight="Bold"
+                               Foreground="{DynamicResource BrushInk900}"
+                               FontFamily="{DynamicResource FontLexend}"/>
+                    <TextBlock Text="{Binding Username, StringFormat='@{0}'}"
+                               FontSize="13" Foreground="{DynamicResource BrushInk500}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                        <Border Background="#EFF6FF" CornerRadius="20" Padding="10,3">
+                            <TextBlock Text="{Binding Role}" FontSize="11"
                                        Foreground="{DynamicResource BrushPrimaryBlue}"
                                        FontWeight="SemiBold"/>
                         </Border>
+                        <Border Background="#F0FDF4" CornerRadius="20" Padding="10,3">
+                            <TextBlock Text="{Binding Designation, FallbackValue='—'}"
+                                       FontSize="11" Foreground="#16A34A" FontWeight="Medium"/>
+                        </Border>
                     </StackPanel>
-                    <!-- Action Buttons -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Button Content="Edit Profile" Command="{Binding StartEditCommand}"
-                                Classes="btn-secondary"
-                                IsVisible="{Binding !IsEditing}"/>
-                        <Button Content="Change Password" Command="{Binding OpenChangePasswordCommand}"
-                                Classes="btn-ghost"
-                                IsVisible="{Binding !ShowChangePassword}"/>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- View mode -->
+                    <Button Content="✎  Edit Profile" Command="{Binding StartEditCommand}"
+                            Classes="btn-primary" IsVisible="{Binding !IsEditing}"/>
+                    <!-- Edit mode -->
+                    <Button Content="Cancel" Command="{Binding CancelEditCommand}"
+                            Classes="btn-ghost" IsVisible="{Binding IsEditing}"/>
+                    <Button Content="💾  Save Changes" Command="{Binding SaveProfileCommand}"
+                            Classes="btn-primary" IsVisible="{Binding IsEditing}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══════════════════════ BODY ══════════════════════ -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Margin="32,24,32,40" Spacing="20" MaxWidth="960" HorizontalAlignment="Left">
+
+                <!-- Status Banner -->
+                <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        CornerRadius="10" Padding="16,12"
+                        Background="{Binding IsSuccess, Converter={x:Static BoolConverters.And}}"
+                        BoxShadow="0 1 3 0 #0F172A10">
+                    <Border.Background>
+                        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                            <Binding Path="IsSuccess"/>
+                        </MultiBinding>
+                    </Border.Background>
+                    <!-- Simple coloured bar approach -->
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="✓" FontSize="14" FontWeight="Bold"
+                                   IsVisible="{Binding IsSuccess}"
+                                   Foreground="#16A34A" VerticalAlignment="Center"/>
+                        <TextBlock Text="⚠" FontSize="14" FontWeight="Bold"
+                                   IsVisible="{Binding !IsSuccess}"
+                                   Foreground="{DynamicResource BrushRose}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="13" FontWeight="Medium" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource BrushInk800}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ─── TWO-COLUMN LAYOUT ─── -->
+                <Grid ColumnDefinitions="*,360">
+
+                    <!-- LEFT: Tabbed Fields -->
+                    <StackPanel Grid.Column="0" Spacing="0" Margin="0,0,20,0">
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" ClipToBounds="True">
+                            <TabControl Padding="0">
+                                <TabControl.Styles>
+                                    <Style Selector="TabItem">
+                                        <Setter Property="FontSize" Value="13"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="Padding" Value="22,14"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
+                                    </Style>
+                                    <Style Selector="TabItem:selected">
+                                        <Setter Property="Foreground" Value="{DynamicResource BrushPrimaryBlue}"/>
+                                    </Style>
+                                </TabControl.Styles>
+
+                                <!-- TAB 1: Personal -->
+                                <TabItem Header="👤  Personal">
+                                    <StackPanel Margin="28,24,28,28" Spacing="20">
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto">
+                                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5" Margin="0,0,12,14">
+                                                <TextBlock Text="Full Name *" Classes="lbl"/>
+                                                <TextBox Text="{Binding FullName}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="Dr. John Smith"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="5" Margin="12,0,0,14">
+                                                <TextBlock Text="Username *" Classes="lbl"/>
+                                                <TextBox Text="{Binding Username}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="john_smith"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="5" Margin="0,0,12,14">
+                                                <TextBlock Text="Date of Birth" Classes="lbl"/>
+                                                <DatePicker SelectedDate="{Binding DateOfBirth}"
+                                                            IsEnabled="{Binding IsEditing}"
+                                                            HorizontalAlignment="Stretch"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="5" Margin="12,0,0,14">
+                                                <TextBlock Text="Gender" Classes="lbl"/>
+                                                <ComboBox ItemsSource="{Binding GenderOptions}"
+                                                          SelectedItem="{Binding Gender}"
+                                                          IsEnabled="{Binding IsEditing}"
+                                                          HorizontalAlignment="Stretch"
+                                                          PlaceholderText="Select gender"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="5" Margin="0,0,12,0">
+                                                <TextBlock Text="CNIC / NIC" Classes="lbl"/>
+                                                <TextBox Text="{Binding Cnic}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="00000-0000000-0"/>
+                                            </StackPanel>
+                                        </Grid>
+
+                                        <!-- Photo row -->
+                                        <Border IsVisible="{Binding IsEditing}"
+                                                Background="#F8FAFC" CornerRadius="10" Padding="16,12"
+                                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1">
+                                            <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                                <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16"
+                                                          Foreground="{DynamicResource BrushInk400}"/>
+                                                <TextBlock Text="Profile Photo" FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource BrushInk700}" VerticalAlignment="Center"/>
+                                                <Button Content="Upload" Command="{Binding UploadProfilePictureCommand}"
+                                                        Classes="btn-secondary" Height="30" Padding="14,0" FontSize="12"/>
+                                                <Button Content="Remove" Command="{Binding RemoveProfilePictureCommand}"
+                                                        Classes="btn-ghost" Height="30" Padding="14,0" FontSize="12"
+                                                        IsVisible="{Binding HasProfilePicture}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+                                </TabItem>
+
+                                <!-- TAB 2: Contact -->
+                                <TabItem Header="📞  Contact">
+                                    <StackPanel Margin="28,24,28,28" Spacing="14">
+                                        <Grid ColumnDefinitions="*,*">
+                                            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,12,0">
+                                                <TextBlock Text="Phone Number" Classes="lbl"/>
+                                                <TextBox Text="{Binding Phone}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="+92 300 0000000"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="5" Margin="12,0,0,0">
+                                                <TextBlock Text="Email Address" Classes="lbl"/>
+                                                <TextBox Text="{Binding Email}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="you@clinic.com"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <StackPanel Spacing="5">
+                                            <TextBlock Text="Mailing Address" Classes="lbl"/>
+                                            <TextBox Text="{Binding Address}" IsReadOnly="{Binding IsReadOnly}"
+                                                     AcceptsReturn="True" Height="90" TextWrapping="Wrap"
+                                                     VerticalContentAlignment="Top" Padding="12,10"
+                                                     PlaceholderText="Street, City, Country"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </TabItem>
+
+                                <!-- TAB 3: Professional -->
+                                <TabItem Header="🏥  Professional">
+                                    <StackPanel Margin="28,24,28,28" Spacing="14">
+                                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+                                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="5" Margin="0,0,12,14">
+                                                <TextBlock Text="Designation" Classes="lbl"/>
+                                                <TextBox Text="{Binding Designation}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="e.g. General Physician"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="5" Margin="12,0,0,14">
+                                                <TextBlock Text="Qualification" Classes="lbl"/>
+                                                <TextBox Text="{Binding Qualification}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="e.g. MBBS, FCPS"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="5" Margin="0,0,12,0">
+                                                <TextBlock Text="PMDC / License No." Classes="lbl"/>
+                                                <TextBox Text="{Binding LicenseNumber}" IsReadOnly="{Binding IsReadOnly}"
+                                                         PlaceholderText="e.g. PMDC-12345"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </StackPanel>
+                                </TabItem>
+
+                                <!-- TAB 4: Security -->
+                                <TabItem Header="🔒  Security">
+                                    <StackPanel Margin="28,24,28,28" Spacing="20">
+                                        <TextBlock Text="CHANGE PASSWORD" FontSize="10" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                                   FontFamily="{DynamicResource FontLexend}"/>
+                                        <Separator/>
+                                        <StackPanel MaxWidth="420" HorizontalAlignment="Left" Spacing="14">
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="Current Password" Classes="lbl"/>
+                                                <TextBox Text="{Binding OldPassword}" PasswordChar="●"
+                                                         PlaceholderText="Enter current password"/>
+                                            </StackPanel>
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="New Password" Classes="lbl"/>
+                                                <TextBox Text="{Binding NewPassword}" PasswordChar="●"
+                                                         PlaceholderText="Min. 6 characters"/>
+                                            </StackPanel>
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="Confirm New Password" Classes="lbl"/>
+                                                <TextBox Text="{Binding ConfirmPassword}" PasswordChar="●"
+                                                         PlaceholderText="Re-enter new password"/>
+                                            </StackPanel>
+
+                                            <TextBlock Text="{Binding PasswordStatusMessage}"
+                                                       FontSize="13" FontWeight="Medium"
+                                                       Foreground="{DynamicResource BrushRose}"
+                                                       IsVisible="{Binding PasswordStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                            <Button Content="Update Password" Command="{Binding SavePasswordCommand}"
+                                                    Classes="btn-primary" Width="180" HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </TabItem>
+                            </TabControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- RIGHT: Info Card -->
+                    <StackPanel Grid.Column="1" Spacing="16">
+
+                        <!-- Account Summary Card -->
+                        <Border Background="{DynamicResource BrushCardBackground}"
+                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                                CornerRadius="14" Padding="24">
+                            <StackPanel Spacing="16">
+                                <TextBlock Text="ACCOUNT SUMMARY" FontSize="10" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}"/>
+                                <Separator/>
+
+                                <!-- Role row -->
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                            Background="#EFF6FF" Margin="0,0,12,0">
+                                        <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16"
+                                                  Foreground="{DynamicResource BrushPrimaryBlue}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="System Role" FontSize="11"
+                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                        <TextBlock Text="{Binding Role, FallbackValue='—'}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Designation row -->
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                            Background="#F0FDF4" Margin="0,0,12,0">
+                                        <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16"
+                                                  Foreground="#16A34A"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="Designation" FontSize="11"
+                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                        <TextBlock Text="{Binding Designation, FallbackValue='Not set'}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Email row -->
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                            Background="#FFF7ED" Margin="0,0,12,0">
+                                        <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16"
+                                                  Foreground="{DynamicResource BrushAmber}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="Email" FontSize="11"
+                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                        <TextBlock Text="{Binding Email, FallbackValue='Not set'}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource BrushInk900}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- Phone row -->
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                                            Background="#F5F3FF" Margin="0,0,12,0">
+                                        <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16"
+                                                  Foreground="#7C3AED"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="Phone" FontSize="11"
+                                                   Foreground="{DynamicResource BrushInk500}"/>
+                                        <TextBlock Text="{Binding Phone, FallbackValue='Not set'}"
+                                                   FontSize="13" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource BrushInk900}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Security Info Card -->
+                        <Border Background="#FFF7ED"
+                                BorderBrush="#FED7AA" BorderThickness="1"
+                                CornerRadius="14" Padding="20,16">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16"
+                                              Foreground="{DynamicResource BrushAmber}"/>
+                                    <TextBlock Text="Security Tips" FontSize="13" FontWeight="Bold"
+                                               Foreground="#92400E"/>
+                                </StackPanel>
+                                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#B45309" LineHeight="18">
+                                    • Use a strong password with 8+ characters&#xA;• Never share login credentials&#xA;• Change your password regularly
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
                     </StackPanel>
                 </Grid>
-            </Border>
 
-            <!-- Status Message -->
-            <Border IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                    CornerRadius="8" Padding="16,12" Background="#EFF6FF">
-                <TextBlock Text="{Binding StatusMessage}"
-                           Foreground="{DynamicResource BrushPrimaryBlue}"
-                           FontWeight="Medium" FontSize="13"/>
-            </Border>
-
-            <!-- Edit Profile Form -->
-            <Border IsVisible="{Binding IsEditing}"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="14" Padding="28,24">
-                <StackPanel Spacing="20">
-                    <TextBlock Text="EDIT PROFILE" FontSize="11" FontWeight="Bold"
-                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                               FontFamily="{DynamicResource FontLexend}"/>
-                    <Separator/>
-                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-                        <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
-                            <TextBlock Text="Full Name" Classes="label"/>
-                            <TextBox Text="{Binding FullName}" PlaceholderText="Enter your full name"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
-                            <TextBlock Text="Username *" Classes="label"/>
-                            <TextBox Text="{Binding Username}" PlaceholderText="Enter username"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,0">
-                            <TextBlock Text="Role" Classes="label"/>
-                            <TextBox Text="{Binding Role}" IsReadOnly="True"
-                                     Opacity="0.6"/>
-                        </StackPanel>
-                    </Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Command="{Binding CancelEditCommand}" Classes="btn-ghost"/>
-                        <Button Content="Save Changes" Command="{Binding SaveProfileCommand}" Classes="btn-primary"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- Change Password Form -->
-            <Border IsVisible="{Binding ShowChangePassword}"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="14" Padding="28,24">
-                <StackPanel Spacing="20">
-                    <TextBlock Text="CHANGE PASSWORD" FontSize="11" FontWeight="Bold"
-                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                               FontFamily="{DynamicResource FontLexend}"/>
-                    <Separator/>
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="Current Password *" Classes="label"/>
-                        <TextBox Text="{Binding OldPassword}" PasswordChar="•"
-                                 PlaceholderText="Enter current password"/>
-                    </StackPanel>
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
-                            <TextBlock Text="New Password *" Classes="label"/>
-                            <TextBox Text="{Binding NewPassword}" PasswordChar="•"
-                                     PlaceholderText="Min. 6 characters"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="6" Margin="12,0,0,0">
-                            <TextBlock Text="Confirm New Password *" Classes="label"/>
-                            <TextBox Text="{Binding ConfirmPassword}" PasswordChar="•"
-                                     PlaceholderText="Re-enter new password"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Password Status -->
-                    <TextBlock Text="{Binding PasswordStatusMessage}"
-                               Foreground="{DynamicResource BrushRose}"
-                               FontSize="13"
-                               IsVisible="{Binding PasswordStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Command="{Binding CloseChangePasswordCommand}" Classes="btn-ghost"/>
-                        <Button Content="Update Password" Command="{Binding SavePasswordCommand}" Classes="btn-primary"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <!-- Profile Info (View Mode) -->
-            <Border IsVisible="{Binding !IsEditing}"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="14" Padding="28,24">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="ACCOUNT INFORMATION" FontSize="11" FontWeight="Bold"
-                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                               FontFamily="{DynamicResource FontLexend}"/>
-                    <Separator/>
-                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" >
-                        <TextBlock Grid.Column="0" Grid.Row="0" Text="Full Name"
-                                   Foreground="{DynamicResource BrushInk600}" FontSize="13" Margin="0,0,0,12"/>
-                        <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding FullName, FallbackValue='Not set'}"
-                                   FontWeight="Medium" FontSize="13" Margin="0,0,0,12"/>
-                        <TextBlock Grid.Column="0" Grid.Row="1" Text="Username"
-                                   Foreground="{DynamicResource BrushInk600}" FontSize="13" Margin="0,0,0,12"/>
-                        <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Username}"
-                                   FontWeight="Medium" FontSize="13" Margin="0,0,0,12"/>
-                        <TextBlock Grid.Column="0" Grid.Row="2" Text="Role"
-                                   Foreground="{DynamicResource BrushInk600}" FontSize="13"/>
-                        <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding Role}"
-                                   FontWeight="Medium" FontSize="13"/>
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.lbl">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="TextBox:readonly">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk800}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushPrimaryBlue}"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="DatePicker">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
         <Style Selector="Button.btn-primary">
             <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -207,6 +433,9 @@
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.40"/>
         </Style>
     </UserControl.Styles>
 </UserControl>
