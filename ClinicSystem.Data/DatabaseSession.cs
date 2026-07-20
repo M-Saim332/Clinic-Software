@@ -60,6 +60,13 @@ public class DatabaseSession
                 IF COL_LENGTH('Users', 'ProfilePicture') IS NULL ALTER TABLE Users ADD ProfilePicture VARBINARY(MAX) NULL;
             ");
 
+            // Audit & Security fields for Users
+            conn.Execute(@"
+                IF COL_LENGTH('Users', 'LastLogin') IS NULL ALTER TABLE Users ADD LastLogin DATETIME2 NULL;
+                IF COL_LENGTH('Users', 'UpdatedAt') IS NULL ALTER TABLE Users ADD UpdatedAt DATETIME2 NULL;
+                IF COL_LENGTH('Users', 'ForcePasswordChange') IS NULL ALTER TABLE Users ADD ForcePasswordChange BIT NOT NULL DEFAULT 0;
+            ");
+
             // Ensure Settings table exists
             conn.Execute(@"
                 IF OBJECT_ID('Settings', 'U') IS NULL
