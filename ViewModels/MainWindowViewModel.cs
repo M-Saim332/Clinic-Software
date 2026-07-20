@@ -196,7 +196,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessReturns      => CurrentUser?.HasAccess("Returns") ?? false;
     public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
     public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
-    public bool CanAccessUsers        => CurrentUser?.HasAccess("Users") ?? false;
+    public bool CanAccessUsers        => CurrentUser?.IsAdmin ?? false;
     public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
@@ -275,7 +275,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
     [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
-    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); }
+    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); _ = _settingsVM.InitializeAsync(); }
     [RelayCommand] private void ShowProfile()
     {
         _profileVM.LoadFromCurrentUser();

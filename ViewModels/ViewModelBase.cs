@@ -13,14 +13,12 @@ public partial class ViewModelBase : ObservableObject
 
     protected void LogActivity(string title, string description, string module)
     {
-        var log = new ActivityLog
-        {
-            Title = title,
-            Description = description,
-            Module = module,
-            UserId = CurrentUser?.UserID ?? 0,
-            UserName = CurrentUser?.FullName?.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "System"
-        };
-        WeakReferenceMessenger.Default.Send(new ActivityLogMessage(log));
+        ClinicSystem.Data.Services.ActivityService.Log(
+            module: module,
+            title: title,
+            description: description,
+            userId: CurrentUser?.UserID ?? 0,
+            userName: CurrentUser?.FullName?.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "System"
+        );
     }
 }

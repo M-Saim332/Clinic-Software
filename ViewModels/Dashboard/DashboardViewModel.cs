@@ -314,10 +314,9 @@ public partial class DashboardViewModel : ViewModelBase,
 
     public void Receive(ActivityLogMessage message)
     {
-        // Fire-and-forget DB insertion and refresh
+        // Just refresh the feed, ActivityService already did the DB insert
         Task.Run(async () =>
         {
-            _activityRepo.Insert(message.Log);
             var activities = await Task.Run(() => _activityRepo.GetLatest(20));
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {

@@ -22,6 +22,8 @@ using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
 using ClinicSystem.UI.Views;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -62,6 +64,7 @@ public partial class App : Application
         services.AddSingleton<ReturnRepository>();
         services.AddSingleton<DiscountRefundRepository>();
         services.AddSingleton<ActivityLogRepository>();
+        services.AddSingleton<SettingsRepository>();
 
         // ViewModels
         services.AddTransient<LoginViewModel>();
@@ -89,6 +92,12 @@ public partial class App : Application
 
 
         _services = services.BuildServiceProvider();
+
+        // Initialize static ActivityService
+        var activityRepo = _services.GetRequiredService<ActivityLogRepository>();
+        ClinicSystem.Data.Services.ActivityService.Initialize(activityRepo);
+        ClinicSystem.Data.Services.ActivityService.OnActivityLogged += log =>
+            WeakReferenceMessenger.Default.Send(new ActivityLogMessage(log));
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

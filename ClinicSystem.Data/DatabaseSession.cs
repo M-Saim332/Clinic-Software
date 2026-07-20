@@ -59,6 +59,36 @@ public class DatabaseSession
                 IF COL_LENGTH('Users', 'DateOfBirth') IS NULL ALTER TABLE Users ADD DateOfBirth DATETIME2 NULL;
                 IF COL_LENGTH('Users', 'ProfilePicture') IS NULL ALTER TABLE Users ADD ProfilePicture VARBINARY(MAX) NULL;
             ");
+
+            // Ensure Settings table exists
+            conn.Execute(@"
+                IF OBJECT_ID('Settings', 'U') IS NULL
+                BEGIN
+                    CREATE TABLE Settings (
+                        SettingKey NVARCHAR(100) PRIMARY KEY,
+                        SettingValue NVARCHAR(MAX) NULL
+                    );
+                END
+            ");
+
+            // Ensure Returns table exists (new redesign)
+            conn.Execute(@"
+                IF OBJECT_ID('Returns', 'U') IS NULL
+                BEGIN
+                    CREATE TABLE Returns (
+                        ReturnId INT IDENTITY(1,1) PRIMARY KEY,
+                        ReturnNo NVARCHAR(50) NOT NULL,
+                        ProductId INT NOT NULL,
+                        BatchNo NVARCHAR(50) NULL,
+                        Quantity INT NOT NULL,
+                        ReturnType NVARCHAR(50) NOT NULL,
+                        Reason NVARCHAR(200) NULL,
+                        Notes NVARCHAR(500) NULL,
+                        CreatedBy INT NULL,
+                        CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+                    );
+                END
+            ");
         }
         catch { }
 

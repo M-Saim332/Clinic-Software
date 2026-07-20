@@ -6,121 +6,186 @@
              x:DataType="vm:ProductReturnViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
-    <Grid RowDefinitions="Auto,*">
-        <!-- Header -->
-        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
-            <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushRose50}">
-                        <PathIcon Data="{StaticResource IconCart}" Width="20" Height="20"
-                                  Foreground="{DynamicResource BrushRose}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="Product Returns" FontSize="20" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk900}"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Process customer product returns and issue refunds"
-                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
-                    </StackPanel>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <!-- Main Body full-width -->
-        <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="28,24">
-            <!-- Top: Find Sale -->
+    <Grid>
+        <!-- 1. LIST VIEW -->
+        <Grid IsVisible="{Binding !SaveCancelEnabled}" RowDefinitions="Auto,*">
+            <!-- Header -->
             <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="{DynamicResource CornerRadiusCard}"
-                    Padding="24" Margin="0,0,0,24">
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="STEP 1: FIND SALE" FontSize="11" FontWeight="Bold"
-                               Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                               FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
-                    
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-                        <TextBox Grid.Column="0" Text="{Binding SearchQuery}" PlaceholderText="Invoice # or Patient Name..."
-                                 Height="38" CornerRadius="{DynamicResource CornerRadiusInput}"/>
-                        <Button Grid.Column="1" Content="Search" Command="{Binding SearchSalesCommand}"
-                                Classes="btn-secondary" Margin="8,0,0,0"/>
-                    </Grid>
-
-                    <comp:DataTableShellControl Title="Found Sales" RecordCount="{Binding FoundSales.Count}">
-                        <comp:DataTableShellControl.TableContent>
-                            <DataGrid ItemsSource="{Binding FoundSales}" SelectedItem="{Binding SelectedSale}"
-                                      AutoGenerateColumns="False" IsReadOnly="True" Height="160"
-                                      SelectionMode="Single" Background="Transparent" BorderThickness="0"
-                                      GridLinesVisibility="Horizontal">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="INVOICE" Binding="{Binding InvoiceNumber}" Width="*"/>
-                                    <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
-                                    <DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat=\{0:dd MMM yyyy\}}" Width="*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </comp:DataTableShellControl.TableContent>
-                    </comp:DataTableShellControl>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushRose50}">
+                            <PathIcon Data="{StaticResource IconCart}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushRose}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="Returns &amp; Inventory Adjustments" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Process patient returns and supplier returns with automatic inventory updates"
+                                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="+ Add Return" Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                 </DockPanel>
             </Border>
 
-            <!-- Bottom: Return Items -->
-            <Grid Grid.Row="1" RowDefinitions="*,Auto">
-                <comp:DataTableShellControl Grid.Row="0" Title="STEP 2: SELECT ITEMS TO RETURN" RecordCount="{Binding ReturnableItems.Count}">
+            <!-- Data Panel -->
+            <Grid Grid.Row="1" Margin="28,24" RowDefinitions="Auto,*">
+                <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" 
+                           FontSize="13" FontWeight="Medium" Margin="0,0,0,12"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                           
+                <comp:DataTableShellControl Grid.Row="1" Title="Return History" RecordCount="{Binding Returns.Count}">
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding ReturnableItems}"
-                                  AutoGenerateColumns="False" IsReadOnly="False"
+                        <DataGrid ItemsSource="{Binding Returns}" 
+                                  AutoGenerateColumns="False" IsReadOnly="True"
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                   GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="PRODUCT" Binding="{Binding Item.ProductName}" IsReadOnly="True" Width="*"/>
-                                <DataGridTextColumn Header="PRICE" Binding="{Binding Item.ProductPrice, StringFormat='Rs. {0:N2}'}" IsReadOnly="True" Width="100"/>
-                                <DataGridTextColumn Header="MAX QTY" Binding="{Binding MaxReturnable}" IsReadOnly="True" Width="80"/>
-                                
-                                <DataGridTemplateColumn Header="RETURN QTY" Width="110">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate x:DataType="vm:ReturnableItemViewModel">
-                                            <NumericUpDown Value="{Binding QuantityToReturn}" Minimum="0" Maximum="{Binding MaxReturnable}" FormatString="0" Margin="4"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-
-                                <DataGridTemplateColumn Header="REASON" Width="200">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate x:DataType="vm:ReturnableItemViewModel">
-                                            <ComboBox ItemsSource="{Binding Reasons}" SelectedItem="{Binding Reason}" HorizontalAlignment="Stretch" Margin="4"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                
-                                <DataGridTextColumn Header="REFUND" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" IsReadOnly="True" Width="110"/>
+                                <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="150"/>
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="160"/>
+                                <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
+                                <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNo}" Width="120"/>
+                                <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="100"/>
+                                <DataGridTextColumn Header="REASON" Binding="{Binding Reason}" Width="180"/>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy\}}" Width="160"/>
+                                <DataGridTextColumn Header="PROCESSED BY" Binding="{Binding CreatedByName}" Width="160"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
                 </comp:DataTableShellControl>
-
-                <!-- Footer Summary / Actions -->
-                <Border Grid.Row="1" Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}"
-                        Padding="24,16" Margin="0,16,0,0">
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding TotalRefundAmount, StringFormat='Total Refund: Rs. {0:N2}'}"
-                                       FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"
-                                       FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
-                            <Button Content="Confirm Return" Command="{Binding ConfirmReturnCommand}"
-                                    Classes="btn-danger" Padding="24,0" Height="40" VerticalContentAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="{Binding StatusMessage, FallbackValue='Ensure quantities and reasons are correct before confirming.'}"
-                                   Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center" FontSize="13" TextWrapping="Wrap"/>
-                    </DockPanel>
-                </Border>
             </Grid>
+        </Grid>
+
+        <!-- 2. FORM VIEW -->
+        <Grid IsVisible="{Binding SaveCancelEnabled}" RowDefinitions="Auto,*,Auto">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushRose50}">
+                            <PathIcon Data="{StaticResource IconCart}" Width="20" Height="20"
+                                      Foreground="{DynamicResource BrushRose}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="New Return" FontSize="20" FontWeight="Bold"
+                                       Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Enter details for the return to update inventory accordingly." FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <Button Content="Back" Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Scrollable Form Body -->
+            <ScrollViewer Grid.Row="1" Padding="28,24">
+                <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
+                    
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="RETURN DETAILS" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator/>
+                        
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                            
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,16">
+                                <TextBlock Text="Return Type *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding ReturnTypes}" SelectedItem="{Binding ReturnType}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,16">
+                                <TextBlock Text="Product *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,16">
+                                <TextBlock Text="Batch No" Classes="label"/>
+                                <TextBox Text="{Binding BatchNo}" PlaceholderText="Optional batch number"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,16">
+                                <TextBlock Text="Quantity *" Classes="label"/>
+                                <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="0" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,16">
+                                <TextBlock Text="Reason *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding Reasons}" SelectedItem="{Binding Reason}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Spacing="6">
+                                <TextBlock Text="Notes" Classes="label"/>
+                                <TextBox Text="{Binding Notes}" AcceptsReturn="True" Height="80" PlaceholderText="Optional notes about this return"/>
+                            </StackPanel>
+
+                        </Grid>
+                        
+                        <!-- Inventory Effect Hint -->
+                        <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="16,12" Margin="0,8,0,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                <TextBlock Text="{Binding InventoryEffectHint}"
+                                           Foreground="{DynamicResource BrushPrimaryBlue}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
+                <DockPanel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
+                        <Button Content="Save Return" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
         </Grid>
     </Grid>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="NumericUpDown">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
         <Style Selector="Button.btn-primary">
             <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -145,22 +210,15 @@
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
         </Style>
-        <Style Selector="Button.btn-danger">
-            <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+        <Style Selector="Button.btn-ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
             <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#BE123C"/>
-            <Setter Property="TextElement.Foreground" Value="White"/>
-        </Style>
-        <Style Selector="Button:disabled /template/ ContentPresenter">
-            <Setter Property="Opacity" Value="0.40"/>
         </Style>
     </UserControl.Styles>
 </UserControl>
