@@ -147,8 +147,8 @@
                         <!-- Reset to Zero row -->
                         <DockPanel>
                             <StackPanel Spacing="4" DockPanel.Dock="Left">
-                                <TextBlock Text="Reset All Data to Zero" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
-                                <TextBlock Text="Wipes ALL products, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before reset."
+                                <TextBlock Text="Delete All Data" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                <TextBlock Text="Wipes ALL products, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before deletion."
                                            FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -159,7 +159,7 @@
                                         Background="#F59E0B" Foreground="White"
                                         BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
                                         Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
-                                <Button Content="⚠ Reset to Zero"
+                                <Button Content="⚠ Delete All Data"
                                         Command="{Binding ShowResetConfirmCommand}"
                                         IsEnabled="{Binding !IsBusy}"
                                         Background="#DC2626" Foreground="White"
@@ -182,7 +182,7 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Button Content="✓ Yes, Reset Everything"
+                                    <Button Content="✓ Yes, Delete Everything"
                                             Command="{Binding ConfirmResetCommand}"
                                             Background="#DC2626" Foreground="White"
                                             BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
@@ -229,6 +229,22 @@
                                 </StackPanel>
                             </Button>
                         </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- USER MANAGEMENT (Admin Only) -->
+                <Border IsVisible="{Binding IsAdmin}"
+                        Background="{DynamicResource BrushCardBackground}"
+                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="USER MANAGEMENT" FontSize="11" FontWeight="Bold"
+                                   Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <Border Height="800" Background="{DynamicResource BrushBackground}" CornerRadius="8" ClipToBounds="True">
+                            <userviews:UserRegistryView DataContext="{Binding UserRegistryVM}" />
+                        </Border>
                     </StackPanel>
                 </Border>
 

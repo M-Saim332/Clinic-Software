@@ -135,16 +135,21 @@ public class SaleRepository
         }
     }
 
-    public void Delete(int id)
+    public bool Delete(int id)
     {
-        using var conn = _session.CreateConnection();
-        var current = conn.QuerySingleOrDefault<Sale>("SELECT * FROM Sales WHERE SaleID = @id", new { id });
-        if (current == null) return;
-        if (current.IsPosted)
+        try
         {
-            throw new InvalidOperationException("Posted sales cannot be deleted.");
-        }
+            using var conn = _session.CreateConnection();
+            var current = conn.QuerySingleOrDefault<Sale>("SELECT * FROM Sales WHERE SaleID = @id", new { id });
+            if (current == null) return false;
+            if (current.IsPosted) return false;
 
-        conn.Execute("DELETE FROM Sales WHERE SaleID = @id", new { id });
+            conn.Execute("DELETE FROM Sales WHERE SaleID = @id", new { id });
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

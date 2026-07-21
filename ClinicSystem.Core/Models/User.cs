@@ -33,10 +33,10 @@ public class User
         Enum.TryParse<UserRole>(Role, true, out var r) ? r : UserRole.Receptionist;
 
     public bool IsDoctor    => UserRole == UserRole.Doctor || UserRole == UserRole.Admin;
-    public bool IsAdmin     => UserRole == UserRole.Admin;
+    public bool IsAdmin     => UserRole == UserRole.Admin || string.Equals(Username, "admin", StringComparison.OrdinalIgnoreCase);
     public bool IsPharmacist => UserRole == UserRole.Pharmacist;
-    public bool IsDeletable => Role != "Admin";
-    public bool IsEditable  => Role != "Admin";
+    public bool IsDeletable => Role != "Admin" && !string.Equals(Username, "admin", StringComparison.OrdinalIgnoreCase);
+    public bool IsEditable  => Role != "Admin" && !string.Equals(Username, "admin", StringComparison.OrdinalIgnoreCase);
     public string DisplayName => FullName.Length > 0 ? FullName : Username;
 
     /// <summary>Status label shown in UI (Active / Inactive).</summary>

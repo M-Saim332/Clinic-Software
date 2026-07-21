@@ -20,6 +20,13 @@ public class AppointmentRepository
               ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC");
     }
 
+    public void CleanupOldAppointments()
+    {
+        using var conn = _session.CreateConnection();
+        // Delete appointments where the appointment date is more than 3 days in the past
+        conn.Execute("DELETE FROM Appointments WHERE AppointmentDate < DATEADD(day, -3, CAST(GETDATE() AS DATE))");
+    }
+
     public Appointment? GetById(int id)
     {
         using var conn = _session.CreateConnection();
@@ -67,14 +74,13 @@ public class AppointmentRepository
 
         using var conn = _session.CreateConnection();
 
-        // Auto-generate AppointmentNo
+        // Auto-generate AppointmentNo as a sequential Token number
         if (string.IsNullOrEmpty(a.AppointmentNo))
         {
-            string datePrefix = a.AppointmentDate.ToString("yyyyMMdd");
             int nextSeq = conn.ExecuteScalar<int>(
                 "SELECT COUNT(*) FROM Appointments WHERE AppointmentDate = @date", 
                 new { date = a.AppointmentDate.Date }) + 1;
-            a.AppointmentNo = $"APT-{datePrefix}-{nextSeq:D3}";
+            a.AppointmentNo = $"Token-{nextSeq}";
         }
 
         return conn.ExecuteScalar<int>(
@@ -112,9 +118,17 @@ public class AppointmentRepository
             new { appointmentId, status, cancellationReason });
     }
 
-    public void Delete(int id)
+    public bool Delete(int id)
     {
-        using var conn = _session.CreateConnection();
-        conn.Execute("DELETE FROM Appointments WHERE AppointmentID = @id", new { id });
+        try
+        {
+            using var conn = _session.CreateConnection();
+            conn.Execute("DELETE FROM Appointments WHERE AppointmentID = @id", new { id });
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

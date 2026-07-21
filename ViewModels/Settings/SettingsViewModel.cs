@@ -16,13 +16,15 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly DatabaseSession _dbSession;
     private readonly SettingsRepository _repo;
+    public UserRegistryViewModel UserRegistryVM { get; }
     public ChangePasswordViewModel ChangePasswordVM { get; }
 
-    public SettingsViewModel(DatabaseSession dbSession, SettingsRepository repo, ChangePasswordViewModel changePasswordVM)
+    public SettingsViewModel(DatabaseSession dbSession, SettingsRepository repo, ChangePasswordViewModel changePasswordVM, UserRegistryViewModel userRegistryVM)
     {
         _dbSession = dbSession;
         _repo = repo;
         ChangePasswordVM = changePasswordVM;
+        UserRegistryVM = userRegistryVM;
         ChangePasswordVM.CloseRequested += () => IsChangePasswordVisible = false;
     }
 
@@ -98,6 +100,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBusy = false);
         }
+        await UserRegistryVM.InitializeAsync();
     }
 
     [RelayCommand]
@@ -240,16 +243,16 @@ public partial class SettingsViewModel : ViewModelBase
     {
         IsBusy = true;
         IsResetConfirmVisible = false;
-        StatusMessage = "Resetting all data… creating rollback backup first…";
+        StatusMessage = "Deleting all data… creating rollback backup first…";
         try
         {
             await Task.Run(() => _dbSession.ResetAllData());
             IsRollbackAvailable = true;
-            StatusMessage = "✅ All data has been reset to zero. A rollback backup was saved automatically — click 'Rollback Reset' to undo.";
+            StatusMessage = "✅ All data has been deleted. A rollback backup was saved automatically — click 'Rollback Reset' to undo.";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Reset failed: {ex.Message}";
+            StatusMessage = $"Deletion failed: {ex.Message}";
         }
         finally { IsBusy = false; }
     }

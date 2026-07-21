@@ -265,6 +265,10 @@ public partial class AppointmentViewModel : ViewModelBase
             var patients = await Task.Run(() => _patientRepo.GetAll());
             var users = await Task.Run(() => _userRepo.GetAll());
             var doctors = users.Where(u => u.Role == "Doctor").ToList();
+            
+            // Auto-cleanup old appointments (older than 3 days)
+            await Task.Run(() => _repo.CleanupOldAppointments());
+            
             var appointments = await Task.Run(() => _repo.GetAll());
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>

@@ -62,6 +62,7 @@ public class ViewLocator : IDataTemplate
             ProductReturnViewModel    => new ProductReturnView    { DataContext = param },
             InvoiceViewModel          => new InvoiceView          { DataContext = param },
             ProfileViewModel          => new ProfileView          { DataContext = param },
+            DiscountRefundViewModel   => new DiscountRefundPanel  { DataContext = param },
             _ => new TextBlock { Text = $"No view for {param?.GetType().Name}" }
         };
     }
