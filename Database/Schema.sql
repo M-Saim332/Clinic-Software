@@ -221,7 +221,7 @@ BEGIN
     VALUES (
         'admin',
         '$2a$11$u0LyGgHmhN2kTeoBK.a5m.FVHXHSUA/xHZFJ9tE1O4Oj4QvICWT.O',  -- Admin@123
-        'Doctor',
+        'Admin',
         'System Admin',
         1
     );

@@ -1,0 +1,156 @@
+-- ============================================================
+--  Clinic Management System -- Bulk Test Data
+--  50 Patients, 50 Products (Medicines), 10 Companies, 20 Suppliers
+-- ============================================================
+
+USE ClinicDB;
+GO
+
+-- ── 1. Companies (10) ─────────────────────────────────────────────────────────
+INSERT INTO Companies (Name, Address, Phone, Email) VALUES
+    ('PharmaCorp Ltd',       '12 Industrial Park, Lahore',       '0300-1010101', 'info@pharmacorp.pk'),
+    ('MediLife Pharma',      '45 Blue Area, Islamabad',          '0300-2020202', 'contact@medilife.pk'),
+    ('Getz Pharma',          '88 SITE, Karachi',                 '0300-3030303', 'orders@getzpharma.pk'),
+    ('Abbott Pakistan',      '7 Gulberg III, Lahore',            '0300-4040404', 'sales@abbott.pk'),
+    ('Highnoon Labs',        '22 F-10, Islamabad',               '0300-5050505', 'info@highnoon.pk'),
+    ('Searle Pakistan',      '56 Defence, Karachi',              '0300-6060606', 'searle@searle.pk'),
+    ('Sanofi Pakistan',      '3 Canal Road, Lahore',             '0300-7070707', 'sanofi@sanofi.pk'),
+    ('Pfizer Pakistan',      '14 M.M. Alam Rd, Lahore',         '0300-8080808', 'pfizer@pfizer.pk'),
+    ('Novartis Pakistan',    '9 Clifton, Karachi',               '0300-9090909', 'novartis@novartis.pk'),
+    ('Bayer Pakistan',       '31 Hayatabad, Peshawar',           '0300-1001001', 'bayer@bayer.pk');
+GO
+
+-- ── 2. Suppliers (20) ─────────────────────────────────────────────────────────
+INSERT INTO Suppliers (Name, Address, Phone, Email) VALUES
+    ('MedSupply Co.',        '101 Anarkali, Lahore',             '0321-1111111', 'sales@medsupply.pk'),
+    ('Global Med Traders',   '202 Saddar, Karachi',              '0321-2222222', 'global@gmtrade.pk'),
+    ('PharmaLink',           '303 Jinnah Rd, Quetta',            '0321-3333333', 'pharmalink@pl.pk'),
+    ('HealthBridge Pvt',     '404 University Rd, Peshawar',      '0321-4444444', 'info@healthbridge.pk'),
+    ('MedCore Distributors', '505 Mall Rd, Lahore',              '0321-5555555', 'medcore@mc.pk'),
+    ('CuraMed Supply',       '606 Blue Area, Islamabad',         '0321-6666666', 'cura@curamed.pk'),
+    ('RxSource Pvt Ltd',     '707 Clifton, Karachi',             '0321-7777777', 'rx@rxsource.pk'),
+    ('PharmaEdge',           '808 Model Town, Lahore',           '0321-8888888', 'edge@pharmaedge.pk'),
+    ('HealWell Traders',     '909 F-7, Islamabad',               '0321-9999999', 'heal@healwell.pk'),
+    ('MedLink Express',      '110 SITE, Karachi',                '0321-1010101', 'medlink@ml.pk'),
+    ('PrimePharma Supply',   '111 Garden Town, Lahore',          '0322-1111111', 'prime@primepharma.pk'),
+    ('QuickMed Logistics',   '112 Hayatabad, Peshawar',          '0322-2222222', 'quick@quickmed.pk'),
+    ('AllMed Pvt Ltd',       '113 Saddar, Quetta',               '0322-3333333', 'allmed@allmed.pk'),
+    ('SafeMeds Traders',     '114 PECHS, Karachi',               '0322-4444444', 'safe@safemeds.pk'),
+    ('NovaMed Supply',       '115 Gulshan, Karachi',             '0322-5555555', 'nova@novamed.pk'),
+    ('Alpha Pharma Dist.',   '116 Cavalry Ground, Lahore',       '0322-6666666', 'alpha@alphadist.pk'),
+    ('Sigma Med Traders',    '117 G-9, Islamabad',               '0322-7777777', 'sigma@sigmamed.pk'),
+    ('OmegaMed Pvt Ltd',     '118 Cantt, Peshawar',              '0322-8888888', 'omega@omegamed.pk'),
+    ('BetaMed Supply',       '119 Johar Town, Lahore',           '0322-9999999', 'beta@betamed.pk'),
+    ('ZetaMed Distributors', '120 Defence V, Karachi',           '0322-1010101', 'zeta@zetamed.pk');
+GO
+
+-- ── 3. Medicines / Products (50) ──────────────────────────────────────────────
+INSERT INTO Medicines (Name, GenericName, CompanyID, BatchNumber, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel) VALUES
+    ('Paracetamol 500mg',      'Paracetamol',        1,  'B001', '2027-12-31', 10.00,  25.00, 200, 50),
+    ('Ibuprofen 400mg',        'Ibuprofen',          2,  'B002', '2028-01-15', 20.00,  50.00, 100, 20),
+    ('Amoxicillin 500mg',      'Amoxicillin',        3,  'B003', '2026-10-31', 30.00,  80.00, 150, 30),
+    ('Metformin 500mg',        'Metformin',          4,  'B004', '2027-03-31', 15.00,  35.00, 180, 40),
+    ('Lisinopril 10mg',        'Lisinopril',         5,  'B005', '2025-05-31', 40.00, 100.00,  60, 10),
+    ('Aspirin 100mg',          'Aspirin',            6,  'B006', '2028-06-30',  8.00,  18.00, 220, 45),
+    ('Atorvastatin 20mg',      'Atorvastatin',       7,  'B007', '2029-01-31', 60.00, 150.00,  70, 12),
+    ('Omeprazole 20mg',        'Omeprazole',         8,  'B008', '2026-12-31', 32.00,  80.00, 130, 25),
+    ('Ciprofloxacin 500mg',    'Ciprofloxacin',      9,  'B009', '2027-09-15', 45.00, 110.00,  90, 18),
+    ('Cetirizine 10mg',        'Cetirizine',         10, 'B010', '2028-03-20', 12.00,  30.00, 160, 30),
+    ('Metronidazole 400mg',    'Metronidazole',      1,  'B011', '2027-07-01', 18.00,  45.00, 110, 22),
+    ('Azithromycin 500mg',     'Azithromycin',       2,  'B012', '2026-11-30', 55.00, 140.00,  80, 16),
+    ('Dexamethasone 4mg',      'Dexamethasone',      3,  'B013', '2029-02-28', 25.00,  65.00, 120, 24),
+    ('Diclofenac 50mg',        'Diclofenac',         4,  'B014', '2027-05-15', 14.00,  35.00, 140, 28),
+    ('Salbutamol 4mg',         'Salbutamol',         5,  'B015', '2028-08-31', 22.00,  55.00, 100, 20),
+    ('Fluconazole 150mg',      'Fluconazole',        6,  'B016', '2027-04-30', 38.00,  95.00,  75, 15),
+    ('Ranitidine 150mg',       'Ranitidine',         7,  'B017', '2027-11-15', 16.00,  40.00, 130, 26),
+    ('Captopril 25mg',         'Captopril',          8,  'B018', '2026-09-30', 28.00,  70.00,  85, 17),
+    ('Warfarin 5mg',           'Warfarin',           9,  'B019', '2028-07-20', 35.00,  88.00,  65, 13),
+    ('Tramadol 50mg',          'Tramadol',           10, 'B020', '2029-05-10', 42.00, 105.00,  55, 11),
+    ('Pantoprazole 40mg',      'Pantoprazole',       1,  'B021', '2027-01-15', 28.00,  70.00, 115, 23),
+    ('Clopidogrel 75mg',       'Clopidogrel',        2,  'B022', '2028-02-28', 48.00, 120.00,  70, 14),
+    ('Sertraline 50mg',        'Sertraline',         3,  'B023', '2027-06-30', 52.00, 130.00,  60, 12),
+    ('Amlodipine 5mg',         'Amlodipine',         4,  'B024', '2029-09-15', 30.00,  75.00,  95, 19),
+    ('Losartan 50mg',          'Losartan',           5,  'B025', '2028-10-31', 36.00,  90.00,  88, 18),
+    ('Montelukast 10mg',       'Montelukast',        6,  'B026', '2027-08-15', 44.00, 110.00,  72, 14),
+    ('Terbinafine 250mg',      'Terbinafine',        7,  'B027', '2026-12-15', 50.00, 125.00,  65, 13),
+    ('Prednisolone 5mg',       'Prednisolone',       8,  'B028', '2028-04-20', 20.00,  50.00, 100, 20),
+    ('Hydroxychloroquine 200mg','Hydroxychloroquine',9,  'B029', '2029-03-31', 40.00, 100.00,  80, 16),
+    ('Folic Acid 5mg',         'Folic Acid',         10, 'B030', '2027-10-15',  5.00,  13.00, 250, 50),
+    ('Vitamin D3 1000IU',      'Cholecalciferol',    1,  'B031', '2028-05-30', 15.00,  38.00, 200, 40),
+    ('Vitamin B12 1000mcg',    'Cyanocobalamin',     2,  'B032', '2029-01-20', 12.00,  30.00, 180, 36),
+    ('Calcium + D3',           'Calcium Carbonate',  3,  'B033', '2027-03-15', 18.00,  45.00, 160, 32),
+    ('Zinc Sulfate 20mg',      'Zinc Sulfate',       4,  'B034', '2028-11-30',  8.00,  20.00, 220, 44),
+    ('Iron Fumarate 200mg',    'Ferrous Fumarate',   5,  'B035', '2027-07-20', 10.00,  25.00, 190, 38),
+    ('ORS Sachet',             'Oral Rehydration',   6,  'B036', '2026-08-31',  4.00,  10.00, 300, 60),
+    ('Loperamide 2mg',         'Loperamide',         7,  'B037', '2028-09-15', 14.00,  35.00, 120, 24),
+    ('Domperidone 10mg',       'Domperidone',        8,  'B038', '2027-02-28', 16.00,  40.00, 115, 23),
+    ('Ondansetron 4mg',        'Ondansetron',        9,  'B039', '2029-06-15', 35.00,  88.00,  70, 14),
+    ('Alprazolam 0.5mg',       'Alprazolam',         10, 'B040', '2028-12-20', 24.00,  60.00,  55, 11),
+    ('Carvedilol 6.25mg',      'Carvedilol',         1,  'B041', '2027-09-10', 38.00,  95.00,  65, 13),
+    ('Furosemide 40mg',        'Furosemide',         2,  'B042', '2026-07-31', 10.00,  25.00, 130, 26),
+    ('Spironolactone 25mg',    'Spironolactone',     3,  'B043', '2028-06-30', 22.00,  55.00,  90, 18),
+    ('Levothyroxine 50mcg',    'Levothyroxine',      4,  'B044', '2029-04-15', 28.00,  70.00,  80, 16),
+    ('Glibenclamide 5mg',      'Glibenclamide',      5,  'B045', '2027-11-30', 12.00,  30.00, 140, 28),
+    ('Rifampicin 600mg',       'Rifampicin',         6,  'B046', '2028-01-20', 65.00, 165.00,  50, 10),
+    ('Isoniazid 300mg',        'Isoniazid',          7,  'B047', '2027-04-25', 18.00,  45.00,  75, 15),
+    ('Ethambutol 400mg',       'Ethambutol',         8,  'B048', '2029-07-31', 22.00,  55.00,  70, 14),
+    ('Pyrazinamide 500mg',     'Pyrazinamide',       9,  'B049', '2028-08-20', 20.00,  50.00,  65, 13),
+    ('Acyclovir 200mg',        'Acyclovir',          10, 'B050', '2027-12-10', 32.00,  80.00,  85, 17);
+GO
+
+-- ── 4. Patients (50) ──────────────────────────────────────────────────────────
+INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount) VALUES
+    ('Muhammad Ali',      45, 'Male',   '0311-1001001', '1 Model Town, Lahore',        'Hypertension',     'Lisinopril, Aspirin',           500.00,  0),
+    ('Aisha Khan',        32, 'Female', '0311-1002002', '2 Gulberg, Lahore',            'Migraine',         'Ibuprofen, Rest',               400.00,  0),
+    ('Omar Sheikh',       58, 'Male',   '0311-1003003', '3 Defence, Karachi',           'Diabetes Type 2',  'Metformin, Diet control',       550.00, 50),
+    ('Fatima Malik',      28, 'Female', '0311-1004004', '4 F-7, Islamabad',             'Flu',              'Paracetamol, Rest',             350.00,  0),
+    ('Hassan Raza',       40, 'Male',   '0311-1005005', '5 Saddar, Rawalpindi',         'Asthma',           'Salbutamol inhaler',            450.00,  0),
+    ('Zainab Ahmed',      22, 'Female', '0311-1006006', '6 Hayatabad, Peshawar',        'Allergy',          'Cetirizine',                    300.00,  0),
+    ('Bilal Hussain',     50, 'Male',   '0311-1007007', '7 Cantt, Lahore',              'Heart Disease',    'Aspirin, Atorvastatin',         600.00, 100),
+    ('Sara Qureshi',      35, 'Female', '0311-1008008', '8 PECHS, Karachi',             'Thyroid',          'Levothyroxine',                 500.00,  0),
+    ('Tariq Mehmood',     62, 'Male',   '0311-1009009', '9 Cantonment, Peshawar',       'Arthritis',        'Diclofenac, Prednisolone',      550.00,  50),
+    ('Nadia Iqbal',       29, 'Female', '0311-1010010', '10 Blue Area, Islamabad',      'Anemia',           'Iron Fumarate, Folic Acid',     400.00,  0),
+    ('Kamran Lodhi',      47, 'Male',   '0311-1011011', '11 Gulshan, Karachi',          'Back Pain',        'Diclofenac, Physiotherapy',     450.00,  0),
+    ('Mariam Siddiqui',   25, 'Female', '0311-1012012', '12 Garden Town, Lahore',       'Gastritis',        'Omeprazole, Diet',              380.00,  0),
+    ('Usman Farooq',      38, 'Male',   '0311-1013013', '13 G-10, Islamabad',           'Typhoid',          'Ciprofloxacin',                 500.00,  0),
+    ('Hira Baig',         31, 'Female', '0311-1014014', '14 DHA, Karachi',              'UTI',              'Ciprofloxacin, ORS',            400.00,  0),
+    ('Adeel Akhtar',      55, 'Male',   '0311-1015015', '15 Johar Town, Lahore',        'Cholesterol',      'Atorvastatin',                  500.00, 50),
+    ('Saima Butt',        42, 'Female', '0311-1016016', '16 Clifton, Karachi',          'Diabetes',         'Glibenclamide, Metformin',      550.00,  0),
+    ('Waqar Javed',       33, 'Male',   '0311-1017017', '17 E-7, Islamabad',            'Cold & Cough',     'Paracetamol, Cetirizine',       300.00,  0),
+    ('Lubna Nawaz',       26, 'Female', '0311-1018018', '18 Township, Lahore',          'Vitamin D Def.',   'Vitamin D3',                    350.00,  0),
+    ('Imran Cheema',      44, 'Male',   '0311-1019019', '19 North Nazimabad, Karachi',  'Hypertension',     'Amlodipine, Lisinopril',        500.00,  0),
+    ('Rabia Tahir',       37, 'Female', '0311-1020020', '20 F-11, Islamabad',           'Depression',       'Sertraline',                    600.00,  0),
+    ('Shahid Nawaz',      60, 'Male',   '0311-1021021', '21 Shahrah-e-Faisal, Karachi', 'COPD',             'Salbutamol, Prednisolone',      600.00, 100),
+    ('Amna Zahid',        23, 'Female', '0311-1022022', '22 Model Town, Lahore',        'Skin Allergy',     'Cetirizine, Fluconazole',       400.00,  0),
+    ('Khalid Mirza',      49, 'Male',   '0311-1023023', '23 G-6, Islamabad',            'Kidney Stone',     'Loperamide, ORS',               550.00,  0),
+    ('Sana Riaz',         30, 'Female', '0311-1024024', '24 Defence, Lahore',           'Migraine',         'Ibuprofen',                     400.00,  0),
+    ('Naveed Awan',       53, 'Male',   '0311-1025025', '25 Orangi, Karachi',           'Diabetes Type 2',  'Metformin',                     500.00, 50),
+    ('Tabassum Rehman',   39, 'Female', '0311-1026026', '26 F-8, Islamabad',            'Anxiety',          'Alprazolam',                    500.00,  0),
+    ('Junaid Bashir',     27, 'Male',   '0311-1027027', '27 Cavalary Ground, Lahore',   'Flu',              'Paracetamol',                   300.00,  0),
+    ('Mehwish Aslam',     34, 'Female', '0311-1028028', '28 Gulshan-e-Iqbal, Karachi',  'Anemia',           'Iron Fumarate, Folic Acid',     400.00,  0),
+    ('Farhan Shah',       46, 'Male',   '0311-1029029', '29 Bahria Town, Lahore',       'Arthritis',        'Diclofenac',                    450.00,  0),
+    ('Uzma Khatoon',      28, 'Female', '0311-1030030', '30 I-8, Islamabad',            'Thyroid',          'Levothyroxine',                 500.00,  0),
+    ('Asad Akram',        57, 'Male',   '0311-1031031', '31 Landhi, Karachi',           'Heart Disease',    'Aspirin, Carvedilol',           650.00, 100),
+    ('Rida Shaheen',      21, 'Female', '0311-1032032', '32 Raiwind Rd, Lahore',        'Fever',            'Paracetamol',                   280.00,  0),
+    ('Tahir Mahmood',     43, 'Male',   '0311-1033033', '33 G-14, Islamabad',           'Hepatitis B',      'Rifampicin',                    600.00, 50),
+    ('Noor Fatima',       36, 'Female', '0311-1034034', '34 Nazimabad, Karachi',        'Gastritis',        'Pantoprazole',                  380.00,  0),
+    ('Zahid Hussain',     51, 'Male',   '0311-1035035', '35 Faisal Town, Lahore',       'Cholesterol',      'Simvastatin',                   450.00,  0),
+    ('Ayesha Noor',       24, 'Female', '0311-1036036', '36 F-6, Islamabad',            'Cold',             'Cetirizine, Paracetamol',       300.00,  0),
+    ('Hamid Chaudhry',    48, 'Male',   '0311-1037037', '37 Malir, Karachi',            'Diabetes',         'Glibenclamide',                 500.00,  0),
+    ('Shazia Perveen',    33, 'Female', '0311-1038038', '38 Allama Iqbal Town, Lahore', 'Depression',       'Sertraline',                    600.00,  0),
+    ('Rizwan Khan',       59, 'Male',   '0311-1039039', '39 H-9, Islamabad',            'Prostate Issues',  'Ciprofloxacin',                 550.00,  0),
+    ('Kiran Saleem',      27, 'Female', '0311-1040040', '40 Korangi, Karachi',          'Allergy',          'Cetirizine',                    300.00,  0),
+    ('Babar Zaman',       41, 'Male',   '0311-1041041', '41 Model Town, Lahore',        'Back Pain',        'Tramadol, Diclofenac',          500.00,  0),
+    ('Iqra Ansar',        29, 'Female', '0311-1042042', '42 G-9, Islamabad',            'UTI',              'Ciprofloxacin',                 400.00,  0),
+    ('Salman Qadri',      54, 'Male',   '0311-1043043', '43 Lyari, Karachi',            'TB',               'Rifampicin, Isoniazid',         650.00, 100),
+    ('Fariha Jamil',      31, 'Female', '0311-1044044', '44 Defence, Lahore',           'Anemia',           'Iron Fumarate',                 380.00,  0),
+    ('Zulfiqar Ahmed',    56, 'Male',   '0311-1045045', '45 I-10, Islamabad',           'Hypertension',     'Lisinopril, Amlodipine',        500.00, 50),
+    ('Misbah Rani',       38, 'Female', '0311-1046046', '46 DHA, Karachi',              'Thyroid',          'Levothyroxine',                 500.00,  0),
+    ('Dawood Tariq',      26, 'Male',   '0311-1047047', '47 Iqbal Town, Lahore',        'Flu',              'Paracetamol',                   300.00,  0),
+    ('Asma Khalil',       44, 'Female', '0311-1048048', '48 F-10, Islamabad',           'Diabetes',         'Metformin, Glibenclamide',      550.00,  0),
+    ('Rao Sajjad',        63, 'Male',   '0311-1049049', '49 Buffer Zone, Karachi',      'Heart Disease',    'Aspirin, Atorvastatin, Losartan',700.00,100),
+    ('Huma Shafiq',       34, 'Female', '0311-1050050', '50 Cavalry Ground, Lahore',    'Gastritis',        'Omeprazole, Domperidone',       400.00,  0);
+GO
+
+PRINT 'Bulk test data (10 companies, 20 suppliers, 50 medicines, 50 patients) inserted successfully.';
+GO

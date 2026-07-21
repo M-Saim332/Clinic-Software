@@ -83,7 +83,7 @@ public class PurchaseRepository
         }
     }
 
-    public void Delete(int id)
+    public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
         var items = conn.Query<PurchaseItem>("SELECT * FROM PurchaseItems WHERE PurchaseID = @id", new { id });
@@ -100,11 +100,12 @@ public class PurchaseRepository
 
             conn.Execute("DELETE FROM Purchases WHERE PurchaseID = @id", new { id }, tx);
             tx.Commit();
+            return true;
         }
         catch
         {
             tx.Rollback();
-            throw;
+            return false;
         }
     }
 }

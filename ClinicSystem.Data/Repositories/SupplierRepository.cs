@@ -52,13 +52,45 @@ public class SupplierRepository
 
     public bool Delete(int id)
     {
-        using var conn = _session.CreateConnection();
-        // Check if referenced by purchases
-        var count = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Purchases WHERE SupplierID = @id", new { id });
-        if (count > 0) return false;
+        try
+        {
+            using var conn = _session.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            
+            // Cascade delete PurchaseItems for purchases from this supplier
+            conn.Execute(@"
+                DELETE FROM PurchaseItems 
+                WHERE PurchaseID IN (SELECT PurchaseID FROM Purchases WHERE SupplierID = @id)", 
+                new { id }, tx);
+                
+            // Cascade delete Purchases
+            conn.Execute("DELETE FROM Purchases WHERE SupplierID = @id", new { id }, tx);
+            
+            // Cascade delete SaleItems for products from this supplier
+            conn.Execute(@"
+                DELETE FROM SaleItems 
+                WHERE MedicineID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
+                new { id }, tx);
+                
+            // Cascade delete PurchaseItems for products from this supplier (if not already covered)
+            conn.Execute(@"
+                DELETE FROM PurchaseItems 
+                WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
+                new { id }, tx);
 
-        conn.Execute("DELETE FROM Suppliers WHERE SupplierID = @id", new { id });
-        return true;
+            // Cascade delete Products
+            conn.Execute("DELETE FROM Products WHERE SupplierID = @id", new { id }, tx);
+            
+            // Delete Supplier
+            conn.Execute("DELETE FROM Suppliers WHERE SupplierID = @id", new { id }, tx);
+            
+            tx.Commit();
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine($"Supplier Delete Failed: {ex}");
+            return false;
+        }
     }
 }

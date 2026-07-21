@@ -235,7 +235,10 @@ public class UserRepository
         if (apptCount > 0) return false;
 
         var rxCount = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Prescriptions WHERE DoctorID = @id", new { id });
+            @"IF OBJECT_ID('Prescriptions', 'U') IS NOT NULL 
+                  SELECT COUNT(*) FROM Prescriptions WHERE DoctorID = @id 
+              ELSE 
+                  SELECT 0", new { id });
         if (rxCount > 0) return false;
 
         conn.Execute("DELETE FROM Users WHERE UserID = @id", new { id });

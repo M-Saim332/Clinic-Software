@@ -11,39 +11,6 @@
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20,16,20,20" Spacing="16">
 
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- URGENT: Receptionist Refund Banner                         -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <Border Background="#FFF7ED" BorderBrush="#F97316" BorderThickness="1"
-                    CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20"
-                    IsVisible="{Binding HasPendingRefunds}">
-                <StackPanel Spacing="12">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <PathIcon Data="{StaticResource IconAlert}" Width="20" Height="20" Foreground="#EA580C"/>
-                        <TextBlock Text="URGENT: Refunds Pending" FontWeight="Bold" FontSize="16" Foreground="#EA580C"/>
-                    </StackPanel>
-                    
-                    <ItemsControl ItemsSource="{Binding PendingRefunds}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:DiscountRefund">
-                                <Border Background="White" BorderBrush="#FED7AA" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,4">
-                                    <Grid ColumnDefinitions="*,Auto">
-                                        <StackPanel Grid.Column="0" Spacing="4">
-                                            <TextBlock Text="{Binding RefundSummary}" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource BrushInk900}"/>
-                                            <TextBlock Text="{Binding FeeSummary}" FontSize="13" Foreground="{DynamicResource BrushInk600}"/>
-                                            <TextBlock Text="{Binding Notes, StringFormat='Notes: {0}'}" FontSize="12" Foreground="{DynamicResource BrushInk500}" IsVisible="{Binding Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                        </StackPanel>
-                                        <Button Grid.Column="1" Content="✓ Mark Completed" 
-                                                Command="{Binding #Root.((vm:DashboardViewModel)DataContext).MarkRefundCompletedCommand}" 
-                                                CommandParameter="{Binding}"
-                                                Background="#22C55E" Foreground="White" FontWeight="SemiBold" CornerRadius="6" VerticalAlignment="Center" Padding="16,8"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- ROW 1: Stat Cards (3 cards in one row)                     -->
@@ -158,10 +125,6 @@
                 </Border>
             </Grid>
 
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <!-- DOCTOR: Apply Discount Panel                               -->
-            <!-- ═══════════════════════════════════════════════════════════ -->
-            <ContentControl Content="{Binding DiscountRefundVM}" IsVisible="{Binding IsDoctor}" />
 
             <!-- ═══════════════════════════════════════════════════════════ -->
             <!-- ADMIN QUICK ACTIONS (Admin only)                            -->

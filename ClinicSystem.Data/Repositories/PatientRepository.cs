@@ -55,15 +55,32 @@ public class PatientRepository
 
     public bool Delete(int id)
     {
-        using var conn = _session.CreateConnection();
-        // Check for existing appointments or sales first
-        var apptCount = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Appointments WHERE PatientID = @id", new { id });
-        var salesCount = conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Sales WHERE PatientID = @id", new { id });
-        if (apptCount > 0 || salesCount > 0) return false;
-
-        conn.Execute("DELETE FROM Patients WHERE PatientID = @id", new { id });
-        return true;
+        try
+        {
+            using var conn = _session.CreateConnection();
+            using var tx = conn.BeginTransaction();
+            
+            // Cascade delete Appointments
+            conn.Execute("DELETE FROM Appointments WHERE PatientID = @id", new { id }, tx);
+            
+            // Cascade delete SaleItems related to Patient's Sales
+            conn.Execute(@"
+                DELETE FROM SaleItems 
+                WHERE SaleID IN (SELECT SaleID FROM Sales WHERE PatientID = @id)", 
+                new { id }, tx);
+                
+            // Cascade delete Sales
+            conn.Execute("DELETE FROM Sales WHERE PatientID = @id", new { id }, tx);
+            
+            // Delete the Patient
+            conn.Execute("DELETE FROM Patients WHERE PatientID = @id", new { id }, tx);
+            
+            tx.Commit();
+            return true;
+        }
+        catch 
+        {
+            return false;
+        }
     }
 }

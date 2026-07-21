@@ -128,7 +128,7 @@
                             <DataGrid.Columns>
 
                                 <!-- Avatar + Name -->
-                                <DataGridTemplateColumn Header="USER" Width="*" MinWidth="200">
+                                <DataGridTemplateColumn Header="USER" Width="2*" MinWidth="150">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" Spacing="10"
@@ -155,7 +155,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Role Badge -->
-                                <DataGridTemplateColumn Header="ROLE" Width="130">
+                                <DataGridTemplateColumn Header="ROLE" Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Border HorizontalAlignment="Left" Margin="8,0"
@@ -169,7 +169,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Email -->
-                                <DataGridTemplateColumn Header="EMAIL" Width="180">
+                                <DataGridTemplateColumn Header="EMAIL" Width="1.5*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Email, FallbackValue='—'}"
@@ -181,7 +181,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Phone -->
-                                <DataGridTemplateColumn Header="PHONE" Width="130">
+                                <DataGridTemplateColumn Header="PHONE" Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Phone, FallbackValue='—'}"
@@ -192,7 +192,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Status Badge -->
-                                <DataGridTemplateColumn Header="STATUS" Width="100">
+                                <DataGridTemplateColumn Header="STATUS" Width="*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <Panel HorizontalAlignment="Left" Margin="8,0">
@@ -214,7 +214,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Last Login -->
-                                <DataGridTemplateColumn Header="LAST LOGIN" Width="160">
+                                <DataGridTemplateColumn Header="LAST LOGIN" Width="1.5*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding LastLoginDisplay}"
@@ -225,7 +225,7 @@
                                 </DataGridTemplateColumn>
 
                                 <!-- Actions -->
-                                <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                <DataGridTemplateColumn Header="ACTIONS" Width="160">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" Spacing="4"
