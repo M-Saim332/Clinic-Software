@@ -16,6 +16,12 @@ public class PatientRepository
             "SELECT * FROM Patients ORDER BY Name");
     }
 
+    public int GetCount()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
+    }
+
     public Patient? GetById(int id)
     {
         using var conn = _session.CreateConnection();
@@ -37,8 +43,8 @@ public class PatientRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount)
-              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount);
+            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount, VisitStatus, LastVisitDate)
+              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount, @VisitStatus, @LastVisitDate);
               SELECT SCOPE_IDENTITY();", p);
     }
 
@@ -49,8 +55,17 @@ public class PatientRepository
             @"UPDATE Patients SET
                 Name = @Name, Age = @Age, Gender = @Gender,
                 Phone = @Phone, Address = @Address, Diagnosis = @Diagnosis,
-                Prescription = @Prescription, ConsultationFee = @ConsultationFee, Discount = @Discount
+                Prescription = @Prescription, ConsultationFee = @ConsultationFee, Discount = @Discount,
+                VisitStatus = @VisitStatus, LastVisitDate = @LastVisitDate
               WHERE PatientID = @PatientID", p);
+    }
+
+    public void UpdateVisitStatus(int patientId, string status, DateTime date)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(
+            @"UPDATE Patients SET VisitStatus = @status, LastVisitDate = @date WHERE PatientID = @patientId",
+            new { status, date = date.Date, patientId });
     }
 
     public bool Delete(int id)

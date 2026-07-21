@@ -19,6 +19,28 @@ public class PurchaseRepository
               ORDER BY p.PurchaseDate DESC");
     }
 
+    public decimal GetTodayTotal()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(TotalAmount), 0) FROM Purchases WHERE CAST(PurchaseDate AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    /// <summary>Returns daily purchase totals for the last 30 days for the profit chart.</summary>
+    public IEnumerable<(DateTime Date, decimal Total)> GetDailyTotalsLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        var rows = conn.Query(
+            @"SELECT CAST(PurchaseDate AS DATE) AS PurchaseDay,
+                     ISNULL(SUM(TotalAmount), 0) AS Total
+              FROM Purchases
+              WHERE PurchaseDate >= DATEADD(day, -29, CAST(GETDATE() AS DATE))
+              GROUP BY CAST(PurchaseDate AS DATE)
+              ORDER BY PurchaseDay");
+        return rows.Select(r => ((DateTime)r.PurchaseDay, (decimal)r.Total)).ToList();
+    }
+
+
     public Purchase? GetByIdWithItems(int id)
     {
         using var conn = _session.CreateConnection();

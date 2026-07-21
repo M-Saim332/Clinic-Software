@@ -28,8 +28,8 @@ public class ReturnRepository
         try
         {
             var returnId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Returns (ReturnNo, ProductId, BatchNo, Quantity, ReturnType, Reason, Notes, CreatedBy, CreatedAt)
-                  VALUES (@ReturnNo, @ProductId, @BatchNo, @Quantity, @ReturnType, @Reason, @Notes, @CreatedBy, @CreatedAt);
+                @"INSERT INTO Returns (ReturnNo, ProductId, BatchNo, Quantity, ReturnType, Reason, Notes, PatientId, SupplierId, SaleId, RefundAmount, CreatedBy, CreatedAt)
+                  VALUES (@ReturnNo, @ProductId, @BatchNo, @Quantity, @ReturnType, @Reason, @Notes, @PatientId, @SupplierId, @SaleId, @RefundAmount, @CreatedBy, @CreatedAt);
                   SELECT SCOPE_IDENTITY();", ret, tx);
             ret.ReturnId = returnId;
 
@@ -52,5 +52,41 @@ public class ReturnRepository
             tx.Rollback();
             throw;
         }
+    }
+
+    public decimal GetTodayTotalPatientReturns()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal?>(
+            @"SELECT SUM(RefundAmount) FROM Returns 
+              WHERE ReturnType = 'Patient Return' AND CAST(CreatedAt AS DATE) = CAST(GETDATE() AS DATE)") ?? 0;
+    }
+
+    public decimal GetTodayTotalSupplierReturns()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal?>(
+            @"SELECT SUM(RefundAmount) FROM Returns 
+              WHERE ReturnType = 'Supplier Return' AND CAST(CreatedAt AS DATE) = CAST(GETDATE() AS DATE)") ?? 0;
+    }
+
+    public IEnumerable<dynamic> GetDailyPatientReturnsLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query(
+            @"SELECT CAST(CreatedAt AS DATE) AS Date, SUM(RefundAmount) AS Total
+              FROM Returns
+              WHERE ReturnType = 'Patient Return' AND CreatedAt >= DATEADD(day, -30, GETDATE())
+              GROUP BY CAST(CreatedAt AS DATE)");
+    }
+
+    public IEnumerable<dynamic> GetDailySupplierReturnsLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query(
+            @"SELECT CAST(CreatedAt AS DATE) AS Date, SUM(RefundAmount) AS Total
+              FROM Returns
+              WHERE ReturnType = 'Supplier Return' AND CreatedAt >= DATEADD(day, -30, GETDATE())
+              GROUP BY CAST(CreatedAt AS DATE)");
     }
 }

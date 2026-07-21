@@ -57,19 +57,10 @@ public class CompanyRepository
             using var conn = _session.CreateConnection();
             using var tx = conn.BeginTransaction();
 
-            // Step 1: Delete SaleItems that reference Medicines belonging to this company
+            // Step 1: Delete SaleItems that reference Products belonging to this company
             conn.Execute(@"
                 DELETE FROM SaleItems 
-                WHERE MedicineID IN (SELECT MedicineID FROM Medicines WHERE CompanyID = @id)",
-                new { id }, tx);
-
-            // Step 2: Delete Medicines belonging to this company
-            conn.Execute("DELETE FROM Medicines WHERE CompanyID = @id", new { id }, tx);
-
-            // Step 3: Delete SaleItems referencing Products from this company (empty table but safe to run)
-            conn.Execute(@"
-                DELETE FROM SaleItems 
-                WHERE MedicineID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
+                WHERE ProductID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
                 new { id }, tx);
 
             // Step 4: Delete PurchaseItems for products from this company

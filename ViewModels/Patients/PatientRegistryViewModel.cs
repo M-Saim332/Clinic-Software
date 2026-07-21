@@ -10,10 +10,20 @@ namespace ClinicSystem.UI.ViewModels.Patients;
 public partial class PatientRegistryViewModel : ViewModelBase
 {
     private readonly PatientRepository _repo;
+    private readonly SaleRepository _saleRepo;
+    private readonly ReturnRepository _returnRepo;
+    private readonly ProductRepository _productRepo;
 
-    public PatientRegistryViewModel(PatientRepository repo)
+    public PatientRegistryViewModel(
+        PatientRepository repo,
+        SaleRepository saleRepo,
+        ReturnRepository returnRepo,
+        ProductRepository productRepo)
     {
         _repo = repo;
+        _saleRepo = saleRepo;
+        _returnRepo = returnRepo;
+        _productRepo = productRepo;
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -35,6 +45,10 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private int _waitingTodayCount;
     [ObservableProperty] private string _avgConsultationFee = "Rs. 0.00";
 
+    // ── Tab State ──────────────────────────────────────────────────────────
+    [ObservableProperty] private int _selectedTab = 0; // 0 = Waiting, 1 = Visited, 2 = All
+    partial void OnSelectedTabChanged(int value) => FilterPatients();
+
 
     // ── Button visibility ──────────────────────────────────────────────────
     public bool MutationEnabled     => Mode == FormMode.View;
@@ -50,6 +64,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     // ── Data ───────────────────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
+    [ObservableProperty] private ObservableCollection<Patient> _waitingPatientsList = new();
+    [ObservableProperty] private ObservableCollection<Patient> _visitedPatientsList = new();
+    
     [ObservableProperty] private ObservableCollection<Patient> _filteredPatients = new();
     [ObservableProperty] private Patient? _selectedPatient;
 
@@ -65,6 +82,18 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _discount = "0.00";
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
+
+    // ── Patient Return State ────────────────────────────────────────────────────────
+    [ObservableProperty] private bool _isReturnModalOpen;
+    [ObservableProperty] private ObservableCollection<SaleItem> _returnableItems = new();
+    [ObservableProperty] private ObservableCollection<Product> _allProducts = new();
+    
+    [ObservableProperty] private SaleItem? _selectedReturnItem;
+    [ObservableProperty] private Product? _selectedReturnProduct;
+    
+    [ObservableProperty] private int _returnQuantity = 1;
+    [ObservableProperty] private string _returnReason = "Patient Changed Mind";
+    public List<string> ReturnReasons { get; } = new() { "Expired", "Damaged", "Wrong Item", "Patient Changed Mind", "Other" };
 
     // ── Commands ───────────────────────────────────────────────────────────
     [RelayCommand]
@@ -143,6 +172,110 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task MarkAsWaitingAsync(Patient p)
+    {
+        if (p == null) return;
+        await Task.Run(() => _repo.UpdateVisitStatus(p.PatientID, "Waiting", DateTime.Today));
+        StatusMessage = $"Patient '{p.Name}' marked as waiting.";
+        _ = InitializeAsync();
+    }
+
+    [RelayCommand]
+    private async Task MarkAsVisitedAsync(Patient p)
+    {
+        if (p == null) return;
+        await Task.Run(() => _repo.UpdateVisitStatus(p.PatientID, "Visited", DateTime.Today));
+        StatusMessage = $"Patient '{p.Name}' marked as visited today.";
+        _ = InitializeAsync();
+    }
+
+    [RelayCommand]
+    private async Task OpenReturnModalAsync(Patient p)
+    {
+        if (p == null) return;
+        SelectedPatient = p;
+        
+        var sales = await Task.Run(() => _saleRepo.GetByPatientIdWithItems(p.PatientID));
+        var pastItems = sales.SelectMany(s => s.Items).ToList();
+        
+        var products = await Task.Run(() => _productRepo.GetAll());
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            ReturnableItems = new ObservableCollection<SaleItem>(pastItems);
+            AllProducts = new ObservableCollection<Product>(products);
+            SelectedReturnItem = ReturnableItems.FirstOrDefault();
+            SelectedReturnProduct = null;
+            ReturnQuantity = 1;
+            ReturnReason = "Patient Changed Mind";
+            IsReturnModalOpen = true;
+        });
+    }
+
+    [RelayCommand]
+    private void CloseReturnModal() => IsReturnModalOpen = false;
+
+    [RelayCommand]
+    private async Task SubmitReturnAsync()
+    {
+        if (SelectedPatient == null) return;
+        
+        int? productId = SelectedReturnItem?.ProductID ?? SelectedReturnProduct?.ProductID;
+        decimal? unitPrice = SelectedReturnItem?.ProductPrice ?? SelectedReturnProduct?.SellingPrice;
+        int? saleId = SelectedReturnItem?.SaleID;
+
+        if (productId == null || productId == 0)
+        {
+            StatusMessage = "Please select an item to return.";
+            return;
+        }
+
+        if (ReturnQuantity <= 0)
+        {
+            StatusMessage = "Return quantity must be > 0.";
+            return;
+        }
+
+        // SelectedReturnItem max quantity validation
+        if (SelectedReturnItem != null && ReturnQuantity > SelectedReturnItem.Quantity)
+        {
+            StatusMessage = $"Cannot return more than purchased ({SelectedReturnItem.Quantity}).";
+            return;
+        }
+
+        decimal refundAmount = (unitPrice ?? 0) * ReturnQuantity;
+
+        var ret = new ProductReturn
+        {
+            ReturnNo = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
+            ProductId = productId.Value,
+            PatientId = SelectedPatient.PatientID,
+            SaleId = saleId,
+            Quantity = ReturnQuantity,
+            ReturnType = "Patient Return",
+            Reason = ReturnReason,
+            RefundAmount = refundAmount,
+            CreatedBy = CurrentUser?.UserID,
+            CreatedAt = DateTime.Now
+        };
+
+        try
+        {
+            await Task.Run(() => _returnRepo.Insert(ret));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                StatusMessage = $"Successfully returned {ReturnQuantity} item(s). Refund: Rs. {refundAmount:N2}";
+                LogActivity("Patient Return", $"Returned {ReturnQuantity} units for patient {SelectedPatient.Name}", "Returns");
+                IsReturnModalOpen = false;
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = "Failed to process return: " + ex.Message);
+        }
+    }
+
+    [RelayCommand]
     private void Cancel()
     {
         Mode = FormMode.View;
@@ -185,11 +318,17 @@ public partial class PatientRegistryViewModel : ViewModelBase
             {
                 StatusMessage = string.Empty;
                 Patients = new ObservableCollection<Patient>(list);
+                
+                WaitingPatientsList = new ObservableCollection<Patient>(
+                    list.Where(p => p.VisitStatus == "Waiting" && p.LastVisitDate?.Date == DateTime.Today));
+                VisitedPatientsList = new ObservableCollection<Patient>(
+                    list.Where(p => p.VisitStatus == "Visited" && p.LastVisitDate?.Date == DateTime.Today));
+
                 FilterPatients();
 
                 TotalPatientsCount = Patients.Count;
                 ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
-                WaitingTodayCount = Math.Max(0, Patients.Count / 10 + 1);
+                WaitingTodayCount = WaitingPatientsList.Count;
                 AvgConsultationFee = Patients.Count > 0
                     ? $"Rs. {Patients.Average(p => p.ConsultationFee):N2}"
                     : "Rs. 0.00";
@@ -205,16 +344,23 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     private void FilterPatients()
     {
+        IEnumerable<Patient> sourceList = SelectedTab switch
+        {
+            0 => WaitingPatientsList,
+            1 => VisitedPatientsList,
+            _ => Patients
+        };
+
         if (string.IsNullOrWhiteSpace(SearchTerm))
-            FilteredPatients = new ObservableCollection<Patient>(Patients);
+            FilteredPatients = new ObservableCollection<Patient>(sourceList);
         else
         {
             var term = SearchTerm.ToLower();
             FilteredPatients = new ObservableCollection<Patient>(
-                Patients.Where(p => p.Name.ToLower().Contains(term)
-                                 || (p.Phone?.ToLower().Contains(term) ?? false)
-                                 || (p.Address?.ToLower().Contains(term) ?? false)
-                                 || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
+                sourceList.Where(p => p.Name.ToLower().Contains(term)
+                                   || (p.Phone?.ToLower().Contains(term) ?? false)
+                                   || (p.Address?.ToLower().Contains(term) ?? false)
+                                   || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
         }
     }
 

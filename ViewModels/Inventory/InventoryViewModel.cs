@@ -9,10 +9,12 @@ namespace ClinicSystem.UI.ViewModels.Inventory;
 public partial class InventoryViewModel : ViewModelBase
 {
     private readonly ProductRepository _productRepo;
+    private readonly ReturnRepository _returnRepo;
 
-    public InventoryViewModel(ProductRepository productRepo)
+    public InventoryViewModel(ProductRepository productRepo, ReturnRepository returnRepo)
     {
         _productRepo = productRepo;
+        _returnRepo = returnRepo;
     }
 
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -33,6 +35,13 @@ public partial class InventoryViewModel : ViewModelBase
     [ObservableProperty] private Product? _selectedProduct;
     [ObservableProperty] private int _adjustmentQuantity;
     [ObservableProperty] private string _adjustmentReason = string.Empty;
+
+    // Supplier Return Fields
+    [ObservableProperty] private bool _isSupplierReturnModalOpen;
+    [ObservableProperty] private Product? _returnTargetProduct;
+    [ObservableProperty] private int _supplierReturnQuantity;
+    [ObservableProperty] private decimal _supplierCreditAmount;
+    [ObservableProperty] private string _supplierReturnNotes = string.Empty;
 
     public async Task InitializeAsync()
     {
@@ -106,6 +115,77 @@ public partial class InventoryViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusMessage = $"Failed to adjust stock: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenSupplierReturnModal(Product p)
+    {
+        if (p == null) return;
+        ReturnTargetProduct = p;
+        SupplierReturnQuantity = p.Stock > 0 ? p.Stock : 0;
+        SupplierCreditAmount = p.PurchasePrice * SupplierReturnQuantity;
+        SupplierReturnNotes = "Expired Return";
+        IsSupplierReturnModalOpen = true;
+    }
+
+    partial void OnSupplierReturnQuantityChanged(int value)
+    {
+        if (ReturnTargetProduct != null)
+        {
+            SupplierCreditAmount = value * ReturnTargetProduct.PurchasePrice;
+        }
+    }
+
+    [RelayCommand]
+    private void CloseSupplierReturnModal() => IsSupplierReturnModalOpen = false;
+
+    [RelayCommand]
+    private async Task SubmitSupplierReturnAsync()
+    {
+        if (ReturnTargetProduct == null) return;
+
+        if (SupplierReturnQuantity <= 0)
+        {
+            StatusMessage = "Return quantity must be > 0.";
+            return;
+        }
+
+        if (SupplierReturnQuantity > ReturnTargetProduct.Stock)
+        {
+            StatusMessage = $"Cannot return more than current stock ({ReturnTargetProduct.Stock}).";
+            return;
+        }
+
+        var ret = new ProductReturn
+        {
+            ReturnNo = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
+            ProductId = ReturnTargetProduct.ProductID,
+            SupplierId = ReturnTargetProduct.SupplierID,
+            BatchNo = ReturnTargetProduct.BatchNumber ?? string.Empty,
+            Quantity = SupplierReturnQuantity,
+            ReturnType = "Supplier Return",
+            Reason = "Expired",
+            Notes = SupplierReturnNotes,
+            RefundAmount = SupplierCreditAmount, // Recorded as refund amount (credit in dashboard)
+            CreatedBy = CurrentUser?.UserID,
+            CreatedAt = DateTime.Now
+        };
+
+        try
+        {
+            await Task.Run(() => _returnRepo.Insert(ret));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                StatusMessage = $"Successfully returned {SupplierReturnQuantity} item(s) to Supplier. Credit: Rs. {SupplierCreditAmount:N2}";
+                LogActivity("Supplier Return", $"Returned {SupplierReturnQuantity} expired units of {ReturnTargetProduct.Name}", "Inventory");
+                IsSupplierReturnModalOpen = false;
+            });
+            _ = InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = "Failed to process return: " + ex.Message);
         }
     }
 }

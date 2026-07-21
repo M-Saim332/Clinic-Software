@@ -4,8 +4,7 @@ using Dapper;
 namespace ClinicSystem.Data.Repositories;
 
 /// <summary>
-/// ProductRepository targets the 'Medicines' table in the live database.
-/// MedicineID is aliased as ProductID so the Product model maps correctly.
+/// ProductRepository targets the 'Products' table in the live database.
 /// </summary>
 public class ProductRepository
 {
@@ -17,39 +16,58 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              ORDER BY m.Name");
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              ORDER BY p.Name");
+    }
+
+    public int GetCount()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Products");
+    }
+
+    public decimal GetTotalStockValue()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(CAST(PurchasePrice AS DECIMAL(18,2)) * CAST(Stock AS DECIMAL(18,2))), 0) FROM Products");
     }
 
     public Product? GetById(int id)
     {
         using var conn = _session.CreateConnection();
         return conn.QuerySingleOrDefault<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              WHERE m.MedicineID = @id", new { id });
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.ProductID = @id", new { id });
     }
 
     public IEnumerable<Product> Search(string term)
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              WHERE m.Name LIKE @term
-                 OR m.GenericName LIKE @term
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.Name LIKE @term
+                 OR p.GenericName LIKE @term
                  OR c.Name LIKE @term
-              ORDER BY m.Name",
+              ORDER BY p.Name",
             new { term = $"%{term}%" });
     }
 
@@ -57,50 +75,73 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              WHERE m.ExpiryDate IS NOT NULL AND m.ExpiryDate <= CAST(GETDATE() AS DATE)
-              ORDER BY m.ExpiryDate");
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.ExpiryDate IS NOT NULL AND p.ExpiryDate <= CAST(GETDATE() AS DATE)
+              ORDER BY p.ExpiryDate");
     }
 
     public IEnumerable<Product> GetLowStock()
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              WHERE m.Stock <= m.MinimumStockLevel
-              ORDER BY m.Stock");
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.Stock <= p.MinimumStockLevel
+              ORDER BY p.Stock");
+    }
+
+    public IEnumerable<Product> GetExpiringSoon(int days)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<Product>(
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.ExpiryDate IS NOT NULL 
+                AND p.ExpiryDate > CAST(GETDATE() AS DATE)
+                AND p.ExpiryDate <= DATEADD(day, @days, CAST(GETDATE() AS DATE))
+              ORDER BY p.ExpiryDate", new { days });
     }
 
     public IEnumerable<Product> GetPrescribable()
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
-            @"SELECT m.MedicineID AS ProductID, m.Name, m.GenericName, m.CompanyID,
-                     c.Name AS CompanyName, m.BatchNumber, m.ExpiryDate,
-                     m.PurchasePrice, m.SellingPrice, m.Stock, m.MinimumStockLevel
-              FROM Medicines m
-              LEFT JOIN Companies c ON m.CompanyID = c.CompanyID
-              WHERE m.Stock > 0
-                AND (m.ExpiryDate IS NULL OR m.ExpiryDate > CAST(GETDATE() AS DATE))
-              ORDER BY m.Name");
+            @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
+                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+              FROM Products p
+              LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+              LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.Stock > 0
+                AND (p.ExpiryDate IS NULL OR p.ExpiryDate > CAST(GETDATE() AS DATE))
+              ORDER BY p.Name");
     }
 
     public int Insert(Product m)
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Medicines
-                (Name, GenericName, CompanyID, BatchNumber, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+            @"INSERT INTO Products
+                (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
               VALUES
-                (@Name, @GenericName, @CompanyID, @BatchNumber, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
+                (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
               SELECT SCOPE_IDENTITY();", m);
     }
 
@@ -108,12 +149,13 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
-            @"UPDATE Medicines SET
-                Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID,
-                BatchNumber = @BatchNumber, ExpiryDate = @ExpiryDate,
+            @"UPDATE Products SET
+                Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID, CompanyName = @CompanyName,
+                SupplierID = @SupplierID, SupplierName = @SupplierName, BatchNumber = @BatchNumber,
+                Type = @Type, Category = @Category, Rack = @Rack, ExpiryDate = @ExpiryDate,
                 PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice,
                 Stock = @Stock, MinimumStockLevel = @MinimumStockLevel
-              WHERE MedicineID = @ProductID", m);
+              WHERE ProductID = @ProductID", m);
     }
 
     public bool Delete(int id)
@@ -123,14 +165,14 @@ public class ProductRepository
             using var conn = _session.CreateConnection();
             using var tx = conn.BeginTransaction();
 
-            // Cascade delete SaleItems (SaleItems.MedicineID references Medicines.MedicineID)
-            conn.Execute("DELETE FROM SaleItems WHERE MedicineID = @id", new { id }, tx);
+            // Cascade delete SaleItems
+            conn.Execute("DELETE FROM SaleItems WHERE ProductID = @id", new { id }, tx);
 
-            // Cascade delete PurchaseItems (if any reference this medicine)
+            // Cascade delete PurchaseItems
             conn.Execute("DELETE FROM PurchaseItems WHERE ProductID = @id", new { id }, tx);
 
-            // Delete the Medicine
-            conn.Execute("DELETE FROM Medicines WHERE MedicineID = @id", new { id }, tx);
+            // Delete the Product
+            conn.Execute("DELETE FROM Products WHERE ProductID = @id", new { id }, tx);
 
             tx.Commit();
             return true;
@@ -146,7 +188,7 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
-            "UPDATE Medicines SET Stock = Stock - @quantity WHERE MedicineID = @productId",
+            "UPDATE Products SET Stock = Stock - @quantity WHERE ProductID = @productId",
             new { quantity, productId });
     }
 
@@ -154,7 +196,7 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
-            "UPDATE Medicines SET Stock = Stock + @quantity WHERE MedicineID = @productId",
+            "UPDATE Products SET Stock = Stock + @quantity WHERE ProductID = @productId",
             new { quantity, productId });
     }
 }

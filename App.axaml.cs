@@ -80,7 +80,6 @@ public partial class App : Application
         services.AddSingleton<PurchaseViewModel>();
         services.AddSingleton<SaleViewModel>();
         services.AddSingleton<InvoiceViewModel>();
-        services.AddSingleton<ProductReturnViewModel>();
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();

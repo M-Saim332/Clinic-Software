@@ -40,6 +40,26 @@ public class DiscountRefundRepository
             "SELECT * FROM DiscountRefunds ORDER BY ApprovedAt DESC");
     }
 
+    public decimal GetTodayTotalCompleted()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(RefundAmount), 0) FROM DiscountRefunds WHERE IsCompleted = 1 AND CAST(CompletedAt AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    public IEnumerable<(DateTime Date, decimal Total)> GetDailyTotalsLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        var rows = conn.Query(
+            @"SELECT CAST(CompletedAt AS DATE) AS RefundDay,
+                     ISNULL(SUM(RefundAmount), 0) AS Total
+              FROM DiscountRefunds
+              WHERE IsCompleted = 1 AND CompletedAt >= DATEADD(day, -29, CAST(GETDATE() AS DATE))
+              GROUP BY CAST(CompletedAt AS DATE)
+              ORDER BY RefundDay");
+        return rows.Select(r => ((DateTime)r.RefundDay, (decimal)r.Total)).ToList();
+    }
+
     // ── Commands ─────────────────────────────────────────────────────────────
 
     /// <summary>Doctor inserts a new discount refund notification.</summary>
