@@ -69,7 +69,7 @@ public class SupplierRepository
             // Cascade delete SaleItems for products from this supplier
             conn.Execute(@"
                 DELETE FROM SaleItems 
-                WHERE MedicineID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
+                WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
                 new { id }, tx);
                 
             // Cascade delete PurchaseItems for products from this supplier (if not already covered)

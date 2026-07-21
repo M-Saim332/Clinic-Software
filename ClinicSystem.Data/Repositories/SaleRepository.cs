@@ -27,6 +27,37 @@ public class SaleRepository
             new { date });
     }
 
+    public decimal GetTodayRevenue()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(GrandTotal), 0) FROM Sales WHERE IsPosted = 1 AND CAST(SaleDate AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    public decimal GetTotalRevenueLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(GrandTotal), 0) FROM Sales WHERE IsPosted = 1 AND SaleDate >= DATEADD(day, -29, CAST(GETDATE() AS DATE))");
+    }
+
+    /// <summary>Returns daily (date, revenue, consultationFee) for the last 30 days for chart plotting.</summary>
+    public IEnumerable<(DateTime Date, decimal Revenue, decimal Consultation)> GetDailyRevenueLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        var rows = conn.Query(
+            @"SELECT CAST(SaleDate AS DATE) AS SaleDay,
+                     ISNULL(SUM(GrandTotal), 0)        AS Revenue,
+                     ISNULL(SUM(ConsultationFee), 0)   AS Consultation
+              FROM Sales
+              WHERE IsPosted = 1
+                AND SaleDate >= DATEADD(day, -29, CAST(GETDATE() AS DATE))
+              GROUP BY CAST(SaleDate AS DATE)
+              ORDER BY SaleDay");
+        return rows.Select(r => ((DateTime)r.SaleDay, (decimal)r.Revenue, (decimal)r.Consultation)).ToList();
+    }
+
+
     public Sale? GetByIdWithItems(int id)
     {
         using var conn = _session.CreateConnection();
@@ -45,6 +76,34 @@ public class SaleRepository
               WHERE si.SaleID = @id", new { id }).ToList();
 
         return sale;
+    }
+
+    public IEnumerable<Sale> GetByPatientIdWithItems(int patientId)
+    {
+        using var conn = _session.CreateConnection();
+        var sales = conn.Query<Sale>(
+            @"SELECT s.*, p.Name AS PatientName
+              FROM Sales s
+              LEFT JOIN Patients p ON s.PatientID = p.PatientID
+              WHERE s.PatientID = @patientId AND s.IsPosted = 1
+              ORDER BY s.SaleDate DESC", new { patientId }).ToList();
+
+        if (sales.Any())
+        {
+            var saleIds = sales.Select(s => s.SaleID).ToArray();
+            var items = conn.Query<SaleItem>(
+                @"SELECT si.*, m.Name AS ProductName, m.SellingPrice AS ProductPrice
+                  FROM SaleItems si
+                  JOIN Products m ON si.ProductID = m.ProductID
+                  WHERE si.SaleID IN @saleIds", new { saleIds }).ToList();
+
+            foreach (var sale in sales)
+            {
+                sale.Items = items.Where(i => i.SaleID == sale.SaleID).ToList();
+            }
+        }
+
+        return sales;
     }
 
     public int Insert(Sale s)

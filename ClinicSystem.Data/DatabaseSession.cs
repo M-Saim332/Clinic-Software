@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.IO;
+using System.Text.RegularExpressions;
 using Dapper;
 
 namespace ClinicSystem.Data;
@@ -36,6 +37,33 @@ public class DatabaseSession
     {
         if (_schemaChecked) return;
         _schemaChecked = true;
+        
+        // ── 1. Check if Core Schema Exists (Patients table) ──
+        bool schemaExists = false;
+        try
+        {
+            conn.ExecuteScalar<int>("SELECT TOP 1 1 FROM Patients");
+            schemaExists = true;
+        }
+        catch { }
+
+        if (!schemaExists)
+        {
+            // Auto-run Schema.sql
+            ExecuteSqlScript(conn, "Schema.sql");
+        }
+
+        // ── 2. Check if Bulk Data is missing (Empty Patients table) ──
+        try
+        {
+            int patientCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
+            if (patientCount == 0)
+            {
+                ExecuteSqlScript(conn, "BulkTestData.sql");
+            }
+        }
+        catch { }
+
         try
         {
             // Ensure Permissions column exists on Users
@@ -91,9 +119,20 @@ public class DatabaseSession
                         ReturnType NVARCHAR(50) NOT NULL,
                         Reason NVARCHAR(200) NULL,
                         Notes NVARCHAR(500) NULL,
+                        PatientId INT NULL,
+                        SupplierId INT NULL,
+                        SaleId INT NULL,
+                        RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0,
                         CreatedBy INT NULL,
                         CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
                     );
+                END
+                ELSE
+                BEGIN
+                    IF COL_LENGTH('Returns', 'PatientId') IS NULL ALTER TABLE Returns ADD PatientId INT NULL;
+                    IF COL_LENGTH('Returns', 'SupplierId') IS NULL ALTER TABLE Returns ADD SupplierId INT NULL;
+                    IF COL_LENGTH('Returns', 'SaleId') IS NULL ALTER TABLE Returns ADD SaleId INT NULL;
+                    IF COL_LENGTH('Returns', 'RefundAmount') IS NULL ALTER TABLE Returns ADD RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0;
                 END
             ");
 
@@ -124,7 +163,7 @@ public class DatabaseSession
 
         try
         {
-            // Ensure Gender and Age columns exist on Appointments
+            // Ensure additional columns exist on Appointments
             conn.Execute(@"
                 IF COL_LENGTH('Appointments', 'Gender') IS NULL
                 BEGIN
@@ -133,6 +172,34 @@ public class DatabaseSession
                 IF COL_LENGTH('Appointments', 'Age') IS NULL
                 BEGIN
                     ALTER TABLE Appointments ADD Age INT NULL;
+                END
+                IF COL_LENGTH('Appointments', 'Phone') IS NULL
+                BEGIN
+                    ALTER TABLE Appointments ADD Phone VARCHAR(50) NULL;
+                END
+                IF COL_LENGTH('Appointments', 'Remarks') IS NULL
+                BEGIN
+                    ALTER TABLE Appointments ADD Remarks VARCHAR(255) NULL;
+                END
+                IF COL_LENGTH('Appointments', 'CancellationReason') IS NULL
+                BEGIN
+                    ALTER TABLE Appointments ADD CancellationReason VARCHAR(255) NULL;
+                END
+            ");
+        }
+        catch { }
+
+        try
+        {
+            // Ensure Visit Tracking columns exist on Patients
+            conn.Execute(@"
+                IF COL_LENGTH('Patients', 'VisitStatus') IS NULL
+                BEGIN
+                    ALTER TABLE Patients ADD VisitStatus VARCHAR(20) NULL;
+                END
+                IF COL_LENGTH('Patients', 'LastVisitDate') IS NULL
+                BEGIN
+                    ALTER TABLE Patients ADD LastVisitDate DATE NULL;
                 END
             ");
         }
@@ -157,6 +224,46 @@ public class DatabaseSession
             ");
         }
         catch { }
+    }
+
+    private void ExecuteSqlScript(IDbConnection conn, string fileName)
+    {
+        string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", fileName);
+        if (!File.Exists(filePath)) return;
+
+        try
+        {
+            string script = File.ReadAllText(filePath);
+            var commands = Regex.Split(script, @"^\s*GO\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase);
+            
+            foreach (var cmd in commands)
+            {
+                string trimmed = cmd.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed)) continue;
+                
+                // Skip database creation lines since we are already connected to ClinicDB
+                if (trimmed.StartsWith("USE master", StringComparison.OrdinalIgnoreCase) ||
+                    trimmed.StartsWith("USE ClinicDB", StringComparison.OrdinalIgnoreCase) ||
+                    trimmed.StartsWith("CREATE DATABASE", StringComparison.OrdinalIgnoreCase) ||
+                    trimmed.Contains("sys.databases WHERE name = 'ClinicDB'"))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    conn.Execute(cmd);
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine($"Failed to execute script part from {fileName}:\n{ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Console.WriteLine($"Failed to read {fileName}: {ex.Message}");
+        }
     }
 
     /// <summary>Tests connectivity — returns null on success, error message on failure.</summary>

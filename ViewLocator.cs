@@ -59,7 +59,6 @@ public class ViewLocator : IDataTemplate
             InventoryViewModel         => new InventoryView         { DataContext = param },
             SearchViewModel            => new SearchView            { DataContext = param },
             SettingsViewModel          => new SettingsView          { DataContext = param },
-            ProductReturnViewModel    => new ProductReturnView    { DataContext = param },
             InvoiceViewModel          => new InvoiceView          { DataContext = param },
             ProfileViewModel          => new ProfileView          { DataContext = param },
             DiscountRefundViewModel   => new DiscountRefundPanel  { DataContext = param },

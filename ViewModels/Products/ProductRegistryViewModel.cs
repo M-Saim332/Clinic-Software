@@ -158,28 +158,36 @@ public partial class ProductRegistryViewModel : ViewModelBase
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
 
         var m = BuildProduct();
-        await Task.Run(() =>
+        try
         {
-            if (Mode == FormMode.Add)
+            await Task.Run(() =>
             {
-                _repo.Insert(m);
-            }
-            else
-            {
-                m.ProductID = SelectedProduct!.ProductID;
-                _repo.Update(m);
-            }
-        });
+                if (Mode == FormMode.Add)
+                {
+                    _repo.Insert(m);
+                }
+                else
+                {
+                    m.ProductID = SelectedProduct!.ProductID;
+                    _repo.Update(m);
+                }
+            });
 
-        StatusMessage = Mode == FormMode.Add ? "Product added." : "Product updated.";
-        if (Mode == FormMode.Add)
-            LogActivity("Product Added", $"New product '{m.Name}' added to inventory", "Products");
-        else
-            LogActivity("Product Updated", $"Product '{m.Name}' was updated", "Products");
-        Mode = FormMode.View;
-        NotifyButtonStates();
-        _ = InitializeAsync();
-        WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            StatusMessage = Mode == FormMode.Add ? "Product added." : "Product updated.";
+            if (Mode == FormMode.Add)
+                LogActivity("Product Added", $"New product '{m.Name}' added to inventory", "Products");
+            else
+                LogActivity("Product Updated", $"Product '{m.Name}' was updated", "Products");
+            
+            Mode = FormMode.View;
+            NotifyButtonStates();
+            _ = InitializeAsync();
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save product: {ex.Message}";
+        }
     }
 
     [RelayCommand]

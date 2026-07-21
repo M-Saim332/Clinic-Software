@@ -3,6 +3,7 @@
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Inventory"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Inventory.InventoryView"
+             x:Name="Root"
              x:DataType="vm:InventoryViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
@@ -178,6 +179,13 @@
                                         <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="120"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
+                                        <DataGridTemplateColumn Header="ACTIONS" Width="160">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Return to Supplier" Command="{Binding #Root.((vm:InventoryViewModel)DataContext).OpenSupplierReturnModalCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </comp:DataTableShellControl.TableContent>
@@ -186,6 +194,42 @@
                 </TabControl>
             </Border>
         </Grid>
+
+        <!-- SUPPLIER RETURN MODAL -->
+        <Border IsVisible="{Binding IsSupplierReturnModalOpen}" Background="#80000000" ZIndex="100" Grid.RowSpan="3">
+            <Border Background="{DynamicResource BrushBackground}" Width="450" CornerRadius="12"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Return to Supplier" FontSize="18" FontWeight="Bold" FontFamily="{DynamicResource FontLexend}"/>
+                    
+                    <TextBlock Text="{Binding ReturnTargetProduct.Name, StringFormat='Returning Expired Product: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Quantity to Return" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        <NumericUpDown Minimum="1" Value="{Binding SupplierReturnQuantity}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="Notes / Reason" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                        <TextBox Text="{Binding SupplierReturnNotes}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" VerticalContentAlignment="Top"/>
+                    </StackPanel>
+                    
+                    <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Left" Text="Estimated Credit" Foreground="{DynamicResource BrushPrimaryBlue}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding SupplierCreditAmount, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushPrimaryBlue}" FontWeight="Bold" FontSize="16" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Border>
+                    
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" TextWrapping="Wrap" MinHeight="20"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+                        <Button Content="Cancel" Command="{Binding CloseSupplierReturnModalCommand}" Classes="btn-secondary"/>
+                        <Button Content="Process Return" Command="{Binding SubmitSupplierReturnCommand}" Classes="btn-danger"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 
     <UserControl.Styles>
@@ -212,6 +256,20 @@
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.btn-danger">
+            <Setter Property="Background" Value="{DynamicResource BrushRose}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.btn-danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#BE123C"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
         </Style>
     </UserControl.Styles>
 </UserControl>

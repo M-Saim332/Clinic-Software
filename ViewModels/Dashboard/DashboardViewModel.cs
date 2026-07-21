@@ -27,6 +27,7 @@ public partial class DashboardViewModel : ViewModelBase,
     private readonly SaleRepository       _saleRepo;
     private readonly PurchaseRepository   _purchaseRepo;
     private readonly DiscountRefundRepository _refundRepo;
+    private readonly ReturnRepository     _productReturnRepo;
     private readonly ActivityLogRepository _activityRepo;
 
     // 30-second auto-refresh timer for pending refunds
@@ -55,6 +56,7 @@ public partial class DashboardViewModel : ViewModelBase,
         SaleRepository       saleRepo,
         PurchaseRepository   purchaseRepo,
         DiscountRefundRepository refundRepo,
+        ReturnRepository productReturnRepo,
         DiscountRefundViewModel discountRefundVM,
         ActivityLogRepository activityRepo)
     {
@@ -66,6 +68,7 @@ public partial class DashboardViewModel : ViewModelBase,
         _saleRepo        = saleRepo;
         _purchaseRepo    = purchaseRepo;
         _refundRepo      = refundRepo;
+        _productReturnRepo = productReturnRepo;
         _activityRepo    = activityRepo;
         DiscountRefundVM = discountRefundVM;
 
@@ -141,52 +144,46 @@ public partial class DashboardViewModel : ViewModelBase,
     {
         try
         {
-            var patients     = await Task.Run(() => _patientRepo.GetAll());
-            var products    = await Task.Run(() => _productRepo.GetAll());
-            var companies    = await Task.Run(() => _companyRepo.GetAll());
-            var suppliers    = await Task.Run(() => _supplierRepo.GetAll());
-            var appointments = await Task.Run(() => _appointmentRepo.GetAll());
-            var sales        = await Task.Run(() => _saleRepo.GetAll());
-            var purchases    = await Task.Run(() => _purchaseRepo.GetAll());
-
             // Load pending refund notifications
             await LoadPendingRefundsAsync();
 
-            var productList    = products.ToList();
-            var appointmentList = appointments.ToList();
-            var today           = DateTime.Today;
+            var today = DateTime.Today;
 
-            var lowStock = productList
-                .Where(m => m.IsLowStock && !m.IsExpired)
-                .OrderBy(m => m.Stock).Take(6).ToList();
-
-            var expiringSoon = productList
-                .Where(m => m.ExpiryDate.HasValue && !m.IsExpired
-                         && m.ExpiryDate.Value <= today.AddDays(30))
-                .OrderBy(m => m.ExpiryDate).Take(6).ToList();
-
-            var todayAppts = appointmentList
-                .Where(a => a.AppointmentDate.Date == today)
-                .OrderBy(a => a.AppointmentTime).Take(10).ToList();
+            // Fetch scalar values asynchronously directly from DB to avoid loading full tables
+            int totalPatients = await Task.Run(() => _patientRepo.GetCount());
+            int totalProducts = await Task.Run(() => _productRepo.GetCount());
+            int todayApptsCount = await Task.Run(() => _appointmentRepo.GetTodayCount());
+            int todayPatientsCount = await Task.Run(() => _appointmentRepo.GetTodayDistinctPatientCount());
+            
+            decimal stockValue = await Task.Run(() => _productRepo.GetTotalStockValue());
+            
+            var lowStock = await Task.Run(() => _productRepo.GetLowStock().Take(6).ToList());
+            var expiringSoon = await Task.Run(() => _productRepo.GetExpiringSoon(30).Take(6).ToList());
+            var todayAppts = await Task.Run(() => _appointmentRepo.GetByDate(today).Take(10).ToList());
 
             // ── Financial calculations ─────────────────────────────────────
-            var salesList    = sales.Where(s => s.IsPosted).ToList();
-            var purchaseList = purchases.ToList();
-            var refundList   = (await Task.Run(() => _refundRepo.GetAllHistory(1000))).ToList();
-
             // Today's financials
-            var todaySalesAmt    = salesList.Where(s => s.SaleDate.Date == today).Sum(s => (double)s.GrandTotal);
-            var todayPurchaseAmt = purchaseList.Where(p => p.PurchaseDate.Date == today).Sum(p => (double)p.TotalAmount);
-            var todayRefundAmt   = refundList.Where(r => r.IsCompleted && r.CompletedAt?.Date == today).Sum(r => (double)r.RefundAmount);
-            var todayProfitAmt   = todaySalesAmt - todayPurchaseAmt - todayRefundAmt;
+            decimal todaySalesAmt = await Task.Run(() => _saleRepo.GetTodayRevenue());
+            decimal todayPurchaseAmt = await Task.Run(() => _purchaseRepo.GetTodayTotal());
+            decimal todayRefundAmt = await Task.Run(() => _refundRepo.GetTodayTotalCompleted());
+            decimal todayPatientReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalPatientReturns());
+            decimal todaySupplierReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalSupplierReturns());
+            
+            decimal todayProfitAmt = todaySalesAmt - todayPurchaseAmt - todayRefundAmt - todayPatientReturns + todaySupplierReturns;
 
-            // 30-day chart + totals
+            // 30-day chart + totals (from optimized queries)
+            var dailySales = await Task.Run(() => _saleRepo.GetDailyRevenueLast30Days().ToDictionary(x => x.Date, x => x));
+            var dailyPurchases = await Task.Run(() => _purchaseRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
+            var dailyRefunds = await Task.Run(() => _refundRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
+            var dailyPatientReturns = await Task.Run(() => _productReturnRepo.GetDailyPatientReturnsLast30Days().ToDictionary(x => (DateTime)x.Date, x => (decimal)x.Total));
+            var dailySupplierReturns = await Task.Run(() => _productReturnRepo.GetDailySupplierReturnsLast30Days().ToDictionary(x => (DateTime)x.Date, x => (decimal)x.Total));
+
             var thirtyDaysAgo = today.AddDays(-29);
             var dateLabels  = new List<string>();
             var revenueData = new List<double>();
             var profitData  = new List<double>();
 
-            double totalRevenue = 0, totalExpenses = 0, totalConsultations = 0, totalRefunds = 0;
+            double totalRevenue = 0, totalExpenses = 0, totalConsultations = 0, totalRefunds = 0, totalSupplierCredits = 0;
 
             for (int i = 0; i < 30; i++)
             {
@@ -194,23 +191,47 @@ public partial class DashboardViewModel : ViewModelBase,
                 // Show every 3rd label to avoid clutter
                 dateLabels.Add(i % 3 == 0 ? d.ToString("MMM dd") : "");
 
-                var daySalesList = salesList.Where(s => s.SaleDate.Date == d).ToList();
-                var daySales     = daySalesList.Sum(s => (double)s.GrandTotal);
-                var dayCons      = daySalesList.Sum(s => (double)s.ConsultationFee);
-                var dayPurchases = purchaseList.Where(p => p.PurchaseDate.Date == d).Sum(p => (double)p.TotalAmount);
-                var dayRefunds   = refundList.Where(r => r.IsCompleted && r.CompletedAt?.Date == d).Sum(r => (double)r.RefundAmount);
+                double daySales = 0, dayCons = 0, dayPurchases = 0, dayRefunds = 0;
 
-                revenueData.Add(daySales);
-                profitData.Add(Math.Max(0, daySales - dayPurchases - dayRefunds));
+                if (dailySales.TryGetValue(d, out var saleData))
+                {
+                    daySales = (double)saleData.Revenue;
+                    dayCons = (double)saleData.Consultation;
+                }
+                
+                if (dailyPurchases.TryGetValue(d, out var purchaseTotal))
+                {
+                    dayPurchases = (double)purchaseTotal;
+                }
+
+                if (dailyRefunds.TryGetValue(d, out var refundTotal))
+                {
+                    dayRefunds += (double)refundTotal;
+                }
+                
+                if (dailyPatientReturns.TryGetValue(d, out var patientReturns))
+                {
+                    dayRefunds += (double)patientReturns;
+                }
+                
+                double daySupplierCredits = 0;
+                if (dailySupplierReturns.TryGetValue(d, out var supplierReturns))
+                {
+                    daySupplierCredits = (double)supplierReturns;
+                }
+
+                revenueData.Add(daySales + daySupplierCredits);
+                profitData.Add(Math.Max(0, daySales + daySupplierCredits - dayPurchases - dayRefunds));
 
                 totalRevenue       += daySales;
                 totalConsultations += dayCons;
                 totalExpenses      += dayPurchases;
                 totalRefunds       += dayRefunds;
+                totalSupplierCredits += daySupplierCredits;
             }
 
+            totalRevenue += totalSupplierCredits;
             double totalProfit = Math.Max(0, totalRevenue - totalExpenses - totalRefunds);
-            double stockValue = productList.Sum(m => (double)(m.PurchasePrice * m.Stock));
 
             // ── Build chart series ─────────────────────────────────────────
             var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
@@ -288,10 +309,10 @@ public partial class DashboardViewModel : ViewModelBase,
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                TotalProducts         = productList.Count;
-                TotalAppointmentsToday = todayAppts.Count;
-                TodayPatients          = appointmentList.Where(a => a.AppointmentDate.Date == today).Select(a => a.PatientID).Distinct().Count();
-                TotalPatients          = patients.Count();
+                TotalProducts         = totalProducts;
+                TotalAppointmentsToday = todayApptsCount;
+                TodayPatients          = todayPatientsCount;
+                TotalPatients          = totalPatients;
 
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";
                 TodayProfit  = $"Rs. {Math.Max(0, todayProfitAmt):N2}";

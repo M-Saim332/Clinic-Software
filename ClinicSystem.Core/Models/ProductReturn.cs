@@ -11,6 +11,10 @@ public class ProductReturn
     public string ReturnType { get; set; } = "Patient Return"; // Patient Return or Supplier Return
     public string Reason { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
+    public int? PatientId { get; set; }
+    public int? SupplierId { get; set; }
+    public int? SaleId { get; set; }
+    public decimal RefundAmount { get; set; }
     public int? CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 

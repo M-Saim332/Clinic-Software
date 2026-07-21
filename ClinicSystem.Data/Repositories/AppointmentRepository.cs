@@ -20,6 +20,21 @@ public class AppointmentRepository
               ORDER BY a.AppointmentDate DESC, a.AppointmentTime DESC");
     }
 
+    public int GetTodayCount()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM Appointments WHERE CAST(AppointmentDate AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    public int GetTodayDistinctPatientCount()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>(
+            "SELECT COUNT(DISTINCT PatientID) FROM Appointments WHERE CAST(AppointmentDate AS DATE) = CAST(GETDATE() AS DATE) AND PatientID IS NOT NULL");
+    }
+
+
     public void CleanupOldAppointments()
     {
         using var conn = _session.CreateConnection();

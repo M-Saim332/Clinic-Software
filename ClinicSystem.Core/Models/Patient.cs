@@ -15,6 +15,10 @@ public class Patient
     public decimal Discount { get; set; }
     public DateTime? NextAppointmentDate { get; set; }
     public TimeSpan? NextAppointmentTime { get; set; }
+    
+    // Visit Status Tracking
+    public string? VisitStatus { get; set; }
+    public DateTime? LastVisitDate { get; set; }
 
     public decimal TotalBill => Math.Max(ConsultationFee - Discount, 0);
 
