@@ -72,10 +72,7 @@ public partial class DashboardViewModel : ViewModelBase,
         _activityRepo    = activityRepo;
         DiscountRefundVM = discountRefundVM;
 
-        WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this);
-        WeakReferenceMessenger.Default.Register<RefundIssuedMessage>(this);
-        WeakReferenceMessenger.Default.Register<RefundCompletedMessage>(this);
-        WeakReferenceMessenger.Default.Register<ActivityLogMessage>(this);
+        WeakReferenceMessenger.Default.RegisterAll(this);
 
         // Poll every 15 seconds so the dashboard stays in sync
         // across multiple computers (e.g. Receptionist vs Doctor sessions)

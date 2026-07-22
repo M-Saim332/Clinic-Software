@@ -185,6 +185,9 @@ public class DatabaseSession
                 BEGIN
                     ALTER TABLE Appointments ADD CancellationReason VARCHAR(255) NULL;
                 END
+                IF COL_LENGTH('Appointments', 'AppointmentNo') IS NULL ALTER TABLE Appointments ADD AppointmentNo VARCHAR(50) NULL;
+                IF COL_LENGTH('Appointments', 'PatientName') IS NULL ALTER TABLE Appointments ADD PatientName VARCHAR(150) NULL;
+                IF COL_LENGTH('Appointments', 'Reason') IS NULL ALTER TABLE Appointments ADD Reason VARCHAR(255) NULL;
             ");
         }
         catch { }
@@ -201,6 +204,34 @@ public class DatabaseSession
                 BEGIN
                     ALTER TABLE Patients ADD LastVisitDate DATE NULL;
                 END
+                IF COL_LENGTH('Patients', 'Age') IS NULL ALTER TABLE Patients ADD Age INT NULL;
+                IF COL_LENGTH('Patients', 'Gender') IS NULL ALTER TABLE Patients ADD Gender VARCHAR(10) NULL;
+                IF COL_LENGTH('Patients', 'Diagnosis') IS NULL ALTER TABLE Patients ADD Diagnosis TEXT NULL;
+                IF COL_LENGTH('Patients', 'Prescription') IS NULL ALTER TABLE Patients ADD Prescription TEXT NULL;
+                IF COL_LENGTH('Patients', 'ConsultationFee') IS NULL ALTER TABLE Patients ADD ConsultationFee DECIMAL(10,2) DEFAULT 0;
+                IF COL_LENGTH('Patients', 'Discount') IS NULL ALTER TABLE Patients ADD Discount DECIMAL(10,2) DEFAULT 0;
+                IF COL_LENGTH('Patients', 'NextAppointmentDate') IS NULL ALTER TABLE Patients ADD NextAppointmentDate DATE NULL;
+                IF COL_LENGTH('Patients', 'NextAppointmentTime') IS NULL ALTER TABLE Patients ADD NextAppointmentTime TIME NULL;
+            ");
+        }
+        catch { }
+
+        try
+        {
+            // Ensure missing columns exist on Products
+            conn.Execute(@"
+                IF COL_LENGTH('Products', 'GenericName') IS NULL ALTER TABLE Products ADD GenericName VARCHAR(150) NULL;
+                IF COL_LENGTH('Products', 'CompanyName') IS NULL ALTER TABLE Products ADD CompanyName VARCHAR(150) NULL;
+                IF COL_LENGTH('Products', 'SupplierID') IS NULL ALTER TABLE Products ADD SupplierID INT NULL FOREIGN KEY REFERENCES Suppliers(SupplierID);
+                IF COL_LENGTH('Products', 'SupplierName') IS NULL ALTER TABLE Products ADD SupplierName VARCHAR(150) NULL;
+                IF COL_LENGTH('Products', 'BatchNumber') IS NULL ALTER TABLE Products ADD BatchNumber VARCHAR(50) NULL;
+                IF COL_LENGTH('Products', 'Type') IS NULL ALTER TABLE Products ADD Type VARCHAR(50) NULL;
+                IF COL_LENGTH('Products', 'Category') IS NULL ALTER TABLE Products ADD Category VARCHAR(100) NULL;
+                IF COL_LENGTH('Products', 'Rack') IS NULL ALTER TABLE Products ADD Rack VARCHAR(50) NULL;
+                IF COL_LENGTH('Products', 'ExpiryDate') IS NULL ALTER TABLE Products ADD ExpiryDate DATE NULL;
+                IF COL_LENGTH('Products', 'PurchasePrice') IS NULL ALTER TABLE Products ADD PurchasePrice DECIMAL(10,2) DEFAULT 0;
+                IF COL_LENGTH('Products', 'Stock') IS NULL ALTER TABLE Products ADD Stock INT DEFAULT 0;
+                IF COL_LENGTH('Products', 'MinimumStockLevel') IS NULL ALTER TABLE Products ADD MinimumStockLevel INT DEFAULT 0;
             ");
         }
         catch { }

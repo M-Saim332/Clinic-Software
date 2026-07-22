@@ -11,18 +11,16 @@ public partial class PatientRegistryViewModel : ViewModelBase
 {
     private readonly PatientRepository _repo;
     private readonly SaleRepository _saleRepo;
-    private readonly ReturnRepository _returnRepo;
+
     private readonly ProductRepository _productRepo;
 
     public PatientRegistryViewModel(
         PatientRepository repo,
         SaleRepository saleRepo,
-        ReturnRepository returnRepo,
         ProductRepository productRepo)
     {
         _repo = repo;
         _saleRepo = saleRepo;
-        _returnRepo = returnRepo;
         _productRepo = productRepo;
     }
 
@@ -83,17 +81,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
 
-    // ── Patient Return State ────────────────────────────────────────────────────────
-    [ObservableProperty] private bool _isReturnModalOpen;
-    [ObservableProperty] private ObservableCollection<SaleItem> _returnableItems = new();
-    [ObservableProperty] private ObservableCollection<Product> _allProducts = new();
-    
-    [ObservableProperty] private SaleItem? _selectedReturnItem;
-    [ObservableProperty] private Product? _selectedReturnProduct;
-    
-    [ObservableProperty] private int _returnQuantity = 1;
-    [ObservableProperty] private string _returnReason = "Patient Changed Mind";
-    public List<string> ReturnReasons { get; } = new() { "Expired", "Damaged", "Wrong Item", "Patient Changed Mind", "Other" };
+
 
     // ── Commands ───────────────────────────────────────────────────────────
     [RelayCommand]
@@ -189,91 +177,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         _ = InitializeAsync();
     }
 
-    [RelayCommand]
-    private async Task OpenReturnModalAsync(Patient p)
-    {
-        if (p == null) return;
-        SelectedPatient = p;
-        
-        var sales = await Task.Run(() => _saleRepo.GetByPatientIdWithItems(p.PatientID));
-        var pastItems = sales.SelectMany(s => s.Items).ToList();
-        
-        var products = await Task.Run(() => _productRepo.GetAll());
 
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-        {
-            ReturnableItems = new ObservableCollection<SaleItem>(pastItems);
-            AllProducts = new ObservableCollection<Product>(products);
-            SelectedReturnItem = ReturnableItems.FirstOrDefault();
-            SelectedReturnProduct = null;
-            ReturnQuantity = 1;
-            ReturnReason = "Patient Changed Mind";
-            IsReturnModalOpen = true;
-        });
-    }
-
-    [RelayCommand]
-    private void CloseReturnModal() => IsReturnModalOpen = false;
-
-    [RelayCommand]
-    private async Task SubmitReturnAsync()
-    {
-        if (SelectedPatient == null) return;
-        
-        int? productId = SelectedReturnItem?.ProductID ?? SelectedReturnProduct?.ProductID;
-        decimal? unitPrice = SelectedReturnItem?.ProductPrice ?? SelectedReturnProduct?.SellingPrice;
-        int? saleId = SelectedReturnItem?.SaleID;
-
-        if (productId == null || productId == 0)
-        {
-            StatusMessage = "Please select an item to return.";
-            return;
-        }
-
-        if (ReturnQuantity <= 0)
-        {
-            StatusMessage = "Return quantity must be > 0.";
-            return;
-        }
-
-        // SelectedReturnItem max quantity validation
-        if (SelectedReturnItem != null && ReturnQuantity > SelectedReturnItem.Quantity)
-        {
-            StatusMessage = $"Cannot return more than purchased ({SelectedReturnItem.Quantity}).";
-            return;
-        }
-
-        decimal refundAmount = (unitPrice ?? 0) * ReturnQuantity;
-
-        var ret = new ProductReturn
-        {
-            ReturnNo = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
-            ProductId = productId.Value,
-            PatientId = SelectedPatient.PatientID,
-            SaleId = saleId,
-            Quantity = ReturnQuantity,
-            ReturnType = "Patient Return",
-            Reason = ReturnReason,
-            RefundAmount = refundAmount,
-            CreatedBy = CurrentUser?.UserID,
-            CreatedAt = DateTime.Now
-        };
-
-        try
-        {
-            await Task.Run(() => _returnRepo.Insert(ret));
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                StatusMessage = $"Successfully returned {ReturnQuantity} item(s). Refund: Rs. {refundAmount:N2}";
-                LogActivity("Patient Return", $"Returned {ReturnQuantity} units for patient {SelectedPatient.Name}", "Returns");
-                IsReturnModalOpen = false;
-            });
-        }
-        catch (Exception ex)
-        {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = "Failed to process return: " + ex.Message);
-        }
-    }
 
     [RelayCommand]
     private void Cancel()

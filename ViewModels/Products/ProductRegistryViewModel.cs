@@ -14,11 +14,13 @@ public partial class ProductRegistryViewModel : ViewModelBase
 {
     private readonly ProductRepository _repo;
     private readonly CompanyRepository _companyRepo;
+    private readonly ReturnRepository _returnRepo;
 
-    public ProductRegistryViewModel(ProductRepository repo, CompanyRepository companyRepo)
+    public ProductRegistryViewModel(ProductRepository repo, CompanyRepository companyRepo, ReturnRepository returnRepo)
     {
         _repo = repo;
         _companyRepo = companyRepo;
+        _returnRepo = returnRepo;
     }
 
     [ObservableProperty] private FormMode _mode = FormMode.View;
@@ -31,8 +33,13 @@ public partial class ProductRegistryViewModel : ViewModelBase
     [ObservableProperty] private int _expiredCount;
     [ObservableProperty] private string _totalInventoryValue = "Rs. 0.00";
 
+    public string MutationEnabled_str => Mode.ToString();
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
+
+    // ── Tab selection ──────────────────────────────────────────────────
+    [ObservableProperty] private int _selectedTab = 0; // 0=All, 1=Expired, 2=Unsold
+    partial void OnSelectedTabChanged(int value) => FilterProducts();
 
     [ObservableProperty] private ObservableCollection<Product> _products = new();
     [ObservableProperty] private ObservableCollection<Product> _filteredProducts = new();
@@ -69,6 +76,21 @@ public partial class ProductRegistryViewModel : ViewModelBase
     private Product? _pendingDeleteProduct;
     [ObservableProperty] private bool _showDeleteConfirm;
     public string PendingDeleteLabel => PendingDeleteProduct is { } p ? p.Name : string.Empty;
+
+    // ── Return Modal State (Patient Return & Supplier Return) ──────────
+    [ObservableProperty] private bool _isReturnModalOpen;
+    [ObservableProperty] private string _returnModalTitle = string.Empty;
+    [ObservableProperty] private string _returnType = "Patient Return"; // "Patient Return" or "Supplier Return"
+    [ObservableProperty] private int _returnQuantity = 1;
+    [ObservableProperty] private string _returnReason = "Patient Changed Mind";
+    [ObservableProperty] private Product? _returnTargetProduct;
+    public string ReturnModalSubtitle => ReturnTargetProduct != null
+        ? $"Product: {ReturnTargetProduct.Name} | Stock: {ReturnTargetProduct.Stock}"
+        : string.Empty;
+
+    public List<string> PatientReturnReasons { get; } = new() { "Patient Changed Mind", "Wrong Item", "Damaged", "Expired", "Other" };
+    public List<string> SupplierReturnReasons { get; } = new() { "Expired", "Damaged", "Unsold / Slow Moving", "Wrong Item", "Other" };
+    public List<string> ReturnReasons => ReturnType == "Patient Return" ? PatientReturnReasons : SupplierReturnReasons;
 
     [RelayCommand]
     private async Task NewAsync()
@@ -214,17 +236,117 @@ public partial class ProductRegistryViewModel : ViewModelBase
 
     partial void OnSearchTermChanged(string value) => FilterProducts();
 
+    // ── Return Commands ────────────────────────────────────────────────
+    /// <summary>Open modal to return a product back FROM a patient (stock increases, revenue decreases).</summary>
+    [RelayCommand]
+    private void OpenPatientReturn(Product product)
+    {
+        if (product == null) return;
+        ReturnTargetProduct = product;
+        ReturnType = "Patient Return";
+        ReturnModalTitle = "Patient Medicine Return";
+        ReturnQuantity = 1;
+        ReturnReason = "Patient Changed Mind";
+        OnPropertyChanged(nameof(ReturnModalSubtitle));
+        OnPropertyChanged(nameof(ReturnReasons));
+        StatusMessage = string.Empty;
+        IsReturnModalOpen = true;
+    }
+
+    /// <summary>Open modal to return expired/unsold product TO supplier (stock decreases, revenue increases).</summary>
+    [RelayCommand]
+    private void OpenSupplierReturn(Product product)
+    {
+        if (product == null) return;
+        ReturnTargetProduct = product;
+        ReturnType = "Supplier Return";
+        ReturnModalTitle = "Return to Seller";
+        ReturnQuantity = 1;
+        ReturnReason = "Expired";
+        OnPropertyChanged(nameof(ReturnModalSubtitle));
+        OnPropertyChanged(nameof(ReturnReasons));
+        StatusMessage = string.Empty;
+        IsReturnModalOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseReturnModal()
+    {
+        IsReturnModalOpen = false;
+        ReturnTargetProduct = null;
+        StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task SubmitReturnAsync()
+    {
+        if (ReturnTargetProduct == null) { StatusMessage = "No product selected."; return; }
+        if (ReturnQuantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
+
+        if (ReturnType == "Supplier Return" && ReturnQuantity > ReturnTargetProduct.Stock)
+        {
+            StatusMessage = $"Cannot return more than available stock ({ReturnTargetProduct.Stock}).";
+            return;
+        }
+
+        decimal unitPrice = ReturnType == "Patient Return"
+            ? ReturnTargetProduct.SellingPrice   // refund patient at selling price
+            : ReturnTargetProduct.PurchasePrice; // seller refunds at purchase price
+
+        decimal refundAmount = unitPrice * ReturnQuantity;
+
+        var ret = new ProductReturn
+        {
+            ReturnNo    = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
+            ProductId   = ReturnTargetProduct.ProductID,
+            BatchNo     = ReturnTargetProduct.BatchNumber ?? string.Empty,
+            Quantity    = ReturnQuantity,
+            ReturnType  = ReturnType,
+            Reason      = ReturnReason,
+            RefundAmount = refundAmount,
+            CreatedBy   = CurrentUser?.UserID,
+            CreatedAt   = DateTime.Now
+        };
+
+        try
+        {
+            await Task.Run(() => _returnRepo.Insert(ret));
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                var direction = ReturnType == "Patient Return"
+                    ? $"Refund: Rs. {refundAmount:N2} | Stock +{ReturnQuantity}"
+                    : $"Seller refunds: Rs. {refundAmount:N2} | Stock -{ReturnQuantity}";
+                StatusMessage = $"Return processed. {direction}";
+                LogActivity(ReturnType, $"{ReturnType}: {ReturnQuantity}x {ReturnTargetProduct.Name} — {ReturnReason}", "Returns");
+                IsReturnModalOpen = false;
+                ReturnTargetProduct = null;
+                WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+                _ = InitializeAsync();
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = "Failed: " + ex.Message);
+        }
+    }
 
 
     private void FilterProducts()
     {
+        IEnumerable<Product> source = SelectedTab switch
+        {
+            1 => Products.Where(m => m.IsExpired),
+            2 => Products.Where(m => !m.IsExpired && m.Stock > 0), // unsold = has stock, not expired, no sales reduction (approximate by stock > 0)
+            _ => Products
+        };
+
         if (string.IsNullOrWhiteSpace(SearchTerm))
-            FilteredProducts = new ObservableCollection<Product>(Products);
+            FilteredProducts = new ObservableCollection<Product>(source);
         else
         {
             var t = SearchTerm.ToLower();
             FilteredProducts = new ObservableCollection<Product>(
-                Products.Where(m =>
+                source.Where(m =>
                     m.Name.ToLower().Contains(t) ||
                     (m.GenericName?.ToLower().Contains(t) ?? false) ||
                     (m.CompanyName?.ToLower().Contains(t) ?? false) ||
