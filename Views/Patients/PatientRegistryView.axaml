@@ -33,25 +33,7 @@
                 </DockPanel>
             </Border>
 
-            <!-- Summary Cards -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
-                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
-                    Title="Total Patients"
-                    Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
-                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
-                    Title="Active This Month"
-                    Value="{Binding ActiveThisMonthCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushAmber}"/>
-                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
-                    Title="Waiting Today"
-                    Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
-                    BorderColor="{DynamicResource BrushTeal}"/>
-                <comp:SummaryCardControl Grid.Column="3"
-                    Title="Avg Consultation Fee"
-                    Value="{Binding AvgConsultationFee}"
-                    BorderColor="{DynamicResource BrushRose}"/>
-            </Grid>
+            <!-- Summary Cards Removed to increase list view area -->
 
             <!-- Data Panel with Tabs -->
             <TabControl Grid.Row="2" Margin="28,12,28,24" SelectedIndex="{Binding SelectedTab}">
@@ -78,10 +60,9 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Button Content="Mark Visited" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).MarkAsVisitedCommand}" CommandParameter="{Binding}" Classes="btn-success" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Book" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).BookAppointmentSpecificCommand}" CommandParameter="{Binding}" Classes="btn-primary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="View" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Return" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).OpenReturnModalCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
+                                                    <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
+                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                    </Button>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -114,9 +95,9 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Button Content="Mark Waiting" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).MarkAsWaitingCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="View" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Return" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).OpenReturnModalCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
+                                                    <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
+                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                    </Button>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -150,12 +131,15 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Button Content="Mark Waiting" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).MarkAsWaitingCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Book" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).BookAppointmentSpecificCommand}" CommandParameter="{Binding}" Classes="btn-primary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="View" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Edit" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Return" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).OpenReturnModalCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
-                                                    <Button Content="Delete" Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).DeleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
+                                                    <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
+                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                    </Button>
+                                                    <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="Edit">
+                                                        <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14"/>
+                                                    </Button>
+                                                    <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).DeleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" ToolTip.Tip="Delete">
+                                                        <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+                                                    </Button>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -276,53 +260,7 @@
             </Border>
         </Grid>
 
-        <!-- RETURN MEDICINE MODAL -->
-        <Border IsVisible="{Binding IsReturnModalOpen}" Background="#80000000" ZIndex="100">
-            <Border Background="{DynamicResource BrushBackground}" Width="500" CornerRadius="12"
-                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="Return Medicine" FontSize="18" FontWeight="Bold" FontFamily="{DynamicResource FontLexend}"/>
-                    
-                    <TextBlock Text="{Binding SelectedPatient.Name, StringFormat='Returning for Patient: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
-
-                    <TextBlock Text="Purchased Medicines (Auto-populated from Sales)" FontSize="12" Foreground="{DynamicResource BrushInk600}" Margin="0,0,0,-10"/>
-                    <ComboBox ItemsSource="{Binding ReturnableItems}" SelectedItem="{Binding SelectedReturnItem}" HorizontalAlignment="Stretch" PlaceholderText="Select purchased item">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding ProductName, StringFormat='{}{0} (Qty Bought: {1})'}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-
-                    <TextBlock Text="Or Manual Selection (If not in list above)" FontSize="12" Foreground="{DynamicResource BrushInk600}" Margin="0,8,0,-10"/>
-                    <ComboBox ItemsSource="{Binding AllProducts}" SelectedItem="{Binding SelectedReturnProduct}" HorizontalAlignment="Stretch" PlaceholderText="Manually select product">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-
-                    <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Margin="0,0,8,0" Spacing="6">
-                            <TextBlock Text="Return Quantity" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
-                            <NumericUpDown Minimum="1" Value="{Binding ReturnQuantity}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="6">
-                            <TextBlock Text="Reason" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
-                            <ComboBox ItemsSource="{Binding ReturnReasons}" SelectedItem="{Binding ReturnReason}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
-                    </Grid>
-                    
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" TextWrapping="Wrap" MinHeight="20"/>
-
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-                        <Button Content="Cancel" Command="{Binding CloseReturnModalCommand}" Classes="btn-secondary"/>
-                        <Button Content="Submit Return" Command="{Binding SubmitReturnCommand}" Classes="btn-danger"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-        </Border>
+        <!-- RETURN MEDICINE MODAL MOVED TO PRODUCTS -->
     </Grid>
 
     <UserControl.Styles>
