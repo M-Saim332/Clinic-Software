@@ -183,6 +183,7 @@ public partial class AppointmentViewModel : ViewModelBase
         {
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Completed", null));
             StatusMessage = "Appointment completed.";
+            LogActivity("Appointment Updated", $"Appointment for {a.PatientName} marked Completed", "Appointments");
             await InitializeAsync();
 
             if (a.PatientID == null)
@@ -203,6 +204,7 @@ public partial class AppointmentViewModel : ViewModelBase
         {
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Missed", null));
             StatusMessage = "Appointment marked missed.";
+            LogActivity("Appointment Updated", $"Appointment for {a.PatientName} marked Missed", "Appointments");
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
@@ -217,6 +219,7 @@ public partial class AppointmentViewModel : ViewModelBase
         {
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Cancelled", "Cancelled by user"));
             StatusMessage = "Appointment cancelled.";
+            LogActivity("Appointment Updated", $"Appointment for {a.PatientName} Cancelled", "Appointments");
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }

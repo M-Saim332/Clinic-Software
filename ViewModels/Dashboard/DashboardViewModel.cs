@@ -74,10 +74,11 @@ public partial class DashboardViewModel : ViewModelBase,
         WeakReferenceMessenger.Default.Register<RefundCompletedMessage>(this);
         WeakReferenceMessenger.Default.Register<ActivityLogMessage>(this);
 
-        // Poll every 30 seconds so the receptionist sees refunds even if
-        // the doctor is logged in on the same machine in a different session.
-        _refundPollTimer = new System.Timers.Timer(30_000);
-        _refundPollTimer.Elapsed += (_, _) => _ = LoadPendingRefundsAsync();
+        // Poll every 15 seconds so the dashboard stays in sync
+        // across multiple computers (e.g. Receptionist vs Doctor sessions)
+        // and picks up external database changes.
+        _refundPollTimer = new System.Timers.Timer(15_000);
+        _refundPollTimer.Elapsed += (_, _) => _ = InitializeAsync();
         _refundPollTimer.AutoReset = true;
         _refundPollTimer.Start();
     }
@@ -109,6 +110,7 @@ public partial class DashboardViewModel : ViewModelBase,
     [ObservableProperty] private string _todayRevenue   = "Rs. 0.00";
     [ObservableProperty] private string _todayProfit    = "Rs. 0.00";
     [ObservableProperty] private int    _todayPatients;
+    [ObservableProperty] private int    _totalPatients;
 
     // ── Financials summary under charts ────────────────────────────────────
     [ObservableProperty] private string _summaryTotalRevenue  = "Rs. 0.00";
@@ -127,6 +129,12 @@ public partial class DashboardViewModel : ViewModelBase,
 
     // ── Recent activity feed ───────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<ActivityLog> _recentActivities = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasNoRecentActivities))]
+    private bool _hasRecentActivities;
+
+    public bool HasNoRecentActivities => !HasRecentActivities;
 
     [RelayCommand]
     public async Task InitializeAsync()
@@ -164,11 +172,13 @@ public partial class DashboardViewModel : ViewModelBase,
             // ── Financial calculations ─────────────────────────────────────
             var salesList    = sales.Where(s => s.IsPosted).ToList();
             var purchaseList = purchases.ToList();
+            var refundList   = (await Task.Run(() => _refundRepo.GetAllHistory(1000))).ToList();
 
             // Today's financials
             var todaySalesAmt    = salesList.Where(s => s.SaleDate.Date == today).Sum(s => (double)s.GrandTotal);
             var todayPurchaseAmt = purchaseList.Where(p => p.PurchaseDate.Date == today).Sum(p => (double)p.TotalAmount);
-            var todayProfitAmt   = todaySalesAmt - todayPurchaseAmt;
+            var todayRefundAmt   = refundList.Where(r => r.IsCompleted && r.CompletedAt?.Date == today).Sum(r => (double)r.RefundAmount);
+            var todayProfitAmt   = todaySalesAmt - todayPurchaseAmt - todayRefundAmt;
 
             // 30-day chart + totals
             var thirtyDaysAgo = today.AddDays(-29);
@@ -176,7 +186,7 @@ public partial class DashboardViewModel : ViewModelBase,
             var revenueData = new List<double>();
             var profitData  = new List<double>();
 
-            double totalRevenue = 0, totalExpenses = 0;
+            double totalRevenue = 0, totalExpenses = 0, totalConsultations = 0, totalRefunds = 0;
 
             for (int i = 0; i < 30; i++)
             {
@@ -184,17 +194,22 @@ public partial class DashboardViewModel : ViewModelBase,
                 // Show every 3rd label to avoid clutter
                 dateLabels.Add(i % 3 == 0 ? d.ToString("MMM dd") : "");
 
-                var daySales     = salesList.Where(s => s.SaleDate.Date == d).Sum(s => (double)s.GrandTotal);
+                var daySalesList = salesList.Where(s => s.SaleDate.Date == d).ToList();
+                var daySales     = daySalesList.Sum(s => (double)s.GrandTotal);
+                var dayCons      = daySalesList.Sum(s => (double)s.ConsultationFee);
                 var dayPurchases = purchaseList.Where(p => p.PurchaseDate.Date == d).Sum(p => (double)p.TotalAmount);
+                var dayRefunds   = refundList.Where(r => r.IsCompleted && r.CompletedAt?.Date == d).Sum(r => (double)r.RefundAmount);
 
                 revenueData.Add(daySales);
-                profitData.Add(Math.Max(0, daySales - dayPurchases));
+                profitData.Add(Math.Max(0, daySales - dayPurchases - dayRefunds));
 
-                totalRevenue   += daySales;
-                totalExpenses  += dayPurchases;
+                totalRevenue       += daySales;
+                totalConsultations += dayCons;
+                totalExpenses      += dayPurchases;
+                totalRefunds       += dayRefunds;
             }
 
-            double totalProfit = Math.Max(0, totalRevenue - totalExpenses);
+            double totalProfit = Math.Max(0, totalRevenue - totalExpenses - totalRefunds);
             double stockValue = productList.Sum(m => (double)(m.PurchasePrice * m.Stock));
 
             // ── Build chart series ─────────────────────────────────────────
@@ -237,19 +252,20 @@ public partial class DashboardViewModel : ViewModelBase,
             };
 
             // Donut/Pie series for revenue overview
-            // Use Math.Max(1.0, ...) so slices render even when data is zero
+            // Calculate real values from live data instead of hardcoded percentages
+            double productSalesValue = Math.Max(0, totalRevenue - totalConsultations);
             var donutSeries = new ISeries[]
             {
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalRevenue) },
+                    Values         = new double[] { Math.Max(1.0, productSalesValue) },
                     Name           = "Product Sales",
                     Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalRevenue * 0.15) },
+                    Values         = new double[] { Math.Max(1.0, totalConsultations) },
                     Name           = "Consultation",
                     Fill           = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
                     InnerRadius    = 80
@@ -257,14 +273,14 @@ public partial class DashboardViewModel : ViewModelBase,
                 new PieSeries<double>
                 {
                     Values         = new double[] { Math.Max(1.0, totalExpenses) },
-                    Name           = "Expenses",
+                    Name           = "Purchases",
                     Fill           = new SolidColorPaint(new SKColor(0xA7, 0x8B, 0xFA)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalProfit * 0.05) },
-                    Name           = "Other Income",
+                    Values         = new double[] { Math.Max(1.0, totalRefunds) },
+                    Name           = "Refunds",
                     Fill           = new SolidColorPaint(new SKColor(0xFB, 0xBF, 0x24)),
                     InnerRadius    = 80
                 }
@@ -275,6 +291,7 @@ public partial class DashboardViewModel : ViewModelBase,
                 TotalProducts         = productList.Count;
                 TotalAppointmentsToday = todayAppts.Count;
                 TodayPatients          = appointmentList.Where(a => a.AppointmentDate.Date == today).Select(a => a.PatientID).Distinct().Count();
+                TotalPatients          = patients.Count();
 
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";
                 TodayProfit  = $"Rs. {Math.Max(0, todayProfitAmt):N2}";
@@ -297,13 +314,17 @@ public partial class DashboardViewModel : ViewModelBase,
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 RecentActivities = new ObservableCollection<ActivityLog>(activities);
+                HasRecentActivities = RecentActivities.Count > 0;
             });
         }
         catch (Exception ex)
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
                 RecentActivities = new ObservableCollection<ActivityLog>
-                    { new ActivityLog { Title = "Dashboard load error", Description = ex.Message, Module = "Dashboard" } });
+                    { new ActivityLog { Title = "Dashboard load error", Description = ex.Message, Module = "Dashboard" } };
+                HasRecentActivities = true;
+            });
         }
     }
 
@@ -314,15 +335,9 @@ public partial class DashboardViewModel : ViewModelBase,
 
     public void Receive(ActivityLogMessage message)
     {
-        // Just refresh the feed, ActivityService already did the DB insert
-        Task.Run(async () =>
-        {
-            var activities = await Task.Run(() => _activityRepo.GetLatest(20));
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-            {
-                RecentActivities = new ObservableCollection<ActivityLog>(activities);
-            });
-        });
+        // Refresh the entire dashboard (KPIs, Charts, and Recent Activities feed)
+        // when any CRUD operation occurs to keep data live.
+        _ = InitializeAsync();
     }
 
     // ── Refund Commands ───────────────────────────────────────────────────────

@@ -96,6 +96,29 @@ public class DatabaseSession
                     );
                 END
             ");
+
+            // Ensure DiscountRefunds table exists
+            conn.Execute(@"
+                IF OBJECT_ID('DiscountRefunds', 'U') IS NULL
+                BEGIN
+                    CREATE TABLE DiscountRefunds (
+                        RefundID INT IDENTITY(1,1) PRIMARY KEY,
+                        PatientName NVARCHAR(100) NOT NULL,
+                        TokenNumber NVARCHAR(50) NULL,
+                        OriginalFee DECIMAL(18,2) NOT NULL,
+                        DiscountedFee DECIMAL(18,2) NOT NULL,
+                        RefundAmount AS (OriginalFee - DiscountedFee) PERSISTED,
+                        Notes NVARCHAR(500) NULL,
+                        ApprovedByUserID INT NULL,
+                        ApprovedByName NVARCHAR(100) NULL,
+                        ApprovedAt DATETIME2 NOT NULL DEFAULT GETDATE(),
+                        CompletedByUserID INT NULL,
+                        CompletedByName NVARCHAR(100) NULL,
+                        CompletedAt DATETIME2 NULL,
+                        IsCompleted BIT NOT NULL DEFAULT 0
+                    );
+                END
+            ");
         }
         catch { }
 
