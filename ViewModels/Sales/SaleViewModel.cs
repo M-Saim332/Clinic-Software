@@ -137,6 +137,7 @@ public partial class SaleViewModel : ViewModelBase
         InvoiceVM.LoadInvoice(SelectedSale);
         ShowInvoicePrint = true;
         StatusMessage = $"Opening invoice {SelectedSale.InvoiceNumber}";
+        LogActivity("Invoice Generated", $"Invoice #{SelectedSale.InvoiceNumber} generated for printing", "Sales");
     }
 
     [RelayCommand]

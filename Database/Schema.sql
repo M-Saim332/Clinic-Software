@@ -20,6 +20,7 @@ GO
 -- ============================================================
 --  DROP TABLES (if they exist, in reverse dependency order)
 -- ============================================================
+IF OBJECT_ID('ActivityLogs', 'U') IS NOT NULL DROP TABLE ActivityLogs;
 IF OBJECT_ID('PrescriptionItems', 'U') IS NOT NULL DROP TABLE PrescriptionItems;
 IF OBJECT_ID('Prescriptions', 'U') IS NOT NULL DROP TABLE Prescriptions;
 IF OBJECT_ID('SaleItems', 'U') IS NOT NULL DROP TABLE SaleItems;
@@ -193,6 +194,18 @@ CREATE TABLE DiscountRefunds (
     IsCompleted       BIT DEFAULT 0
 );
 GO
+
+CREATE TABLE ActivityLogs (
+    ActivityID  INT IDENTITY(1,1) PRIMARY KEY,
+    Title       VARCHAR(255) NOT NULL,
+    Description VARCHAR(1000) NULL,
+    Module      VARCHAR(100) NOT NULL,
+    UserID      INT,
+    UserName    VARCHAR(150),
+    CreatedAt   DATETIME DEFAULT GETDATE()
+);
+GO
+
 
 -- ============================================================
 --  INDEXES

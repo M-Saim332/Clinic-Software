@@ -115,7 +115,7 @@ public partial class ProductReturnViewModel : ViewModelBase
             await Task.Run(() => _repo.Insert(ret));
 
             StatusMessage = "Return processed successfully and inventory updated.";
-            LogActivity("Return Processed", $"Processed {ret.ReturnType} for {SelectedProduct.Name} (Qty: {ret.Quantity})", "Returns");
+            LogActivity("Return Created", $"Processed {ret.ReturnType} for {SelectedProduct.Name} (Qty: {ret.Quantity})", "Returns");
             
             Mode = FormMode.View;
             await InitializeAsync();
