@@ -33,22 +33,40 @@
                 </DockPanel>
             </Border>
 
-            <!-- Summary Cards Removed to increase list view area -->
-
+            <!-- Summary Cards -->
+            <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*" Margin="28,16,28,4">
+                <comp:SummaryCardControl Grid.Column="0" Margin="0,0,12,0"
+                    Title="Total Patients"
+                    Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushPrimaryBlue}"/>
+                <comp:SummaryCardControl Grid.Column="1" Margin="0,0,12,0"
+                    Title="Active This Month"
+                    Value="{Binding ActiveThisMonthCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushAmber}"/>
+                <comp:SummaryCardControl Grid.Column="2" Margin="0,0,12,0"
+                    Title="Waiting Today"
+                    Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
+                    BorderColor="{DynamicResource BrushTeal}"/>
+                <comp:SummaryCardControl Grid.Column="3"
+                    Title="Avg Consultation Fee"
+                    Value="{Binding AvgConsultationFee}"
+                    BorderColor="{DynamicResource BrushRose}"/>
+            </Grid>
+            
             <!-- Data Panel with Tabs -->
             <TabControl Grid.Row="2" Margin="28,12,28,24" SelectedIndex="{Binding SelectedTab}">
                 
                 <!-- TAB 0: WAITING PATIENTS -->
                 <TabItem Header="Waiting Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Waiting Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.FilterToolbar>
+                        <comp:DataTableShellControl.HeaderActions>
                             <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search waiting patients..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
                                 </Grid>
                             </Border>
-                        </comp:DataTableShellControl.FilterToolbar>
+                        </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -76,14 +94,14 @@
                 <!-- TAB 1: VISITED TODAY -->
                 <TabItem Header="Visited Today" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Visited Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.FilterToolbar>
+                        <comp:DataTableShellControl.HeaderActions>
                             <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search visited patients..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
                                 </Grid>
                             </Border>
-                        </comp:DataTableShellControl.FilterToolbar>
+                        </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -111,14 +129,14 @@
                 <!-- TAB 2: ALL PATIENTS -->
                 <TabItem Header="All Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="All Patients" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.FilterToolbar>
+                        <comp:DataTableShellControl.HeaderActions>
                             <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                                     <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search patient by name, phone, diagnosis..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
                                 </Grid>
                             </Border>
-                        </comp:DataTableShellControl.FilterToolbar>
+                        </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
