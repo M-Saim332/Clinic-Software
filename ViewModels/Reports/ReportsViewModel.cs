@@ -17,7 +17,7 @@ using ClosedXML.Excel;
 
 namespace ClinicSystem.UI.ViewModels.Reports;
 
-public partial class ReportsViewModel : ViewModelBase
+public partial class ReportsViewModel : ViewModelBase, ISearchable
 {
     private readonly PatientRepository _patientRepo;
     private readonly ProductRepository _productRepo;
@@ -52,6 +52,14 @@ public partial class ReportsViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusMessage = string.Empty;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Reports...";
+
+    partial void OnSearchTermChanged(string value) 
+    {
+        // Add filtering logic here if needed for report tables
+    }
 
     [RelayCommand]
     private async Task LoadPatientListAsync()

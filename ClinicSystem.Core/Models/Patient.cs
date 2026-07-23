@@ -8,6 +8,7 @@ public class Patient
     public string? Gender { get; set; }
     public string? Phone { get; set; }
     public string? Contact { get; set; }
+    public string? CNIC { get; set; }
     public string? Address { get; set; }
     public string? Diagnosis { get; set; }
     public string? Prescription { get; set; }

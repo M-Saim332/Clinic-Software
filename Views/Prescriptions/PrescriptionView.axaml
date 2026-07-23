@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              xmlns:models="using:ClinicSystem.Core.Models"
@@ -36,7 +37,7 @@
                                            IsVisible="{Binding HasSelectedPatient}"/>
                                 <Button Command="{Binding PickPatientCommand}" Classes="primary" HorizontalAlignment="Left">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <PathIcon Data="{StaticResource IconPatients}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                        <materialIcons:MaterialIcon Kind="AccountMultiple" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                         <TextBlock Text="Select Patient" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
@@ -64,12 +65,17 @@
 
                         <Button Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Padding="12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="Save Prescription" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <Button Content="Reset" Command="{Binding ResetCommand}" Classes="secondary" HorizontalAlignment="Stretch" Padding="12"/>
+                        <Button  Command="{Binding ResetCommand}" Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Refresh" Width="18" Height="18"/>
+        <TextBlock Text="Reset" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
@@ -96,7 +102,7 @@
                                          PlaceholderText="Dosage (e.g. 1 tab twice daily)" Margin="0,0,8,0"/>
                                 <Button Grid.Column="3" Command="{Binding AddItemCommand}" Classes="primary">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <PathIcon Data="{StaticResource IconPlus}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                        <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                         <TextBlock Text="Add" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
@@ -122,7 +128,7 @@
                                                         CommandParameter="{Binding}"
                                                         Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand"
                                                         Height="32" Width="32" HorizontalAlignment="Center">
-                                                    <PathIcon Data="{StaticResource IconClose}" Width="12" Height="12" Foreground="#DC2626"/>
+                                                    <materialIcons:MaterialIcon Kind="Close" Width="12" Height="12" Foreground="#DC2626"/>
                                                 </Button>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -145,7 +151,7 @@
                         <TextBlock Text="Select Patient" FontSize="18" FontWeight="Bold" Foreground="#1F2937" VerticalAlignment="Center"/>
                         <Button DockPanel.Dock="Right" Command="{Binding ClosePatientListCommand}"
                                 Background="Transparent" BorderThickness="0" Height="36" Width="36">
-                            <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="#6B7280"/>
+                            <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" Foreground="#6B7280"/>
                         </Button>
                     </DockPanel>
                     <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
@@ -160,10 +166,15 @@
                             <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="140"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <Button DockPanel.Dock="Bottom" Content="Select" Margin="0,16,0,0"
+                    <Button DockPanel.Dock="Bottom"  Margin="0,16,0,0"
                             Command="{Binding SelectPatientCommand}"
                             CommandParameter="{Binding SelectedFilteredPatient}"
-                            Classes="primary" HorizontalAlignment="Left"/>
+                            Classes="primary" HorizontalAlignment="Left">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
+        <TextBlock Text="Select" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
         </Border>

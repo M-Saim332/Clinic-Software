@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Search"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -13,7 +14,7 @@
             <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
-                        <PathIcon Data="{StaticResource IconSearch}" Width="20" Height="20"
+                        <materialIcons:MaterialIcon Kind="Magnify" Width="20" Height="20"
                                   Foreground="{DynamicResource BrushPrimaryBlue}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -30,7 +31,7 @@
                         CornerRadius="{DynamicResource CornerRadiusInput}" Width="350" Height="38" Padding="12,0"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Grid ColumnDefinitions="Auto,*">
-                        <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14"
+                        <materialIcons:MaterialIcon Grid.Column="0" Kind="Magnify" Width="14" Height="14"
                                   Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBox Grid.Column="1" Text="{Binding SearchText}" PlaceholderText="Type to search..."
                                  BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Height="36" Padding="0"/>

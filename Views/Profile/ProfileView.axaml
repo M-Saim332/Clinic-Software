@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Profile"
              x:Class="ClinicSystem.UI.Views.Profile.ProfileView"
@@ -54,13 +55,28 @@
                 <!-- Action Buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <!-- View mode -->
-                    <Button Content="✎  Edit Profile" Command="{Binding StartEditCommand}"
-                            Classes="btn-primary" IsVisible="{Binding !IsEditing}"/>
+                    <Button  Command="{Binding StartEditCommand}"
+                            Classes="btn-primary" IsVisible="{Binding !IsEditing}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
+        <TextBlock Text="Edit Profile" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     <!-- Edit mode -->
-                    <Button Content="Cancel" Command="{Binding CancelEditCommand}"
-                            Classes="btn-ghost" IsVisible="{Binding IsEditing}"/>
-                    <Button Content="💾  Save Changes" Command="{Binding SaveProfileCommand}"
-                            Classes="btn-primary" IsVisible="{Binding IsEditing}"/>
+                    <Button  Command="{Binding CancelEditCommand}"
+                            Classes="btn-ghost" IsVisible="{Binding IsEditing}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                    <Button  Command="{Binding SaveProfileCommand}"
+                            Classes="btn-primary" IsVisible="{Binding IsEditing}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+        <TextBlock Text="Save Changes" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </StackPanel>
             </Grid>
         </Border>
@@ -162,15 +178,25 @@
                                                 Background="#F8FAFC" CornerRadius="10" Padding="16,12"
                                                 BorderBrush="{DynamicResource BrushLine}" BorderThickness="1">
                                             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                                                <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16"
+                                                <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16"
                                                           Foreground="{DynamicResource BrushInk400}"/>
                                                 <TextBlock Text="Profile Photo" FontSize="13" FontWeight="SemiBold"
                                                            Foreground="{DynamicResource BrushInk700}" VerticalAlignment="Center"/>
-                                                <Button Content="Upload" Command="{Binding UploadProfilePictureCommand}"
-                                                        Classes="btn-secondary" Height="30" Padding="14,0" FontSize="12"/>
-                                                <Button Content="Remove" Command="{Binding RemoveProfilePictureCommand}"
+                                                <Button  Command="{Binding UploadProfilePictureCommand}"
+                                                        Classes="btn-secondary" Height="30" Padding="14,0" FontSize="12">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Upload" Width="18" Height="18"/>
+        <TextBlock Text="Upload" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                                <Button  Command="{Binding RemoveProfilePictureCommand}"
                                                         Classes="btn-ghost" Height="30" Padding="14,0" FontSize="12"
-                                                        IsVisible="{Binding HasProfilePicture}"/>
+                                                        IsVisible="{Binding HasProfilePicture}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+        <TextBlock Text="Remove" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                                             </StackPanel>
                                         </Border>
                                     </StackPanel>
@@ -254,8 +280,13 @@
                                                        Foreground="{DynamicResource BrushRose}"
                                                        IsVisible="{Binding PasswordStatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
-                                            <Button Content="Update Password" Command="{Binding SavePasswordCommand}"
-                                                    Classes="btn-primary" Width="180" HorizontalAlignment="Left"/>
+                                            <Button  Command="{Binding SavePasswordCommand}"
+                                                    Classes="btn-primary" Width="180" HorizontalAlignment="Left">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="LockReset" Width="18" Height="18"/>
+        <TextBlock Text="Update Password" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                                         </StackPanel>
                                     </StackPanel>
                                 </TabItem>
@@ -280,7 +311,7 @@
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
                                             Background="#EFF6FF" Margin="0,0,12,0">
-                                        <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16"
+                                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16"
                                                   Foreground="{DynamicResource BrushPrimaryBlue}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -297,7 +328,7 @@
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
                                             Background="#F0FDF4" Margin="0,0,12,0">
-                                        <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16"
+                                        <materialIcons:MaterialIcon Kind="AccountMultiple" Width="16" Height="16"
                                                   Foreground="#16A34A"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -314,7 +345,7 @@
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
                                             Background="#FFF7ED" Margin="0,0,12,0">
-                                        <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16"
+                                        <materialIcons:MaterialIcon Kind="Alert" Width="16" Height="16"
                                                   Foreground="{DynamicResource BrushAmber}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -332,7 +363,7 @@
                                 <Grid ColumnDefinitions="Auto,*">
                                     <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
                                             Background="#F5F3FF" Margin="0,0,12,0">
-                                        <PathIcon Data="{StaticResource IconSearch}" Width="16" Height="16"
+                                        <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16"
                                                   Foreground="#7C3AED"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
@@ -353,7 +384,7 @@
                                 CornerRadius="14" Padding="20,16">
                             <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16"
+                                    <materialIcons:MaterialIcon Kind="Alert" Width="16" Height="16"
                                               Foreground="{DynamicResource BrushAmber}"/>
                                     <TextBlock Text="Security Tips" FontSize="13" FontWeight="Bold"
                                                Foreground="#92400E"/>

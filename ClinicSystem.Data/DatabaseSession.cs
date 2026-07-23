@@ -212,6 +212,16 @@ public class DatabaseSession
                 IF COL_LENGTH('Patients', 'Discount') IS NULL ALTER TABLE Patients ADD Discount DECIMAL(10,2) DEFAULT 0;
                 IF COL_LENGTH('Patients', 'NextAppointmentDate') IS NULL ALTER TABLE Patients ADD NextAppointmentDate DATE NULL;
                 IF COL_LENGTH('Patients', 'NextAppointmentTime') IS NULL ALTER TABLE Patients ADD NextAppointmentTime TIME NULL;
+                IF COL_LENGTH('Patients', 'CNIC') IS NULL ALTER TABLE Patients ADD CNIC NVARCHAR(50) NULL;
+            ");
+        }
+        catch { }
+
+        try
+        {
+            // Ensure missing columns exist on Suppliers
+            conn.Execute(@"
+                IF COL_LENGTH('Suppliers', 'CNIC') IS NULL ALTER TABLE Suppliers ADD CNIC NVARCHAR(50) NULL;
             ");
         }
         catch { }

@@ -8,7 +8,7 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Purchases;
 
-public partial class PurchaseViewModel : ViewModelBase
+public partial class PurchaseViewModel : ViewModelBase, ISearchable
 {
     private readonly PurchaseRepository _repo;
     private readonly SupplierRepository _supplierRepo;
@@ -26,9 +26,31 @@ public partial class PurchaseViewModel : ViewModelBase
     [ObservableProperty] private bool _showForm;
     
     [ObservableProperty] private ObservableCollection<Purchase> _purchases = new();
+    private ObservableCollection<Purchase> _allPurchases = new();
     [ObservableProperty] private ObservableCollection<Supplier> _suppliers = new();
     [ObservableProperty] private ObservableCollection<Product> _products = new();
     [ObservableProperty] private Purchase? _selectedPurchase;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Purchases...";
+
+    partial void OnSearchTermChanged(string value) => FilterPurchases();
+
+    private void FilterPurchases()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Purchases = new ObservableCollection<Purchase>(_allPurchases);
+        }
+        else
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
+            Purchases = new ObservableCollection<Purchase>(
+                _allPurchases.Where(p => 
+                    p.InvoiceNumber.ToLower().Contains(term) ||
+                    (p.SupplierName?.ToLower().Contains(term) ?? false)));
+        }
+    }
 
     // KPI Summary counts
     [ObservableProperty] private int _totalInvoicesCount;
@@ -209,7 +231,9 @@ public partial class PurchaseViewModel : ViewModelBase
             {
                 Suppliers = new ObservableCollection<Supplier>(suppliers);
                 Products = new ObservableCollection<Product>(products);
-                Purchases = new ObservableCollection<Purchase>(purchases.OrderByDescending(p => p.PurchaseDate));
+                var sorted = new ObservableCollection<Purchase>(purchases.OrderByDescending(p => p.PurchaseDate));
+                _allPurchases = sorted;
+                FilterPurchases();
 
                 TotalInvoicesCount = Purchases.Count;
                 TotalPurchasesAmount = Purchases.Sum(p => p.TotalAmount);

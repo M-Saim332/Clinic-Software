@@ -36,8 +36,8 @@ public class SupplierRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Suppliers (Name, Address, Phone, Email)
-              VALUES (@Name, @Address, @Phone, @Email);
+            @"INSERT INTO Suppliers (Name, Address, Phone, Email, CNIC)
+              VALUES (@Name, @Address, @Phone, @Email, @CNIC);
               SELECT SCOPE_IDENTITY();", s);
     }
 
@@ -46,7 +46,7 @@ public class SupplierRepository
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Suppliers SET
-                Name = @Name, Address = @Address, Phone = @Phone, Email = @Email
+                Name = @Name, Address = @Address, Phone = @Phone, Email = @Email, CNIC = @CNIC
               WHERE SupplierID = @SupplierID", s);
     }
 

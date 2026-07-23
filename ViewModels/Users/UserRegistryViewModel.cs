@@ -11,7 +11,7 @@ namespace ClinicSystem.UI.ViewModels.Users;
 /// <summary>Controls which sub-view is shown within User Management.</summary>
 public enum UserMgmtView { List, Form, ResetPassword }
 
-public partial class UserRegistryViewModel : ViewModelBase
+public partial class UserRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly UserRepository _repo;
 
@@ -67,14 +67,15 @@ public partial class UserRegistryViewModel : ViewModelBase
 
     // ── Search / Filter ───────────────────────────────────────────────────────
 
-    [ObservableProperty] private string _searchQuery = string.Empty;
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Users...";
     [ObservableProperty] private string _filterRole = "All";
     [ObservableProperty] private string _filterStatus = "All";
 
     public List<string> FilterRoleOptions   { get; } = new() { "All", "Admin", "Doctor", "Receptionist", "Pharmacist", "Assistant" };
     public List<string> FilterStatusOptions { get; } = new() { "All", "Active", "Inactive" };
 
-    partial void OnSearchQueryChanged(string value) => ApplyFilter();
+    partial void OnSearchTermChanged(string value) => ApplyFilter();
     partial void OnFilterRoleChanged(string value)   => ApplyFilter();
     partial void OnFilterStatusChanged(string value) => ApplyFilter();
 
@@ -82,9 +83,9 @@ public partial class UserRegistryViewModel : ViewModelBase
     {
         var filtered = _allUsers.AsEnumerable();
 
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            var q = SearchQuery.Trim().ToLowerInvariant();
+            var q = SearchTerm.Trim().ToLowerInvariant();
             filtered = filtered.Where(u =>
                 u.FullName.ToLowerInvariant().Contains(q) ||
                 u.Username.ToLowerInvariant().Contains(q) ||

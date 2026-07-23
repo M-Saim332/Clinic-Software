@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ClinicSystem.UI.ViewModels"
         xmlns:userviews="using:ClinicSystem.UI.Views.Users"
         x:Class="ClinicSystem.UI.Views.LoginWindow"
@@ -32,7 +33,7 @@
                     <StackPanel HorizontalAlignment="Center" Spacing="12">
                         <Border Width="56" Height="56" CornerRadius="28"
                                 Background="#EFF6FF" HorizontalAlignment="Center">
-                            <PathIcon Data="{StaticResource IconClinic}" Width="24" Height="24" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="24" Height="24" Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel Spacing="4">
                             <TextBlock Text="{Binding FormTitle}"
@@ -130,12 +131,17 @@
                     </Panel>
 
                     <!-- Login Button -->
-                    <Button Content="{Binding LoginButtonText}"
+                    <Button 
                             Command="{Binding LoginCommand}"
                             Classes="primary"
                             HorizontalAlignment="Stretch"
                             IsDefault="True"
-                            IsEnabled="{Binding !IsBusy}"/>
+                            IsEnabled="{Binding !IsBusy}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Login" Width="18" Height="18"/>
+        <TextBlock Text="{Binding LoginButtonText}" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
 
                 </StackPanel>
             </Border>

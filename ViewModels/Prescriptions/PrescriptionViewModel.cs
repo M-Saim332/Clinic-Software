@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Prescriptions;
 
-public partial class PrescriptionViewModel : ViewModelBase
+public partial class PrescriptionViewModel : ViewModelBase, ISearchable
 {
     private readonly PrescriptionRepository _prescRepo;
     private readonly PatientRepository _patientRepo;
@@ -34,6 +34,15 @@ public partial class PrescriptionViewModel : ViewModelBase
     [ObservableProperty] private bool _showPatientList;
     [ObservableProperty] private string _patientSearch = string.Empty;
     [ObservableProperty] private ObservableCollection<Patient> _filteredPatients = new();
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Prescriptions...";
+
+    partial void OnSearchTermChanged(string value) 
+    {
+        // No prescription list to filter in this view yet.
+    }
+
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _statusIsError;
     [ObservableProperty] private Patient? _selectedFilteredPatient;

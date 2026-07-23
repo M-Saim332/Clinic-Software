@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -16,7 +17,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
+                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -28,8 +29,13 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="+ Add Patient" Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Button  Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="AccountPlus" Width="18" Height="18"/>
+        <TextBlock Text="Add Patient" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -59,14 +65,7 @@
                 <!-- TAB 0: WAITING PATIENTS -->
                 <TabItem Header="Waiting Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Waiting Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.HeaderActions>
-                            <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search waiting patients..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
-                                </Grid>
-                            </Border>
-                        </comp:DataTableShellControl.HeaderActions>
+
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -79,7 +78,7 @@
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
-                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                        <materialIcons:MaterialIcon Kind="Eye" Width="14" Height="14"/>
                                                     </Button>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -94,14 +93,7 @@
                 <!-- TAB 1: VISITED TODAY -->
                 <TabItem Header="Visited Today" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Visited Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.HeaderActions>
-                            <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search visited patients..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
-                                </Grid>
-                            </Border>
-                        </comp:DataTableShellControl.HeaderActions>
+
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -114,7 +106,7 @@
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
-                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                        <materialIcons:MaterialIcon Kind="Eye" Width="14" Height="14"/>
                                                     </Button>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -129,14 +121,7 @@
                 <!-- TAB 2: ALL PATIENTS -->
                 <TabItem Header="All Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="All Patients" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
-                        <comp:DataTableShellControl.HeaderActions>
-                            <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusInput}" Padding="12,0" Height="40" Width="380" Margin="0,0,16,8">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <PathIcon Grid.Column="0" Data="{StaticResource IconSearch}" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                                    <TextBox Grid.Column="1" Text="{Binding SearchTerm}" PlaceholderText="Search patient by name, phone, diagnosis..." Classes="search-input" VerticalAlignment="Center" Height="38" Padding="0"/>
-                                </Grid>
-                            </Border>
-                        </comp:DataTableShellControl.HeaderActions>
+
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -150,13 +135,13 @@
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="View">
-                                                        <PathIcon Data="{StaticResource IconEye}" Width="14" Height="14"/>
+                                                        <materialIcons:MaterialIcon Kind="Eye" Width="14" Height="14"/>
                                                     </Button>
                                                     <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" ToolTip.Tip="Edit">
-                                                        <PathIcon Data="{StaticResource IconEdit}" Width="14" Height="14"/>
+                                                        <materialIcons:MaterialIcon Kind="Pencil" Width="14" Height="14"/>
                                                     </Button>
                                                     <Button Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).DeleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" ToolTip.Tip="Delete">
-                                                        <PathIcon Data="{StaticResource IconTrash}" Width="14" Height="14"/>
+                                                        <materialIcons:MaterialIcon Kind="Delete" Width="14" Height="14"/>
                                                     </Button>
                                                 </StackPanel>
                                             </DataTemplate>
@@ -184,7 +169,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="20" Height="20"
+                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -194,8 +179,13 @@
                             <TextBlock Text="Fill out patient details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="Back" Command="{Binding CancelCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Button  Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+        <TextBlock Text="Back" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -271,8 +261,18 @@
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap" Margin="0,0,16,0"/>
                     <!-- Buttons locked to the right -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Button Content="Edit Patient" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
-                        <Button Content="Save Patient" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
+                        <Button  Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
+        <TextBlock Text="Edit Patient" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+        <TextBlock Text="Save Patient" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </Grid>
             </Border>

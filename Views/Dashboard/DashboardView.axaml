@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
              xmlns:models="using:ClinicSystem.Core.Models"
@@ -21,7 +22,7 @@
                 <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF1F2">
-                            <PathIcon Data="{StaticResource IconAppointments}" Width="22" Height="22" Foreground="#E11D48"/>
+                            <materialIcons:MaterialIcon Kind="CalendarCheck" Width="22" Height="22" Foreground="#E11D48"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Appointments" Classes="kpiLabel"/>
@@ -40,7 +41,7 @@
                 <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDFA">
-                            <PathIcon Data="{StaticResource IconProducts}" Width="22" Height="22" Foreground="#0D9488"/>
+                            <materialIcons:MaterialIcon Kind="Pill" Width="22" Height="22" Foreground="#0D9488"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Products" Classes="kpiLabel"/>
@@ -59,7 +60,7 @@
                 <Border Grid.Column="2" Classes="kpiCard" Margin="10,0,0,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FDF4FF">
-                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#9333EA"/>
+                            <materialIcons:MaterialIcon Kind="Receipt" Width="22" Height="22" Foreground="#9333EA"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Stock Value" Classes="kpiLabel"/>
@@ -81,7 +82,7 @@
                 <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDF4">
-                            <PathIcon Data="{StaticResource IconSales}" Width="22" Height="22" Foreground="#16A34A"/>
+                            <materialIcons:MaterialIcon Kind="Receipt" Width="22" Height="22" Foreground="#16A34A"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Today's Revenue" Classes="kpiLabel"/>
@@ -98,7 +99,7 @@
                 <Border Grid.Column="1" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#EFF6FF">
-                            <PathIcon Data="{StaticResource IconReports}" Width="22" Height="22" Foreground="#3B82F6"/>
+                            <materialIcons:MaterialIcon Kind="ChartBar" Width="22" Height="22" Foreground="#3B82F6"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Today's Profit" Classes="kpiLabel"/>
@@ -110,7 +111,7 @@
                 <Border Grid.Column="2" Classes="kpiCard" Margin="10,0,0,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF7ED">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="22" Height="22" Foreground="#F97316"/>
+                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="22" Height="22" Foreground="#F97316"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="Total Patients" Classes="kpiLabel"/>
@@ -137,7 +138,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Left" VerticalAlignment="Center">
                         <Border Width="32" Height="32" CornerRadius="8" Background="#EFF6FF">
-                            <PathIcon Data="{StaticResource IconSettings}" Width="15" Height="15"
+                            <materialIcons:MaterialIcon Kind="Cog" Width="15" Height="15"
                                       Foreground="#3B82F6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center" Spacing="1">
@@ -156,7 +157,7 @@
                                 Padding="16,0" Height="36"
                                 ToolTip.Tip="Change your Admin account password">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13"
+                                <materialIcons:MaterialIcon Kind="AccountCog" Width="13" Height="13"
                                           Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="Change Password" VerticalAlignment="Center"
                                            FontSize="13" FontWeight="SemiBold"/>
@@ -267,7 +268,7 @@
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="#F59E0B"/>
+                                <materialIcons:MaterialIcon Kind="Alert" Width="16" Height="16" Foreground="#F59E0B"/>
                                 <TextBlock Text="Low Stock Alert" Classes="cardTitle" Foreground="#F59E0B"/>
                             </StackPanel>
                             <Button DockPanel.Dock="Right"
@@ -304,7 +305,7 @@
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" Foreground="#F59E0B"/>
+                                <materialIcons:MaterialIcon Kind="CalendarCheck" Width="16" Height="16" Foreground="#F59E0B"/>
                                 <TextBlock Text="Expiring Soon" Classes="cardTitle"/>
                             </StackPanel>
                             <Button DockPanel.Dock="Right"
@@ -340,7 +341,7 @@
                     <DockPanel>
                         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="16" Height="16" Foreground="#3B82F6"/>
+                                <materialIcons:MaterialIcon Kind="Clock" Width="16" Height="16" Foreground="#3B82F6"/>
                                 <TextBlock Text="Recent Activities" Classes="cardTitle"/>
                             </StackPanel>
                             <TextBlock DockPanel.Dock="Right" Text="View all" Foreground="#3B82F6" FontSize="12"
@@ -370,7 +371,7 @@
                                                                    FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
                                                                    IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                                         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,2,0,0">
-                                                            <PathIcon Data="{StaticResource IconProfile}" Width="10" Height="10" Foreground="#9CA3AF"/>
+                                                            <materialIcons:MaterialIcon Kind="AccountCircle" Width="10" Height="10" Foreground="#9CA3AF"/>
                                                             <TextBlock Text="{Binding UserName}" FontSize="10" Foreground="#9CA3AF"/>
                                                         </StackPanel>
                                                     </StackPanel>
@@ -389,7 +390,7 @@
                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                         Margin="0,30" Spacing="12">
                                 <Border Width="48" Height="48" CornerRadius="24" Background="{DynamicResource BrushBackground}">
-                                    <PathIcon Data="{StaticResource IconClock}" Width="20" Height="20" Foreground="{DynamicResource BrushInk400}"/>
+                                    <materialIcons:MaterialIcon Kind="Clock" Width="20" Height="20" Foreground="{DynamicResource BrushInk400}"/>
                                 </Border>
                                 <StackPanel Spacing="2" HorizontalAlignment="Center">
                                     <TextBlock Text="No recent activities" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}" HorizontalAlignment="Center"/>

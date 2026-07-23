@@ -176,6 +176,23 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _alertMessage = string.Empty;
     [ObservableProperty] private bool   _showAlert;
 
+    [ObservableProperty] private string _searchText = string.Empty;
+    public string SearchPlaceholder => (CurrentPageViewModel as ISearchable)?.SearchPlaceholder ?? "Search...";
+
+    partial void OnSearchTextChanged(string value)
+    {
+        if (CurrentPageViewModel is ISearchable searchable)
+        {
+            searchable.SearchTerm = value;
+        }
+    }
+
+    partial void OnCurrentPageViewModelChanged(ViewModelBase? value)
+    {
+        SearchText = string.Empty;
+        OnPropertyChanged(nameof(SearchPlaceholder));
+    }
+
     public string TodayDate        => DateTime.Now.ToString("dddd, MMM dd yyyy");
     public string CurrentUserName  => CurrentUser?.FullName.Length > 0 ? CurrentUser.FullName : CurrentUser?.Username ?? "Unknown";
     public string CurrentUserRole  => CurrentUser?.Role ?? string.Empty;

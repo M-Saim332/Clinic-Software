@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,7 +15,7 @@
             <Border Grid.Row="0" Padding="20,24" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushBlue50}">
-                        <PathIcon Data="{StaticResource IconClinic}" Width="18" Height="18"
+                        <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18"
                                   Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
@@ -31,7 +32,7 @@
                     <!-- MAIN/DASHBOARD -->
                     <Button Command="{Binding ShowDashboardCommand}" Classes="navbtn" Classes.active="{Binding IsDashboardActive}" IsVisible="{Binding CanAccessDashboard}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconDashboard}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ViewDashboard" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -42,35 +43,35 @@
 
                     <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconPatients}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Patients" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconAppointments}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="CalendarCheck" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Appointments" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowProductsCommand}" Classes="navbtn" Classes.active="{Binding IsProductsActive}" IsVisible="{Binding CanAccessProducts}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconProducts}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Pill" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Products" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowCompaniesCommand}" Classes="navbtn" Classes.active="{Binding IsCompaniesActive}" IsVisible="{Binding CanAccessCompanies}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconCompanies}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Domain" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Companies" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowSuppliersCommand}" Classes="navbtn" Classes.active="{Binding IsSuppliersActive}" IsVisible="{Binding CanAccessSuppliers}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconSuppliers}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Truck" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -81,14 +82,14 @@
 
                     <Button Command="{Binding ShowPurchasesCommand}" Classes="navbtn" Classes.active="{Binding IsPurchasesActive}" IsVisible="{Binding CanAccessPurchases}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconPurchases}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Cart" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Purchases" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowSalesCommand}" Classes="navbtn" Classes.active="{Binding IsSalesActive}" IsVisible="{Binding CanAccessSales}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconSales}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Receipt" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Sales &amp; Billing" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -101,14 +102,14 @@
 
                     <Button Command="{Binding ShowInventoryCommand}" Classes="navbtn" Classes.active="{Binding IsInventoryActive}" IsVisible="{Binding CanAccessInventory}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconInventory}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Store" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Inventory" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding ShowReportsCommand}" Classes="navbtn" Classes.active="{Binding IsReportsActive}" IsVisible="{Binding CanAccessReports}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconReports}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ChartBar" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Reports" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -122,13 +123,13 @@
                     <TextBlock Text="SETTINGS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,4" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
                     <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconProfile}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="AccountCircle" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Profile" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <PathIcon Data="{StaticResource IconSettings}" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Settings" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>

@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Settings"
              xmlns:userviews="using:ClinicSystem.UI.Views.Users"
@@ -14,7 +15,7 @@
             <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
-                        <PathIcon Data="{StaticResource IconSettings}" Width="20" Height="20"
+                        <materialIcons:MaterialIcon Kind="Cog" Width="20" Height="20"
                                   Foreground="{DynamicResource BrushPrimaryBlue}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -26,8 +27,13 @@
                                    FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                     </StackPanel>
                 </StackPanel>
-                <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}"
-                        Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                <Button  Command="{Binding SaveSettingsCommand}"
+                        Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+        <TextBlock Text="Save Settings" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
             </DockPanel>
         </Border>
 
@@ -137,8 +143,18 @@
                                            FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Button Content="Backup Database"  Command="{Binding BackupCommand}"  Classes="btn-secondary" IsEnabled="{Binding !IsBusy}"/>
-                                <Button Content="Restore Database" Command="{Binding RestoreCommand}" Classes="btn-secondary" IsEnabled="{Binding !IsBusy}"/>
+                                <Button   Command="{Binding BackupCommand}"  Classes="btn-secondary" IsEnabled="{Binding !IsBusy}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="DatabaseExport" Width="18" Height="18"/>
+        <TextBlock Text="Backup Database" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                <Button  Command="{Binding RestoreCommand}" Classes="btn-secondary" IsEnabled="{Binding !IsBusy}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="DatabaseImport" Width="18" Height="18"/>
+        <TextBlock Text="Restore Database" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                             </StackPanel>
                         </DockPanel>
 
@@ -152,19 +168,29 @@
                                            FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Button Content="↩ Rollback Reset"
+                                <Button 
                                         Command="{Binding RollbackResetCommand}"
                                         IsVisible="{Binding IsRollbackAvailable}"
                                         IsEnabled="{Binding !IsBusy}"
                                         Background="#F59E0B" Foreground="White"
                                         BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
-                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
-                                <Button Content="⚠ Delete All Data"
+                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Undo" Width="18" Height="18"/>
+        <TextBlock Text="Rollback Reset" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                <Button 
                                         Command="{Binding ShowResetConfirmCommand}"
                                         IsEnabled="{Binding !IsBusy}"
                                         Background="#DC2626" Foreground="White"
                                         BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
-                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
+                                        Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+        <TextBlock Text="Delete All Data" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                             </StackPanel>
                         </DockPanel>
 
@@ -182,14 +208,24 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Button Content="✓ Yes, Delete Everything"
+                                    <Button 
                                             Command="{Binding ConfirmResetCommand}"
                                             Background="#DC2626" Foreground="White"
                                             BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
-                                            Padding="16,0" Height="36" FontSize="13" FontWeight="SemiBold"/>
-                                    <Button Content="Cancel"
+                                            Padding="16,0" Height="36" FontSize="13" FontWeight="SemiBold">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+        <TextBlock Text="Yes, Delete Everything" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                    <Button 
                                             Command="{Binding CancelResetCommand}"
-                                            Classes="btn-secondary"/>
+                                            Classes="btn-secondary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -222,7 +258,7 @@
                                     CornerRadius="{DynamicResource CornerRadiusPill}"
                                     Padding="16,0" Height="36">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconUsers}" Width="13" Height="13"
+                                    <materialIcons:MaterialIcon Kind="AccountCog" Width="13" Height="13"
                                               Foreground="White" VerticalAlignment="Center"/>
                                     <TextBlock Text="Change Password" FontSize="13" FontWeight="SemiBold"
                                                VerticalAlignment="Center"/>
