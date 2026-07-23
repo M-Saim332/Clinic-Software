@@ -8,7 +8,7 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Sales;
 
-public partial class SaleViewModel : ViewModelBase
+public partial class SaleViewModel : ViewModelBase, ISearchable
 {
     private readonly SaleRepository _repo;
     private readonly PatientRepository _patientRepo;
@@ -45,9 +45,31 @@ public partial class SaleViewModel : ViewModelBase
     public bool ShowList => !ShowForm && !ShowInvoicePrint;
     
     [ObservableProperty] private ObservableCollection<Sale> _sales = new();
+    private ObservableCollection<Sale> _allSales = new();
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
     [ObservableProperty] private ObservableCollection<Product> _products = new(); // non-expired
     [ObservableProperty] private Sale? _selectedSale;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Invoices...";
+
+    partial void OnSearchTermChanged(string value) => FilterSales();
+
+    private void FilterSales()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Sales = new ObservableCollection<Sale>(_allSales);
+        }
+        else
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
+            Sales = new ObservableCollection<Sale>(
+                _allSales.Where(s => 
+                    s.InvoiceNumber.ToLower().Contains(term) ||
+                    (s.PatientName?.ToLower().Contains(term) ?? false)));
+        }
+    }
 
     // KPI summary counts
     [ObservableProperty] private int _totalInvoicesCount;
@@ -243,7 +265,9 @@ public partial class SaleViewModel : ViewModelBase
                 Products = new ObservableCollection<Product>(
                     products.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
                 FilteredProducts = new ObservableCollection<Product>(Products);
-                Sales = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
+                var sorted = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
+                _allSales = sorted;
+                FilterSales();
 
                 TotalInvoicesCount = Sales.Count;
                 TotalRevenue = Sales.Sum(s => s.GrandTotal);

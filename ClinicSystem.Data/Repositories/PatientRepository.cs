@@ -43,8 +43,8 @@ public class PatientRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount, VisitStatus, LastVisitDate)
-              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount, @VisitStatus, @LastVisitDate);
+            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount, VisitStatus, LastVisitDate, CNIC)
+              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount, @VisitStatus, @LastVisitDate, @CNIC);
               SELECT SCOPE_IDENTITY();", p);
     }
 
@@ -56,7 +56,7 @@ public class PatientRepository
                 Name = @Name, Age = @Age, Gender = @Gender,
                 Phone = @Phone, Address = @Address, Diagnosis = @Diagnosis,
                 Prescription = @Prescription, ConsultationFee = @ConsultationFee, Discount = @Discount,
-                VisitStatus = @VisitStatus, LastVisitDate = @LastVisitDate
+                VisitStatus = @VisitStatus, LastVisitDate = @LastVisitDate, CNIC = @CNIC
               WHERE PatientID = @PatientID", p);
     }
 

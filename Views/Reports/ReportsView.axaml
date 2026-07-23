@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -13,7 +14,7 @@
             <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
-                        <PathIcon Data="{StaticResource IconReports}" Width="20" Height="20"
+                        <materialIcons:MaterialIcon Kind="ChartBar" Width="20" Height="20"
                                   Foreground="{DynamicResource BrushPrimaryBlue}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
@@ -37,19 +38,19 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{Binding LoadPatientListCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding ExportPatientListToPdfCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding ExportPatientListToExcelCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -78,19 +79,19 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{Binding LoadProductStockCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding ExportProductStockToPdfCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                             <Button Command="{Binding ExportProductStockToExcelCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -162,7 +163,7 @@
                     <comp:DataTableShellControl.FilterToolbar>
                         <Button Command="{Binding LoadAllVisitsCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -188,25 +189,25 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
                         <Button Command="{Binding LoadFinancialsCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DownloadWeeklyReportCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Download Weekly PDF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding DownloadMonthlyReportCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Download Monthly PDF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding ExportFinancialsToExcelCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconReports}" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                 <TextBlock Text="Export to Excel" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>

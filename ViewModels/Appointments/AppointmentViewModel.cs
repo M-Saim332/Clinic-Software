@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Appointments;
 
-public partial class AppointmentViewModel : ViewModelBase
+public partial class AppointmentViewModel : ViewModelBase, ISearchable
 {
     private readonly AppointmentRepository _repo;
     private readonly PatientRepository _patientRepo;
@@ -28,9 +28,33 @@ public partial class AppointmentViewModel : ViewModelBase
     private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private ObservableCollection<Appointment> _appointments = new();
+    private ObservableCollection<Appointment> _allAppointments = new();
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
     [ObservableProperty] private ObservableCollection<User> _doctors = new();
     [ObservableProperty] private Appointment? _selectedAppointment;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Appointments...";
+
+    partial void OnSearchTermChanged(string value) => FilterAppointments();
+
+    private void FilterAppointments()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Appointments = new ObservableCollection<Appointment>(_allAppointments);
+        }
+        else
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
+            Appointments = new ObservableCollection<Appointment>(
+                _allAppointments.Where(a => 
+                    (a.PatientName?.ToLower().Contains(term) ?? false) ||
+                    (a.AppointmentNo?.ToLower().Contains(term) ?? false) ||
+                    (a.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false) ||
+                    (a.Reason?.ToLower().Contains(term) ?? false)));
+        }
+    }
 
     // KPI Summary counts
     [ObservableProperty] private int _totalAppointmentsCount;
@@ -279,7 +303,8 @@ public partial class AppointmentViewModel : ViewModelBase
                 Patients = new ObservableCollection<Patient>(patients);
                 Doctors = new ObservableCollection<User>(doctors);
                 var sorted = new ObservableCollection<Appointment>(appointments.OrderBy(a => a.AppointmentDate).ThenBy(a => a.AppointmentTime));
-                Appointments = sorted;
+                _allAppointments = sorted;
+                FilterAppointments();
 
                 TotalAppointmentsCount = Appointments.Count;
                 ScheduledCount = Appointments.Count(a => a.Status == "Scheduled");

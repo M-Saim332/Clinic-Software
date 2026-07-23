@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Users"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -19,7 +20,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                         <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF">
-                            <PathIcon Data="{StaticResource IconUsers}" Width="22" Height="22"
+                            <materialIcons:MaterialIcon Kind="AccountCog" Width="22" Height="22"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -31,9 +32,14 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="＋ Add User" Command="{Binding NewCommand}"
+                    <Button  Command="{Binding NewCommand}"
                             Classes="btn-primary" DockPanel.Dock="Right"
-                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="AccountPlus" Width="18" Height="18"/>
+        <TextBlock Text="Add User" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -63,22 +69,10 @@
             <Border Grid.Row="2" Margin="28,8,28,4" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="10" Padding="16,10">
-                <Grid ColumnDefinitions="*,Auto,Auto">
-                    <!-- Search -->
-                    <Border Grid.Column="0" Background="{DynamicResource BrushBackground}"
-                            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                            CornerRadius="8" Padding="10,0" Margin="0,0,12,0">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <PathIcon Data="{StaticResource IconSearch}" Width="14" Height="14"
-                                      Foreground="{DynamicResource BrushInk400}"/>
-                            <TextBox Text="{Binding SearchQuery}" BorderThickness="0"
-                                     Background="Transparent" Height="34"
-                                     PlaceholderText="Search by name, username, email, phone or role..."
-                                     FontSize="13" VerticalContentAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
+                <Grid ColumnDefinitions="Auto,Auto">
+
                     <!-- Role Filter -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="0,0,12,0"
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" Margin="0,0,12,0"
                                 VerticalAlignment="Center">
                         <TextBlock Text="Role:" FontSize="12" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushInk500}" VerticalAlignment="Center"/>
@@ -87,7 +81,7 @@
                                   MinWidth="130" Height="34" FontSize="12"/>
                     </StackPanel>
                     <!-- Status Filter -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
                                 VerticalAlignment="Center">
                         <TextBlock Text="Status:" FontSize="12" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushInk500}" VerticalAlignment="Center"/>
@@ -235,7 +229,7 @@
                                                         Command="{Binding $parent[UserControl].((vm:UserRegistryViewModel)DataContext).EditCommand}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip.Tip="Edit User">
-                                                    <PathIcon Data="{StaticResource IconEdit}"
+                                                    <materialIcons:MaterialIcon Kind="Pencil"
                                                               Width="14" Height="14"
                                                               Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                                 </Button>
@@ -245,7 +239,7 @@
                                                         CommandParameter="{Binding}"
                                                         IsVisible="{Binding IsEditable}"
                                                         ToolTip.Tip="Reset Password">
-                                                    <PathIcon Data="{StaticResource IconAlert}"
+                                                    <materialIcons:MaterialIcon Kind="Alert"
                                                               Width="14" Height="14"
                                                               Foreground="{DynamicResource BrushAmber}"/>
                                                 </Button>
@@ -260,13 +254,13 @@
                                                     </Button.Background>
                                                     <Panel>
                                                         <!-- When active — show deactivate icon (lock) -->
-                                                        <PathIcon IsVisible="{Binding IsActive}"
-                                                                  Data="{StaticResource IconClose}"
+                                                        <materialIcons:MaterialIcon IsVisible="{Binding IsActive}"
+                                                                  Kind="Close"
                                                                   Width="14" Height="14"
                                                                   Foreground="#16A34A"/>
                                                         <!-- When inactive — show activate icon (check) -->
-                                                        <PathIcon IsVisible="{Binding !IsActive}"
-                                                                  Data="{StaticResource IconClose}"
+                                                        <materialIcons:MaterialIcon IsVisible="{Binding !IsActive}"
+                                                                  Kind="Close"
                                                                   Width="14" Height="14"
                                                                   Foreground="#6B7280"/>
                                                     </Panel>
@@ -277,7 +271,7 @@
                                                         CommandParameter="{Binding}"
                                                         IsVisible="{Binding IsDeletable}"
                                                         ToolTip.Tip="Delete User">
-                                                    <PathIcon Data="{StaticResource IconTrash}"
+                                                    <materialIcons:MaterialIcon Kind="Delete"
                                                               Width="14" Height="14"
                                                               Foreground="{DynamicResource BrushRose}"/>
                                                 </Button>
@@ -301,7 +295,7 @@
                     <StackPanel Spacing="20">
                         <StackPanel Orientation="Horizontal" Spacing="14">
                             <Border Width="48" Height="48" CornerRadius="24" Background="#FEF2F2">
-                                <PathIcon Data="{StaticResource IconTrash}" Width="22" Height="22"
+                                <materialIcons:MaterialIcon Kind="Delete" Width="22" Height="22"
                                           Foreground="{DynamicResource BrushRose}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -320,8 +314,18 @@
                             <Run Text=". All their login access will be removed."/>
                         </TextBlock>
                         <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                            <Button Content="Cancel" Command="{Binding CancelDeleteCommand}" Classes="btn-ghost"/>
-                            <Button Content="Yes, Delete" Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger"/>
+                            <Button  Command="{Binding CancelDeleteCommand}" Classes="btn-ghost">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                            <Button  Command="{Binding ConfirmDeleteCommand}" Classes="btn-danger">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+        <TextBlock Text="Yes, Delete" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -340,7 +344,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                         <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF">
-                            <PathIcon Data="{StaticResource IconUsers}" Width="22" Height="22"
+                            <materialIcons:MaterialIcon Kind="AccountCog" Width="22" Height="22"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -353,9 +357,14 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to List" Command="{Binding CancelCommand}"
+                    <Button  Command="{Binding CancelCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right"
-                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+        <TextBlock Text="Back to List" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -534,7 +543,7 @@
                                 Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1"
                                 CornerRadius="10" Padding="16,12">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16"
+                                <materialIcons:MaterialIcon Kind="Alert" Width="16" Height="16"
                                           Foreground="{DynamicResource BrushPrimaryBlue}"
                                           VerticalAlignment="Center"/>
                                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="#1D4ED8">
@@ -570,8 +579,8 @@
                                                 <Binding Path="FullName" FallbackValue="?"/>
                                             </TextBlock.Text>
                                         </TextBlock>
-                                        <PathIcon IsVisible="{Binding !HasProfilePicture}"
-                                                  Data="{StaticResource IconUsers}"
+                                        <materialIcons:MaterialIcon IsVisible="{Binding !HasProfilePicture}"
+                                                  Kind="AccountCog"
                                                   Width="40" Height="40"
                                                   Foreground="{DynamicResource BrushPrimaryBlue}"
                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -583,13 +592,23 @@
                                            HorizontalAlignment="Center" TextAlignment="Center"/>
 
                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                    <Button Content="Upload Photo"
+                                    <Button 
                                             Command="{Binding UploadPictureCommand}"
-                                            Classes="btn-secondary" Height="32" FontSize="12"/>
-                                    <Button Content="Remove"
+                                            Classes="btn-secondary" Height="32" FontSize="12">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Upload" Width="18" Height="18"/>
+        <TextBlock Text="Upload Photo" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                    <Button 
                                             Command="{Binding RemovePictureCommand}"
                                             Classes="btn-ghost" Height="32" FontSize="12"
-                                            IsVisible="{Binding HasProfilePicture}"/>
+                                            IsVisible="{Binding HasProfilePicture}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+        <TextBlock Text="Remove" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -668,8 +687,18 @@
                     </TextBlock>
                     <StackPanel Orientation="Horizontal" Spacing="12"
                                 HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Cancel" Command="{Binding CancelCommand}" Classes="btn-ghost"/>
-                        <Button Content="💾  Save User" Command="{Binding SaveCommand}" Classes="btn-primary"/>
+                        <Button  Command="{Binding CancelCommand}" Classes="btn-ghost">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding SaveCommand}" Classes="btn-primary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+        <TextBlock Text="Save User" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -687,7 +716,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
                         <Border Width="44" Height="44" CornerRadius="10" Background="#FFF7ED">
-                            <PathIcon Data="{StaticResource IconAlert}" Width="22" Height="22"
+                            <materialIcons:MaterialIcon Kind="Alert" Width="22" Height="22"
                                       Foreground="{DynamicResource BrushAmber}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -699,9 +728,14 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="← Back to List" Command="{Binding CancelResetPasswordCommand}"
+                    <Button  Command="{Binding CancelResetPasswordCommand}"
                             Classes="btn-secondary" DockPanel.Dock="Right"
-                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+        <TextBlock Text="Back to List" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -714,7 +748,7 @@
                             CornerRadius="10" Padding="16,14">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Border Width="44" Height="44" CornerRadius="22" Background="#DBEAFE">
-                                <PathIcon Data="{StaticResource IconUsers}" Width="20" Height="20"
+                                <materialIcons:MaterialIcon Kind="AccountCog" Width="20" Height="20"
                                           Foreground="{DynamicResource BrushPrimaryBlue}"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
@@ -787,8 +821,18 @@
 
                     <!-- Actions -->
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="Cancel" Command="{Binding CancelResetPasswordCommand}" Classes="btn-ghost"/>
-                        <Button Content="🔒  Reset Password" Command="{Binding SaveResetPasswordCommand}" Classes="btn-primary"/>
+                        <Button  Command="{Binding CancelResetPasswordCommand}" Classes="btn-ghost">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding SaveResetPasswordCommand}" Classes="btn-primary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="LockReset" Width="18" Height="18"/>
+        <TextBlock Text="Reset Password" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
 
                 </StackPanel>

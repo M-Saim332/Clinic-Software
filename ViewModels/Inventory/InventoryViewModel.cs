@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Inventory;
 
-public partial class InventoryViewModel : ViewModelBase
+public partial class InventoryViewModel : ViewModelBase, ISearchable
 {
     private readonly ProductRepository _productRepo;
     private readonly ReturnRepository _returnRepo;
@@ -20,6 +20,7 @@ public partial class InventoryViewModel : ViewModelBase
     [ObservableProperty] private string _statusMessage = string.Empty;
 
     [ObservableProperty] private ObservableCollection<Product> _allStock = new();
+    private List<Product> _rawList = new();
     [ObservableProperty] private ObservableCollection<Product> _lowStock = new();
     [ObservableProperty] private ObservableCollection<Product> _outOfStock = new();
     [ObservableProperty] private ObservableCollection<Product> _expired = new();
@@ -43,6 +44,29 @@ public partial class InventoryViewModel : ViewModelBase
     [ObservableProperty] private decimal _supplierCreditAmount;
     [ObservableProperty] private string _supplierReturnNotes = string.Empty;
 
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Inventory...";
+
+    partial void OnSearchTermChanged(string value) => FilterInventory();
+
+    private void FilterInventory()
+    {
+        var today = DateTime.Today;
+        var list = _rawList.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "");
+            list = list.Where(m => m.Name.ToLower().Contains(term) || (m.BatchNumber?.ToLower().Contains(term) ?? false));
+        }
+
+        AllStock = new ObservableCollection<Product>(list.OrderBy(m => m.Name));
+        LowStock = new ObservableCollection<Product>(list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
+        OutOfStock = new ObservableCollection<Product>(list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
+        Expired = new ObservableCollection<Product>(list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
+        NearExpiry = new ObservableCollection<Product>(list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30)).OrderBy(m => m.ExpiryDate));
+    }
+
     public async Task InitializeAsync()
     {
         try
@@ -53,20 +77,8 @@ public partial class InventoryViewModel : ViewModelBase
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => 
             {
-                AllStock = new ObservableCollection<Product>(list.OrderBy(m => m.Name));
-                
-                LowStock = new ObservableCollection<Product>(
-                    list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
-                    
-                OutOfStock = new ObservableCollection<Product>(
-                    list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
-                    
-                Expired = new ObservableCollection<Product>(
-                    list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
-                    
-                NearExpiry = new ObservableCollection<Product>(
-                    list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30))
-                        .OrderBy(m => m.ExpiryDate));
+                _rawList = list;
+                FilterInventory();
 
                 TotalStockItems = AllStock.Count;
                 LowStockCount = LowStock.Count;

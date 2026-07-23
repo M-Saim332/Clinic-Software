@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace ClinicSystem.UI.ViewModels.Settings;
 
-public partial class SettingsViewModel : ViewModelBase
+public partial class SettingsViewModel : ViewModelBase, ISearchable
 {
     private readonly DatabaseSession _dbSession;
     private readonly SettingsRepository _repo;
@@ -66,6 +66,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Settings...";
+
+    partial void OnSearchTermChanged(string value) 
+    {
+        // No search implemented in settings view currently
+    }
 
     public async Task InitializeAsync()
     {

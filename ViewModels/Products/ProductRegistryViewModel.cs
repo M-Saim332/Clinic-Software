@@ -10,7 +10,7 @@ namespace ClinicSystem.UI.ViewModels.Products;
 
 public enum FormMode { View, Add, Edit }
 
-public partial class ProductRegistryViewModel : ViewModelBase
+public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly ProductRepository _repo;
     private readonly CompanyRepository _companyRepo;
@@ -27,6 +27,7 @@ public partial class ProductRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Products...";
 
     // ── KPI Summary Card properties ────────────────────────────────────
     [ObservableProperty] private int _lowStockCount;

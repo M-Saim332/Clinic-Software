@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Appointments"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -16,8 +17,18 @@
                     <TextBlock Text="Create Patient?" FontSize="18" FontWeight="Bold"/>
                     <TextBlock Text="This appointment was completed but has no linked patient record. Would you like to create one?" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
-                        <Button Content="No, Skip" Command="{Binding DismissCreatePatientPromptCommand}" Classes="btn-secondary"/>
-                        <Button Content="Yes, Create Patient" Command="{Binding CreatePatientFromAppointmentCommand}" Classes="btn-primary"/>
+                        <Button  Command="{Binding DismissCreatePatientPromptCommand}" Classes="btn-secondary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Circle" Width="18" Height="18"/>
+        <TextBlock Text="No, Skip" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding CreatePatientFromAppointmentCommand}" Classes="btn-primary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
+        <TextBlock Text="Yes, Create Patient" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -31,7 +42,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                            <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20"
+                            <materialIcons:MaterialIcon Kind="CalendarCheck" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -43,8 +54,13 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="+ Book Appointment" Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Button  Command="{Binding NewCommand}"
+                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="CalendarPlus" Width="18" Height="18"/>
+        <TextBlock Text="Book Appointment" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -97,11 +113,36 @@
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                <Button Content="View" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                <Button Content="Edit" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                <Button Content="Complete" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).CompleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-success" Padding="8,4" Height="28" FontSize="11"/>
-                                                <Button Content="Missed" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkMissedSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11"/>
-                                                <Button Content="Cancel" Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkCancelledSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11"/>
+                                                <Button  Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).ViewSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18"/>
+        <TextBlock Text="View" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                                <Button  Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).EditSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
+        <TextBlock Text="Edit" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                                <Button  Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).CompleteSpecificCommand}" CommandParameter="{Binding}" Classes="btn-success" Padding="8,4" Height="28" FontSize="11">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
+        <TextBlock Text="Complete" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                                <Button  Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkMissedSpecificCommand}" CommandParameter="{Binding}" Classes="btn-secondary" Padding="8,4" Height="28" FontSize="11">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="CloseCircle" Width="18" Height="18"/>
+        <TextBlock Text="Missed" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                                                <Button  Command="{Binding #Root.((vm:AppointmentViewModel)DataContext).MarkCancelledSpecificCommand}" CommandParameter="{Binding}" Classes="btn-danger" Padding="8,4" Height="28" FontSize="11">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
@@ -121,7 +162,7 @@
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
-                            <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20"
+                            <materialIcons:MaterialIcon Kind="CalendarCheck" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
@@ -131,8 +172,13 @@
                             <TextBlock Text="Fill out appointment details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button Content="Back" Command="{Binding CancelCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <Button  Command="{Binding CancelCommand}"
+                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+        <TextBlock Text="Back" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                 </DockPanel>
             </Border>
 
@@ -204,8 +250,18 @@
                     <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Edit Appointment" Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedAppointment}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}"/>
-                        <Button Content="Save Appointment" Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}"/>
+                        <Button  Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedAppointment}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
+        <TextBlock Text="Edit Appointment" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+        <TextBlock Text="Save Appointment" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </DockPanel>
             </Border>

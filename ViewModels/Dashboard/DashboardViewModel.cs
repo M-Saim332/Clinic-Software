@@ -13,7 +13,7 @@ using System.Timers;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
-public partial class DashboardViewModel : ViewModelBase,
+public partial class DashboardViewModel : ViewModelBase, ISearchable,
     IRecipient<InventoryChangedMessage>,
     IRecipient<RefundIssuedMessage>,
     IRecipient<RefundCompletedMessage>,
@@ -135,6 +135,16 @@ public partial class DashboardViewModel : ViewModelBase,
     private bool _hasRecentActivities;
 
     public bool HasNoRecentActivities => !HasRecentActivities;
+
+    [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Dashboard...";
+
+    partial void OnSearchTermChanged(string value) => FilterActivities();
+
+    private void FilterActivities()
+    {
+        // Add minimal filtering for Dashboard activities if needed, else ignore
+    }
 
     [RelayCommand]
     public async Task InitializeAsync()

@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:ClinicSystem.UI.ViewModels"
         xmlns:userviews="using:ClinicSystem.UI.Views.Users"
         xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -24,20 +25,27 @@
       <!-- Top bar -->
       <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
               BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="24,0">
-        <DockPanel VerticalAlignment="Center">
+        <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
           <!-- Left: Clinic name chip and Page Title -->
-          <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+          <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <Border Background="{DynamicResource BrushBlue50}" CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                      <PathIcon Data="{StaticResource IconClinic}" Width="12" Height="12" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                      <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="12" Height="12" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                       <TextBlock Text="Care &amp; Cure Clinic" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                   </StackPanel>
               </Border>
               <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
           </StackPanel>
 
+          <!-- Middle: Global Search Bar -->
+          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="White" CornerRadius="8">
+              <TextBox.InnerLeftContent>
+                  <materialIcons:MaterialIcon Kind="Magnify" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" Margin="12,0,8,0"/>
+              </TextBox.InnerLeftContent>
+          </TextBox>
+
           <!-- Right: User Avatar, Name, Role and Options -->
-          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Right">
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Right">
             <TextBlock Text="{Binding TodayDate}" Foreground="{DynamicResource BrushInk600}" FontSize="13" VerticalAlignment="Center"/>
             
             <Border Width="1" Background="{DynamicResource BrushLine}" Height="20" VerticalAlignment="Center"/>
@@ -47,7 +55,7 @@
                     <MenuFlyout>
                         <MenuItem Header="Change Password" Command="{Binding OpenChangePasswordDialogCommand}">
                             <MenuItem.Icon>
-                                <PathIcon Data="{StaticResource IconUsers}" Width="14" Height="14"/>
+                                <materialIcons:MaterialIcon Kind="AccountCog" Width="14" Height="14"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator />
@@ -60,7 +68,7 @@
                 </Button.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushPrimaryBlue}">
-                        <PathIcon Data="{StaticResource IconUsers}" Width="16" Height="16" Foreground="White"/>
+                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="White"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="0">
                         <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
@@ -71,7 +79,7 @@
             <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource BrushTeal}" VerticalAlignment="Center"
                     ToolTip.Tip="Database connected"/>
           </StackPanel>
-        </DockPanel>
+        </Grid>
       </Border>
 
 
@@ -88,7 +96,7 @@
             <Border Width="64" Height="64" CornerRadius="32"
                     Background="White" BorderBrush="#2563EB" BorderThickness="1"
                     BoxShadow="0 4 6 -1 rgba(0,0,0,0.05)">
-              <PathIcon Data="{StaticResource IconClinic}" Width="24" Height="24"
+              <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="24" Height="24"
                         Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ProgressBar IsIndeterminate="True" Width="200" Height="4"
@@ -102,9 +110,9 @@
         <Border IsVisible="{Binding ShowAlert}" ZIndex="210" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,16,0,0">
             <Border Background="{DynamicResource BrushAmber50}" BorderBrush="{DynamicResource BrushAmber}" BorderThickness="1" CornerRadius="8" Padding="16,12" BoxShadow="0 4 12 0 rgba(0,0,0,0.1)">
                 <DockPanel>
-                    <PathIcon Data="{StaticResource IconAlert}" Width="16" Height="16" Foreground="{DynamicResource BrushAmber}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <materialIcons:MaterialIcon Kind="Alert" Width="16" Height="16" Foreground="{DynamicResource BrushAmber}" VerticalAlignment="Center" Margin="0,0,12,0"/>
                     <Button DockPanel.Dock="Right" Command="{Binding CloseAlertCommand}" Background="Transparent" BorderThickness="0" Padding="4" Width="24" Height="24" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="12,0,0,0">
-                        <PathIcon Data="{StaticResource IconClose}" Width="10" Height="10" Foreground="{DynamicResource BrushAmber}"/>
+                        <materialIcons:MaterialIcon Kind="Close" Width="10" Height="10" Foreground="{DynamicResource BrushAmber}"/>
                     </Button>
                     <TextBlock Text="{Binding AlertMessage}" Foreground="{DynamicResource BrushAmber}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
                 </DockPanel>
@@ -133,8 +141,18 @@
                     <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}" Text="Are you sure you want to sign out of the application?"/>
                     
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
-                        <Button Content="Cancel" Command="{Binding CancelLogoutCommand}" Background="Transparent" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
-                        <Button Content="Sign Out" Command="{Binding ConfirmLogoutCommand}" Background="{DynamicResource BrushRose}" Foreground="White" BorderThickness="0"/>
+                        <Button  Command="{Binding CancelLogoutCommand}" Background="Transparent" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
+                        <Button  Command="{Binding ConfirmLogoutCommand}" Background="{DynamicResource BrushRose}" Foreground="White" BorderThickness="0">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="Logout" Width="18" Height="18"/>
+        <TextBlock Text="Sign Out" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                     </StackPanel>
                 </StackPanel>
             </Border>

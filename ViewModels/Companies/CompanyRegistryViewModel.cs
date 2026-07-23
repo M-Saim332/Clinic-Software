@@ -6,9 +6,10 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Companies;
 
-public partial class CompanyRegistryViewModel : ViewModelBase
+public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly CompanyRepository _repo;
+    private ObservableCollection<Company> _allCompanies = new();
 
     public CompanyRegistryViewModel(CompanyRepository repo)
     {
@@ -23,6 +24,29 @@ public partial class CompanyRegistryViewModel : ViewModelBase
     private ObservableCollection<Company> _companies = new();
     [ObservableProperty]
     private Company? _selectedCompany;
+
+    [ObservableProperty]
+    private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Companies...";
+
+    partial void OnSearchTermChanged(string value) => FilterCompanies();
+
+    private void FilterCompanies()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Companies = new ObservableCollection<Company>(_allCompanies);
+        }
+        else
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "");
+            Companies = new ObservableCollection<Company>(
+                _allCompanies.Where(c => c.Name.ToLower().Contains(term)
+                                   || c.CompanyID.ToString().Contains(term)
+                                   || (c.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                                   || (c.Email?.ToLower().Contains(term) ?? false)));
+        }
+    }
     
     partial void OnSelectedCompanyChanged(Company? value)
     {
@@ -156,7 +180,8 @@ public partial class CompanyRegistryViewModel : ViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 StatusMessage = string.Empty;
-                Companies = new ObservableCollection<Company>(list);
+                _allCompanies = new ObservableCollection<Company>(list);
+                FilterCompanies();
             });
         }
         catch (Exception ex)

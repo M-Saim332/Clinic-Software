@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 namespace ClinicSystem.UI.ViewModels.Patients;
 
 
-public partial class PatientRegistryViewModel : ViewModelBase
+public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly PatientRepository _repo;
     private readonly SaleRepository _saleRepo;
@@ -37,6 +37,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Patients...";
 
     [ObservableProperty] private int _totalPatientsCount;
     [ObservableProperty] private int _activeThisMonthCount;
@@ -73,6 +74,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _age = string.Empty;
     [ObservableProperty] private string _gender = "Male";
     [ObservableProperty] private string _phone = string.Empty;
+    [ObservableProperty] private string _cNIC = string.Empty;
     [ObservableProperty] private string _address = string.Empty;
     [ObservableProperty] private string _diagnosis = string.Empty;
     [ObservableProperty] private string _prescription = string.Empty;
@@ -259,10 +261,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
             FilteredPatients = new ObservableCollection<Patient>(sourceList);
         else
         {
-            var term = SearchTerm.ToLower();
+            var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
             FilteredPatients = new ObservableCollection<Patient>(
                 sourceList.Where(p => p.Name.ToLower().Contains(term)
-                                   || (p.Phone?.ToLower().Contains(term) ?? false)
+                                   || p.PatientID.ToString().Contains(term)
+                                   || (p.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                                   || (p.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (p.Address?.ToLower().Contains(term) ?? false)
                                    || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
         }
@@ -271,7 +275,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     private void ClearFields()
     {
         Name = string.Empty; Age = string.Empty; Gender = "Male";
-        Phone = string.Empty; Address = string.Empty;
+        Phone = string.Empty; CNIC = string.Empty; Address = string.Empty;
         Diagnosis = string.Empty; Prescription = string.Empty;
         ConsultationFee = "0.00"; Discount = "0.00";
     }
@@ -280,6 +284,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     {
         Name = p.Name; Age = p.Age?.ToString() ?? string.Empty;
         Gender = p.Gender ?? "Male"; Phone = p.Phone ?? string.Empty;
+        CNIC = p.CNIC ?? string.Empty;
         Address = p.Address ?? string.Empty;
         Diagnosis = p.Diagnosis ?? string.Empty; Prescription = p.Prescription ?? string.Empty;
         ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = p.Discount.ToString("F2");
@@ -288,7 +293,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     private Patient BuildPatient() => new()
     {
         Name = Name, Age = int.TryParse(Age, out var a) ? a : null,
-        Gender = Gender, Phone = Phone, Address = Address,
+        Gender = Gender, Phone = Phone, CNIC = CNIC, Address = Address,
         Diagnosis = Diagnosis, Prescription = Prescription,
         ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
         Discount = decimal.TryParse(Discount, out var d) ? d : 0

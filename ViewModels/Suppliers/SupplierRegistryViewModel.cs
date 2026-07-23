@@ -6,9 +6,10 @@ using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Suppliers;
 
-public partial class SupplierRegistryViewModel : ViewModelBase
+public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly SupplierRepository _repo;
+    private ObservableCollection<Supplier> _allSuppliers = new();
 
     public SupplierRegistryViewModel(SupplierRepository repo)
     {
@@ -24,6 +25,30 @@ public partial class SupplierRegistryViewModel : ViewModelBase
     [ObservableProperty]
     private Supplier? _selectedSupplier;
 
+    [ObservableProperty]
+    private string _searchTerm = string.Empty;
+    public string SearchPlaceholder => "Search Suppliers...";
+
+    partial void OnSearchTermChanged(string value) => FilterSuppliers();
+
+    private void FilterSuppliers()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            Suppliers = new ObservableCollection<Supplier>(_allSuppliers);
+        }
+        else
+        {
+            var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
+            Suppliers = new ObservableCollection<Supplier>(
+                _allSuppliers.Where(s => s.Name.ToLower().Contains(term)
+                                   || s.SupplierID.ToString().Contains(term)
+                                   || (s.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                                   || (s.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                                   || (s.Email?.ToLower().Contains(term) ?? false)));
+        }
+    }
+
     // Fields for editing/adding
     [ObservableProperty]
     private string _name = string.Empty;
@@ -33,6 +58,8 @@ public partial class SupplierRegistryViewModel : ViewModelBase
     private string _phone = string.Empty;
     [ObservableProperty]
     private string _email = string.Empty;
+    [ObservableProperty]
+    private string _cNIC = string.Empty;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -86,7 +113,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase
     private async Task SaveAsync()
     {
         if (string.IsNullOrWhiteSpace(Name)) { StatusMessage = "Name required."; return; }
-        var s = new Supplier { Name = Name, Address = Address, Phone = Phone, Email = Email };
+        var s = new Supplier { Name = Name, Address = Address, Phone = Phone, Email = Email, CNIC = CNIC };
         if (Mode == FormMode.Add)
         {
             await Task.Run(() => _repo.Insert(s));
@@ -121,7 +148,8 @@ public partial class SupplierRegistryViewModel : ViewModelBase
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 StatusMessage = string.Empty;
-                Suppliers = new ObservableCollection<Supplier>(list);
+                _allSuppliers = new ObservableCollection<Supplier>(list);
+                FilterSuppliers();
             });
         }
         catch (Exception ex)
@@ -133,12 +161,12 @@ public partial class SupplierRegistryViewModel : ViewModelBase
 
     private void ClearFields()
     {
-        Name = string.Empty; Address = string.Empty; Phone = string.Empty; Email = string.Empty;
+        Name = string.Empty; Address = string.Empty; Phone = string.Empty; Email = string.Empty; CNIC = string.Empty;
     }
 
     private void FillFields(Supplier s)
     {
-        Name = s.Name; Address = s.Address ?? string.Empty; Phone = s.Phone ?? string.Empty; Email = s.Email ?? string.Empty;
+        Name = s.Name; Address = s.Address ?? string.Empty; Phone = s.Phone ?? string.Empty; Email = s.Email ?? string.Empty; CNIC = s.CNIC ?? string.Empty;
     }
 
     private void NotifyButtonStates()

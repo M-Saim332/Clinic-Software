@@ -1,4 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              x:Class="ClinicSystem.UI.Views.Prescriptions.VisitHistoryView"
@@ -12,7 +13,7 @@
                     BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
                 <DockPanel>
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <PathIcon Data="{StaticResource IconAppointments}" Width="20" Height="20" Foreground="#2563EB"/>
+                        <materialIcons:MaterialIcon Kind="CalendarCheck" Width="20" Height="20" Foreground="#2563EB"/>
                         <TextBlock Text="Visit History" FontSize="20" FontWeight="Bold"
                                    Foreground="#1F2937" VerticalAlignment="Center"/>
                     </StackPanel>
@@ -24,13 +25,13 @@
                         </Border>
                         <Button Command="{Binding ShowPatientsCommand}" Classes="action">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconFilter}" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="Filter" Width="14" Height="14" Foreground="#1F2937" VerticalAlignment="Center"/>
                                 <TextBlock Text="Filter by Patient" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding LoadAllVisitsCommand}" Classes="action primary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconClock}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="Show All" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
@@ -105,7 +106,7 @@
                             <Button DockPanel.Dock="Right" Command="{Binding ClosePatientListCommand}"
                                     Background="Transparent" BorderThickness="0"
                                     Height="36" Width="36" Padding="0">
-                                <PathIcon Data="{StaticResource IconClose}" Width="14" Height="14" Foreground="#6B7280"/>
+                                <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" Foreground="#6B7280"/>
                             </Button>
                         </DockPanel>
                         <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
@@ -124,7 +125,7 @@
                                 CommandParameter="{Binding SelectedFilteredPatient}"
                                 Classes="primary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <PathIcon Data="{StaticResource IconPatients}" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                <materialIcons:MaterialIcon Kind="AccountMultiple" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBlock Text="View History" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
