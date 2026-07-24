@@ -443,7 +443,7 @@ public class DatabaseSession
         var tables = new[]
         {
             "SaleItems", "Sales", "PurchaseItems", "Purchases",
-            "ProductReturns", "PrescriptionItems", "Prescriptions",
+            "Returns", "DiscountRefunds", "ActivityLogs", "PrescriptionItems", "Prescriptions",
             "Appointments", "Patients", "Products", "Companies", "Suppliers"
         };
         foreach (var t in tables)

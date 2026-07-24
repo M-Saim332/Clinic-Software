@@ -171,6 +171,9 @@ public class ProductRepository
             // Cascade delete PurchaseItems
             conn.Execute("DELETE FROM PurchaseItems WHERE ProductID = @id", new { id }, tx);
 
+            // Cascade delete Returns
+            conn.Execute("DELETE FROM Returns WHERE ProductId = @id", new { id }, tx);
+
             // Delete the Product
             conn.Execute("DELETE FROM Products WHERE ProductID = @id", new { id }, tx);
 

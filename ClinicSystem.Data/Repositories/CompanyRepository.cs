@@ -63,16 +63,22 @@ public class CompanyRepository
                 WHERE ProductID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
                 new { id }, tx);
 
-            // Step 4: Delete PurchaseItems for products from this company
+            // Step 2: Delete PurchaseItems for products from this company
             conn.Execute(@"
                 DELETE FROM PurchaseItems 
                 WHERE ProductID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
                 new { id }, tx);
 
-            // Step 5: Delete Products from this company
+            // Step 3: Delete Returns for products from this company
+            conn.Execute(@"
+                DELETE FROM Returns 
+                WHERE ProductId IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
+                new { id }, tx);
+
+            // Step 4: Delete Products from this company
             conn.Execute("DELETE FROM Products WHERE CompanyID = @id", new { id }, tx);
 
-            // Step 6: Delete the Company itself
+            // Step 5: Delete the Company itself
             conn.Execute("DELETE FROM Companies WHERE CompanyID = @id", new { id }, tx);
 
             tx.Commit();
