@@ -14,9 +14,9 @@
                 BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushPrimaryBlue50}">
+                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource ThemePrimaryLightBrush}">
                         <materialIcons:MaterialIcon Kind="Cog" Width="20" Height="20"
-                                  Foreground="{DynamicResource BrushPrimaryBlue}"
+                                  Foreground="{DynamicResource ThemePrimaryBrush}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
@@ -126,6 +126,56 @@
                                 <ComboBox ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding Language}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- APPEARANCE & THEME (Admin Only) -->
+                <Border IsVisible="{Binding IsAdmin}" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="APPEARANCE &amp; THEME" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
+                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        
+                        <TextBlock Text="Select the application color theme. Changes are previewed immediately." Classes="label" Foreground="{DynamicResource BrushInk600}" Margin="0,0,0,8"/>
+                        
+                        <ListBox ItemsSource="{Binding AvailableThemes}" SelectedValueBinding="{Binding Name}" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
+                                 Background="Transparent" BorderThickness="0">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="4"/>
+                                    <Setter Property="Margin" Value="4"/>
+                                    <Setter Property="CornerRadius" Value="12"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
+                                </Style>
+                                <Style Selector="ListBoxItem:selected Border.themeCard">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
+                                </Style>
+                            </ListBox.Styles>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Classes="themeCard" BorderThickness="2" CornerRadius="10" Padding="12" Width="140" Height="110"
+                                            Background="White" BorderBrush="{DynamicResource BrushLine}">
+                                        <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <!-- Color circles -->
+                                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                                <!-- Sidebar color -->
+                                                <Border Width="24" Height="24" CornerRadius="12" Background="{Binding SidebarBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
+                                                <!-- Primary color -->
+                                                <Border Width="24" Height="24" CornerRadius="12" Background="{Binding Primary}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BrushInk900}" TextAlignment="Center" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
                     </StackPanel>
                 </Border>
 
@@ -326,7 +376,7 @@
             <Setter Property="Padding" Value="12,8"/>
         </Style>
         <Style Selector="Button.btn-primary">
-            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
@@ -336,7 +386,7 @@
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryHoverBrush}"/>
             <Setter Property="TextElement.Foreground" Value="White"/>
         </Style>
         <Style Selector="Button.btn-secondary">

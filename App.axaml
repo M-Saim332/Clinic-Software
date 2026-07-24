@@ -105,29 +105,29 @@
 
         <!-- Primary Button -->
         <Style Selector="Button.primary">
-            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="BorderThickness" Value="0"/>
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryHoverBrush}"/>
             <Setter Property="TextElement.Foreground" Value="#FFFFFF"/>
         </Style>
         <Style Selector="Button.primary:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1E40AF"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryPressedBrush}"/>
         </Style>
 
         <!-- Secondary Button -->
         <Style Selector="Button.secondary">
             <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemePrimaryBrush}"/>
         </Style>
         <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EFF6FF"/>
-            <Setter Property="BorderBrush" Value="#1D4ED8"/>
-            <Setter Property="TextElement.Foreground" Value="#1D4ED8"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryHoverBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemePrimaryHoverBrush}"/>
         </Style>
 
         <!-- Danger Button -->
@@ -163,16 +163,15 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="#1F2937"/>
-            <Setter Property="CaretBrush" Value="#2563EB"/>
-            <Setter Property="SelectionBrush" Value="#DBEAFE"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
         <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="BorderBrush" Value="#CBD5E1"/>
         </Style>
         <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BoxShadow" Value="0 0 0 2 #3B82F6"/>
         </Style>
 
         <!-- ComboBoxes Redesign -->
@@ -191,7 +190,7 @@
             <Setter Property="BorderBrush" Value="#CBD5E1"/>
         </Style>
         <Style Selector="ComboBox:focus /template/ Border#PART_BorderElement">
-            <Setter Property="BorderBrush" Value="#2563EB"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
 
@@ -249,13 +248,13 @@
             <Setter Property="FontSize" Value="14"/>
         </Style>
         <Style Selector="DataGridRow:pointerover">
-            <Setter Property="Background" Value="#EFF6FF"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
         <Style Selector="DataGridRow:selected">
-            <Setter Property="Background" Value="#DBEAFE"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
         <Style Selector="DataGridRow:selected /template/ Rectangle#BackgroundRectangle">
-            <Setter Property="Fill" Value="#DBEAFE"/>
+            <Setter Property="Fill" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
 
         <!-- Modern TabControl styling -->
@@ -269,7 +268,7 @@
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
         <Style Selector="TabItem:selected">
-            <Setter Property="Foreground" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
         </Style>
         <Style Selector="TabItem:pointerover">
@@ -297,7 +296,7 @@
         <!-- Sidebar nav button classes -->
         <Style Selector="Button.navbtn">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeSidebarForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="16,10"/>
             <Setter Property="CornerRadius" Value="8"/>
@@ -309,12 +308,12 @@
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EFF6FF"/>
-            <Setter Property="TextElement.Foreground" Value="#2563EB"/>
+            <Setter Property="Background" Value="{DynamicResource ThemeSidebarHoverBackgroundBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeSidebarHoverForegroundBrush}"/>
         </Style>
         <Style Selector="Button.navbtn.active /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EFF6FF"/>
-            <Setter Property="TextElement.Foreground" Value="#2563EB"/>
+            <Setter Property="Background" Value="{DynamicResource ThemeSidebarActiveBackgroundBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeSidebarActiveForegroundBrush}"/>
             <Setter Property="TextElement.FontWeight" Value="SemiBold"/>
         </Style>
 
@@ -352,10 +351,10 @@
             <Setter Property="Background" Value="Transparent"/>
         </Style>
         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EFF6FF"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
         <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-            <Setter Property="Background" Value="#DBEAFE"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
         </Style>
     </Application.Styles>
 </Application>

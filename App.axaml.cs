@@ -98,6 +98,10 @@ public partial class App : Application
         ClinicSystem.Data.Services.ActivityService.OnActivityLogged += log =>
             WeakReferenceMessenger.Default.Send(new ActivityLogMessage(log));
 
+        // Initialize ThemeService
+        var settingsRepo = _services.GetRequiredService<SettingsRepository>();
+        ClinicSystem.UI.Services.ThemeService.Initialize(settingsRepo);
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             ShowLoginWindow(desktop);

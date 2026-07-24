@@ -23,32 +23,31 @@
     <Grid Grid.Column="1" RowDefinitions="60,Auto,*,Auto">
 
       <!-- Top bar -->
-      <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-              BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="24,0">
+      <Border Grid.Row="0" Background="{DynamicResource ThemeSidebarBackgroundBrush}"
+              BorderThickness="0" Padding="24,0">
         <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
           <!-- Left: Clinic name chip and Page Title -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-              <Border Background="{DynamicResource BrushBlue50}" CornerRadius="{DynamicResource CornerRadiusPill}" Padding="12,6">
-                  <StackPanel Orientation="Horizontal" Spacing="6">
-                      <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="12" Height="12" Foreground="{DynamicResource BrushPrimaryBlue}"/>
-                      <TextBlock Text="Care &amp; Cure Clinic" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
-                  </StackPanel>
-              </Border>
-              <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                  <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18" Foreground="White"/>
+                  <TextBlock Text="Care &amp; Cure Clinic" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+              </StackPanel>
+              
+              <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="White" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Middle: Global Search Bar -->
-          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="White" CornerRadius="8">
+          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="White" CornerRadius="8" BorderThickness="0">
               <TextBox.InnerLeftContent>
-                  <materialIcons:MaterialIcon Kind="Magnify" Width="14" Height="14" Foreground="{DynamicResource BrushInk400}" Margin="12,0,8,0"/>
+                  <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Foreground="{DynamicResource ThemeSidebarBackgroundBrush}" Margin="12,0,8,0"/>
               </TextBox.InnerLeftContent>
           </TextBox>
 
           <!-- Right: User Avatar, Name, Role and Options -->
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding TodayDate}" Foreground="{DynamicResource BrushInk600}" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TodayDate}" Foreground="White" FontSize="13" VerticalAlignment="Center"/>
             
-            <Border Width="1" Background="{DynamicResource BrushLine}" Height="20" VerticalAlignment="Center"/>
+            <Border Width="1" Background="{DynamicResource ThemePrimaryLightBrush}" Height="20" VerticalAlignment="Center" Opacity="0.4"/>
             
             <Button Background="Transparent" BorderThickness="0" Padding="8,4" CornerRadius="8">
                 <Button.Flyout>
@@ -67,16 +66,16 @@
                     </MenuFlyout>
                 </Button.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushPrimaryBlue}">
-                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="White"/>
+                    <Border Width="32" Height="32" CornerRadius="16" Background="White">
+                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="{DynamicResource ThemeSidebarBackgroundBrush}"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="0">
-                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
-                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
+                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource ThemePrimaryLightBrush}"/>
                     </StackPanel>
                 </StackPanel>
             </Button>
-            <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource BrushTeal}" VerticalAlignment="Center"
+            <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" VerticalAlignment="Center"
                     ToolTip.Tip="Database connected"/>
           </StackPanel>
         </Grid>
@@ -94,13 +93,13 @@
                 Background="rgba(248, 250, 252, 0.85)">
           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="18">
             <Border Width="64" Height="64" CornerRadius="32"
-                    Background="White" BorderBrush="#2563EB" BorderThickness="1"
+                    Background="White" BorderBrush="{DynamicResource ThemePrimaryBrush}" BorderThickness="1"
                     BoxShadow="0 4 6 -1 rgba(0,0,0,0.05)">
               <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="24" Height="24"
-                        Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        Foreground="{DynamicResource ThemePrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
             <ProgressBar IsIndeterminate="True" Width="200" Height="4"
-                         Foreground="#2563EB" Background="#E5E7EB"/>
+                         Foreground="{DynamicResource ThemePrimaryBrush}" Background="#E5E7EB"/>
             <TextBlock Text="Loading data…" Foreground="#4B5563" FontSize="13"
                        HorizontalAlignment="Center" FontWeight="Medium"/>
           </StackPanel>
