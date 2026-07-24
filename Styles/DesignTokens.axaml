@@ -19,6 +19,18 @@
   <Color x:Key="ColorRose100">#FFE4E6</Color>
   <Color x:Key="ColorInk800">#1E293B</Color>
 
+  <!-- Theme Default Colors (Slate & Indigo) -->
+  <Color x:Key="ThemeSidebarBackgroundColor">#1E293B</Color>
+  <Color x:Key="ThemeSidebarForegroundColor">#94A3B8</Color>
+  <Color x:Key="ThemeSidebarHoverBackgroundColor">#334155</Color>
+  <Color x:Key="ThemeSidebarHoverForegroundColor">#F8FAFC</Color>
+  <Color x:Key="ThemeSidebarActiveBackgroundColor">#334155</Color>
+  <Color x:Key="ThemeSidebarActiveForegroundColor">#818CF8</Color>
+  <Color x:Key="ThemePrimaryColor">#4F46E5</Color>
+  <Color x:Key="ThemePrimaryHoverColor">#4338CA</Color>
+  <Color x:Key="ThemePrimaryPressedColor">#3730A3</Color>
+  <Color x:Key="ThemePrimaryLightColor">#EEF2FF</Color>
+
   <!-- Brushes -->
   <SolidColorBrush x:Key="BrushPrimaryBlue" Color="{StaticResource ColorPrimaryBlue}"/>
   <SolidColorBrush x:Key="BrushBlue50" Color="{StaticResource ColorBlue50}"/>
@@ -37,6 +49,18 @@
   <SolidColorBrush x:Key="BrushPrimaryBlue50" Color="{StaticResource ColorPrimaryBlue50}"/>
   <SolidColorBrush x:Key="BrushRose100" Color="{StaticResource ColorRose100}"/>
   <SolidColorBrush x:Key="BrushInk800" Color="{StaticResource ColorInk800}"/>
+
+  <!-- Theme Default Brushes -->
+  <SolidColorBrush x:Key="ThemeSidebarBackgroundBrush" Color="{DynamicResource ThemeSidebarBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarForegroundBrush" Color="{DynamicResource ThemeSidebarForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverBackgroundBrush" Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverForegroundBrush" Color="{DynamicResource ThemeSidebarHoverForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveBackgroundBrush" Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveForegroundBrush" Color="{DynamicResource ThemeSidebarActiveForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryBrush" Color="{DynamicResource ThemePrimaryColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryHoverBrush" Color="{DynamicResource ThemePrimaryHoverColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryPressedBrush" Color="{DynamicResource ThemePrimaryPressedColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryLightBrush" Color="{DynamicResource ThemePrimaryLightColor}"/>
 
   <!-- Corner Radii -->
   <CornerRadius x:Key="CornerRadiusCard">14</CornerRadius>

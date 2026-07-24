@@ -9,6 +9,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using System.Globalization;
 using System.Collections.Generic;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Settings;
 
@@ -64,6 +65,18 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     public List<string> TimeFormatOptions { get; } = new() { "HH:mm", "hh:mm tt" };
     public List<string> LanguageOptions { get; } = new() { "English", "Urdu", "Arabic" };
 
+    // -- Appearance Settings
+    [ObservableProperty] private string _selectedTheme = ThemeService.CurrentThemeName;
+    public List<ThemeDefinition> AvailableThemes => ThemeService.AvailableThemes;
+
+    partial void OnSelectedThemeChanged(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            ThemeService.ApplyTheme(value);
+        }
+    }
+
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _isBusy;
 
@@ -98,6 +111,11 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
                 if (dict.TryGetValue("DateFormat", out val)) DateFormat = val;
                 if (dict.TryGetValue("TimeFormat", out val)) TimeFormat = val;
                 if (dict.TryGetValue("Language", out val)) Language = val;
+                
+                if (dict.TryGetValue("AppTheme", out val)) 
+                {
+                    SelectedTheme = val;
+                }
             });
         }
         catch (Exception ex)
@@ -134,6 +152,8 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
                 _repo.SetValue("DateFormat", DateFormat);
                 _repo.SetValue("TimeFormat", TimeFormat);
                 _repo.SetValue("Language", Language);
+                
+                _repo.SetValue("AppTheme", SelectedTheme ?? "Slate & Indigo");
             });
             StatusMessage = "Settings saved successfully!";
             LogActivity("Settings Updated", "Application settings were updated", "Settings");
