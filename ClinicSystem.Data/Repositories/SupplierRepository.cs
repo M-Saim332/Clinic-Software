@@ -78,6 +78,12 @@ public class SupplierRepository
                 WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
                 new { id }, tx);
 
+            // Cascade delete Returns for products from this supplier or directly referencing supplier
+            conn.Execute(@"
+                DELETE FROM Returns 
+                WHERE SupplierId = @id OR ProductId IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
+                new { id }, tx);
+
             // Cascade delete Products
             conn.Execute("DELETE FROM Products WHERE SupplierID = @id", new { id }, tx);
             

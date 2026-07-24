@@ -303,7 +303,7 @@
             <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Height" Value="42"/>
             <Setter Property="Cursor" Value="Hand"/>

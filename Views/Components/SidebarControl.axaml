@@ -39,7 +39,7 @@
 
                     <!-- MANAGEMENT SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
-                    <TextBlock Text="MANAGEMENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
+                    <TextBlock Text="MANAGEMENT" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
 
                     <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -78,7 +78,7 @@
 
                     <!-- TRANSACTIONS SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasTransactionsAccess}"/>
-                    <TextBlock Text="TRANSACTIONS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasTransactionsAccess}"/>
+                    <TextBlock Text="TRANSACTIONS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasTransactionsAccess}"/>
 
                     <Button Command="{Binding ShowPurchasesCommand}" Classes="navbtn" Classes.active="{Binding IsPurchasesActive}" IsVisible="{Binding CanAccessPurchases}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -98,7 +98,7 @@
 
                     <!-- ANALYSIS SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasAnalysisAccess}"/>
-                    <TextBlock Text="ANALYSIS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasAnalysisAccess}"/>
+                    <TextBlock Text="ANALYSIS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasAnalysisAccess}"/>
 
                     <Button Command="{Binding ShowInventoryCommand}" Classes="navbtn" Classes.active="{Binding IsInventoryActive}" IsVisible="{Binding CanAccessInventory}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -120,7 +120,7 @@
             <!-- Bottom pinned Settings section -->
             <Border Grid.Row="2" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="12,12">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="SETTINGS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,4" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
+                    <TextBlock Text="SETTINGS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="8,0,0,4" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
                     <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <materialIcons:MaterialIcon Kind="AccountCircle" Width="16" Height="16" VerticalAlignment="Center"/>
