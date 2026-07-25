@@ -7,7 +7,7 @@
         x:Class="ClinicSystem.UI.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel" x:CompileBindings="True"
         Title="Clinic Management System"
-        Width="1280" Height="780"
+        Width="1280" Height="700"
         MinWidth="1000" MinHeight="620"
         WindowStartupLocation="CenterScreen"
         Background="#F8FAFC"
@@ -29,23 +29,23 @@
           <!-- Left: Clinic name chip and Page Title -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="6">
-                  <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18" Foreground="White"/>
-                  <TextBlock Text="Care &amp; Cure Clinic" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                  <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18" Foreground="{DynamicResource ThemeSidebarForegroundBrush}"/>
+                  <TextBlock Text="Care &amp; Cure Clinic" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" VerticalAlignment="Center"/>
               </StackPanel>
               
-              <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="White" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Middle: Global Search Bar -->
-          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="White" CornerRadius="8" BorderThickness="0">
+          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="{DynamicResource BrushCardBackground}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}">
               <TextBox.InnerLeftContent>
-                  <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Foreground="{DynamicResource ThemeSidebarBackgroundBrush}" Margin="12,0,8,0"/>
+                  <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Foreground="{DynamicResource BrushInk400}" Margin="12,0,8,0"/>
               </TextBox.InnerLeftContent>
           </TextBox>
 
           <!-- Right: User Avatar, Name, Role and Options -->
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding TodayDate}" Foreground="White" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TodayDate}" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontSize="13" VerticalAlignment="Center"/>
             
             <Border Width="1" Background="{DynamicResource ThemePrimaryLightBrush}" Height="20" VerticalAlignment="Center" Opacity="0.4"/>
             
@@ -66,12 +66,12 @@
                     </MenuFlyout>
                 </Button.Flyout>
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" CornerRadius="16" Background="White">
-                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="{DynamicResource ThemeSidebarBackgroundBrush}"/>
+                    <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushBlue50}">
+                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="{DynamicResource ThemePrimaryBrush}"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="0">
-                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
-                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource ThemePrimaryLightBrush}"/>
+                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Opacity="0.8"/>
                     </StackPanel>
                 </StackPanel>
             </Button>

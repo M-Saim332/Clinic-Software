@@ -10,7 +10,7 @@
              Width="224"
              Background="{DynamicResource ThemeSidebarBackgroundBrush}">
     <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,1,0">
-        <Grid RowDefinitions="Auto,*">
+        <Grid RowDefinitions="Auto,*,Auto">
             <!-- Logo / Brand -->
             <Border Grid.Row="0" Padding="20,24" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
                 <StackPanel Orientation="Horizontal" Spacing="12">
@@ -113,27 +113,28 @@
                             <TextBlock Text="Reports" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <!-- SETTINGS SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasUserSettingsAccess}"/>
-                    <TextBlock Text="SETTINGS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
-                    
-                    <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="AccountCircle" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Profile" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                    
-                    <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
                 </StackPanel>
             </ScrollViewer>
+
+            <!-- Fixed Bottom Section -->
+            <StackPanel Grid.Row="2" Spacing="4" Margin="12,0,12,24">
+                <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,0,8,12" IsVisible="{Binding HasUserSettingsAccess}"/>
+                <TextBlock Text="SETTINGS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
+                
+                <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}" IsVisible="{Binding CanAccessSettings}">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <materialIcons:MaterialIcon Kind="AccountCircle" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="Profile" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
     </Border>
 </UserControl>
