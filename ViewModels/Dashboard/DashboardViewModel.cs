@@ -113,9 +113,10 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     [ObservableProperty] private int    _totalPatients;
 
     // ── Financials summary under charts ────────────────────────────────────
-    [ObservableProperty] private string _summaryTotalRevenue  = "Rs. 0.00";
-    [ObservableProperty] private string _summaryTotalProfit   = "Rs. 0.00";
-    [ObservableProperty] private string _totalStockValue      = "Rs. 0.00";
+    [ObservableProperty] private string _summaryTotalRevenue      = "Rs. 0.00";
+    [ObservableProperty] private string _summaryTotalProfit       = "Rs. 0.00";
+    [ObservableProperty] private string _totalStockValue          = "Rs. 0.00";
+    [ObservableProperty] private string _totalConsultationFee     = "Rs. 0.00";
 
     // ── Charts Data ────────────────────────────────────────────────────────
     [ObservableProperty] private ISeries[] _profitSeries  = Array.Empty<ISeries>();
@@ -163,6 +164,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             int todayPatientsCount = await Task.Run(() => _appointmentRepo.GetTodayDistinctPatientCount());
             
             decimal stockValue = await Task.Run(() => _productRepo.GetTotalStockValue());
+            decimal totalConsultFee = await Task.Run(() => _saleRepo.GetTotalConsultationFee());
             
             var lowStock = await Task.Run(() => _productRepo.GetLowStock().Take(6).ToList());
             var expiringSoon = await Task.Run(() => _productRepo.GetExpiringSoon(30).Take(6).ToList());
@@ -324,9 +326,10 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";
                 TodayProfit  = $"Rs. {Math.Max(0, todayProfitAmt):N2}";
 
-                SummaryTotalRevenue = $"Rs. {totalRevenue:N2}";
-                SummaryTotalProfit  = $"Rs. {totalProfit:N2}";
-                TotalStockValue     = $"Rs. {stockValue:N2}";
+                SummaryTotalRevenue    = $"Rs. {totalRevenue:N2}";
+                SummaryTotalProfit     = $"Rs. {totalProfit:N2}";
+                TotalStockValue        = $"Rs. {stockValue:N2}";
+                TotalConsultationFee   = $"Rs. {totalConsultFee:N2}";
 
                 LowStockProducts     = new ObservableCollection<Product>(lowStock);
                 ExpiringSoonProducts = new ObservableCollection<Product>(expiringSoon);

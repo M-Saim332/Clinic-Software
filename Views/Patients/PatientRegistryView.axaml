@@ -54,7 +54,7 @@
                     Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
                 <comp:SummaryCardControl Grid.Column="3"
-                    Title="Avg Consultation Fee"
+                    Title="Total Consult. Fee"
                     Value="{Binding AvgConsultationFee}"
                     BorderColor="{DynamicResource BrushRose}"/>
             </Grid>
@@ -179,13 +179,6 @@
                             <TextBlock Text="Fill out patient details below" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button  Command="{Binding CancelCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-        <TextBlock Text="Back" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
                 </DockPanel>
             </Border>
 
@@ -261,6 +254,12 @@
                                VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap" Margin="0,0,16,0"/>
                     <!-- Buttons locked to the right -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Button  Command="{Binding CancelCommand}" Classes="btn-secondary">
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+        <TextBlock Text="Back" VerticalAlignment="Center"/>
+    </StackPanel>
+</Button>
                         <Button  Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>

@@ -41,6 +41,14 @@ public class SaleRepository
             "SELECT ISNULL(SUM(GrandTotal), 0) FROM Sales WHERE IsPosted = 1 AND SaleDate >= DATEADD(day, -29, CAST(GETDATE() AS DATE))");
     }
 
+    /// <summary>Returns the total consultation fees from all posted sales (all-time).</summary>
+    public decimal GetTotalConsultationFee()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            "SELECT ISNULL(SUM(ConsultationFee), 0) FROM Sales WHERE IsPosted = 1");
+    }
+
     /// <summary>Returns daily (date, revenue, consultationFee) for the last 30 days for chart plotting.</summary>
     public IEnumerable<(DateTime Date, decimal Revenue, decimal Consultation)> GetDailyRevenueLast30Days()
     {
