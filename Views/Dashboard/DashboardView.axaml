@@ -76,8 +76,8 @@
                 </Border>
             </Grid>
 
-            <!-- KPI Row 2: Today's financials -->
-            <Grid ColumnDefinitions="*,*,*" Height="100" Margin="0,-6,0,0">
+            <!-- KPI Row 2: Today's financials + Consultation Fee -->
+            <Grid ColumnDefinitions="*,*,*,*" Height="100" Margin="0,-6,0,0">
                 <!-- Today's Revenue -->
                 <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
                     <Grid ColumnDefinitions="Auto,*">
@@ -108,7 +108,7 @@
                     </Grid>
                 </Border>
                 <!-- Total Patients -->
-                <Border Grid.Column="2" Classes="kpiCard" Margin="10,0,0,0">
+                <Border Grid.Column="2" Classes="kpiCard" Margin="5,0,5,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF7ED">
                             <materialIcons:MaterialIcon Kind="AccountMultiple" Width="22" Height="22" Foreground="#F97316"/>
@@ -121,6 +121,18 @@
                                     Padding="0" Cursor="Hand" HorizontalAlignment="Left">
                                 <TextBlock Text="View patients →" Classes="kpiLink" Foreground="#F97316"/>
                             </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!-- Total Consultation Fee -->
+                <Border Grid.Column="3" Classes="kpiCard" Margin="10,0,0,0">
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDFA">
+                            <materialIcons:MaterialIcon Kind="Stethoscope" Width="22" Height="22" Foreground="#0D9488"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="Total Consult. Fee" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TotalConsultationFee}" Classes="kpiValue" FontSize="18"/>
                         </StackPanel>
                     </Grid>
                 </Border>

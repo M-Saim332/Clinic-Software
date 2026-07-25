@@ -235,9 +235,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
                 TotalPatientsCount = Patients.Count;
                 ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
                 WaitingTodayCount = WaitingPatientsList.Count;
-                AvgConsultationFee = Patients.Count > 0
-                    ? $"Rs. {Patients.Average(p => p.ConsultationFee):N2}"
-                    : "Rs. 0.00";
+                AvgConsultationFee = $"Rs. {Patients.Sum(p => p.ConsultationFee):N2}";
             });
         }
         catch (Exception ex)

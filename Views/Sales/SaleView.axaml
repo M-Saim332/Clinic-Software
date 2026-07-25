@@ -122,13 +122,6 @@
                             <TextBlock Text="Enter details and items for this sale" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button  Command="{Binding CancelCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-        <TextBlock Text="Back" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
                 </DockPanel>
             </Border>
 
