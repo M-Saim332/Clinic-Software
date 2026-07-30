@@ -1,6 +1,9 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- Colors -->
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       STATIC PALETTE  — fixed brand/utility colors (not theme-sensitive)
+  ═══════════════════════════════════════════════════════════════════════ -->
   <Color x:Key="ColorPrimaryBlue">#2563EB</Color>
   <Color x:Key="ColorBlue50">#EFF6FF</Color>
   <Color x:Key="ColorTeal">#0F766E</Color>
@@ -10,6 +13,7 @@
   <Color x:Key="ColorAmber">#B45309</Color>
   <Color x:Key="ColorAmber50">#FFFBEB</Color>
   <Color x:Key="ColorInk900">#0F172A</Color>
+  <Color x:Key="ColorInk800">#1E293B</Color>
   <Color x:Key="ColorInk600">#5B6472</Color>
   <Color x:Key="ColorInk400">#98A2B3</Color>
   <Color x:Key="ColorLine">#EAECF0</Color>
@@ -17,59 +21,97 @@
   <Color x:Key="ColorCardBackground">#FFFFFF</Color>
   <Color x:Key="ColorPrimaryBlue50">#EFF6FF</Color>
   <Color x:Key="ColorRose100">#FFE4E6</Color>
-  <Color x:Key="ColorInk800">#1E293B</Color>
 
-  <!-- Theme Default Colors (Slate & Indigo) -->
+  <!-- Static Brushes -->
+  <SolidColorBrush x:Key="BrushPrimaryBlue"    Color="{StaticResource ColorPrimaryBlue}"/>
+  <SolidColorBrush x:Key="BrushBlue50"         Color="{StaticResource ColorBlue50}"/>
+  <SolidColorBrush x:Key="BrushTeal"           Color="{StaticResource ColorTeal}"/>
+  <SolidColorBrush x:Key="BrushTeal50"         Color="{StaticResource ColorTeal50}"/>
+  <SolidColorBrush x:Key="BrushRose"           Color="{StaticResource ColorRose}"/>
+  <SolidColorBrush x:Key="BrushRose50"         Color="{StaticResource ColorRose50}"/>
+  <SolidColorBrush x:Key="BrushAmber"          Color="{StaticResource ColorAmber}"/>
+  <SolidColorBrush x:Key="BrushAmber50"        Color="{StaticResource ColorAmber50}"/>
+  <SolidColorBrush x:Key="BrushInk900"         Color="{StaticResource ColorInk900}"/>
+  <SolidColorBrush x:Key="BrushInk600"         Color="{StaticResource ColorInk600}"/>
+  <SolidColorBrush x:Key="BrushInk400"         Color="{StaticResource ColorInk400}"/>
+  <SolidColorBrush x:Key="BrushLine"           Color="{StaticResource ColorLine}"/>
+  <SolidColorBrush x:Key="BrushBackground"     Color="{StaticResource ColorBackground}"/>
+  <SolidColorBrush x:Key="BrushCardBackground" Color="{StaticResource ColorCardBackground}"/>
+  <SolidColorBrush x:Key="BrushPrimaryBlue50"  Color="{StaticResource ColorPrimaryBlue50}"/>
+  <SolidColorBrush x:Key="BrushRose100"        Color="{StaticResource ColorRose100}"/>
+  <SolidColorBrush x:Key="BrushInk800"         Color="{StaticResource ColorInk800}"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SIDEBAR  — set by ThemeService.ApplyTheme() at runtime
+  ═══════════════════════════════════════════════════════════════════════ -->
   <Color x:Key="ThemeSidebarBackgroundColor">#1E293B</Color>
   <Color x:Key="ThemeSidebarForegroundColor">#94A3B8</Color>
   <Color x:Key="ThemeSidebarHoverBackgroundColor">#334155</Color>
   <Color x:Key="ThemeSidebarHoverForegroundColor">#F8FAFC</Color>
   <Color x:Key="ThemeSidebarActiveBackgroundColor">#334155</Color>
   <Color x:Key="ThemeSidebarActiveForegroundColor">#818CF8</Color>
+
+  <SolidColorBrush x:Key="ThemeSidebarBackgroundBrush"       Color="{DynamicResource ThemeSidebarBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarForegroundBrush"       Color="{DynamicResource ThemeSidebarForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverBackgroundBrush"  Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverForegroundBrush"  Color="{DynamicResource ThemeSidebarHoverForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveBackgroundBrush" Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveForegroundBrush" Color="{DynamicResource ThemeSidebarActiveForegroundColor}"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       PRIMARY ACCENT  — set by ThemeService.ApplyTheme() at runtime
+  ═══════════════════════════════════════════════════════════════════════ -->
   <Color x:Key="ThemePrimaryColor">#4F46E5</Color>
   <Color x:Key="ThemePrimaryHoverColor">#4338CA</Color>
   <Color x:Key="ThemePrimaryPressedColor">#3730A3</Color>
   <Color x:Key="ThemePrimaryLightColor">#EEF2FF</Color>
 
-  <!-- Brushes -->
-  <SolidColorBrush x:Key="BrushPrimaryBlue" Color="{StaticResource ColorPrimaryBlue}"/>
-  <SolidColorBrush x:Key="BrushBlue50" Color="{StaticResource ColorBlue50}"/>
-  <SolidColorBrush x:Key="BrushTeal" Color="{StaticResource ColorTeal}"/>
-  <SolidColorBrush x:Key="BrushTeal50" Color="{StaticResource ColorTeal50}"/>
-  <SolidColorBrush x:Key="BrushRose" Color="{StaticResource ColorRose}"/>
-  <SolidColorBrush x:Key="BrushRose50" Color="{StaticResource ColorRose50}"/>
-  <SolidColorBrush x:Key="BrushAmber" Color="{StaticResource ColorAmber}"/>
-  <SolidColorBrush x:Key="BrushAmber50" Color="{StaticResource ColorAmber50}"/>
-  <SolidColorBrush x:Key="BrushInk900" Color="{StaticResource ColorInk900}"/>
-  <SolidColorBrush x:Key="BrushInk600" Color="{StaticResource ColorInk600}"/>
-  <SolidColorBrush x:Key="BrushInk400" Color="{StaticResource ColorInk400}"/>
-  <SolidColorBrush x:Key="BrushLine" Color="{StaticResource ColorLine}"/>
-  <SolidColorBrush x:Key="BrushBackground" Color="{StaticResource ColorBackground}"/>
-  <SolidColorBrush x:Key="BrushCardBackground" Color="{StaticResource ColorCardBackground}"/>
-  <SolidColorBrush x:Key="BrushPrimaryBlue50" Color="{StaticResource ColorPrimaryBlue50}"/>
-  <SolidColorBrush x:Key="BrushRose100" Color="{StaticResource ColorRose100}"/>
-  <SolidColorBrush x:Key="BrushInk800" Color="{StaticResource ColorInk800}"/>
-
-  <!-- Theme Default Brushes -->
-  <SolidColorBrush x:Key="ThemeSidebarBackgroundBrush" Color="{DynamicResource ThemeSidebarBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarForegroundBrush" Color="{DynamicResource ThemeSidebarForegroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarHoverBackgroundBrush" Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarHoverForegroundBrush" Color="{DynamicResource ThemeSidebarHoverForegroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarActiveBackgroundBrush" Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarActiveForegroundBrush" Color="{DynamicResource ThemeSidebarActiveForegroundColor}"/>
-  <SolidColorBrush x:Key="ThemePrimaryBrush" Color="{DynamicResource ThemePrimaryColor}"/>
-  <SolidColorBrush x:Key="ThemePrimaryHoverBrush" Color="{DynamicResource ThemePrimaryHoverColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryBrush"        Color="{DynamicResource ThemePrimaryColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryHoverBrush"   Color="{DynamicResource ThemePrimaryHoverColor}"/>
   <SolidColorBrush x:Key="ThemePrimaryPressedBrush" Color="{DynamicResource ThemePrimaryPressedColor}"/>
-  <SolidColorBrush x:Key="ThemePrimaryLightBrush" Color="{DynamicResource ThemePrimaryLightColor}"/>
+  <SolidColorBrush x:Key="ThemePrimaryLightBrush"   Color="{DynamicResource ThemePrimaryLightColor}"/>
 
-  <!-- Corner Radii -->
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       CONTENT AREA  — set by ThemeService.ApplyTheme() at runtime
+       Enables full dark / light mode across all panels, cards, inputs, grids.
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Page / Window background -->
+  <Color x:Key="ThemeContentBackgroundColor">#F8FAFC</Color>
+  <SolidColorBrush x:Key="ThemeContentBackgroundBrush" Color="{DynamicResource ThemeContentBackgroundColor}"/>
+
+  <!-- Card / panel background -->
+  <Color x:Key="ThemeCardBackgroundColor">#FFFFFF</Color>
+  <SolidColorBrush x:Key="ThemeCardBackgroundBrush" Color="{DynamicResource ThemeCardBackgroundColor}"/>
+
+  <!-- Primary text -->
+  <Color x:Key="ThemeContentForegroundColor">#0F172A</Color>
+  <SolidColorBrush x:Key="ThemeContentForegroundBrush" Color="{DynamicResource ThemeContentForegroundColor}"/>
+
+  <!-- Secondary / subtle text (labels, captions, placeholders) -->
+  <Color x:Key="ThemeSubtleForegroundColor">#64748B</Color>
+  <SolidColorBrush x:Key="ThemeSubtleForegroundBrush" Color="{DynamicResource ThemeSubtleForegroundColor}"/>
+
+  <!-- Borders, dividers, grid lines -->
+  <Color x:Key="ThemeBorderColor">#E2E8F0</Color>
+  <SolidColorBrush x:Key="ThemeBorderBrush" Color="{DynamicResource ThemeBorderColor}"/>
+
+  <!-- TextBox / ComboBox / NumericUpDown background -->
+  <Color x:Key="ThemeInputBackgroundColor">#FFFFFF</Color>
+  <SolidColorBrush x:Key="ThemeInputBackgroundBrush" Color="{DynamicResource ThemeInputBackgroundColor}"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SHAPE TOKENS
+  ═══════════════════════════════════════════════════════════════════════ -->
   <CornerRadius x:Key="CornerRadiusCard">14</CornerRadius>
   <CornerRadius x:Key="CornerRadiusButton">9</CornerRadius>
   <CornerRadius x:Key="CornerRadiusInput">9</CornerRadius>
   <CornerRadius x:Key="CornerRadiusPill">9</CornerRadius>
 
-  <!-- Font Families -->
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       TYPOGRAPHY
+  ═══════════════════════════════════════════════════════════════════════ -->
   <FontFamily x:Key="FontLexend">Lexend,Segoe UI,Arial,sans-serif</FontFamily>
   <FontFamily x:Key="FontInter">Inter,Segoe UI,Arial,sans-serif</FontFamily>
   <FontFamily x:Key="FontMono">IBM Plex Mono,Courier New,Consolas,monospace</FontFamily>
+
 </ResourceDictionary>
