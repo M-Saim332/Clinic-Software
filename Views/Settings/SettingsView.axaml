@@ -5,47 +5,54 @@
              xmlns:userviews="using:ClinicSystem.UI.Views.Users"
              x:Class="ClinicSystem.UI.Views.Settings.SettingsView"
              x:DataType="vm:SettingsViewModel" x:CompileBindings="True"
-             Background="{DynamicResource BrushBackground}">
+             Background="{DynamicResource ThemeContentBackgroundBrush}">
 
     <Panel>
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- Header -->
-        <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
-                BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+
+        <!-- ══════════════════════════════ HEADER ═══════════════════════════ -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource ThemeCardBackgroundBrush}"
+                BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,0,0,1"
+                Padding="28,18">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource ThemePrimaryLightBrush}">
+                    <Border Width="40" Height="40" CornerRadius="10"
+                            Background="{DynamicResource ThemePrimaryLightBrush}">
                         <materialIcons:MaterialIcon Kind="Cog" Width="20" Height="20"
                                   Foreground="{DynamicResource ThemePrimaryBrush}"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
                         <TextBlock Text="Settings" FontSize="20" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk900}"
+                                   Foreground="{DynamicResource ThemeContentForegroundBrush}"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <TextBlock Text="Manage clinic configuration, defaults, database backups, and security settings"
-                                   FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                                   FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
                     </StackPanel>
                 </StackPanel>
-                <Button  Command="{Binding SaveSettingsCommand}"
-                        Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
-        <TextBlock Text="Save Settings" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                <Button Command="{Binding SaveSettingsCommand}"
+                        Classes="btn-primary" DockPanel.Dock="Right"
+                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+                        <TextBlock Text="Save Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </DockPanel>
         </Border>
 
-        <!-- Main Content Panels -->
+        <!-- ══════════════════════════ MAIN CONTENT ═════════════════════════ -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24">
-            <StackPanel Spacing="20" MaxWidth="900" HorizontalAlignment="Left">
-                
-                <!-- GENERAL SETTINGS -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+            <StackPanel Spacing="20" MaxWidth="940" HorizontalAlignment="Left">
+
+                <!-- ── GENERAL SETTINGS ─────────────────────────────────── -->
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="GENERAL SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <TextBlock Text="GENERAL SETTINGS" Classes="sectionLabel"/>
+                        <Separator/>
                         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
                                 <TextBlock Text="Clinic Name" Classes="label"/>
@@ -67,11 +74,13 @@
                     </StackPanel>
                 </Border>
 
-                <!-- BILLING SETTINGS -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                <!-- ── BILLING SETTINGS ──────────────────────────────────── -->
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="BILLING SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <TextBlock Text="BILLING SETTINGS" Classes="sectionLabel"/>
+                        <Separator/>
                         <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                                 <TextBlock Text="Invoice Prefix" Classes="label"/>
@@ -88,12 +97,14 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-                
-                <!-- INVENTORY SETTINGS -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+
+                <!-- ── INVENTORY SETTINGS ────────────────────────────────── -->
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="INVENTORY SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <TextBlock Text="INVENTORY SETTINGS" Classes="sectionLabel"/>
+                        <Separator/>
                         <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                                 <TextBlock Text="Low Stock Threshold" Classes="label"/>
@@ -106,145 +117,507 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-                
-                <!-- SYSTEM SETTINGS -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+
+                <!-- ── SYSTEM SETTINGS ───────────────────────────────────── -->
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="SYSTEM SETTINGS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <TextBlock Text="SYSTEM SETTINGS" Classes="sectionLabel"/>
+                        <Separator/>
                         <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                                 <TextBlock Text="Date Format" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding DateFormatOptions}" SelectedItem="{Binding DateFormat}" HorizontalAlignment="Stretch"/>
+                                <ComboBox ItemsSource="{Binding DateFormatOptions}"
+                                          SelectedItem="{Binding DateFormat}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,12,0">
                                 <TextBlock Text="Time Format" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding TimeFormatOptions}" SelectedItem="{Binding TimeFormat}" HorizontalAlignment="Stretch"/>
+                                <ComboBox ItemsSource="{Binding TimeFormatOptions}"
+                                          SelectedItem="{Binding TimeFormat}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
                                 <TextBlock Text="Language" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding Language}" HorizontalAlignment="Stretch"/>
+                                <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                          SelectedItem="{Binding Language}"
+                                          HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- APPEARANCE & THEME (Admin Only) -->
-                <Border IsVisible="{Binding IsAdmin}" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="APPEARANCE &amp; THEME" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
-                        
-                        <TextBlock Text="Select the application color theme. Changes are previewed immediately." Classes="label" Foreground="{DynamicResource BrushInk600}" Margin="0,0,0,8"/>
-                        
-                        <ListBox ItemsSource="{Binding AvailableThemes}" SelectedValueBinding="{Binding Name}" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
-                                 Background="Transparent" BorderThickness="0">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" />
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                            <ListBox.Styles>
-                                <Style Selector="ListBoxItem">
-                                    <Setter Property="Padding" Value="4"/>
-                                    <Setter Property="Margin" Value="4"/>
-                                    <Setter Property="CornerRadius" Value="12"/>
-                                    <Setter Property="Background" Value="Transparent"/>
-                                </Style>
-                                <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                                    <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
-                                </Style>
-                                <Style Selector="ListBoxItem:selected Border.themeCard">
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
-                                </Style>
-                            </ListBox.Styles>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Classes="themeCard" BorderThickness="2" CornerRadius="10" Padding="12" Width="140" Height="110"
-                                            Background="White" BorderBrush="{DynamicResource BrushLine}">
-                                        <StackPanel Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <!-- Color circles -->
-                                            <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
-                                                <!-- Sidebar color -->
-                                                <Border Width="24" Height="24" CornerRadius="12" Background="{Binding SidebarBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
-                                                <!-- Primary color -->
-                                                <Border Width="24" Height="24" CornerRadius="12" Background="{Binding Primary}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"/>
+                <!-- ══════════════════════════════════════════════════════════
+                     APPEARANCE &amp; THEME  (Admin only)
+                ══════════════════════════════════════════════════════════ -->
+                <Border IsVisible="{Binding IsAdmin}"
+                        Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="24">
+                    <StackPanel Spacing="20">
+
+                        <!-- Header row -->
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Left" Spacing="4">
+                                <TextBlock Text="APPEARANCE &amp; THEME" Classes="sectionLabel"/>
+                                <TextBlock Text="Choose a professional preset or create your own custom theme. Changes apply instantly."
+                                           FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                            </StackPanel>
+                            <!-- Active theme badge -->
+                            <Border DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                    Background="{DynamicResource ThemePrimaryLightBrush}"
+                                    CornerRadius="20" Padding="12,5">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Width="10" Height="10" CornerRadius="5"
+                                            Background="{DynamicResource ThemePrimaryBrush}"/>
+                                    <TextBlock Text="{Binding SelectedTheme}" FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemePrimaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                        </DockPanel>
+
+                        <!-- ── LIGHT THEMES ──────────────────────────────── -->
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="WhiteBalanceSunny" Width="16" Height="16"
+                                             Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                <TextBlock Text="Light Themes" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                            </StackPanel>
+
+                            <ListBox ItemsSource="{Binding LightThemes}"
+                                     SelectedValueBinding="{Binding Name}"
+                                     SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
+                                     Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding"      Value="0"/>
+                                        <Setter Property="Margin"       Value="0,0,12,12"/>
+                                        <Setter Property="CornerRadius" Value="12"/>
+                                        <Setter Property="Background"   Value="Transparent"/>
+                                    </Style>
+                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </ListBox.Styles>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="themeCard" Width="165" Height="120"
+                                                CornerRadius="12" ClipToBounds="True"
+                                                BorderThickness="2.5" BorderBrush="#E2E8F0"
+                                                Background="White">
+                                            <!-- Mini app layout preview -->
+                                            <Grid ColumnDefinitions="36,*">
+                                                <!-- Sidebar strip -->
+                                                <Border Grid.Column="0" Background="{Binding SidebarBackground}"
+                                                        CornerRadius="10,0,0,10">
+                                                    <StackPanel Spacing="6" Margin="6,12,6,0">
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarActiveForeground}" Opacity="0.9"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <!-- Content area preview -->
+                                                <Border Grid.Column="1" Background="{Binding ContentBackground}"
+                                                        CornerRadius="0,10,10,0" Padding="8,10">
+                                                    <StackPanel Spacing="5">
+                                                        <!-- Top bar mock -->
+                                                        <Border Height="6" Width="60" CornerRadius="3"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{Binding ContentForeground}" Opacity="0.25"/>
+                                                        <!-- Card mock 1 -->
+                                                        <Border Height="24" CornerRadius="5"
+                                                                Background="{Binding CardBackground}"
+                                                                BorderBrush="{Binding BorderColor}" BorderThickness="1">
+                                                            <Border Width="22" Height="4" CornerRadius="2" Margin="6,0,0,0"
+                                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                    Background="{Binding Primary}" Opacity="0.7"/>
+                                                        </Border>
+                                                        <!-- Accent button mock -->
+                                                        <Border Height="14" Width="40" CornerRadius="4"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{Binding Primary}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                            <!-- Overlay: name + selected ring -->
+                                            <Border.Styles>
+                                                <Style Selector="Border.themeCard">
+                                                    <Setter Property="Transitions">
+                                                        <Transitions>
+                                                            <DoubleTransition Property="Opacity" Duration="0:0:0.15"/>
+                                                        </Transitions>
+                                                    </Setter>
+                                                </Style>
+                                            </Border.Styles>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Light theme name labels (shown beneath cards) -->
+                            <ListBox ItemsSource="{Binding LightThemes}"
+                                     SelectedValueBinding="{Binding Name}"
+                                     SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
+                                     Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding"      Value="0"/>
+                                        <Setter Property="Margin"       Value="0,0,12,4"/>
+                                        <Setter Property="Background"   Value="Transparent"/>
+                                        <Setter Property="Width"        Value="165"/>
+                                    </Style>
+                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </ListBox.Styles>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium"
+                                                   TextAlignment="Center" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+
+                        <Separator Margin="0,4"/>
+
+                        <!-- ── DARK THEMES ───────────────────────────────── -->
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="WeatherNight" Width="16" Height="16"
+                                             Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                <TextBlock Text="Dark Themes" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                            </StackPanel>
+
+                            <ListBox ItemsSource="{Binding DarkThemes}"
+                                     SelectedValueBinding="{Binding Name}"
+                                     SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
+                                     Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding"      Value="0"/>
+                                        <Setter Property="Margin"       Value="0,0,12,12"/>
+                                        <Setter Property="CornerRadius" Value="12"/>
+                                        <Setter Property="Background"   Value="Transparent"/>
+                                    </Style>
+                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </ListBox.Styles>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Classes="themeCard" Width="165" Height="120"
+                                                CornerRadius="12" ClipToBounds="True"
+                                                BorderThickness="2.5" BorderBrush="#374151"
+                                                Background="#111827">
+                                            <Grid ColumnDefinitions="36,*">
+                                                <Border Grid.Column="0" Background="{Binding SidebarBackground}"
+                                                        CornerRadius="10,0,0,10">
+                                                    <StackPanel Spacing="6" Margin="6,12,6,0">
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarActiveForeground}" Opacity="0.9"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                        <Border Height="4" CornerRadius="2" Background="{Binding SidebarForeground}" Opacity="0.5"/>
+                                                    </StackPanel>
+                                                </Border>
+                                                <Border Grid.Column="1" Background="{Binding ContentBackground}"
+                                                        CornerRadius="0,10,10,0" Padding="8,10">
+                                                    <StackPanel Spacing="5">
+                                                        <Border Height="6" Width="60" CornerRadius="3"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{Binding ContentForeground}" Opacity="0.25"/>
+                                                        <Border Height="24" CornerRadius="5"
+                                                                Background="{Binding CardBackground}"
+                                                                BorderBrush="{Binding BorderColor}" BorderThickness="1">
+                                                            <Border Width="22" Height="4" CornerRadius="2" Margin="6,0,0,0"
+                                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                                    Background="{Binding Primary}" Opacity="0.7"/>
+                                                        </Border>
+                                                        <Border Height="14" Width="40" CornerRadius="4"
+                                                                HorizontalAlignment="Left"
+                                                                Background="{Binding Primary}"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- Dark theme name labels -->
+                            <ListBox ItemsSource="{Binding DarkThemes}"
+                                     SelectedValueBinding="{Binding Name}"
+                                     SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"
+                                     Background="Transparent" BorderThickness="0">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.Styles>
+                                    <Style Selector="ListBoxItem">
+                                        <Setter Property="Padding"    Value="0"/>
+                                        <Setter Property="Margin"     Value="0,0,12,4"/>
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Width"      Value="165"/>
+                                    </Style>
+                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </ListBox.Styles>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium"
+                                                   TextAlignment="Center" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </StackPanel>
+
+                        <!-- ── CUSTOM THEMES (existing) ──────────────────── -->
+                        <StackPanel Spacing="10" IsVisible="{Binding CustomThemesList.Count, Converter={x:Static {x:Type BooleanBoxes}}, ConverterParameter=0}">
+                        </StackPanel>
+
+                        <!-- Custom themes section — only shown when any exist -->
+                        <Border IsVisible="{Binding !!CustomThemesList.Count}"
+                                Background="{DynamicResource ThemeContentBackgroundBrush}"
+                                CornerRadius="10" Padding="16">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="Palette" Width="16" Height="16"
+                                                 Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                    <TextBlock Text="Custom Themes" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                </StackPanel>
+                                <ItemsControl ItemsSource="{Binding CustomThemesList}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="4" Margin="0,0,12,8" Width="165">
+                                                <!-- Theme card preview -->
+                                                <Border Height="100" CornerRadius="10" ClipToBounds="True"
+                                                        BorderThickness="2"
+                                                        BorderBrush="{DynamicResource ThemeBorderBrush}">
+                                                    <Grid ColumnDefinitions="36,*">
+                                                        <Border Grid.Column="0" Background="{Binding SidebarBackground}" CornerRadius="8,0,0,8"/>
+                                                        <Border Grid.Column="1" Background="{Binding ContentBackground}" CornerRadius="0,8,8,0"
+                                                                Padding="6,8">
+                                                            <StackPanel Spacing="4">
+                                                                <Border Height="14" CornerRadius="3" Background="{Binding Primary}"/>
+                                                                <Border Height="8" CornerRadius="2" Background="{Binding BorderColor}"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                                <!-- Name + delete -->
+                                                <DockPanel>
+                                                    <Button DockPanel.Dock="Right"
+                                                            Command="{Binding $parent[UserControl].DataContext.DeleteCustomThemeCommand}"
+                                                            CommandParameter="{Binding Name}"
+                                                            Background="Transparent" BorderThickness="0"
+                                                            Width="22" Height="22" Padding="0" CornerRadius="4">
+                                                        <materialIcons:MaterialIcon Kind="DeleteOutline" Width="14" Height="14"
+                                                                     Foreground="#EF4444"/>
+                                                    </Button>
+                                                    <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Medium"
+                                                               TextWrapping="Wrap" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                                </DockPanel>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium" Foreground="{DynamicResource BrushInk900}" TextAlignment="Center" TextWrapping="Wrap"/>
-                                        </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <Separator Margin="0,4"/>
+
+                        <!-- ═══════════════════════════════════════════════════
+                             CUSTOM THEME BUILDER
+                        ═══════════════════════════════════════════════════ -->
+                        <Border Background="{DynamicResource ThemeContentBackgroundBrush}"
+                                BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                                CornerRadius="12" Padding="20">
+                            <StackPanel Spacing="16">
+                                <!-- Builder header -->
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Border Width="32" Height="32" CornerRadius="8"
+                                            Background="{DynamicResource ThemePrimaryLightBrush}">
+                                        <materialIcons:MaterialIcon Kind="PaletteOutline" Width="18" Height="18"
+                                                     Foreground="{DynamicResource ThemePrimaryBrush}"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                    <StackPanel VerticalAlignment="Center" Spacing="1">
+                                        <TextBlock Text="Create Custom Theme" FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+                                        <TextBlock Text="Define your own color palette — companion shades are derived automatically."
+                                                   FontSize="11" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Fields row -->
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowDefinitions="Auto,Auto">
+                                    <!-- Theme Name -->
+                                    <StackPanel Grid.Column="0" Grid.Row="0" Spacing="4" Margin="0,0,12,0">
+                                        <TextBlock Text="Theme Name" Classes="label"/>
+                                        <TextBox Text="{Binding NewThemeName}" PlaceholderText="e.g. My Clinic Blue"/>
+                                    </StackPanel>
+
+                                    <!-- Sidebar Color -->
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Spacing="4" Margin="0,0,12,0" Width="140">
+                                        <TextBlock Text="Sidebar Color (hex)" Classes="label"/>
+                                        <Grid ColumnDefinitions="36,*">
+                                            <Border Grid.Column="0" Width="32" Height="32"
+                                                    CornerRadius="6" Margin="0,0,4,0"
+                                                    Background="{Binding CustomBuilderPreviewSidebar}"/>
+                                            <TextBox Grid.Column="1" Text="{Binding NewThemeSidebarHex}"
+                                                     PlaceholderText="#1E293B"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- Primary Color -->
+                                    <StackPanel Grid.Column="2" Grid.Row="0" Spacing="4" Margin="0,0,12,0" Width="140">
+                                        <TextBlock Text="Primary Color (hex)" Classes="label"/>
+                                        <Grid ColumnDefinitions="36,*">
+                                            <Border Grid.Column="0" Width="32" Height="32"
+                                                    CornerRadius="6" Margin="0,0,4,0"
+                                                    Background="{Binding CustomBuilderPreviewPrimary}"/>
+                                            <TextBox Grid.Column="1" Text="{Binding NewThemePrimaryHex}"
+                                                     PlaceholderText="#4F46E5"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- Dark mode toggle + Create button -->
+                                    <StackPanel Grid.Column="3" Grid.Row="0" Spacing="4" VerticalAlignment="Bottom">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,6">
+                                            <CheckBox IsChecked="{Binding NewThemeIsDark}"
+                                                      Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                                      FontSize="13"/>
+                                            <TextBlock Text="Dark Mode" FontSize="13"
+                                                       Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <Button Command="{Binding CreateCustomThemeCommand}"
+                                                Classes="btn-primary" Height="44">
+                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                                <materialIcons:MaterialIcon Kind="Plus" Width="16" Height="16"/>
+                                                <TextBlock Text="Create Theme" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <!-- Status message -->
+                                    <TextBlock Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1"
+                                               Text="{Binding CustomBuilderMessage}"
+                                               FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                               Margin="0,8,0,0"
+                                               IsVisible="{Binding CustomBuilderMessage.Length}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
                     </StackPanel>
                 </Border>
 
-                <!-- DATABASE & MAINTENANCE -->
-                <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
+                <!-- ── DATABASE &amp; MAINTENANCE ────────────────────────── -->
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="DATABASE &amp; MAINTENANCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2" FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
+                        <TextBlock Text="DATABASE &amp; MAINTENANCE" Classes="sectionLabel"/>
+                        <Separator/>
 
-                        <!-- Backup / Restore row -->
+                        <!-- Backup / Restore -->
                         <DockPanel>
                             <StackPanel Spacing="4" DockPanel.Dock="Left">
-                                <TextBlock Text="Backup &amp; Restore" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                                <TextBlock Text="Backup &amp; Restore" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
                                 <TextBlock Text="Save a full database backup or restore from an existing .bak file."
-                                           FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
+                                           FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                           TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Button   Command="{Binding BackupCommand}"  Classes="btn-secondary" IsEnabled="{Binding !IsBusy}">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="DatabaseExport" Width="18" Height="18"/>
-        <TextBlock Text="Backup Database" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                                <Button  Command="{Binding RestoreCommand}" Classes="btn-secondary" IsEnabled="{Binding !IsBusy}">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="DatabaseImport" Width="18" Height="18"/>
-        <TextBlock Text="Restore Database" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                            <StackPanel Orientation="Horizontal" Spacing="10"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Command="{Binding BackupCommand}" Classes="btn-secondary"
+                                        IsEnabled="{Binding !IsBusy}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="DatabaseExport" Width="18" Height="18"/>
+                                        <TextBlock Text="Backup Database" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding RestoreCommand}" Classes="btn-secondary"
+                                        IsEnabled="{Binding !IsBusy}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="DatabaseImport" Width="18" Height="18"/>
+                                        <TextBlock Text="Restore Database" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </DockPanel>
 
-                        <Separator Height="1" Background="{DynamicResource BrushLine}" Margin="0,4"/>
+                        <Separator Margin="0,4"/>
 
-                        <!-- Reset to Zero row -->
+                        <!-- Delete All Data -->
                         <DockPanel>
                             <StackPanel Spacing="4" DockPanel.Dock="Left">
-                                <TextBlock Text="Delete All Data" FontSize="14" FontWeight="SemiBold" Foreground="#DC2626"/>
+                                <TextBlock Text="Delete All Data" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="#DC2626"/>
                                 <TextBlock Text="Wipes ALL products, patients, companies, transactions etc. Users are preserved. A rollback backup is created automatically before deletion."
-                                           FontSize="12" Foreground="{DynamicResource BrushInk600}" TextWrapping="Wrap" MaxWidth="440"/>
+                                           FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                           TextWrapping="Wrap" MaxWidth="440"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <Button 
-                                        Command="{Binding RollbackResetCommand}"
+                            <StackPanel Orientation="Horizontal" Spacing="10"
+                                        HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Command="{Binding RollbackResetCommand}"
                                         IsVisible="{Binding IsRollbackAvailable}"
                                         IsEnabled="{Binding !IsBusy}"
                                         Background="#F59E0B" Foreground="White"
                                         BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
                                         Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Undo" Width="18" Height="18"/>
-        <TextBlock Text="Rollback Reset" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                                <Button 
-                                        Command="{Binding ShowResetConfirmCommand}"
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="Undo" Width="18" Height="18"/>
+                                        <TextBlock Text="Rollback Reset" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding ShowResetConfirmCommand}"
                                         IsEnabled="{Binding !IsBusy}"
                                         Background="#DC2626" Foreground="White"
                                         BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
                                         Padding="14,0" Height="36" FontSize="13" FontWeight="SemiBold">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
-        <TextBlock Text="Delete All Data" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+                                        <TextBlock Text="Delete All Data" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </DockPanel>
 
-                        <!-- Confirmation Banner (appears after clicking Reset to Zero) -->
+                        <!-- Confirmation banner -->
                         <Border IsVisible="{Binding IsResetConfirmVisible}"
                                 Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1"
                                 CornerRadius="8" Padding="16">
@@ -258,24 +631,21 @@
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Spacing="10">
-                                    <Button 
-                                            Command="{Binding ConfirmResetCommand}"
+                                    <Button Command="{Binding ConfirmResetCommand}"
                                             Background="#DC2626" Foreground="White"
                                             BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
                                             Padding="16,0" Height="36" FontSize="13" FontWeight="SemiBold">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
-        <TextBlock Text="Yes, Delete Everything" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                                    <Button 
-                                            Command="{Binding CancelResetCommand}"
-                                            Classes="btn-secondary">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
-        <TextBlock Text="Cancel" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
+                                            <TextBlock Text="Yes, Delete Everything" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding CancelResetCommand}" Classes="btn-secondary">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <materialIcons:MaterialIcon Kind="Close" Width="18" Height="18"/>
+                                            <TextBlock Text="Cancel" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -283,29 +653,27 @@
                     </StackPanel>
                 </Border>
 
-                <!-- Admin Security (Admin only) -->
+                <!-- ── ADMIN SECURITY ─────────────────────────────────────── -->
                 <Border IsVisible="{Binding IsAdmin}"
-                        Background="{DynamicResource BrushCardBackground}"
+                        Background="{DynamicResource ThemeCardBackgroundBrush}"
                         BorderBrush="#FCA5A5" BorderThickness="1"
                         CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="ADMIN SECURITY" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushRose}" LetterSpacing="1.2"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="#FCA5A5"/>
+                        <TextBlock Text="ADMIN SECURITY" Classes="sectionLabel"
+                                   Foreground="{DynamicResource BrushRose}"/>
+                        <Separator Background="#FCA5A5"/>
                         <DockPanel>
                             <StackPanel Spacing="4" DockPanel.Dock="Left">
                                 <TextBlock Text="Change Admin Password" FontSize="14" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushInk900}"/>
+                                           Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
                                 <TextBlock Text="Update your admin account password. You will need to verify your current password first."
-                                           FontSize="12" Foreground="{DynamicResource BrushInk600}"
+                                           FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
                                            TextWrapping="Wrap" MaxWidth="480"/>
                             </StackPanel>
                             <Button Command="{Binding OpenChangePasswordCommand}"
                                     HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    Background="{DynamicResource BrushRose}"
-                                    Foreground="White" BorderThickness="0"
-                                    CornerRadius="{DynamicResource CornerRadiusPill}"
+                                    Background="{DynamicResource BrushRose}" Foreground="White"
+                                    BorderThickness="0" CornerRadius="{DynamicResource CornerRadiusPill}"
                                     Padding="16,0" Height="36">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <materialIcons:MaterialIcon Kind="AccountCog" Width="13" Height="13"
@@ -318,18 +686,17 @@
                     </StackPanel>
                 </Border>
 
-                <!-- USER MANAGEMENT (Admin Only) -->
+                <!-- ── USER MANAGEMENT (Admin only) ──────────────────────── -->
                 <Border IsVisible="{Binding IsAdmin}"
-                        Background="{DynamicResource BrushCardBackground}"
-                        BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
+                        Background="{DynamicResource ThemeCardBackgroundBrush}"
+                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
                         CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
-                        <TextBlock Text="USER MANAGEMENT" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk600}" LetterSpacing="1.2"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator Height="1" Background="{DynamicResource BrushLine}"/>
-                        <Border Height="800" Background="{DynamicResource BrushBackground}" CornerRadius="8" ClipToBounds="True">
-                            <userviews:UserRegistryView DataContext="{Binding UserRegistryVM}" />
+                        <TextBlock Text="USER MANAGEMENT" Classes="sectionLabel"/>
+                        <Separator/>
+                        <Border Height="800" Background="{DynamicResource ThemeContentBackgroundBrush}"
+                                CornerRadius="8" ClipToBounds="True">
+                            <userviews:UserRegistryView DataContext="{Binding UserRegistryVM}"/>
                         </Border>
                     </StackPanel>
                 </Border>
@@ -337,13 +704,17 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Status Bar -->
-        <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}" Padding="28,16" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0">
-            <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk600}" FontSize="13" VerticalAlignment="Center" FontWeight="Medium"/>
+        <!-- ── Status Bar ─────────────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource ThemeCardBackgroundBrush}"
+                Padding="28,16" BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,1,0,0">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                       FontSize="13" VerticalAlignment="Center" FontWeight="Medium"/>
         </Border>
     </Grid>
 
-    <!-- Change Password Modal Overlay (Settings-triggered) -->
+    <!-- Change Password Modal -->
     <Panel IsVisible="{Binding IsChangePasswordVisible}" ZIndex="200">
         <userviews:ChangePasswordView DataContext="{Binding ChangePasswordVM}"/>
     </Panel>
@@ -351,53 +722,66 @@
     </Panel>
 
     <UserControl.Styles>
+        <Style Selector="TextBlock.sectionLabel">
+            <Setter Property="FontSize"       Value="11"/>
+            <Setter Property="FontWeight"     Value="Bold"/>
+            <Setter Property="Foreground"     Value="{DynamicResource ThemeSubtleForegroundBrush}"/>
+            <Setter Property="LetterSpacing"  Value="1.2"/>
+            <Setter Property="FontFamily"     Value="{DynamicResource FontLexend}"/>
+        </Style>
         <Style Selector="TextBlock.label">
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize"   Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{DynamicResource BrushInk500}"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeSubtleForegroundBrush}"/>
+            <Setter Property="Margin"     Value="0,0,0,4"/>
         </Style>
         <Style Selector="TextBox">
-            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="Background"  Value="{DynamicResource ThemeInputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+            <Setter Property="Foreground"  Value="{DynamicResource ThemeContentForegroundBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Padding"     Value="12,8"/>
         </Style>
         <Style Selector="ComboBox">
-            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="Background"  Value="{DynamicResource ThemeInputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
+            <Setter Property="Foreground"  Value="{DynamicResource ThemeContentForegroundBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Padding"     Value="12,8"/>
         </Style>
         <Style Selector="NumericUpDown">
-            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="Background"  Value="{DynamicResource ThemeInputBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}"/>
             <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Padding"     Value="12,8"/>
         </Style>
         <Style Selector="Button.btn-primary">
-            <Setter Property="Background" Value="{DynamicResource ThemePrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background"      Value="{DynamicResource ThemePrimaryBrush}"/>
+            <Setter Property="Foreground"      Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
-            <Setter Property="Padding" Value="18,0"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="CornerRadius"    Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding"         Value="18,0"/>
+            <Setter Property="Height"          Value="36"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="FontWeight"      Value="SemiBold"/>
         </Style>
         <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource ThemePrimaryHoverBrush}"/>
+            <Setter Property="Background"             Value="{DynamicResource ThemePrimaryHoverBrush}"/>
             <Setter Property="TextElement.Foreground" Value="White"/>
         </Style>
         <Style Selector="Button.btn-secondary">
-            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
-            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="Background"      Value="{DynamicResource ThemeContentBackgroundBrush}"/>
+            <Setter Property="Foreground"      Value="{DynamicResource ThemeContentForegroundBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
-            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
-            <Setter Property="Padding" Value="14,0"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource ThemeBorderBrush}"/>
+            <Setter Property="CornerRadius"    Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding"         Value="14,0"/>
+            <Setter Property="Height"          Value="36"/>
+            <Setter Property="FontSize"        Value="13"/>
+        </Style>
+        <!-- Theme card selection ring -->
+        <Style Selector="ListBoxItem:selected Border.themeCard">
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemePrimaryBrush}"/>
         </Style>
     </UserControl.Styles>
 </UserControl>
