@@ -20,22 +20,20 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     private readonly SettingsRepository _repo;
     public ChangePasswordViewModel ChangePasswordVM { get; }
 
-    /// <summary>Wired by MainWindowViewModel to navigate to the User Management page.</summary>
-    public Action? NavigateToUsersRequested { get; set; }
+    public UserRegistryViewModel UserRegistryVM { get; }
 
     public SettingsViewModel(
         DatabaseSession dbSession,
         SettingsRepository repo,
-        ChangePasswordViewModel changePasswordVM)
+        ChangePasswordViewModel changePasswordVM,
+        UserRegistryViewModel userRegistryVM)
     {
         _dbSession       = dbSession;
         _repo            = repo;
         ChangePasswordVM = changePasswordVM;
+        UserRegistryVM   = userRegistryVM;
         ChangePasswordVM.CloseRequested += () => IsChangePasswordVisible = false;
     }
-
-    [RelayCommand]
-    private void NavigateToUsers() => NavigateToUsersRequested?.Invoke();
 
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
@@ -255,6 +253,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
         finally
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBusy = false);
+        }
     }
 
     // ── Save ─────────────────────────────────────────────────────────────────
