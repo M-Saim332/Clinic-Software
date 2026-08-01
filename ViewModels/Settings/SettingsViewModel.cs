@@ -71,21 +71,14 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
 
     // ── Appearance / Theme ───────────────────────────────────────────────────
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(LightThemes))]
-    [NotifyPropertyChangedFor(nameof(DarkThemes))]
-    [NotifyPropertyChangedFor(nameof(CustomThemesList))]
     private string _selectedTheme = ThemeService.CurrentThemeName;
 
-    /// <summary>All built-in light themes.</summary>
-    public IEnumerable<ThemeDefinition> LightThemes =>
-        ThemeService.BuiltInThemes.Where(t => !t.IsDark);
-
-    /// <summary>All built-in dark themes.</summary>
-    public IEnumerable<ThemeDefinition> DarkThemes =>
-        ThemeService.BuiltInThemes.Where(t => t.IsDark);
+    /// <summary>All built-in themes.</summary>
+    public IEnumerable<ThemeDefinition> BuiltInThemesList =>
+        ThemeService.BuiltInThemes;
 
     /// <summary>Admin-created custom themes.</summary>
-    public IEnumerable<ThemeDefinition> CustomThemesList =>
+    public IList<ThemeDefinition> CustomThemesList =>
         ThemeService.CustomThemes;
 
     partial void OnSelectedThemeChanged(string value)
@@ -108,6 +101,10 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     [NotifyPropertyChangedFor(nameof(CustomBuilderPreviewPrimary))]
     private string _newThemePrimaryHex = "#4F46E5";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CustomBuilderPreviewTopBar))]
+    private string _newThemeTopBarHex = "#FFFFFF";
+
     [ObservableProperty] private bool _newThemeIsDark;
 
     /// <summary>Live preview swatch — sidebar hex (validated).</summary>
@@ -117,6 +114,10 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     /// <summary>Live preview swatch — primary hex (validated).</summary>
     public string CustomBuilderPreviewPrimary =>
         IsValidHex(NewThemePrimaryHex) ? NewThemePrimaryHex : "#4F46E5";
+
+    /// <summary>Live preview swatch — topbar hex (validated).</summary>
+    public string CustomBuilderPreviewTopBar =>
+        IsValidHex(NewThemeTopBarHex) ? NewThemeTopBarHex : "#FFFFFF";
 
     [ObservableProperty] private string _customBuilderMessage = string.Empty;
 
@@ -129,7 +130,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             CustomBuilderMessage = "⚠ Please enter a theme name.";
             return;
         }
-        if (!IsValidHex(NewThemeSidebarHex) || !IsValidHex(NewThemePrimaryHex))
+        if (!IsValidHex(NewThemeSidebarHex) || !IsValidHex(NewThemePrimaryHex) || !IsValidHex(NewThemeTopBarHex))
         {
             CustomBuilderMessage = "⚠ Enter valid hex colors (e.g. #1E293B).";
             return;
@@ -144,6 +145,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
         bool dark = NewThemeIsDark;
         string primary  = NewThemePrimaryHex;
         string sidebar  = NewThemeSidebarHex;
+        string topbar   = NewThemeTopBarHex;
         string hover    = LightenOrDarken(sidebar, dark ? 0.08 : 0.05);
         string content  = dark ? "#111827" : "#F8FAFC";
         string card     = dark ? "#1F2937" : "#FFFFFF";
@@ -163,6 +165,8 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             SidebarHoverForeground = fg,
             SidebarActiveBackground= primary,
             SidebarActiveForeground= "#FFFFFF",
+            TopBarBackground       = topbar,
+            TopBarForeground       = dark ? "#D1D5DB" : "#4B5563",
             Primary                = primary,
             PrimaryHover           = LightenOrDarken(primary, -0.1),
             PrimaryPressed         = LightenOrDarken(primary, -0.2),
@@ -237,8 +241,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
 
                 // Refresh custom themes list (loaded by ThemeService at startup)
                 OnPropertyChanged(nameof(CustomThemesList));
-                OnPropertyChanged(nameof(LightThemes));
-                OnPropertyChanged(nameof(DarkThemes));
+                OnPropertyChanged(nameof(BuiltInThemesList));
             });
         }
         catch (Exception ex)
