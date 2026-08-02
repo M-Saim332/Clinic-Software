@@ -288,28 +288,28 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             {
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, productSalesValue) },
+                    Values         = new double[] { productSalesValue },
                     Name           = "Product Sales",
                     Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalConsultations) },
+                    Values         = new double[] { totalConsultations },
                     Name           = "Consultation",
                     Fill           = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalExpenses) },
+                    Values         = new double[] { totalExpenses },
                     Name           = "Purchases",
                     Fill           = new SolidColorPaint(new SKColor(0xA7, 0x8B, 0xFA)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { Math.Max(1.0, totalRefunds) },
+                    Values         = new double[] { totalRefunds },
                     Name           = "Refunds",
                     Fill           = new SolidColorPaint(new SKColor(0xFB, 0xBF, 0x24)),
                     InnerRadius    = 80

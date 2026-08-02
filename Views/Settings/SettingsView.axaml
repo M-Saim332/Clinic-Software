@@ -589,19 +589,65 @@
                     </StackPanel>
                 </Border>
 
+
                 <!-- ── USER MANAGEMENT (Admin only) ──────────────────────── -->
                 <Border IsVisible="{Binding IsAdmin}"
                         Background="{DynamicResource ThemeCardBackgroundBrush}"
                         BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="USER MANAGEMENT" Classes="sectionLabel"/>
-                        <Separator/>
-                        <Border Height="800" Background="{DynamicResource ThemeContentBackgroundBrush}"
-                                CornerRadius="8" ClipToBounds="True">
-                            <userviews:UserRegistryView DataContext="{Binding UserRegistryVM}"/>
-                        </Border>
-                    </StackPanel>
+                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="0">
+                    <Button Command="{Binding NavigateToUsersCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Padding="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            CornerRadius="{DynamicResource CornerRadiusCard}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="{DynamicResource ThemeContentBackgroundBrush}"/>
+                            </Style>
+                        </Button.Styles>
+                        <DockPanel Margin="20" HorizontalAlignment="Stretch">
+                            <!-- Left: Icon + Text -->
+                            <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                                <Border Width="48" Height="48" CornerRadius="12"
+                                        Background="{DynamicResource ThemePrimaryLightBrush}">
+                                    <materialIcons:MaterialIcon Kind="AccountMultipleOutline"
+                                                  Width="24" Height="24"
+                                                  Foreground="{DynamicResource ThemePrimaryBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Spacing="3">
+                                    <TextBlock Text="USER MANAGEMENT" Classes="sectionLabel"/>
+                                    <TextBlock Text="Manage staff accounts, roles, and module access permissions."
+                                               FontSize="13" Foreground="{DynamicResource ThemeContentForegroundBrush}"
+                                               FontWeight="Medium"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <materialIcons:MaterialIcon Kind="AccountCircleOutline" Width="13" Height="13"
+                                                          Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                            <TextBlock Text="Add &amp; edit users" FontSize="11"
+                                                       Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <materialIcons:MaterialIcon Kind="ShieldCheckOutline" Width="13" Height="13"
+                                                          Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                            <TextBlock Text="Role &amp; permissions" FontSize="11"
+                                                       Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
+                                            <materialIcons:MaterialIcon Kind="LockResetOutline" Width="13" Height="13"
+                                                          Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                            <TextBlock Text="Password reset" FontSize="11"
+                                                       Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                            <!-- Right: Arrow -->
+                            <materialIcons:MaterialIcon Kind="ChevronRight" Width="24" Height="24"
+                                          DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                          Foreground="{DynamicResource ThemeSubtleForegroundBrush}"
+                                          VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Button>
                 </Border>
 
             </StackPanel>
