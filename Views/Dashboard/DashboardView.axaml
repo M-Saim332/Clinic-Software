@@ -450,7 +450,6 @@
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
-            <Setter Property="FontFamily" Value="{DynamicResource FontMono}"/>
         </Style>
         <Style Selector="TextBlock.kpiLink">
             <Setter Property="FontSize" Value="12"/>

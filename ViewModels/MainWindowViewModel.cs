@@ -107,6 +107,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _dashboardVM.RequestNavigateProducts    += () => ShowProductsCommand.Execute(null);
         _dashboardVM.RequestNavigateInventory    += () => ShowInventoryCommand.Execute(null);
 
+        // Allow Settings to navigate to the dedicated User Management page
+        _settingsVM.NavigateToUsersRequested = () => ShowUsersCommand.Execute(null);
+
         // Allow Patients view to navigate to Appointments
         _patientVM.RequestBookAppointment += (patient) => 
         {
