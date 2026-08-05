@@ -64,9 +64,6 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _stock = "0";
     [ObservableProperty] private string _minimumStockLevel = "10";
 
-    public string ProfitPerUnitText => FormatMoney(CurrentSellingPrice - CurrentPurchasePrice);
-    public string InventoryValueText => FormatMoney(CurrentStock * CurrentSellingPrice);
-
     private int CurrentStock => int.TryParse(Stock, out var value) ? value : 0;
     private decimal CurrentPurchasePrice => decimal.TryParse(PurchasePrice, out var value) ? value : 0;
     private decimal CurrentSellingPrice => decimal.TryParse(SellingPrice, out var value) ? value : 0;
@@ -427,8 +424,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
 
     private void NotifyCalculatedTotals()
     {
-        OnPropertyChanged(nameof(ProfitPerUnitText));
-        OnPropertyChanged(nameof(InventoryValueText));
+
     }
 
     private static string FormatMoney(decimal value) => $"Rs. {value:N2}";

@@ -421,28 +421,7 @@
                         </StackPanel>
                     </Expander>
 
-                        <!-- Snapshot Card -->
-                        <Border Background="{DynamicResource BrushBlue50}"
-                                BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                                CornerRadius="{DynamicResource CornerRadiusInput}"
-                                Padding="20,16" Margin="0,8,0,0" MaxWidth="500" HorizontalAlignment="Left">
-                            <Grid RowDefinitions="Auto" ColumnDefinitions="*,*">
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{Binding ProfitPerUnitText}"
-                                               FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-                                    <TextBlock Text="Profit / unit"
-                                               FontSize="11" Foreground="{DynamicResource BrushInk500}"
-                                               FontFamily="{DynamicResource FontLexend}" LetterSpacing="0.5"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="2">
-                                    <TextBlock Text="{Binding InventoryValueText}"
-                                               FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-                                    <TextBlock Text="Stock Value"
-                                               FontSize="11" Foreground="{DynamicResource BrushInk500}"
-                                               FontFamily="{DynamicResource FontLexend}" LetterSpacing="0.5"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+
                     </StackPanel>
                 
             </ScrollViewer>

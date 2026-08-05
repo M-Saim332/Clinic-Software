@@ -58,4 +58,9 @@ public static class ValidationHelper
         }
         return Regex.IsMatch(cnic, @"^\d{13}$");
     }
+
+    public static bool ValidateDiscountPercentage(decimal discount)
+    {
+        return discount >= 0 && discount <= 100;
+    }
 }

@@ -180,6 +180,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
         if (Quantity > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock} in stock."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
         var item = new SaleItem
@@ -324,7 +325,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         OnPropertyChanged(nameof(IsWalkIn));
         if (value != null)
         {
-            ConsultationFee = value.ConsultationFee;
+            ConsultationFee = value.TotalBill;
         }
     }
 

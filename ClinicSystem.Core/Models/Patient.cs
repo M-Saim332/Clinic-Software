@@ -13,7 +13,7 @@ public class Patient
     public string? Diagnosis { get; set; }
     public string? Prescription { get; set; }
     public decimal ConsultationFee { get; set; }
-    public decimal Discount { get; set; }
+    public decimal? Discount { get; set; }
     public DateTime? NextAppointmentDate { get; set; }
     public TimeSpan? NextAppointmentTime { get; set; }
     
@@ -21,7 +21,7 @@ public class Patient
     public string? VisitStatus { get; set; }
     public DateTime? LastVisitDate { get; set; }
 
-    public decimal TotalBill => Math.Max(ConsultationFee - Discount, 0);
+    public decimal TotalBill => Math.Max(ConsultationFee - (ConsultationFee * (Discount ?? 0m) / 100m), 0);
 
     public string DisplayText => $"{Name} — {Phone ?? "No contact"} — Age: {Age?.ToString() ?? "N/A"}";
 

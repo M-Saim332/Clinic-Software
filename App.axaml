@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ClinicSystem.UI.App"
              xmlns:local="using:ClinicSystem.UI"
+             xmlns:converters="using:ClinicSystem.UI.Converters"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              RequestedThemeVariant="Light">
 
@@ -15,7 +16,8 @@
                 <ResourceInclude Source="avares://ClinicSystem.UI/Styles/DesignTokens.axaml"/>
             </ResourceDictionary.MergedDictionaries>
 
-        <!-- ── Modern Healthcare Vector Icon Geometries ─────────────────── -->
+            <!-- Global Converters -->
+            <converters:BytesToBitmapConverter x:Key="BytesToBitmapConverter"/>
         <!-- Dashboard: grid/layout icon -->
         <StreamGeometry x:Key="IconDashboard">M4,4H10V10H4V4ZM4,14H10V20H4V14ZM14,4H20V10H14V4ZM14,14H20V20H14V14Z</StreamGeometry>
         <!-- Patients: user with outline -->

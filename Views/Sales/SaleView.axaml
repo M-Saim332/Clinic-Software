@@ -236,8 +236,8 @@
                                         <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="6" Margin="6,0,0,0">
-                                        <TextBlock Text="Discount" Classes="label"/>
-                                        <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0"/>
+                                        <TextBlock Text="Discount (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -263,7 +263,7 @@
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
                                     <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
-                                    <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                    <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. {0:N2}'}" Width="100"/>
                                     <DataGridTextColumn Header="LINE TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">

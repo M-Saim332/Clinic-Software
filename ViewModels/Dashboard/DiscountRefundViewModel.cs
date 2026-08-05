@@ -30,7 +30,7 @@ public partial class DiscountRefundViewModel : ViewModelBase
     [ObservableProperty] private string  _patientName    = string.Empty;
     [ObservableProperty] private string  _tokenNumber    = string.Empty;
     [ObservableProperty] private decimal _originalFee;
-    [ObservableProperty] private decimal _discountedFee;
+    [ObservableProperty] private decimal _discountPercentage;
     [ObservableProperty] private string  _notes          = string.Empty;
     [ObservableProperty] private string  _statusMessage  = string.Empty;
     [ObservableProperty] private bool    _isSuccess;
@@ -40,10 +40,10 @@ public partial class DiscountRefundViewModel : ViewModelBase
     [ObservableProperty] private Patient? _selectedPatient;
 
     /// <summary>Live-computed refund amount shown as user types.</summary>
-    public decimal ComputedRefund => Math.Max(0, OriginalFee - DiscountedFee);
+    public decimal ComputedRefund => Math.Max(0, OriginalFee * (DiscountPercentage / 100));
 
     partial void OnOriginalFeeChanged(decimal value)   => OnPropertyChanged(nameof(ComputedRefund));
-    partial void OnDiscountedFeeChanged(decimal value) => OnPropertyChanged(nameof(ComputedRefund));
+    partial void OnDiscountPercentageChanged(decimal value) => OnPropertyChanged(nameof(ComputedRefund));
 
     /// <summary>When a patient is picked from the dropdown, fill name and fee.</summary>
     partial void OnSelectedPatientChanged(Patient? value)
@@ -73,15 +73,18 @@ public partial class DiscountRefundViewModel : ViewModelBase
         if (OriginalFee <= 0)
         { StatusMessage = "Original fee must be greater than 0."; IsSuccess = false; return; }
 
-        if (DiscountedFee < 0 || DiscountedFee >= OriginalFee)
-        { StatusMessage = "Discounted fee must be less than the original fee."; IsSuccess = false; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(DiscountPercentage))
+        { StatusMessage = "Discount must be between 0% and 100%."; IsSuccess = false; return; }
+
+        decimal refundAmount = ComputedRefund;
+        decimal newDiscountedFee = OriginalFee - refundAmount;
 
         var refund = new DiscountRefund
         {
             PatientName      = PatientName.Trim(),
             TokenNumber      = string.IsNullOrWhiteSpace(TokenNumber) ? null : TokenNumber.Trim(),
             OriginalFee      = OriginalFee,
-            DiscountedFee    = DiscountedFee,
+            DiscountedFee    = newDiscountedFee,
             Notes            = string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
             ApprovedByUserID = CurrentUser?.UserID,
             ApprovedByName   = CurrentUser?.FullName.Length > 0
@@ -123,7 +126,7 @@ public partial class DiscountRefundViewModel : ViewModelBase
         PatientName     = string.Empty;
         TokenNumber     = string.Empty;
         OriginalFee     = 0;
-        DiscountedFee   = 0;
+        DiscountPercentage = 0;
         Notes           = string.Empty;
     }
 }

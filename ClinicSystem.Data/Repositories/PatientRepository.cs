@@ -13,7 +13,12 @@ public class PatientRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Patient>(
-            "SELECT * FROM Patients ORDER BY Name");
+            @"SELECT PatientID, Name, Age, Gender, Phone, CNIC, Address,
+                     Diagnosis, Prescription, ConsultationFee,
+                     ISNULL(Discount, 0) AS Discount,
+                     NextAppointmentDate, NextAppointmentTime,
+                     VisitStatus, LastVisitDate
+              FROM Patients ORDER BY Name");
     }
 
     public int GetCount()
@@ -25,7 +30,7 @@ public class PatientRepository
     public decimal GetTotalConsultationFee()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ConsultationFee), 0) FROM Patients");
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ConsultationFee - (ConsultationFee * ISNULL(Discount, 0) / 100.0)), 0) FROM Patients");
     }
 
     public Patient? GetById(int id)
