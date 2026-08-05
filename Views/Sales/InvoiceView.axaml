@@ -50,8 +50,10 @@
                                               Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="1">
-                                    <TextBlock Text="CLINIC MANAGEMENT" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-                                    <TextBlock Text="123 Medical Center Blvd, Health City" FontSize="13" Foreground="{DynamicResource BrushInk500}"/>
+                                    <TextBlock Text="{Binding ClinicName}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                    <TextBlock Text="{Binding ClinicAddress}" FontSize="13" Foreground="{DynamicResource BrushInk500}"/>
+                                    <TextBlock Text="{Binding ClinicPhone}" FontSize="12" Foreground="{DynamicResource BrushInk400}"
+                                               IsVisible="{Binding ClinicPhone, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -86,10 +88,10 @@
                               GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F3F4F6">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ITEM DESCRIPTION" Binding="{Binding ProductName}" Width="*"/>
-                            <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
-                            <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                            <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                            <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="Auto" MinWidth="60"/>
+                            <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="90"/>
+                            <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}%'}" Width="Auto" MinWidth="110"/>
+                            <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="110"/>
                         </DataGrid.Columns>
                     </DataGrid>
                     

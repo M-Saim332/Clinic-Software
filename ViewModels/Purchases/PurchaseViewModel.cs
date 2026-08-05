@@ -137,6 +137,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
         var item = new PurchaseItem

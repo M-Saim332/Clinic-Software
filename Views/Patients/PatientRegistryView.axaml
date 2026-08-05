@@ -255,8 +255,8 @@
                                 <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="5" Spacing="6" Margin="12,0,0,0">
-                                <TextBlock Text="Discount" Classes="label"/>
-                                <TextBox Text="{Binding Discount}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                                <TextBlock Text="Discount (%)" Classes="label"/>
+                                <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100" IsEnabled="{Binding !IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
 
                         </Grid>

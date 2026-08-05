@@ -44,8 +44,8 @@
                 </StackPanel>
                 
                 <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
-                    <TextBlock Text="Discounted Fee" Classes="label"/>
-                    <NumericUpDown Value="{Binding DiscountedFee}" FormatString="N2" Minimum="0"/>
+                    <TextBlock Text="Discount (%)" Classes="label"/>
+                    <NumericUpDown Value="{Binding DiscountPercentage}" FormatString="N2" Minimum="0" Maximum="100"/>
                 </StackPanel>
             </Grid>
             

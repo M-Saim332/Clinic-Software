@@ -278,6 +278,32 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('Prescriptions', 'U') IS NULL
+BEGIN
+    CREATE TABLE Prescriptions (
+        PrescriptionID INT IDENTITY(1,1) PRIMARY KEY,
+        PatientID      INT NOT NULL FOREIGN KEY REFERENCES Patients(PatientID),
+        DoctorID       INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
+        VisitDate      DATETIME NOT NULL,
+        Diagnosis      NVARCHAR(MAX) NULL,
+        Notes          NVARCHAR(MAX) NULL,
+        CreatedAt      DATETIME NOT NULL DEFAULT GETDATE()
+    );
+END
+GO
+
+IF OBJECT_ID('PrescriptionItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE PrescriptionItems (
+        PrescriptionItemID INT IDENTITY(1,1) PRIMARY KEY,
+        PrescriptionID     INT NOT NULL FOREIGN KEY REFERENCES Prescriptions(PrescriptionID) ON DELETE CASCADE,
+        ProductID          INT NOT NULL FOREIGN KEY REFERENCES Products(ProductID),
+        Quantity           INT NOT NULL,
+        Dosage             NVARCHAR(255) NULL
+    );
+END
+GO
+
 IF OBJECT_ID('Returns', 'U') IS NULL
 BEGIN
     CREATE TABLE Returns (

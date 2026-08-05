@@ -93,9 +93,19 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     private async Task LoadAllVisitsAsync()
     {
         IsBusy = true;
-        AllVisits = new ObservableCollection<Prescription>(await Task.Run(_prescriptionRepo.GetAll));
-        StatusMessage = $"{AllVisits.Count} visits.";
-        IsBusy = false;
+        try
+        {
+            AllVisits = new ObservableCollection<Prescription>(await Task.Run(_prescriptionRepo.GetAll));
+            StatusMessage = $"{AllVisits.Count} visits.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load visits: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]

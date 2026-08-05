@@ -86,7 +86,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _diagnosis = string.Empty;
     [ObservableProperty] private string _prescription = string.Empty;
     [ObservableProperty] private string _consultationFee = "0.00";
-    [ObservableProperty] private string _discount = "0.00";
+    [ObservableProperty] private decimal _discount;
     [ObservableProperty] private TimeSpan? _nextAppointmentTime;
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
@@ -156,9 +156,9 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         
         int age = 0;
         if (!string.IsNullOrWhiteSpace(Age) && (!int.TryParse(Age, out age) || age < 0)) { StatusMessage = "Age must be a positive number."; return; }
-        decimal fee = 0, discount = 0;
+        decimal fee = 0;
         if (!string.IsNullOrWhiteSpace(ConsultationFee) && (!decimal.TryParse(ConsultationFee, out fee) || fee < 0)) { StatusMessage = "Fee must be a positive number."; return; }
-        if (!string.IsNullOrWhiteSpace(Discount) && (!decimal.TryParse(Discount, out discount) || discount < 0)) { StatusMessage = "Discount must be a positive number."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         var p = BuildPatient();
 
@@ -276,9 +276,9 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
                 FilterPatients();
 
                 TotalPatientsCount = Patients.Count;
-                ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
+                ActiveThisMonthCount = Patients.Count(p => p.TotalBill > 0);
                 WaitingTodayCount = WaitingPatientsList.Count;
-                AvgConsultationFee = $"Rs. {Patients.Sum(p => p.ConsultationFee):N2}";
+                AvgConsultationFee = $"Rs. {Patients.Sum(p => p.TotalBill):N2}";
             });
         }
         catch (Exception ex)
@@ -318,7 +318,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Name = string.Empty; Age = string.Empty; Gender = "Male";
         Phone = string.Empty; CNIC = string.Empty; Address = string.Empty;
         Diagnosis = string.Empty; Prescription = string.Empty;
-        ConsultationFee = "0.00"; Discount = "0.00";
+        ConsultationFee = "0.00"; Discount = 0;
         NextAppointmentTime = null;
     }
 
@@ -329,7 +329,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         CNIC = p.CNIC ?? string.Empty;
         Address = p.Address ?? string.Empty;
         Diagnosis = p.Diagnosis ?? string.Empty; Prescription = p.Prescription ?? string.Empty;
-        ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = p.Discount.ToString("F2");
+        ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = Math.Clamp(p.Discount ?? 0m, 0m, 100m);
         NextAppointmentTime = p.NextAppointmentTime;
     }
 
@@ -339,7 +339,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Gender = Gender, Phone = Phone, CNIC = CNIC, Address = Address,
         Diagnosis = Diagnosis, Prescription = Prescription,
         ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
-        Discount = decimal.TryParse(Discount, out var d) ? d : 0,
+        // Always clamp Discount to valid 0-100% range before saving
+        Discount = Math.Clamp(Discount, 0m, 100m),
         NextAppointmentTime = NextAppointmentTime
     };
 

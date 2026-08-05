@@ -17,17 +17,25 @@
                 <!-- Avatar -->
                 <Border Grid.Column="0" Width="80" Height="80" CornerRadius="40"
                         Background="#EFF6FF" Margin="0,0,24,0"
-                        BorderBrush="{DynamicResource BrushPrimaryBlue}" BorderThickness="2">
+                        BorderBrush="{DynamicResource BrushPrimaryBlue}" BorderThickness="2"
+                        ClipToBounds="True">
                     <Panel>
-                        <!-- Initials fallback -->
+                        <!-- Initials fallback (shown when no picture) -->
                         <TextBlock IsVisible="{Binding !HasProfilePicture}"
                                    FontSize="30" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                   Text="{Binding FullName}">
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
                             <TextBlock.Text>
                                 <Binding Path="FullName" FallbackValue="?"/>
                             </TextBlock.Text>
                         </TextBlock>
+                        <!-- Actual uploaded profile picture -->
+                        <Image IsVisible="{Binding HasProfilePicture}"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image.Source>
+                                <Binding Path="ProfilePicture" Converter="{StaticResource BytesToBitmapConverter}"/>
+                            </Image.Source>
+                        </Image>
                     </Panel>
                 </Border>
 

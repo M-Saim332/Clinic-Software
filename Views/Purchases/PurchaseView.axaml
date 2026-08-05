@@ -222,8 +222,8 @@
                                         <NumericUpDown Value="{Binding PurchasePrice}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Discount" Classes="label"/>
-                                        <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0"/>
+                                        <TextBlock Text="Discount (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -251,7 +251,7 @@
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
                                     <DataGridTextColumn Header="PRICE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="100"/>
                                     <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:PurchaseViewModel)DataContext).SaveCancelEnabled}">
                                         <DataGridTemplateColumn.CellTemplate>
