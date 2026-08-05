@@ -113,9 +113,9 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
     private async Task SaveAsync()
     {
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name required (min 2 chars, no numbers)."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone number required."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Phone number must contain exactly 11 digits."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidEmail(Email)) { StatusMessage = "Valid Email address required."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidCNIC(CNIC)) { StatusMessage = "Valid CNIC required (13 digits)."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateCNIC(CNIC, required: false)) { StatusMessage = "CNIC must contain exactly 13 digits."; return; }
         var s = new Supplier { Name = Name, Address = Address, Phone = Phone, Email = Email, CNIC = CNIC };
         if (Mode == FormMode.Add)
         {

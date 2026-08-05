@@ -188,7 +188,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
                             <TextBlock Text="Phone *" Classes="label"/>
-                            <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
+                            <TextBox Text="{Binding PatientPhone}" PlaceholderText="03001234567" MaxLength="11" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
                         </StackPanel>
                     </Grid>
 

@@ -124,6 +124,20 @@ public partial class ProfileViewModel : ViewModelBase
             return;
         }
 
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone))
+        {
+            StatusMessage = "Phone number must contain exactly 11 digits.";
+            IsSuccess = false;
+            return;
+        }
+
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateCNIC(Cnic, required: false))
+        {
+            StatusMessage = "CNIC must contain exactly 13 digits.";
+            IsSuccess = false;
+            return;
+        }
+
         try
         {
             var userId = CurrentUser!.UserID;

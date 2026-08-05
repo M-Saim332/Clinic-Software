@@ -145,7 +145,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
     private async Task SaveAsync()
     {
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name required (min 2 chars, no numbers)."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone number required."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Phone number must contain exactly 11 digits."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidEmail(Email)) { StatusMessage = "Valid Email address required."; return; }
         var c = new Company { Name = Name, Address = Address, Phone = Phone, Email = Email };
         if (Mode == FormMode.Add)
