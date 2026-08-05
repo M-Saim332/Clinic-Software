@@ -364,12 +364,12 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Grid.Row="0" Classes="field-cell-right">
                                         <TextBlock Text="CNIC / NIC" Classes="lbl"/>
-                                        <TextBox Text="{Binding Cnic}" PlaceholderText="00000-0000000-0"/>
+                                        <TextBox Text="{Binding Cnic}" PlaceholderText="3520212345671" MaxLength="13"/>
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="0" Grid.Row="1" Classes="field-cell-left">
                                         <TextBlock Text="Phone Number *" Classes="lbl"/>
-                                        <TextBox Text="{Binding Phone}" PlaceholderText="+92 300 0000000"/>
+                                        <TextBox Text="{Binding Phone}" PlaceholderText="03001234567" MaxLength="11"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Grid.Row="1" Classes="field-cell-right">
                                         <TextBlock Text="Email Address *" Classes="lbl"/>

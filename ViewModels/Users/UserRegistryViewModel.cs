@@ -287,9 +287,9 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     {
         if (string.IsNullOrWhiteSpace(Username)) { StatusMessage = "Username is required."; IsSuccess = false; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(FullName)) { StatusMessage = "Valid Full Name is required (min 2 chars, no numbers)."; IsSuccess = false; return; }
-        if (string.IsNullOrWhiteSpace(Phone) || !ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone Number is required."; IsSuccess = false; return; }
+        if (string.IsNullOrWhiteSpace(Phone) || !ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Phone number must contain exactly 11 digits."; IsSuccess = false; return; }
         if (string.IsNullOrWhiteSpace(Email) || !ClinicSystem.UI.Helpers.ValidationHelper.IsValidEmail(Email)) { StatusMessage = "Valid Email Address is required."; IsSuccess = false; return; }
-        if (!string.IsNullOrWhiteSpace(Cnic) && !ClinicSystem.UI.Helpers.ValidationHelper.IsValidCNIC(Cnic)) { StatusMessage = "Invalid CNIC. Must have at least 13 digits."; IsSuccess = false; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateCNIC(Cnic, required: true)) { StatusMessage = "CNIC is required and must contain exactly 13 digits."; IsSuccess = false; return; }
 
         try
         {

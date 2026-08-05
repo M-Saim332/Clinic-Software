@@ -169,7 +169,7 @@
                                             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="5" Margin="0,0,12,0">
                                                 <TextBlock Text="CNIC / NIC" Classes="lbl"/>
                                                 <TextBox Text="{Binding Cnic}" IsReadOnly="{Binding IsReadOnly}"
-                                                         PlaceholderText="00000-0000000-0"/>
+                                                         PlaceholderText="3520212345671" MaxLength="13"/>
                                             </StackPanel>
                                         </Grid>
 
@@ -209,7 +209,7 @@
                                             <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,12,0">
                                                 <TextBlock Text="Phone Number" Classes="lbl"/>
                                                 <TextBox Text="{Binding Phone}" IsReadOnly="{Binding IsReadOnly}"
-                                                         PlaceholderText="+92 300 0000000"/>
+                                                         PlaceholderText="03001234567" MaxLength="11"/>
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="5" Margin="12,0,0,0">
                                                 <TextBlock Text="Email Address" Classes="lbl"/>

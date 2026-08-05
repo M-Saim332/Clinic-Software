@@ -210,7 +210,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Phone Number" Classes="label"/>
-                                <TextBox Text="{Binding Phone}" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                                <TextBox Text="{Binding Phone}" PlaceholderText="03001234567" MaxLength="11" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
                             <!-- Row 1: Age + Gender -->
@@ -226,7 +226,7 @@
                             <!-- Row 2: CNIC + Appointment Time -->
                             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,16">
                                 <TextBlock Text="CNIC" Classes="label"/>
-                                <TextBox Text="{Binding CNIC}" PlaceholderText="e.g. 12345-1234567-1" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                                <TextBox Text="{Binding CNIC}" PlaceholderText="3520212345671" MaxLength="13" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Appointment Time (Optional)" Classes="label"/>

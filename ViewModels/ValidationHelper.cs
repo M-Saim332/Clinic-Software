@@ -18,15 +18,14 @@ public static class ValidationHelper
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
         var digits = Regex.Replace(input, @"\D", "");
         if (digits.Length > 11) digits = digits.Substring(0, 11);
-        if (digits.Length <= 4) return digits;
-        return $"{digits.Substring(0, 4)}-{digits.Substring(4)}";
+        return digits;
     }
 
-    // Digits, spaces, +, -, (, ) only. Minimum 6 digits.
+    // Exactly 11 numeric digits
     public static bool IsValidPhone(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return true; // Optional fields return true if empty. For required, check empty before calling.
-        return Regex.IsMatch(phone, @"^\d{4}-\d{7}$");
+        return Regex.IsMatch(phone, @"^\d{11}$");
     }
 
     public static bool IsValidEmail(string? email)
@@ -48,15 +47,15 @@ public static class ValidationHelper
         if (string.IsNullOrWhiteSpace(input)) return string.Empty;
         var digits = Regex.Replace(input, @"\D", "");
         if (digits.Length > 13) digits = digits.Substring(0, 13);
-        if (digits.Length <= 5) return digits;
-        if (digits.Length <= 12) return $"{digits.Substring(0, 5)}-{digits.Substring(5)}";
-        return $"{digits.Substring(0, 5)}-{digits.Substring(5, 7)}-{digits.Substring(12)}";
+        return digits;
     }
 
-    // Typical CNIC pattern e.g., 12345-1234567-1
-    public static bool IsValidCNIC(string? cnic)
+    public static bool ValidateCNIC(string? cnic, bool required)
     {
-        if (string.IsNullOrWhiteSpace(cnic)) return true;
-        return Regex.IsMatch(cnic, @"^\d{5}-\d{7}-\d{1}$");
+        if (string.IsNullOrWhiteSpace(cnic))
+        {
+            return !required;
+        }
+        return Regex.IsMatch(cnic, @"^\d{13}$");
     }
 }

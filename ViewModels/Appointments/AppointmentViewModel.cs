@@ -173,7 +173,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
                 }
                 if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(finalPhone))
                 {
-                    StatusMessage = "Valid Phone number is required.";
+                    StatusMessage = "Phone number must contain exactly 11 digits.";
                     return;
                 }
                 if (finalAge.HasValue && finalAge.Value < 0)

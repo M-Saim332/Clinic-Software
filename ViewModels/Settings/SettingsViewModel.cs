@@ -262,6 +262,12 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task SaveSettingsAsync()
     {
+        if (!string.IsNullOrWhiteSpace(ClinicPhone) && !ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(ClinicPhone))
+        {
+            StatusMessage = "Phone number must contain exactly 11 digits.";
+            return;
+        }
+
         IsBusy = true;
         try
         {

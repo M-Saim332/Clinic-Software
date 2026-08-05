@@ -151,8 +151,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     private async Task SaveAsync()
     {
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone number is required."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidCNIC(CNIC)) { StatusMessage = "Valid CNIC is required (13 digits)."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Phone number must contain exactly 11 digits."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateCNIC(CNIC, required: false)) { StatusMessage = "CNIC must contain exactly 13 digits."; return; }
         
         int age = 0;
         if (!string.IsNullOrWhiteSpace(Age) && (!int.TryParse(Age, out age) || age < 0)) { StatusMessage = "Age must be a positive number."; return; }

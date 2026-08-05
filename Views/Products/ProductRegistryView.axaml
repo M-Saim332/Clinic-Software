@@ -326,8 +326,8 @@
             </Border>
 
             <!-- Scrollable Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24,28,100">
-                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,24">
+                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,0,100">
                     <!-- SECTION 1: Quick Entry -->
                     <StackPanel Spacing="16">
                         <TextBlock Text="QUICK ENTRY" FontSize="11" FontWeight="Bold"
@@ -377,7 +377,7 @@
                     </StackPanel>
 
                     <!-- SECTION 2: Advanced Fields (Accordion) -->
-                    <Expander Header="Advanced Details" HorizontalAlignment="Stretch" 
+                    <Expander Header="Additional Information" HorizontalAlignment="Stretch" 
                               Background="Transparent" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}" 
                               CornerRadius="{DynamicResource CornerRadiusCard}" Padding="16,8">
                         <StackPanel Spacing="16" Margin="0,12,0,0">
