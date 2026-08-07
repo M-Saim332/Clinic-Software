@@ -185,6 +185,13 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         {
             await Task.Run(() =>
             {
+                if (m.CompanyID == null && !string.IsNullOrWhiteSpace(m.CompanyName))
+                {
+                    var newCompany = new Company { Name = m.CompanyName, Phone = string.Empty, Email = string.Empty, Address = string.Empty };
+                    var newId = _companyRepo.Insert(newCompany);
+                    m.CompanyID = newId;
+                }
+
                 if (Mode == FormMode.Add)
                 {
                     _repo.Insert(m);

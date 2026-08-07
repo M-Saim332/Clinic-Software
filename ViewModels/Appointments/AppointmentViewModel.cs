@@ -199,6 +199,12 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private void ClearPatient()
+    {
+        SelectedPatient = null;
+    }
+
+    [RelayCommand]
     private async Task CompleteSpecificAsync(Appointment a)
     {
         if (a == null) return;

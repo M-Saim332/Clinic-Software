@@ -58,7 +58,7 @@
                     Value="{Binding ExpiredCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushRose}"/>
                 <comp:SummaryCardControl Grid.Column="3"
-                    Title="Inventory Value"
+                    Title="Stock Value"
                     Value="{Binding TotalInventoryValue}"
                     BorderColor="{DynamicResource BrushPrimaryBlue}"/>
             </Grid>
@@ -426,27 +426,21 @@
                                 BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                                 CornerRadius="{DynamicResource CornerRadiusInput}"
                                 Padding="20,16" Margin="0,8,0,0" MaxWidth="500" HorizontalAlignment="Left">
-                            <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
-                                <TextBlock Grid.ColumnSpan="2" Text="Financial Snapshot"
-                                           Foreground="{DynamicResource BrushInk900}"
-                                           FontWeight="Bold" Margin="0,0,0,10" FontSize="13"
-                                           FontFamily="{DynamicResource FontLexend}"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0"
-                                           Text="{Binding ProfitPerUnitText}"
-                                           Foreground="{DynamicResource BrushPrimaryBlue}"
-                                           FontSize="16" FontWeight="SemiBold"
-                                           FontFamily="{DynamicResource FontMono}" Margin="0,0,0,4"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1"
-                                           Text="{Binding InventoryValueText}"
-                                           Foreground="{DynamicResource BrushPrimaryBlue}"
-                                           FontSize="16" FontWeight="SemiBold"
-                                           FontFamily="{DynamicResource FontMono}" Margin="0,0,0,4"/>
-                                <TextBlock Grid.Row="2" Grid.Column="0"
-                                           Text="Profit / unit"
-                                           Foreground="{DynamicResource BrushInk600}" FontSize="11"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1"
-                                           Text="Inventory Value"
-                                           Foreground="{DynamicResource BrushInk600}" FontSize="11"/>
+                            <Grid RowDefinitions="Auto" ColumnDefinitions="*,*">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding ProfitPerUnitText}"
+                                               FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                    <TextBlock Text="Profit / unit"
+                                               FontSize="11" Foreground="{DynamicResource BrushInk500}"
+                                               FontFamily="{DynamicResource FontLexend}" LetterSpacing="0.5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock Text="{Binding InventoryValueText}"
+                                               FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                    <TextBlock Text="Stock Value"
+                                               FontSize="11" Foreground="{DynamicResource BrushInk500}"
+                                               FontFamily="{DynamicResource FontLexend}" LetterSpacing="0.5"/>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </StackPanel>
