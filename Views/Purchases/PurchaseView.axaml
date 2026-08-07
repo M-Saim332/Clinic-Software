@@ -56,8 +56,8 @@
                     Value="{Binding TotalSuppliersCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushAmber}"/>
                 <comp:SummaryCardControl Grid.Column="3"
-                    Title="Avg Invoice Value"
-                    Value="{Binding AverageInvoiceValue, StringFormat='Rs. {0:N2}'}"
+                    Title="Total Invoice Value"
+                    Value="{Binding TotalPurchasesAmount, StringFormat='Rs. {0:N2}'}"
                     BorderColor="{DynamicResource BrushRose}"/>
             </Grid>
 

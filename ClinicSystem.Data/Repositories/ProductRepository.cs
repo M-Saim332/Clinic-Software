@@ -36,7 +36,7 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(
-            "SELECT ISNULL(SUM(CAST(PurchasePrice AS DECIMAL(18,2)) * CAST(Stock AS DECIMAL(18,2))), 0) FROM Products");
+            "SELECT ISNULL(SUM(CAST(SellingPrice AS DECIMAL(18,2)) * CAST(Stock AS DECIMAL(18,2))), 0) FROM Products");
     }
 
     public Product? GetById(int id)

@@ -8,7 +8,7 @@
              x:DataType="vm:AppointmentViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
-    <Grid>
+    <Panel>
         <!-- CREATE PATIENT PROMPT DIALOG -->
         <Border Background="#80000000" IsVisible="{Binding ShowCreatePatientPrompt}" ZIndex="100">
             <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="24"
@@ -161,63 +161,73 @@
             </Border>
 
             <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24">
-                <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="APPOINTMENT DETAILS" FontSize="11" FontWeight="Bold"
-                                   Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
-                                   FontFamily="{DynamicResource FontLexend}"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Spacing="6" Margin="0,0,0,12">
-                                <TextBlock Text="Patient (Optional)" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                          HorizontalAlignment="Stretch" PlaceholderText="Select Existing Patient or leave blank to enter manually" IsEnabled="{Binding !IsReadOnly}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Patient Name *" Classes="label"/>
-                                <TextBox Text="{Binding PatientName}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Phone *" Classes="label"/>
-                                <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Gender (Optional)" Classes="label"/>
-                                <ComboBox SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
-                                    <x:String>Male</x:String>
-                                    <x:String>Female</x:String>
-                                    <x:String>Other</x:String>
-                                </ComboBox>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Age (Optional)" Classes="label"/>
-                                <NumericUpDown Value="{Binding Age}" Minimum="0" Maximum="150" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
-                            </StackPanel>
+            <ScrollViewer Grid.Row="1" Padding="28,12">
+                <StackPanel Spacing="10" MaxWidth="800" HorizontalAlignment="Stretch">
 
-                            <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Date *" Classes="label"/>
-                                <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Time *" Classes="label"/>
-                                <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="4" Spacing="6" Margin="0,0,0,12">
-                                <TextBlock Text="Reason for Visit" Classes="label"/>
-                                <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
-                                         AcceptsReturn="True" Height="60" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}"/>
-                            </StackPanel>
+                    <!-- Patient Row -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Patient (Optional)" Classes="label"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
+                                      HorizontalAlignment="Stretch" PlaceholderText="Select Existing Patient or leave blank to enter manually" IsEnabled="{Binding !IsReadOnly}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button Grid.Column="1" Command="{Binding ClearPatientCommand}" Classes="btn-ghost" Margin="8,0,0,0" ToolTip.Tip="Clear Patient Selection" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
+                                <materialIcons:MaterialIcon Kind="Close"/>
+                            </Button>
                         </Grid>
                     </StackPanel>
+
+                    <!-- Name + Phone -->
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                            <TextBlock Text="Patient Name *" Classes="label"/>
+                            <TextBox Text="{Binding PatientName}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
+                            <TextBlock Text="Phone *" Classes="label"/>
+                            <TextBox Text="{Binding PatientPhone}" HorizontalAlignment="Stretch" IsReadOnly="{Binding IsReadOnly}" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Gender + Age -->
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                            <TextBlock Text="Gender (Optional)" Classes="label"/>
+                            <ComboBox SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
+                                <x:String>Male</x:String>
+                                <x:String>Female</x:String>
+                                <x:String>Other</x:String>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
+                            <TextBlock Text="Age (Optional)" Classes="label"/>
+                            <NumericUpDown Value="{Binding Age}" Minimum="0" Maximum="150" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Date + Time -->
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                            <TextBlock Text="Date *" Classes="label"/>
+                            <DatePicker SelectedDate="{Binding AppointmentDate}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
+                            <TextBlock Text="Time *" Classes="label"/>
+                            <TimePicker SelectedTime="{Binding AppointmentTime}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Reason for Visit -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Reason for Visit" Classes="label"/>
+                        <TextBox Text="{Binding Reason}" PlaceholderText="Describe the reason for this appointment..."
+                                 AcceptsReturn="True" Height="60" TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top" Padding="12,8" IsReadOnly="{Binding IsReadOnly}"/>
+                    </StackPanel>
+
                 </StackPanel>
             </ScrollViewer>
 
@@ -250,7 +260,7 @@
                 </DockPanel>
             </Border>
         </Grid>
-    </Grid>
+    </Panel>
 
     <UserControl.Styles>
         <Style Selector="Button.btn-primary">
