@@ -81,19 +81,7 @@ public class PurchaseRepository
                   VALUES (@InvoiceNumber, @PurchaseDate, @SupplierID, @SupplierName, @TotalAmount);
                   SELECT SCOPE_IDENTITY();", p, tx);
 
-            foreach (var item in p.Items)
-            {
-                item.PurchaseID = purchaseId;
-                conn.Execute(
-                    @"INSERT INTO PurchaseItems (PurchaseID, ProductID, BatchNumber, ExpiryDate, Quantity, PurchasePrice, Discount, Tax)
-                      VALUES (@PurchaseID, @ProductID, @BatchNumber, @ExpiryDate, @Quantity, @PurchasePrice, @Discount, @Tax)",
-                    item, tx);
-
-                // Update product stock (tied to purchases)
-                conn.Execute(
-                    "UPDATE Products SET StockQuantity = StockQuantity + @Quantity WHERE ProductID = @ProductID",
-                    new { item.Quantity, item.ProductID }, tx);
-            }
+            ProcessPurchaseItems(conn, tx, purchaseId, p.Items);
 
             tx.Commit();
             return purchaseId;
@@ -102,6 +90,90 @@ public class PurchaseRepository
         {
             tx.Rollback();
             throw;
+        }
+    }
+
+    public void Update(Purchase p)
+    {
+        using var conn = _session.CreateConnection();
+        using var tx = conn.BeginTransaction();
+        try
+        {
+            // Revert old stock
+            var oldItems = conn.Query<PurchaseItem>("SELECT * FROM PurchaseItems WHERE PurchaseID = @PurchaseID", new { p.PurchaseID }, tx);
+            foreach (var oldItem in oldItems)
+            {
+                conn.Execute(
+                    "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
+                    new { oldItem.Quantity, oldItem.ProductID }, tx);
+            }
+
+            // Delete old items
+            conn.Execute("DELETE FROM PurchaseItems WHERE PurchaseID = @PurchaseID", new { p.PurchaseID }, tx);
+
+            // Update header
+            conn.Execute(
+                @"UPDATE Purchases 
+                  SET PurchaseDate = @PurchaseDate, SupplierID = @SupplierID, SupplierName = @SupplierName, TotalAmount = @TotalAmount
+                  WHERE PurchaseID = @PurchaseID", p, tx);
+
+            ProcessPurchaseItems(conn, tx, p.PurchaseID, p.Items);
+
+            tx.Commit();
+        }
+        catch
+        {
+            tx.Rollback();
+            throw;
+        }
+    }
+
+    private void ProcessPurchaseItems(System.Data.IDbConnection conn, System.Data.IDbTransaction tx, int purchaseId, IEnumerable<PurchaseItem> items)
+    {
+        foreach (var item in items)
+        {
+            item.PurchaseID = purchaseId;
+            
+            // Batch Logic
+            var originalProd = conn.QuerySingleOrDefault<Product>("SELECT * FROM Products WHERE ProductID = @ProductID", new { item.ProductID }, tx);
+            if (originalProd != null && string.Compare(originalProd.BatchNumber ?? "", item.BatchNumber ?? "", true) != 0)
+            {
+                var existingBatchProd = conn.QueryFirstOrDefault<int?>(
+                    "SELECT ProductID FROM Products WHERE Name = @Name AND (CompanyID = @CompanyID OR (CompanyID IS NULL AND @CompanyID IS NULL)) AND (BatchNumber = @BatchNumber OR (BatchNumber IS NULL AND @BatchNumber IS NULL))",
+                    new { originalProd.Name, originalProd.CompanyID, item.BatchNumber }, tx);
+                
+                if (existingBatchProd.HasValue)
+                {
+                    item.ProductID = existingBatchProd.Value;
+                }
+                else
+                {
+                    // Create new batch variant
+                    var newProdId = conn.ExecuteScalar<int>(
+                        @"INSERT INTO Products 
+                            (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel, Barcode)
+                          VALUES 
+                            (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, 0, @MinimumStockLevel, @Barcode);
+                          SELECT SCOPE_IDENTITY();",
+                        new { 
+                            originalProd.Name, originalProd.GenericName, originalProd.CompanyID, originalProd.CompanyName, 
+                            originalProd.SupplierID, originalProd.SupplierName, 
+                            item.BatchNumber, originalProd.Type, originalProd.Category, originalProd.Rack, item.ExpiryDate, 
+                            item.PurchasePrice, originalProd.SellingPrice, originalProd.MinimumStockLevel, originalProd.Barcode
+                        }, tx);
+                    item.ProductID = newProdId;
+                }
+            }
+
+            conn.Execute(
+                @"INSERT INTO PurchaseItems (PurchaseID, ProductID, BatchNumber, ExpiryDate, Quantity, PurchasePrice, Discount, Tax)
+                  VALUES (@PurchaseID, @ProductID, @BatchNumber, @ExpiryDate, @Quantity, @PurchasePrice, @Discount, @Tax)",
+                item, tx);
+
+            // Update product stock (tied to purchases)
+            conn.Execute(
+                "UPDATE Products SET Stock = Stock + @Quantity WHERE ProductID = @ProductID",
+                new { item.Quantity, item.ProductID }, tx);
         }
     }
 
@@ -116,7 +188,7 @@ public class PurchaseRepository
             {
                 // Decrement product stock when purchase is deleted
                 conn.Execute(
-                    "UPDATE Products SET StockQuantity = StockQuantity - @Quantity WHERE ProductID = @ProductID",
+                    "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
                     new { item.Quantity, item.ProductID }, tx);
             }
 

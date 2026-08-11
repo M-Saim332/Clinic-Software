@@ -112,6 +112,18 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     private async Task NewAsync()
     {
         ClearFields();
+
+        // Ensure patients and products are loaded before showing the form
+        try
+        {
+            var patients = await Task.Run(() => _patientRepo.GetAll());
+            var products = await Task.Run(() => _productRepo.GetAll());
+            Patients = new System.Collections.ObjectModel.ObservableCollection<Patient>(patients);
+            Products = new System.Collections.ObjectModel.ObservableCollection<Product>(
+                products.Where(m => !m.IsExpired).OrderBy(m => m.Name));
+        }
+        catch { /* silently keep existing lists if refresh fails */ }
+
         // Generate SAL-YYYYMMDD-XXX invoice number
         var today = DateTime.Today;
         var count = await Task.Run(() => _repo.GetCountForDate(today));
@@ -263,7 +275,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             {
                 Patients = new ObservableCollection<Patient>(patients);
                 Products = new ObservableCollection<Product>(
-                    products.Where(m => !m.IsExpired && m.Stock > 0).OrderBy(m => m.Name));
+                    products.Where(m => !m.IsExpired).OrderBy(m => m.Name));
                 FilteredProducts = new ObservableCollection<Product>(Products);
                 var sorted = new ObservableCollection<Sale>(sales.OrderByDescending(s => s.SaleDate));
                 _allSales = sorted;

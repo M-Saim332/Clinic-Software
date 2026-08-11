@@ -135,6 +135,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _companyVM.InitializeAsync();
                 await _supplierVM.InitializeAsync();
                 await _appointmentVM.InitializeAsync();
+                await _saleVM.InitializeAsync();
+                await _purchaseVM.InitializeAsync();
+                await _inventoryVM.InitializeAsync();
+                await _settingsVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
 
                 // Compute alert warnings safely

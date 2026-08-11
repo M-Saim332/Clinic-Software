@@ -79,13 +79,24 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     public decimal GrandTotal => LineItems.Sum(x => x.Quantity * x.PurchasePrice - x.Discount + x.Tax);
 
     public bool MutationEnabled => !ShowForm;
-    public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
+    public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
 
     [RelayCommand]
-    private void New()
+    private async Task NewAsync()
     {
         ClearFields();
         InvoiceNumber = "Auto-generated";
+
+        // Ensure suppliers and products are loaded before showing the form
+        try
+        {
+            var suppliers = await Task.Run(() => _supplierRepo.GetAll());
+            var products  = await Task.Run(() => _productRepo.GetAll());
+            Suppliers = new System.Collections.ObjectModel.ObservableCollection<Supplier>(suppliers);
+            Products  = new System.Collections.ObjectModel.ObservableCollection<Product>(products);
+        }
+        catch { /* silently keep existing lists if refresh fails */ }
+
         Mode = FormMode.Add;
         ShowForm = true;
         NotifyButtonStates();
@@ -113,7 +124,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             Mode = FormMode.View;
             ShowForm = true;
             NotifyButtonStates();
-            StatusMessage = $"Viewing details for {InvoiceNumber}";
+            StatusMessage = $"Viewing invoice {InvoiceNumber}";
         }
         catch (Exception ex)
         {
@@ -172,6 +183,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             return;
         }
 
+        // Auto-add line item if the user forgot to click "+ Add"
+        if (SelectedProduct != null)
+        {
+            AddLineItem();
+            if (!string.IsNullOrEmpty(StatusMessage)) return; // If AddLineItem failed validation, stop saving
+        }
+
         if (!LineItems.Any())
         {
             StatusMessage = "At least one item is required.";
@@ -196,13 +214,14 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
                 StatusMessage = "Purchase created and stock updated.";
                 var supplierLabel = SelectedSupplier?.Name ?? SupplierName;
                 LogActivity("Purchase Created", $"Invoice #{p.InvoiceNumber} from {supplierLabel} — Rs. {p.TotalAmount:N2}", "Purchases");
-                WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
-            
+
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+
+            await InitializeAsync();
             Mode = FormMode.View;
             ShowForm = false;
             NotifyButtonStates();
-            await InitializeAsync();
         }
         catch (Exception ex)
         {
