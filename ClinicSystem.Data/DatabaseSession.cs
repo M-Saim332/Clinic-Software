@@ -248,6 +248,24 @@ public class DatabaseSession
 
         try
         {
+            // Ensure missing columns exist on Purchases
+            conn.Execute(@"
+                IF COL_LENGTH('Purchases', 'SupplierName') IS NULL ALTER TABLE Purchases ADD SupplierName VARCHAR(150) NULL;
+            ");
+        }
+        catch { }
+
+        try
+        {
+            // Ensure missing columns exist on Sales
+            conn.Execute(@"
+                IF COL_LENGTH('Sales', 'PatientName') IS NULL ALTER TABLE Sales ADD PatientName VARCHAR(150) NULL;
+            ");
+        }
+        catch { }
+
+        try
+        {
             // Ensure ActivityLogs table exists for the dashboard feed
             conn.Execute(@"
                 IF OBJECT_ID('ActivityLogs', 'U') IS NULL
