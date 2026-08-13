@@ -82,8 +82,8 @@
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                   GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="INVOICE NO." Binding="{Binding InvoiceNumber}" Width="150"/>
-                                <DataGridTextColumn Header="DATE" Binding="{Binding PurchaseDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="INVOICE NO." Binding="{Binding InvoiceNumber}" Width="200"/>
+                                <DataGridTextColumn Header="DATE" Binding="{Binding PurchaseDate, StringFormat=\{0:dd MMM yyyy\}}" Width="180"/>
                                 <DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="*"/>
                                 <DataGridTextColumn Header="TOTAL AMOUNT" Binding="{Binding TotalAmount, StringFormat='Rs. {0:N2}'}" Width="160"/>
                             </DataGrid.Columns>

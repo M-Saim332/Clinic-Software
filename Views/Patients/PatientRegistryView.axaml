@@ -69,11 +69,12 @@
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
-                                    <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
+                                    <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="1.5*" MinWidth="120"/>
+                                    <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="80"/>
                                     <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
-                                    <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="300">
+                                    <DataGridTextColumn Header="APPT. TIME" Binding="{Binding AppointmentTimeDisplay}" Width="140"/>
+                                    <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="2*" MinWidth="120"/>
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="90">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -191,50 +192,60 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
                             
-                            <!-- Row 0 -->
-                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
+                            <!-- Row 0: Name + Phone -->
+                            <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,16">
                                 <TextBlock Text="Full Name *" Classes="label"/>
                                 <TextBox Text="{Binding Name}" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
+                            <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Phone Number" Classes="label"/>
                                 <TextBox Text="{Binding Phone}" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
-                            <!-- Row 1 -->
-                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                            <!-- Row 1: Age + Gender -->
+                            <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,16">
                                 <TextBlock Text="Age" Classes="label"/>
                                 <TextBox Text="{Binding Age}" PlaceholderText="e.g. 35" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Gender" Classes="label"/>
                                 <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                             </StackPanel>
-                            
-                            <!-- Row 2 -->
-                            <StackPanel Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Spacing="6" Margin="0,0,0,12">
+
+                            <!-- Row 2: CNIC + Appointment Time -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,16">
+                                <TextBlock Text="CNIC" Classes="label"/>
+                                <TextBox Text="{Binding CNIC}" PlaceholderText="e.g. 12345-1234567-1" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,16">
+                                <TextBlock Text="Appointment Time (Optional)" Classes="label"/>
+                                <TimePicker SelectedTime="{Binding NextAppointmentTime}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
+                            </StackPanel>
+
+                            <!-- Row 3: Address (full width) -->
+                            <StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Spacing="6" Margin="0,0,0,16">
                                 <TextBlock Text="Address" Classes="label"/>
                                 <TextBox Text="{Binding Address}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
-                            <!-- Row 3 -->
-                            <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
+                            <!-- Row 4: Diagnosis + Prescription -->
+                            <StackPanel Grid.Column="0" Grid.Row="4" Spacing="6" Margin="0,0,12,16">
                                 <TextBlock Text="Diagnosis" Classes="label"/>
                                 <TextBox Text="{Binding Diagnosis}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Prescription" Classes="label"/>
+                            <StackPanel Grid.Column="1" Grid.Row="4" Spacing="6" Margin="12,0,0,16">
+                                <TextBlock Text="Prescription / Notes" Classes="label"/>
                                 <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
-                            <!-- Row 4 -->
-                            <StackPanel Grid.Column="0" Grid.Row="4" Spacing="6" Margin="0,0,12,12">
+                            <!-- Row 5: Fee + Discount -->
+                            <StackPanel Grid.Column="0" Grid.Row="5" Spacing="6" Margin="0,0,12,0">
                                 <TextBlock Text="Consultation Fee" Classes="label"/>
                                 <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="4" Spacing="6" Margin="12,0,0,12">
+                            <StackPanel Grid.Column="1" Grid.Row="5" Spacing="6" Margin="12,0,0,0">
                                 <TextBlock Text="Discount" Classes="label"/>
                                 <TextBox Text="{Binding Discount}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>

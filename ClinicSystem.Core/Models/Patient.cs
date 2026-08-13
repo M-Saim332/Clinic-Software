@@ -24,4 +24,10 @@ public class Patient
     public decimal TotalBill => Math.Max(ConsultationFee - Discount, 0);
 
     public string DisplayText => $"{Name} — {Phone ?? "No contact"} — Age: {Age?.ToString() ?? "N/A"}";
+
+    /// <summary>Appointment time formatted as 12-hour AM/PM, e.g. "3:30 PM". Returns "—" when no time is set.</summary>
+    public string AppointmentTimeDisplay =>
+        NextAppointmentTime.HasValue
+            ? DateTime.Today.Add(NextAppointmentTime.Value).ToString("h:mm tt")
+            : "—";
 }

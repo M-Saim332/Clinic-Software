@@ -80,6 +80,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _prescription = string.Empty;
     [ObservableProperty] private string _consultationFee = "0.00";
     [ObservableProperty] private string _discount = "0.00";
+    [ObservableProperty] private TimeSpan? _nextAppointmentTime;
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
 
@@ -145,10 +146,24 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         if (string.IsNullOrWhiteSpace(Name)) { StatusMessage = "Name is required."; return; }
 
         var p = BuildPatient();
+
         await Task.Run(() =>
         {
-            if (Mode == FormMode.Add) _repo.Insert(p);
-            else { p.PatientID = SelectedPatient!.PatientID; _repo.Update(p); }
+            if (Mode == FormMode.Add)
+            {
+                // Auto-register new walk-in patients as "Waiting" for today
+                p.VisitStatus = "Waiting";
+                p.LastVisitDate = DateTime.Today;
+                _repo.Insert(p);
+            }
+            else
+            {
+                p.PatientID = SelectedPatient!.PatientID;
+                // Preserve existing visit status when editing
+                p.VisitStatus = SelectedPatient.VisitStatus;
+                p.LastVisitDate = SelectedPatient.LastVisitDate;
+                _repo.Update(p);
+            }
         });
 
         StatusMessage = Mode == FormMode.Add ? "Patient added." : "Patient updated.";
@@ -276,6 +291,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Phone = string.Empty; CNIC = string.Empty; Address = string.Empty;
         Diagnosis = string.Empty; Prescription = string.Empty;
         ConsultationFee = "0.00"; Discount = "0.00";
+        NextAppointmentTime = null;
     }
 
     private void FillFields(Patient p)
@@ -286,6 +302,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Address = p.Address ?? string.Empty;
         Diagnosis = p.Diagnosis ?? string.Empty; Prescription = p.Prescription ?? string.Empty;
         ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = p.Discount.ToString("F2");
+        NextAppointmentTime = p.NextAppointmentTime;
     }
 
     private Patient BuildPatient() => new()
@@ -294,7 +311,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Gender = Gender, Phone = Phone, CNIC = CNIC, Address = Address,
         Diagnosis = Diagnosis, Prescription = Prescription,
         ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
-        Discount = decimal.TryParse(Discount, out var d) ? d : 0
+        Discount = decimal.TryParse(Discount, out var d) ? d : 0,
+        NextAppointmentTime = NextAppointmentTime
     };
 
     private void NotifyButtonStates()

@@ -139,31 +139,75 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task SaveAsync()
     {
-
-        var appt = new Appointment
-        {
-            PatientID = SelectedPatient?.PatientID,
-            PatientName = SelectedPatient == null ? PatientName : SelectedPatient.Name,
-            Phone = SelectedPatient == null ? PatientPhone : SelectedPatient.Phone,
-            Gender = SelectedPatient == null ? Gender : SelectedPatient.Gender,
-            Age = SelectedPatient == null ? Age : SelectedPatient.Age,
-            DoctorID = ViewModelBase.CurrentUser?.UserID ?? 1,
-            AppointmentDate = AppointmentDate.Date,
-            AppointmentTime = AppointmentTime,
-            Reason = Reason,
-            Remarks = Remarks,
-            Status = Mode == FormMode.Add ? "Scheduled" : SelectedAppointment!.Status
-        };
-
         try
         {
             if (Mode == FormMode.Add)
             {
-                if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, 0)))
+                if (await Task.Run(() => _repo.CheckConflict(ViewModelBase.CurrentUser?.UserID ?? 1, AppointmentDate.Date, AppointmentTime, 0)))
                 {
                     StatusMessage = "Conflict: Doctor already has an appointment at this time.";
                     return;
                 }
+            }
+            else
+            {
+                if (await Task.Run(() => _repo.CheckConflict(ViewModelBase.CurrentUser?.UserID ?? 1, AppointmentDate.Date, AppointmentTime, SelectedAppointment!.AppointmentID)))
+                {
+                    StatusMessage = "Conflict: Doctor already has an appointment at this time.";
+                    return;
+                }
+            }
+
+            int? finalPatientId = SelectedPatient?.PatientID;
+            string finalPatientName = SelectedPatient == null ? PatientName : SelectedPatient.Name;
+            string finalPhone = SelectedPatient == null ? PatientPhone : (SelectedPatient.Phone ?? string.Empty);
+            string finalGender = SelectedPatient == null ? Gender : (SelectedPatient.Gender ?? string.Empty);
+            int? finalAge = SelectedPatient == null ? Age : SelectedPatient.Age;
+
+            if (SelectedPatient == null)
+            {
+                if (string.IsNullOrWhiteSpace(finalPatientName))
+                {
+                    StatusMessage = "Patient Name is required.";
+                    return;
+                }
+
+                // Create a new patient automatically synced to waiting list
+                var p = new Patient
+                {
+                    Name = finalPatientName,
+                    Phone = finalPhone,
+                    Gender = string.IsNullOrWhiteSpace(finalGender) ? "Other" : finalGender,
+                    Age = finalAge,
+                    VisitStatus = "Waiting",
+                    LastVisitDate = AppointmentDate.Date,
+                    NextAppointmentTime = AppointmentTime
+                };
+                finalPatientId = await Task.Run(() => _patientRepo.Insert(p));
+            }
+            else
+            {
+                // Sync existing patient to waiting list for the appointment date and set the time
+                await Task.Run(() => _patientRepo.UpdateVisitStatusAndTime(SelectedPatient.PatientID, "Waiting", AppointmentDate.Date, AppointmentTime));
+            }
+
+            var appt = new Appointment
+            {
+                PatientID = finalPatientId,
+                PatientName = finalPatientName,
+                Phone = finalPhone,
+                Gender = finalGender,
+                Age = finalAge,
+                DoctorID = ViewModelBase.CurrentUser?.UserID ?? 1,
+                AppointmentDate = AppointmentDate.Date,
+                AppointmentTime = AppointmentTime,
+                Reason = Reason,
+                Remarks = Remarks,
+                Status = Mode == FormMode.Add ? "Scheduled" : SelectedAppointment!.Status
+            };
+
+            if (Mode == FormMode.Add)
+            {
                 await Task.Run(() => _repo.Insert(appt));
                 StatusMessage = "Appointment booked.";
                 LogActivity("Appointment Created", $"Appointment booked for {appt.PatientName} on {appt.AppointmentDate:dd MMM yyyy}", "Appointments");
@@ -171,11 +215,6 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             else
             {
                 appt.AppointmentID = SelectedAppointment!.AppointmentID;
-                if (await Task.Run(() => _repo.CheckConflict(appt.DoctorID, appt.AppointmentDate, appt.AppointmentTime, appt.AppointmentID)))
-                {
-                    StatusMessage = "Conflict: Doctor already has an appointment at this time.";
-                    return;
-                }
                 await Task.Run(() => _repo.Update(appt));
                 StatusMessage = "Appointment updated.";
                 LogActivity("Appointment Updated", $"Appointment #{appt.AppointmentID} updated", "Appointments");
@@ -233,6 +272,10 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         try
         {
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Missed", null));
+            if (a.PatientID != null)
+            {
+                await Task.Run(() => _patientRepo.UpdateVisitStatus(a.PatientID.Value, "Missed", a.AppointmentDate.Date));
+            }
             StatusMessage = "Appointment marked missed.";
             LogActivity("Appointment Updated", $"Appointment for {a.PatientName} marked Missed", "Appointments");
             await InitializeAsync();
@@ -248,6 +291,10 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         try
         {
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Cancelled", "Cancelled by user"));
+            if (a.PatientID != null)
+            {
+                await Task.Run(() => _patientRepo.UpdateVisitStatus(a.PatientID.Value, null, a.AppointmentDate.Date));
+            }
             StatusMessage = "Appointment cancelled.";
             LogActivity("Appointment Updated", $"Appointment for {a.PatientName} Cancelled", "Appointments");
             await InitializeAsync();
