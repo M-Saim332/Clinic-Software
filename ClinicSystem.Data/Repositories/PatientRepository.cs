@@ -43,8 +43,8 @@ public class PatientRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount, VisitStatus, LastVisitDate, CNIC)
-              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount, @VisitStatus, @LastVisitDate, @CNIC);
+            @"INSERT INTO Patients (Name, Age, Gender, Phone, Address, Diagnosis, Prescription, ConsultationFee, Discount, VisitStatus, LastVisitDate, CNIC, NextAppointmentTime)
+              VALUES (@Name, @Age, @Gender, @Phone, @Address, @Diagnosis, @Prescription, @ConsultationFee, @Discount, @VisitStatus, @LastVisitDate, @CNIC, @NextAppointmentTime);
               SELECT SCOPE_IDENTITY();", p);
     }
 
@@ -56,16 +56,25 @@ public class PatientRepository
                 Name = @Name, Age = @Age, Gender = @Gender,
                 Phone = @Phone, Address = @Address, Diagnosis = @Diagnosis,
                 Prescription = @Prescription, ConsultationFee = @ConsultationFee, Discount = @Discount,
-                VisitStatus = @VisitStatus, LastVisitDate = @LastVisitDate, CNIC = @CNIC
+                VisitStatus = @VisitStatus, LastVisitDate = @LastVisitDate, CNIC = @CNIC,
+                NextAppointmentTime = @NextAppointmentTime
               WHERE PatientID = @PatientID", p);
     }
 
-    public void UpdateVisitStatus(int patientId, string status, DateTime date)
+    public void UpdateVisitStatus(int patientId, string? status, DateTime date)
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
             @"UPDATE Patients SET VisitStatus = @status, LastVisitDate = @date WHERE PatientID = @patientId",
             new { status, date = date.Date, patientId });
+    }
+
+    public void UpdateVisitStatusAndTime(int patientId, string status, DateTime date, TimeSpan? time)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(
+            @"UPDATE Patients SET VisitStatus = @status, LastVisitDate = @date, NextAppointmentTime = @time WHERE PatientID = @patientId",
+            new { status, date = date.Date, time, patientId });
     }
 
     public bool Delete(int id)

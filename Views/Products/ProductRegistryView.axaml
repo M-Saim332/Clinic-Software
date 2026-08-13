@@ -83,10 +83,10 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="110"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="70"/>
-                                    <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="290">
+                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
+                                    <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="6"
@@ -134,10 +134,10 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="70"/>
-                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
+                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="6"
@@ -177,10 +177,10 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="110"/>
-                                    <DataGridTextColumn Header="STOCK (Unsold)" Binding="{Binding Stock}" Width="100"/>
-                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
+                                    <DataGridTextColumn Header="STOCK (Unsold)" Binding="{Binding Stock}" Width="140"/>
+                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="6"
