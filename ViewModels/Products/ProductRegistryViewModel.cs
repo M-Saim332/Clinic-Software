@@ -174,7 +174,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (string.IsNullOrWhiteSpace(Name)) { StatusMessage = "Name is required."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
         if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid purchase price."; return; }
         if (!decimal.TryParse(SellingPrice, out var sell) || sell < 0) { StatusMessage = "Enter a valid selling price."; return; }
         if (!int.TryParse(Stock, out var stock) || stock < 0) { StatusMessage = "Enter valid stock."; return; }
