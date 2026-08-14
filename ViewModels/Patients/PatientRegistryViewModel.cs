@@ -22,6 +22,13 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         _repo = repo;
         _saleRepo = saleRepo;
         _productRepo = productRepo;
+
+        var timer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+        timer.Tick += (s, e) => 
+        {
+            if (SelectedTab == 0) _ = InitializeAsync(); 
+        };
+        timer.Start();
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -143,7 +150,15 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task SaveAsync()
     {
-        if (string.IsNullOrWhiteSpace(Name)) { StatusMessage = "Name is required."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone number is required."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidCNIC(CNIC)) { StatusMessage = "Valid CNIC is required (13 digits)."; return; }
+        
+        int age = 0;
+        if (!string.IsNullOrWhiteSpace(Age) && (!int.TryParse(Age, out age) || age < 0)) { StatusMessage = "Age must be a positive number."; return; }
+        decimal fee = 0, discount = 0;
+        if (!string.IsNullOrWhiteSpace(ConsultationFee) && (!decimal.TryParse(ConsultationFee, out fee) || fee < 0)) { StatusMessage = "Fee must be a positive number."; return; }
+        if (!string.IsNullOrWhiteSpace(Discount) && (!decimal.TryParse(Discount, out discount) || discount < 0)) { StatusMessage = "Discount must be a positive number."; return; }
 
         var p = BuildPatient();
 
@@ -194,7 +209,14 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         _ = InitializeAsync();
     }
 
-
+    [RelayCommand]
+    private async Task MarkAsCancelledAsync(Patient p)
+    {
+        if (p == null) return;
+        await Task.Run(() => _repo.UpdateVisitStatus(p.PatientID, "Cancelled", DateTime.Today));
+        StatusMessage = $"Patient '{p.Name}' visit cancelled.";
+        _ = InitializeAsync();
+    }
 
     [RelayCommand]
     private void Cancel()
@@ -240,8 +262,14 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
                 StatusMessage = string.Empty;
                 Patients = new ObservableCollection<Patient>(list);
                 
+                var now = DateTime.Now.TimeOfDay;
                 WaitingPatientsList = new ObservableCollection<Patient>(
-                    list.Where(p => p.VisitStatus == "Waiting" && p.LastVisitDate?.Date == DateTime.Today));
+                    list.Where(p => 
+                    {
+                        if (p.VisitStatus != "Waiting" || p.LastVisitDate?.Date != DateTime.Today) return false;
+                        if (p.NextAppointmentTime.HasValue && (now - p.NextAppointmentTime.Value).TotalMinutes > 30) return false;
+                        return true;
+                    }));
                 VisitedPatientsList = new ObservableCollection<Patient>(
                     list.Where(p => p.VisitStatus == "Visited" && p.LastVisitDate?.Date == DateTime.Today));
 

@@ -34,8 +34,10 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     [NotifyPropertyChangedFor(nameof(SaveCancelEnabled))]
     [NotifyPropertyChangedFor(nameof(PasswordVisible))]
     [NotifyPropertyChangedFor(nameof(PasswordWatermark))]
+    [NotifyPropertyChangedFor(nameof(IsSaveVisible))]
     private FormMode _mode = FormMode.View;
 
+    public bool IsSaveVisible => Mode != FormMode.View;
     public bool IsListView          => View == UserMgmtView.List;
     public bool IsFormView          => View == UserMgmtView.Form;
     public bool IsResetPasswordView => View == UserMgmtView.ResetPassword;
@@ -237,6 +239,17 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private void ViewUser(User? user)
+    {
+        if (user == null) return;
+        SelectedUser = user;
+        Mode = FormMode.View;
+        FillFormFields(user);
+        View = UserMgmtView.Form;
+        StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
     private void Cancel()
     {
         View = UserMgmtView.List;
@@ -272,13 +285,10 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     private async Task SaveAsync()
     {
         if (string.IsNullOrWhiteSpace(Username)) { StatusMessage = "Username is required."; IsSuccess = false; return; }
-        if (string.IsNullOrWhiteSpace(FullName))  { StatusMessage = "Full Name is required."; IsSuccess = false; return; }
-        if (!string.IsNullOrWhiteSpace(Email) && !Email.Contains('@'))
-        {
-            StatusMessage = "Email address is not valid.";
-            IsSuccess = false;
-            return;
-        }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(FullName)) { StatusMessage = "Valid Full Name is required (min 2 chars, no numbers)."; IsSuccess = false; return; }
+        if (string.IsNullOrWhiteSpace(Phone) || !ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(Phone)) { StatusMessage = "Valid Phone Number is required."; IsSuccess = false; return; }
+        if (string.IsNullOrWhiteSpace(Email) || !ClinicSystem.UI.Helpers.ValidationHelper.IsValidEmail(Email)) { StatusMessage = "Valid Email Address is required."; IsSuccess = false; return; }
+        if (!string.IsNullOrWhiteSpace(Cnic) && !ClinicSystem.UI.Helpers.ValidationHelper.IsValidCNIC(Cnic)) { StatusMessage = "Invalid CNIC. Must have at least 13 digits."; IsSuccess = false; return; }
 
         try
         {

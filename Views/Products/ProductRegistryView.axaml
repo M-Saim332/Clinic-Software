@@ -326,7 +326,7 @@
             </Border>
 
             <!-- Scrollable Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24,28,60">
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,100">
                 <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left">
                     <!-- SECTION 1: Quick Entry -->
                     <StackPanel Spacing="16">

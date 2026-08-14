@@ -161,7 +161,7 @@
             </Border>
 
             <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,12">
+            <ScrollViewer Grid.Row="1" Padding="28,12,28,96">
                 <StackPanel Spacing="10" MaxWidth="800" HorizontalAlignment="Stretch">
 
                     <!-- Patient Row -->

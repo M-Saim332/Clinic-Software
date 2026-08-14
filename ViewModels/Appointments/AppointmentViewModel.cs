@@ -166,9 +166,19 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
 
             if (SelectedPatient == null)
             {
-                if (string.IsNullOrWhiteSpace(finalPatientName))
+                if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(finalPatientName))
                 {
-                    StatusMessage = "Patient Name is required.";
+                    StatusMessage = "Valid Patient Name is required (min 2 chars, no numbers).";
+                    return;
+                }
+                if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidPhone(finalPhone))
+                {
+                    StatusMessage = "Valid Phone number is required.";
+                    return;
+                }
+                if (finalAge.HasValue && finalAge.Value < 0)
+                {
+                    StatusMessage = "Age must be a positive number.";
                     return;
                 }
 
