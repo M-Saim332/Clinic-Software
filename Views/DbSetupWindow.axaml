@@ -1,0 +1,269 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ClinicSystem.UI.ViewModels"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        x:Class="ClinicSystem.UI.Views.DbSetupWindow"
+        x:DataType="vm:DbSetupViewModel"
+        x:CompileBindings="True"
+        Title="Clinic Management — Database Setup"
+        Width="700" Height="730"
+        MinWidth="560" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        CanResize="True"
+        Icon="avares://ClinicSystem.UI/Assets/hospital_logo.png"
+        Background="#0F172A">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.section-header">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+        <Style Selector="TextBlock.field-label">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#CBD5E1"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="#3B82F6"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0,14"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="0,14"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.btn-secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#273549"/>
+        </Style>
+    </Window.Styles>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid RowDefinitions="Auto,*" Margin="36,28,36,36">
+
+            <!-- ── Header ─────────────────────────────────────────────────── -->
+            <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,24">
+                <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                    <Border Width="48" Height="48" CornerRadius="12" Background="#1D4ED8">
+                        <materialIcons:MaterialIcon Kind="DatabaseCog" Width="24" Height="24"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Text="Database Connection Setup"
+                                   FontSize="22" FontWeight="Bold" Foreground="#F1F5F9"/>
+                        <TextBlock Text="Configure the SQL Server connection for this computer."
+                                   FontSize="13" Foreground="#64748B"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Orange banner: prior connection failure -->
+                <Border IsVisible="{Binding HasInitialError}"
+                        Background="#1C1512" BorderBrush="#F97316" BorderThickness="1"
+                        CornerRadius="8" Padding="14,10" Margin="0,14,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <materialIcons:MaterialIcon Kind="AlertCircle" Width="18" Height="18"
+                                                    Foreground="#F97316" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding InitialError}" Foreground="#FED7AA"
+                                   FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ── Form Card ──────────────────────────────────────────────── -->
+            <Border Grid.Row="1" Background="#1E293B" CornerRadius="16"
+                    BorderBrush="#263348" BorderThickness="1">
+                <StackPanel Margin="28,24,28,24" Spacing="0">
+
+                    <!-- SERVER DETAILS -->
+                    <TextBlock Text="SERVER DETAILS" Classes="section-header"/>
+
+                    <Grid ColumnDefinitions="*,16,*" Margin="0,0,0,18">
+                        <StackPanel Grid.Column="0" Spacing="0">
+                            <TextBlock Text="Server Name / IP Address" Classes="field-label"/>
+                            <TextBox Text="{Binding ServerName}"
+                                     PlaceholderText="e.g. 192.168.1.100\SQLEXPRESS"/>
+                            <TextBlock Text="Format: HOSTNAME\SQLEXPRESS or IP\SQLEXPRESS" Classes="hint"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="0">
+                            <TextBlock Text="Database Name" Classes="field-label"/>
+                            <TextBox Text="{Binding DatabaseName}" PlaceholderText="ClinicDB"/>
+                            <TextBlock Text="Default: ClinicDB" Classes="hint"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Height="1" Background="#0F172A" Margin="0,4,0,18"/>
+
+                    <!-- AUTHENTICATION -->
+                    <TextBlock Text="AUTHENTICATION" Classes="section-header"/>
+
+                    <StackPanel Spacing="0" Margin="0,0,0,16">
+                        <TextBlock Text="Authentication Type" Classes="field-label"/>
+                        <ComboBox SelectedIndex="{Binding SelectedAuthIndex}">
+                            <ComboBoxItem Content="Windows Authentication (Recommended for Doctor PC)"/>
+                            <ComboBoxItem Content="SQL Server Authentication (Use for Reception PC)"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- SQL Server auth fields -->
+                    <Grid ColumnDefinitions="*,16,*"
+                          IsVisible="{Binding IsSqlAuth}"
+                          Margin="0,0,0,18">
+                        <StackPanel Grid.Column="0" Spacing="0">
+                            <TextBlock Text="SQL Username" Classes="field-label"/>
+                            <TextBox Text="{Binding SqlUsername}" PlaceholderText="sa"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Spacing="0">
+                            <TextBlock Text="SQL Password" Classes="field-label"/>
+                            <TextBox Text="{Binding SqlPassword}"
+                                     PasswordChar="•"
+                                     PlaceholderText="Enter SQL password"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Height="1" Background="#0F172A" Margin="0,0,0,18"/>
+
+                    <!-- CONNECTION STRING PREVIEW -->
+                    <TextBlock Text="CONNECTION STRING PREVIEW" Classes="section-header"/>
+                    <Border Background="#0A0F1A" CornerRadius="8" Padding="14,10" Margin="0,0,0,20">
+                        <TextBlock Text="{Binding ConnectionPreview}"
+                                   Foreground="#22D3EE"
+                                   FontFamily="Consolas,Courier New,monospace"
+                                   FontSize="12" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- STATUS: Success -->
+                    <Border IsVisible="{Binding IsTestSuccess}"
+                            Background="#052E16" BorderBrush="#166534" BorderThickness="1"
+                            CornerRadius="8" Padding="14,12" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <materialIcons:MaterialIcon Kind="CheckCircle" Width="18" Height="18"
+                                                        Foreground="#34D399" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="#6EE7B7"
+                                       FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- STATUS: Failure (has message but not success) -->
+                    <Border IsVisible="{Binding HasStatusMessage}"
+                            Background="#1C0A09" BorderBrush="#7F1D1D" BorderThickness="1"
+                            CornerRadius="8" Padding="14,12" Margin="0,0,0,16">
+                        <Border.IsVisible>
+                            <MultiBinding>
+                                <Binding Path="HasStatusMessage"/>
+                                <Binding Path="!IsTestSuccess"/>
+                            </MultiBinding>
+                        </Border.IsVisible>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <materialIcons:MaterialIcon Kind="AlertCircle" Width="18" Height="18"
+                                                        Foreground="#F87171" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="#FCA5A5"
+                                       FontSize="13" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- BUTTONS -->
+                    <Grid ColumnDefinitions="*,12,*" Margin="0,0,0,20">
+                        <Button Grid.Column="0"
+                                Command="{Binding TestConnectionCommand}"
+                                IsEnabled="{Binding !IsBusy}"
+                                Classes="btn-secondary">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Lan" Width="18" Height="18"/>
+                                <TextBlock Text="Test Connection" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="2"
+                                Command="{Binding SaveAndContinueCommand}"
+                                IsEnabled="{Binding !IsBusy}"
+                                Classes="btn-primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        HorizontalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="ContentSaveCheck" Width="18" Height="18"/>
+                                <TextBlock Text="Save &amp; Continue" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <!-- BUSY INDICATOR -->
+                    <TextBlock IsVisible="{Binding IsBusy}"
+                               Text="Please wait…"
+                               FontSize="13" Foreground="#64748B"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,16"/>
+
+                    <!-- QUICK GUIDE -->
+                    <Border Background="#0A0F1A" CornerRadius="8" Padding="16,14">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="LightbulbOn" Width="16" Height="16"
+                                                            Foreground="#FBBF24"/>
+                                <TextBlock Text="Quick Setup Guide"
+                                           FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8"/>
+                            </StackPanel>
+                            <TextBlock TextWrapping="Wrap" FontSize="12"
+                                       Foreground="#64748B" LineHeight="20">
+                                <Run Text="• Doctor PC (Server): Enter 'DOCTOR-PC\SQLEXPRESS' with Windows Authentication"/>
+                                <LineBreak/>
+                                <Run Text="• Reception PC (Client): Enter '192.168.1.x\SQLEXPRESS' with SQL Server Authentication"/>
+                                <LineBreak/>
+                                <Run Text="• Both PCs must be on the same LAN and SQL Server must allow remote connections"/>
+                                <LineBreak/>
+                                <Run Text="• Enable TCP/IP in SQL Server Configuration Manager on the Doctor PC"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</Window>
