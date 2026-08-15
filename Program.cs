@@ -1,6 +1,6 @@
 using Avalonia;
 using System;
-
+using ClinicSystem.UI.ViewModels;
 namespace ClinicSystem.UI;
 
 sealed class Program
