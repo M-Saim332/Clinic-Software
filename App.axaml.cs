@@ -1,3 +1,4 @@
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -39,18 +40,18 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Read the effective connection string (local overrides base)
+            // Read from bin/output directory (where the app actually runs from)
             string? cs = ConnectionStringHelper.ReadEffective();
 
             if (ConnectionStringHelper.IsPlaceholder(cs))
             {
-                // No valid connection string yet — show setup screen first
+                // No valid connection string — show setup screen
                 ShowDbSetupWindow(desktop, previousWindow: null,
                     initialError: "No database connection has been configured for this computer.");
             }
             else
             {
-                // Test the stored connection
+                // Try to connect with the stored string
                 var (ok, error) = ConnectionStringHelper.TestConnection(cs!);
                 if (!ok)
                 {
@@ -59,8 +60,8 @@ public partial class App : Application
                 }
                 else
                 {
-                    // Connection is good — boot normally
-                    BuildServicesAndLogin(desktop, cs!, previousWindow: null);
+                    // All good — boot normally
+                    BuildServicesAndLogin(desktop, previousWindow: null);
                 }
             }
         }
@@ -80,17 +81,18 @@ public partial class App : Application
             HasInitialError = !string.IsNullOrEmpty(initialError)
         };
 
-        // Pre-populate if there is already a partial/invalid connection string
+        // Pre-populate fields from any existing connection string
         var existing = ConnectionStringHelper.ReadEffective();
         if (!ConnectionStringHelper.IsPlaceholder(existing))
             setupVM.PrePopulateFromExisting(existing);
 
         var setupWindow = new DbSetupWindow { DataContext = setupVM };
 
-        setupVM.SetupCompleted += (newCs) =>
+        setupVM.SetupCompleted += (_) =>
         {
-            // Rebuild services with the new connection string and proceed to login
-            BuildServicesAndLogin(desktop, newCs, setupWindow);
+            // SaveAndContinueAsync already wrote the new string to appsettings.local.json.
+            // Just rebuild DI (reads from files) and proceed to login.
+            BuildServicesAndLogin(desktop, setupWindow);
         };
 
         desktop.MainWindow = setupWindow;
@@ -99,22 +101,22 @@ public partial class App : Application
     }
 
     // ── Build DI + show Login ─────────────────────────────────────────────────
+    /// <summary>
+    /// Builds the DI container from appsettings files and shows the Login window.
+    /// appsettings.local.json (if present) overrides appsettings.json — same as original.
+    /// This method is called AFTER the connection string has been verified or saved.
+    /// </summary>
     private void BuildServicesAndLogin(
         IClassicDesktopStyleApplicationLifetime desktop,
-        string connectionString,
         Window? previousWindow)
     {
-        // Build configuration — always re-read files so the just-saved local json is picked up
+        // Standard configuration — exactly the same as the original working code.
+        // appsettings.local.json is written by ConnectionStringHelper.SaveToLocalJson()
+        // before this is called, so it's always up-to-date.
         var config = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json",       optional: false, reloadOnChange: false)
             .AddJsonFile("appsettings.local.json",  optional: true,  reloadOnChange: false)
-            // If the caller already verified the string, inject it directly so we never use the
-            // old placeholder value even before the file hits disk.
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:ClinicDB"] = connectionString
-            })
             .Build();
 
         // Build DI container
