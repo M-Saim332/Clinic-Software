@@ -164,7 +164,12 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             int todayPatientsCount = await Task.Run(() => _appointmentRepo.GetTodayDistinctPatientCount());
             
             decimal stockValue = await Task.Run(() => _productRepo.GetTotalStockValue());
-            decimal totalConsultFee = await Task.Run(() => _saleRepo.GetTotalConsultationFee());
+            decimal patientConsultFee = await Task.Run(() => _patientRepo.GetTotalConsultationFee());
+            decimal salesConsultFee = await Task.Run(() => _saleRepo.GetTotalConsultationFee());
+            
+            // Avoid double counting if they create sales for patients. 
+            // If they only use the Patients tab, salesConsultFee will be 0.
+            decimal totalConsultFee = Math.Max(patientConsultFee, salesConsultFee);
             
             var lowStock = await Task.Run(() => _productRepo.GetLowStock().Take(6).ToList());
             var expiringSoon = await Task.Run(() => _productRepo.GetExpiringSoon(30).Take(6).ToList());

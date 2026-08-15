@@ -1,7 +1,7 @@
 -- ============================================================
 --  Clinic Management System -- Database Schema
 --  SQL Server Express 2019/2022
---  Run this script on the Doctor's PC (server) once.
+--  This script is idempotent and can be safely run multiple times.
 -- ============================================================
 
 USE master;
@@ -18,194 +18,332 @@ USE ClinicDB;
 GO
 
 -- ============================================================
---  DROP TABLES (if they exist, in reverse dependency order)
--- ============================================================
-IF OBJECT_ID('ActivityLogs', 'U') IS NOT NULL DROP TABLE ActivityLogs;
-IF OBJECT_ID('PrescriptionItems', 'U') IS NOT NULL DROP TABLE PrescriptionItems;
-IF OBJECT_ID('Prescriptions', 'U') IS NOT NULL DROP TABLE Prescriptions;
-IF OBJECT_ID('SaleItems', 'U') IS NOT NULL DROP TABLE SaleItems;
-IF OBJECT_ID('Sales', 'U') IS NOT NULL DROP TABLE Sales;
-IF OBJECT_ID('PurchaseItems', 'U') IS NOT NULL DROP TABLE PurchaseItems;
-IF OBJECT_ID('Purchases', 'U') IS NOT NULL DROP TABLE Purchases;
-IF OBJECT_ID('Appointments', 'U') IS NOT NULL DROP TABLE Appointments;
-IF OBJECT_ID('Patients', 'U') IS NOT NULL DROP TABLE Patients;
-IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
-IF OBJECT_ID('Products', 'U') IS NOT NULL DROP TABLE Products;
-IF OBJECT_ID('Suppliers', 'U') IS NOT NULL DROP TABLE Suppliers;
-IF OBJECT_ID('Companies', 'U') IS NOT NULL DROP TABLE Companies;
-IF OBJECT_ID('DiscountRefunds', 'U') IS NOT NULL DROP TABLE DiscountRefunds;
-IF OBJECT_ID('Users', 'U') IS NOT NULL DROP TABLE Users;
-GO
-
--- ============================================================
---  CREATE TABLES
+--  CREATE TABLES WITH IDEMPOTENT CHECKS
 -- ============================================================
 
-CREATE TABLE Companies (
-    CompanyID INT IDENTITY(1,1) PRIMARY KEY,
-    Name      VARCHAR(150) NOT NULL,
-    Address   VARCHAR(255),
-    Phone     VARCHAR(50),
-    Email     VARCHAR(150)
-);
+IF OBJECT_ID('Companies', 'U') IS NULL
+BEGIN
+    CREATE TABLE Companies (
+        CompanyID INT IDENTITY(1,1) PRIMARY KEY,
+        Name      VARCHAR(150) NOT NULL,
+        Address   VARCHAR(255),
+        Phone     VARCHAR(50),
+        Email     VARCHAR(150)
+    );
+END
 GO
 
-CREATE TABLE Suppliers (
-    SupplierID INT IDENTITY(1,1) PRIMARY KEY,
-    Name       VARCHAR(150) NOT NULL,
-    Address    VARCHAR(255),
-    Phone      VARCHAR(50),
-    Email      VARCHAR(150)
-);
+IF OBJECT_ID('Suppliers', 'U') IS NULL
+BEGIN
+    CREATE TABLE Suppliers (
+        SupplierID INT IDENTITY(1,1) PRIMARY KEY,
+        Name       VARCHAR(150) NOT NULL,
+        Address    VARCHAR(255),
+        Phone      VARCHAR(50),
+        Email      VARCHAR(150),
+        CNIC       NVARCHAR(50) NULL
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Suppliers', 'CNIC') IS NULL ALTER TABLE Suppliers ADD CNIC NVARCHAR(50) NULL;
+END
 GO
 
-
-CREATE TABLE Products (
-    ProductID        INT IDENTITY(1,1) PRIMARY KEY,
-    Name              VARCHAR(150) NOT NULL,
-    GenericName       VARCHAR(150),
-    CompanyID         INT FOREIGN KEY REFERENCES Companies(CompanyID),
-    CompanyName       VARCHAR(150),
-    SupplierID        INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
-    SupplierName      VARCHAR(150),
-    BatchNumber       VARCHAR(50),
-    Type              VARCHAR(50),
-    Category          VARCHAR(100),
-    Rack              VARCHAR(50),
-    ExpiryDate        DATE,
-    PurchasePrice     DECIMAL(10,2) DEFAULT 0,
-    SellingPrice      DECIMAL(10,2) DEFAULT 0,
-    Stock             INT DEFAULT 0,
-    MinimumStockLevel INT DEFAULT 0
-);
+IF OBJECT_ID('Products', 'U') IS NULL
+BEGIN
+    CREATE TABLE Products (
+        ProductID        INT IDENTITY(1,1) PRIMARY KEY,
+        Name              VARCHAR(150) NOT NULL,
+        GenericName       VARCHAR(150),
+        CompanyID         INT FOREIGN KEY REFERENCES Companies(CompanyID),
+        CompanyName       VARCHAR(150),
+        SupplierID        INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
+        SupplierName      VARCHAR(150),
+        BatchNumber       VARCHAR(50),
+        Type              VARCHAR(50),
+        Category          VARCHAR(100),
+        Rack              VARCHAR(50),
+        ExpiryDate        DATE,
+        PurchasePrice     DECIMAL(10,2) DEFAULT 0,
+        SellingPrice      DECIMAL(10,2) DEFAULT 0,
+        Stock             INT DEFAULT 0,
+        MinimumStockLevel INT DEFAULT 0
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Products', 'GenericName') IS NULL ALTER TABLE Products ADD GenericName VARCHAR(150) NULL;
+    IF COL_LENGTH('Products', 'CompanyName') IS NULL ALTER TABLE Products ADD CompanyName VARCHAR(150) NULL;
+    IF COL_LENGTH('Products', 'SupplierID') IS NULL ALTER TABLE Products ADD SupplierID INT NULL FOREIGN KEY REFERENCES Suppliers(SupplierID);
+    IF COL_LENGTH('Products', 'SupplierName') IS NULL ALTER TABLE Products ADD SupplierName VARCHAR(150) NULL;
+    IF COL_LENGTH('Products', 'BatchNumber') IS NULL ALTER TABLE Products ADD BatchNumber VARCHAR(50) NULL;
+    IF COL_LENGTH('Products', 'Type') IS NULL ALTER TABLE Products ADD Type VARCHAR(50) NULL;
+    IF COL_LENGTH('Products', 'Category') IS NULL ALTER TABLE Products ADD Category VARCHAR(100) NULL;
+    IF COL_LENGTH('Products', 'Rack') IS NULL ALTER TABLE Products ADD Rack VARCHAR(50) NULL;
+    IF COL_LENGTH('Products', 'ExpiryDate') IS NULL ALTER TABLE Products ADD ExpiryDate DATE NULL;
+    IF COL_LENGTH('Products', 'PurchasePrice') IS NULL ALTER TABLE Products ADD PurchasePrice DECIMAL(10,2) DEFAULT 0;
+    IF COL_LENGTH('Products', 'Stock') IS NULL ALTER TABLE Products ADD Stock INT DEFAULT 0;
+    IF COL_LENGTH('Products', 'MinimumStockLevel') IS NULL ALTER TABLE Products ADD MinimumStockLevel INT DEFAULT 0;
+END
 GO
 
-CREATE TABLE Patients (
-    PatientID       INT IDENTITY(1,1) PRIMARY KEY,
-    Name            VARCHAR(150) NOT NULL,
-    Age             INT,
-    Gender          VARCHAR(10) CHECK (Gender IN ('Male', 'Female', 'Other')),
-    Phone           VARCHAR(50),
-    Address         VARCHAR(255),
-    Diagnosis       TEXT,
-    Prescription    TEXT,
-    ConsultationFee DECIMAL(10,2) DEFAULT 0,
-    Discount        DECIMAL(10,2) DEFAULT 0,
-    NextAppointmentDate DATE,
-    NextAppointmentTime TIME
-);
+IF OBJECT_ID('Patients', 'U') IS NULL
+BEGIN
+    CREATE TABLE Patients (
+        PatientID       INT IDENTITY(1,1) PRIMARY KEY,
+        Name            VARCHAR(150) NOT NULL,
+        Age             INT,
+        Gender          VARCHAR(10) CHECK (Gender IN ('Male', 'Female', 'Other')),
+        Phone           VARCHAR(50),
+        Address         VARCHAR(255),
+        Diagnosis       TEXT,
+        Prescription    TEXT,
+        ConsultationFee DECIMAL(10,2) DEFAULT 0,
+        Discount        DECIMAL(10,2) DEFAULT 0,
+        NextAppointmentDate DATE,
+        NextAppointmentTime TIME,
+        VisitStatus     VARCHAR(20) NULL,
+        LastVisitDate   DATE NULL,
+        CNIC            NVARCHAR(50) NULL
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Patients', 'VisitStatus') IS NULL ALTER TABLE Patients ADD VisitStatus VARCHAR(20) NULL;
+    IF COL_LENGTH('Patients', 'LastVisitDate') IS NULL ALTER TABLE Patients ADD LastVisitDate DATE NULL;
+    IF COL_LENGTH('Patients', 'Age') IS NULL ALTER TABLE Patients ADD Age INT NULL;
+    IF COL_LENGTH('Patients', 'Gender') IS NULL ALTER TABLE Patients ADD Gender VARCHAR(10) NULL;
+    IF COL_LENGTH('Patients', 'Diagnosis') IS NULL ALTER TABLE Patients ADD Diagnosis TEXT NULL;
+    IF COL_LENGTH('Patients', 'Prescription') IS NULL ALTER TABLE Patients ADD Prescription TEXT NULL;
+    IF COL_LENGTH('Patients', 'ConsultationFee') IS NULL ALTER TABLE Patients ADD ConsultationFee DECIMAL(10,2) DEFAULT 0;
+    IF COL_LENGTH('Patients', 'Discount') IS NULL ALTER TABLE Patients ADD Discount DECIMAL(10,2) DEFAULT 0;
+    IF COL_LENGTH('Patients', 'NextAppointmentDate') IS NULL ALTER TABLE Patients ADD NextAppointmentDate DATE NULL;
+    IF COL_LENGTH('Patients', 'NextAppointmentTime') IS NULL ALTER TABLE Patients ADD NextAppointmentTime TIME NULL;
+    IF COL_LENGTH('Patients', 'CNIC') IS NULL ALTER TABLE Patients ADD CNIC NVARCHAR(50) NULL;
+END
 GO
 
-CREATE TABLE Users (
-    UserID       INT IDENTITY(1,1) PRIMARY KEY,
-    Username     VARCHAR(100) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist', 'Admin', 'Pharmacist')),
-    FullName     VARCHAR(150) NULL,
-    IsActive     BIT DEFAULT 1,
-    Permissions  VARCHAR(1000) NULL,
-    CreatedAt    DATETIME DEFAULT GETDATE()
-);
+IF OBJECT_ID('Users', 'U') IS NULL
+BEGIN
+    CREATE TABLE Users (
+        UserID       INT IDENTITY(1,1) PRIMARY KEY,
+        Username     VARCHAR(100) NOT NULL UNIQUE,
+        PasswordHash VARCHAR(255) NOT NULL,
+        Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist', 'Admin', 'Pharmacist')),
+        FullName     VARCHAR(150) NULL,
+        IsActive     BIT DEFAULT 1,
+        Permissions  VARCHAR(1000) NULL,
+        CreatedAt    DATETIME DEFAULT GETDATE(),
+        Email        NVARCHAR(100) NULL,
+        Phone        NVARCHAR(50) NULL,
+        CNIC         NVARCHAR(50) NULL,
+        Address      NVARCHAR(500) NULL,
+        Gender       NVARCHAR(20) NULL,
+        Qualification NVARCHAR(200) NULL,
+        Designation  NVARCHAR(200) NULL,
+        LicenseNumber NVARCHAR(100) NULL,
+        DateOfBirth  DATETIME2 NULL,
+        ProfilePicture VARBINARY(MAX) NULL,
+        LastLogin    DATETIME2 NULL,
+        UpdatedAt    DATETIME2 NULL,
+        ForcePasswordChange BIT NOT NULL DEFAULT 0
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Users', 'Permissions') IS NULL ALTER TABLE Users ADD Permissions VARCHAR(1000) NULL;
+    IF COL_LENGTH('Users', 'Email') IS NULL ALTER TABLE Users ADD Email NVARCHAR(100) NULL;
+    IF COL_LENGTH('Users', 'Phone') IS NULL ALTER TABLE Users ADD Phone NVARCHAR(50) NULL;
+    IF COL_LENGTH('Users', 'CNIC') IS NULL ALTER TABLE Users ADD CNIC NVARCHAR(50) NULL;
+    IF COL_LENGTH('Users', 'Address') IS NULL ALTER TABLE Users ADD Address NVARCHAR(500) NULL;
+    IF COL_LENGTH('Users', 'Gender') IS NULL ALTER TABLE Users ADD Gender NVARCHAR(20) NULL;
+    IF COL_LENGTH('Users', 'Qualification') IS NULL ALTER TABLE Users ADD Qualification NVARCHAR(200) NULL;
+    IF COL_LENGTH('Users', 'Designation') IS NULL ALTER TABLE Users ADD Designation NVARCHAR(200) NULL;
+    IF COL_LENGTH('Users', 'LicenseNumber') IS NULL ALTER TABLE Users ADD LicenseNumber NVARCHAR(100) NULL;
+    IF COL_LENGTH('Users', 'DateOfBirth') IS NULL ALTER TABLE Users ADD DateOfBirth DATETIME2 NULL;
+    IF COL_LENGTH('Users', 'ProfilePicture') IS NULL ALTER TABLE Users ADD ProfilePicture VARBINARY(MAX) NULL;
+    IF COL_LENGTH('Users', 'LastLogin') IS NULL ALTER TABLE Users ADD LastLogin DATETIME2 NULL;
+    IF COL_LENGTH('Users', 'UpdatedAt') IS NULL ALTER TABLE Users ADD UpdatedAt DATETIME2 NULL;
+    IF COL_LENGTH('Users', 'ForcePasswordChange') IS NULL ALTER TABLE Users ADD ForcePasswordChange BIT NOT NULL DEFAULT 0;
+END
 GO
 
-CREATE TABLE Appointments (
-    AppointmentID      INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentNo      VARCHAR(50) NOT NULL,
-    PatientID          INT FOREIGN KEY REFERENCES Patients(PatientID),
-    PatientName        VARCHAR(150),
-    Phone              VARCHAR(50),
-    DoctorID           INT FOREIGN KEY REFERENCES Users(UserID),
-    AppointmentDate    DATE NOT NULL,
-    AppointmentTime    TIME NOT NULL,
-    Reason             VARCHAR(255),
-    Status             VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (Status IN ('Scheduled', 'Completed', 'Cancelled', 'Missed')),
-    Remarks            VARCHAR(255),
-    CancellationReason VARCHAR(255),
-    CreatedAt          DATETIME DEFAULT GETDATE()
-);
+IF OBJECT_ID('Appointments', 'U') IS NULL
+BEGIN
+    CREATE TABLE Appointments (
+        AppointmentID      INT IDENTITY(1,1) PRIMARY KEY,
+        AppointmentNo      VARCHAR(50) NOT NULL,
+        PatientID          INT FOREIGN KEY REFERENCES Patients(PatientID),
+        PatientName        VARCHAR(150),
+        Phone              VARCHAR(50),
+        DoctorID           INT FOREIGN KEY REFERENCES Users(UserID),
+        AppointmentDate    DATE NOT NULL,
+        AppointmentTime    TIME NOT NULL,
+        Reason             VARCHAR(255),
+        Status             VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (Status IN ('Scheduled', 'Completed', 'Cancelled', 'Missed')),
+        Remarks            VARCHAR(255),
+        CancellationReason VARCHAR(255),
+        CreatedAt          DATETIME DEFAULT GETDATE(),
+        Gender             NVARCHAR(20) NULL,
+        Age                INT NULL
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Appointments', 'Gender') IS NULL ALTER TABLE Appointments ADD Gender NVARCHAR(20) NULL;
+    IF COL_LENGTH('Appointments', 'Age') IS NULL ALTER TABLE Appointments ADD Age INT NULL;
+    IF COL_LENGTH('Appointments', 'Phone') IS NULL ALTER TABLE Appointments ADD Phone VARCHAR(50) NULL;
+    IF COL_LENGTH('Appointments', 'Remarks') IS NULL ALTER TABLE Appointments ADD Remarks VARCHAR(255) NULL;
+    IF COL_LENGTH('Appointments', 'CancellationReason') IS NULL ALTER TABLE Appointments ADD CancellationReason VARCHAR(255) NULL;
+    IF COL_LENGTH('Appointments', 'AppointmentNo') IS NULL ALTER TABLE Appointments ADD AppointmentNo VARCHAR(50) NULL;
+    IF COL_LENGTH('Appointments', 'PatientName') IS NULL ALTER TABLE Appointments ADD PatientName VARCHAR(150) NULL;
+    IF COL_LENGTH('Appointments', 'Reason') IS NULL ALTER TABLE Appointments ADD Reason VARCHAR(255) NULL;
+END
 GO
 
-CREATE TABLE Purchases (
-    PurchaseID    INT IDENTITY(1,1) PRIMARY KEY,
-    InvoiceNumber VARCHAR(50) NOT NULL,
-    PurchaseDate  DATETIME DEFAULT GETDATE(),
-    SupplierID    INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
-    SupplierName  VARCHAR(150),
-    TotalAmount   DECIMAL(12,2) DEFAULT 0
-);
+IF OBJECT_ID('Purchases', 'U') IS NULL
+BEGIN
+    CREATE TABLE Purchases (
+        PurchaseID    INT IDENTITY(1,1) PRIMARY KEY,
+        InvoiceNumber VARCHAR(50) NOT NULL,
+        PurchaseDate  DATETIME DEFAULT GETDATE(),
+        SupplierID    INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
+        SupplierName  VARCHAR(150),
+        TotalAmount   DECIMAL(12,2) DEFAULT 0
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Purchases', 'SupplierName') IS NULL ALTER TABLE Purchases ADD SupplierName VARCHAR(150) NULL;
+END
 GO
 
-CREATE TABLE PurchaseItems (
-    PurchaseItemID INT IDENTITY(1,1) PRIMARY KEY,
-    PurchaseID     INT FOREIGN KEY REFERENCES Purchases(PurchaseID) ON DELETE CASCADE,
-    ProductID      INT FOREIGN KEY REFERENCES Products(ProductID),
-    BatchNumber    VARCHAR(50),
-    ExpiryDate     DATE,
-    Quantity       INT NOT NULL,
-    PurchasePrice  DECIMAL(10,2),
-    Discount       DECIMAL(10,2) DEFAULT 0,
-    Tax            DECIMAL(5,2) DEFAULT 0
-);
+IF OBJECT_ID('PurchaseItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE PurchaseItems (
+        PurchaseItemID INT IDENTITY(1,1) PRIMARY KEY,
+        PurchaseID     INT FOREIGN KEY REFERENCES Purchases(PurchaseID) ON DELETE CASCADE,
+        ProductID      INT FOREIGN KEY REFERENCES Products(ProductID),
+        BatchNumber    VARCHAR(50),
+        ExpiryDate     DATE,
+        Quantity       INT NOT NULL,
+        PurchasePrice  DECIMAL(10,2),
+        Discount       DECIMAL(10,2) DEFAULT 0,
+        Tax            DECIMAL(5,2) DEFAULT 0
+    );
+END
 GO
 
-CREATE TABLE Sales (
-    SaleID          INT IDENTITY(1,1) PRIMARY KEY,
-    InvoiceNumber   VARCHAR(50) NOT NULL,
-    SaleDate        DATETIME DEFAULT GETDATE(),
-    PatientID       INT FOREIGN KEY REFERENCES Patients(PatientID),
-    PatientName     VARCHAR(150),
-    ConsultationFee DECIMAL(10,2) DEFAULT 0,
-    GrandTotal      DECIMAL(12,2) DEFAULT 0,
-    PaymentMethod   VARCHAR(20) CHECK (PaymentMethod IN ('Cash', 'Card', 'Online')),
-    IsPosted        BIT DEFAULT 0
-);
+IF OBJECT_ID('Sales', 'U') IS NULL
+BEGIN
+    CREATE TABLE Sales (
+        SaleID          INT IDENTITY(1,1) PRIMARY KEY,
+        InvoiceNumber   VARCHAR(50) NOT NULL,
+        SaleDate        DATETIME DEFAULT GETDATE(),
+        PatientID       INT FOREIGN KEY REFERENCES Patients(PatientID),
+        PatientName     VARCHAR(150),
+        ConsultationFee DECIMAL(10,2) DEFAULT 0,
+        GrandTotal      DECIMAL(12,2) DEFAULT 0,
+        PaymentMethod   VARCHAR(20) CHECK (PaymentMethod IN ('Cash', 'Card', 'Online')),
+        IsPosted        BIT DEFAULT 0
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Sales', 'PatientName') IS NULL ALTER TABLE Sales ADD PatientName VARCHAR(150) NULL;
+END
 GO
 
-CREATE TABLE SaleItems (
-    SaleItemID INT IDENTITY(1,1) PRIMARY KEY,
-    SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
-    ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
-    Quantity   INT NOT NULL,
-    Discount   DECIMAL(10,2) DEFAULT 0,
-    Tax        DECIMAL(5,2) DEFAULT 0,
-    LineTotal  DECIMAL(10,2) DEFAULT 0
-);
+IF OBJECT_ID('SaleItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE SaleItems (
+        SaleItemID INT IDENTITY(1,1) PRIMARY KEY,
+        SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
+        ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
+        Quantity   INT NOT NULL,
+        Discount   DECIMAL(10,2) DEFAULT 0,
+        Tax        DECIMAL(5,2) DEFAULT 0,
+        LineTotal  DECIMAL(10,2) DEFAULT 0
+    );
+END
+GO
+
+IF OBJECT_ID('Settings', 'U') IS NULL
+BEGIN
+    CREATE TABLE Settings (
+        SettingKey NVARCHAR(100) PRIMARY KEY,
+        SettingValue NVARCHAR(MAX) NULL
+    );
+END
+GO
+
+IF OBJECT_ID('Returns', 'U') IS NULL
+BEGIN
+    CREATE TABLE Returns (
+        ReturnId INT IDENTITY(1,1) PRIMARY KEY,
+        ReturnNo NVARCHAR(50) NOT NULL,
+        ProductId INT NOT NULL,
+        BatchNo NVARCHAR(50) NULL,
+        Quantity INT NOT NULL,
+        ReturnType NVARCHAR(50) NOT NULL,
+        Reason NVARCHAR(200) NULL,
+        Notes NVARCHAR(500) NULL,
+        PatientId INT NULL,
+        SupplierId INT NULL,
+        SaleId INT NULL,
+        RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0,
+        CreatedBy INT NULL,
+        CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
+    );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('Returns', 'PatientId') IS NULL ALTER TABLE Returns ADD PatientId INT NULL;
+    IF COL_LENGTH('Returns', 'SupplierId') IS NULL ALTER TABLE Returns ADD SupplierId INT NULL;
+    IF COL_LENGTH('Returns', 'SaleId') IS NULL ALTER TABLE Returns ADD SaleId INT NULL;
+    IF COL_LENGTH('Returns', 'RefundAmount') IS NULL ALTER TABLE Returns ADD RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0;
+END
 GO
 
 SET ANSI_NULLS ON;
 SET QUOTED_IDENTIFIER ON;
 GO
 
--- DiscountRefunds: doctor-approved refunds with full audit trail
-CREATE TABLE DiscountRefunds (
-    RefundID          INT IDENTITY(1,1) PRIMARY KEY,
-    PatientName       NVARCHAR(150) NOT NULL,
-    TokenNumber       VARCHAR(50),
-    OriginalFee       DECIMAL(10,2) NOT NULL,
-    DiscountedFee     DECIMAL(10,2) NOT NULL,
-    RefundAmount      AS (OriginalFee - DiscountedFee) PERSISTED,
-    Notes             NVARCHAR(500),
-    ApprovedByUserID  INT REFERENCES Users(UserID),
-    ApprovedByName    NVARCHAR(150),
-    ApprovedAt        DATETIME DEFAULT GETDATE(),
-    CompletedByUserID INT REFERENCES Users(UserID),
-    CompletedByName   NVARCHAR(150),
-    CompletedAt       DATETIME,
-    IsCompleted       BIT DEFAULT 0
-);
+IF OBJECT_ID('DiscountRefunds', 'U') IS NULL
+BEGIN
+    CREATE TABLE DiscountRefunds (
+        RefundID          INT IDENTITY(1,1) PRIMARY KEY,
+        PatientName       NVARCHAR(150) NOT NULL,
+        TokenNumber       VARCHAR(50),
+        OriginalFee       DECIMAL(10,2) NOT NULL,
+        DiscountedFee     DECIMAL(10,2) NOT NULL,
+        RefundAmount      AS (OriginalFee - DiscountedFee) PERSISTED,
+        Notes             NVARCHAR(500),
+        ApprovedByUserID  INT REFERENCES Users(UserID),
+        ApprovedByName    NVARCHAR(150),
+        ApprovedAt        DATETIME DEFAULT GETDATE(),
+        CompletedByUserID INT REFERENCES Users(UserID),
+        CompletedByName   NVARCHAR(150),
+        CompletedAt       DATETIME,
+        IsCompleted       BIT DEFAULT 0
+    );
+END
 GO
 
-CREATE TABLE ActivityLogs (
-    ActivityID  INT IDENTITY(1,1) PRIMARY KEY,
-    Title       VARCHAR(255) NOT NULL,
-    Description VARCHAR(1000) NULL,
-    Module      VARCHAR(100) NOT NULL,
-    UserID      INT,
-    UserName    VARCHAR(150),
-    CreatedAt   DATETIME DEFAULT GETDATE()
-);
+IF OBJECT_ID('ActivityLogs', 'U') IS NULL
+BEGIN
+    CREATE TABLE ActivityLogs (
+        ActivityID  INT IDENTITY(1,1) PRIMARY KEY,
+        Title       VARCHAR(255) NOT NULL,
+        Description VARCHAR(1000) NULL,
+        Module      VARCHAR(100) NOT NULL,
+        UserID      INT,
+        UserName    VARCHAR(150),
+        CreatedAt   DATETIME DEFAULT GETDATE()
+    );
+END
 GO
-
 
 -- ============================================================
 --  INDEXES
@@ -224,9 +362,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_DiscountRefunds_IsComple
 GO
 
 -- ============================================================
---  SEED DATA — Default admin user (Doctor)
---  Password: Admin@123
---  BCrypt hash generated offline; change after first login.
+--  SEED DATA 
 -- ============================================================
 IF NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'admin')
 BEGIN
@@ -241,5 +377,5 @@ BEGIN
 END
 GO
 
-PRINT 'ClinicDB expanded schema created successfully.';
+PRINT 'ClinicDB expanded schema created/updated successfully.';
 GO

@@ -256,6 +256,8 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
         }
     }
 
+    public event Action? SettingsSaved;
+
     // ── Save ─────────────────────────────────────────────────────────────────
     [RelayCommand]
     private async Task SaveSettingsAsync()
@@ -285,6 +287,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             });
             StatusMessage = "Settings saved successfully!";
             LogActivity("Settings Updated", "Application settings were updated", "Settings");
+            SettingsSaved?.Invoke();
         }
         catch (Exception ex) { StatusMessage = $"Failed to save settings: {ex.Message}"; }
         finally { IsBusy = false; }

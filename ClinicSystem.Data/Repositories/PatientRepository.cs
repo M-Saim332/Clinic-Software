@@ -22,6 +22,12 @@ public class PatientRepository
         return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
     }
 
+    public decimal GetTotalConsultationFee()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ConsultationFee), 0) FROM Patients");
+    }
+
     public Patient? GetById(int id)
     {
         using var conn = _session.CreateConnection();

@@ -14,10 +14,10 @@ using ClinicSystem.UI.ViewModels.Sales;
 using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
 
-using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
 using ClinicSystem.Data;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -95,6 +95,11 @@ public partial class MainWindowViewModel : ViewModelBase
         ChangePasswordVM = changePasswordVM;
         ChangePasswordVM.CloseRequested += () => ShowChangePassword = false;
 
+        _settingsVM.SettingsSaved += () =>
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => ClinicName = _settingsVM.ClinicName);
+        };
+
         // Allow Dashboard to trigger the shared Change Password popup
         _dashboardVM.RequestChangePassword += () => OpenChangePasswordDialogCommand.Execute(null);
 
@@ -140,6 +145,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _inventoryVM.InitializeAsync();
                 await _settingsVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
+                
+                // Load Clinic Name for the top bar
+                var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>("SELECT SettingValue FROM Settings WHERE SettingKey = 'ClinicName'") ?? "Care & Cure Clinic");
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => ClinicName = settings);
 
                 // Compute alert warnings safely
                 var lowStockCount = _productVM.Products.Count(m => m.IsLowStock && !m.IsExpired);
@@ -176,6 +185,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;
     [ObservableProperty] private string _statusText   = string.Empty;
     [ObservableProperty] private string _pageTitle    = "Dashboard";
+    [ObservableProperty] private string _clinicName   = "Care & Cure Clinic";
     [ObservableProperty] private bool   _isLoading;
     [ObservableProperty] private string _alertMessage = string.Empty;
     [ObservableProperty] private bool   _showAlert;
