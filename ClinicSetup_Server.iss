@@ -60,6 +60,8 @@ Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs creat
 ; ── Database scripts ─────────────────────────────────────────────────────────
 Source: "Database\Schema.sql";                    DestDir: "{app}\Database"; Flags: ignoreversion
 Source: "Database\Migration_AddDiscountRefunds.sql"; DestDir: "{app}\Database"; Flags: ignoreversion
+Source: "Database\TestData.sql";                  DestDir: "{app}\Database"; Flags: ignoreversion
+Source: "Database\GenerateMockTransactions.sql";  DestDir: "{app}\Database"; Flags: ignoreversion
 
 ; ── Default appsettings (placeholder → triggers DB Setup screen at first run) 
 Source: "Installer\appsettings_server.json"; DestDir: "{app}"; DestName: "appsettings.json"; Flags: ignoreversion
