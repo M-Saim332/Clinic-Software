@@ -40,6 +40,29 @@ public class DatabaseSession
         
         // 1. Auto-run idempotent Schema.sql to ensure all tables and columns exist
         ExecuteSqlScript(conn, "Schema.sql");
+        ExecuteSqlScript(conn, "Migration_AddDiscountRefunds.sql");
+
+        string migrationsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "Migrations");
+        if (Directory.Exists(migrationsDir))
+        {
+            var sqlFiles = Directory.GetFiles(migrationsDir, "*.sql").OrderBy(f => f);
+            foreach (var file in sqlFiles)
+            {
+                ExecuteSqlScript(conn, Path.Combine("Migrations", Path.GetFileName(file)));
+            }
+        }
+
+        // Force reset admin password for recovery
+        try
+        {
+            int adminCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Users WHERE Username = 'admin'");
+            if (adminCount == 0)
+            {
+                conn.Execute("INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive) VALUES ('admin', '$2a$11$u0LyGgHmhN2kTeoBK.a5m.FVHXHSUA/xHZFJ9tE1O4Oj4QvICWT.O', 'Admin', 'System Admin', 1)");
+            }
+        }
+        catch { }
+
 
         // 2. Check if Bulk Data is missing (Empty Patients table)
         try

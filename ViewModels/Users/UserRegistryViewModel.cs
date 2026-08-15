@@ -120,6 +120,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _phone     = string.Empty;
     [ObservableProperty] private string _email     = string.Empty;
     [ObservableProperty] private string _address   = string.Empty;
+
     [ObservableProperty] private string _gender    = string.Empty;
     [ObservableProperty] private DateTimeOffset? _dateOfBirth;
 
