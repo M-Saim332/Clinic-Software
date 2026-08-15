@@ -34,6 +34,34 @@ public class SaleRepository
             "SELECT ISNULL(SUM(GrandTotal), 0) FROM Sales WHERE IsPosted = 1 AND CAST(SaleDate AS DATE) = CAST(GETDATE() AS DATE)");
     }
 
+    public decimal GetTodayCostOfGoodsSold()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            @"SELECT ISNULL(SUM(si.Quantity * p.PurchasePrice), 0)
+              FROM Sales s
+              JOIN SaleItems si ON s.SaleID = si.SaleID
+              JOIN Products p ON si.ProductID = p.ProductID
+              WHERE s.IsPosted = 1 AND CAST(s.SaleDate AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    public decimal GetTotalRevenue()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(GrandTotal), 0) FROM Sales WHERE IsPosted = 1");
+    }
+
+    public decimal GetTotalCostOfGoodsSold()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>(
+            @"SELECT ISNULL(SUM(si.Quantity * p.PurchasePrice), 0)
+              FROM Sales s
+              JOIN SaleItems si ON s.SaleID = si.SaleID
+              JOIN Products p ON si.ProductID = p.ProductID
+              WHERE s.IsPosted = 1");
+    }
+
     public decimal GetTotalRevenueLast30Days()
     {
         using var conn = _session.CreateConnection();
@@ -63,6 +91,23 @@ public class SaleRepository
               GROUP BY CAST(SaleDate AS DATE)
               ORDER BY SaleDay");
         return rows.Select(r => ((DateTime)r.SaleDay, (decimal)r.Revenue, (decimal)r.Consultation)).ToList();
+    }
+
+    /// <summary>Returns daily COGS for the last 30 days for accurate profit chart plotting.</summary>
+    public IEnumerable<(DateTime Date, decimal Cogs)> GetDailyCostOfGoodsSoldLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        var rows = conn.Query(
+            @"SELECT CAST(s.SaleDate AS DATE) AS SaleDay,
+                     ISNULL(SUM(si.Quantity * p.PurchasePrice), 0) AS Cogs
+              FROM Sales s
+              JOIN SaleItems si ON s.SaleID = si.SaleID
+              JOIN Products p ON si.ProductID = p.ProductID
+              WHERE s.IsPosted = 1
+                AND s.SaleDate >= DATEADD(day, -29, CAST(GETDATE() AS DATE))
+              GROUP BY CAST(s.SaleDate AS DATE)
+              ORDER BY SaleDay");
+        return rows.Select(r => ((DateTime)r.SaleDay, (decimal)r.Cogs)).ToList();
     }
 
 

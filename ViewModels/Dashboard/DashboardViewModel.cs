@@ -178,15 +178,16 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             // ── Financial calculations ─────────────────────────────────────
             // Today's financials
             decimal todaySalesAmt = await Task.Run(() => _saleRepo.GetTodayRevenue());
-            decimal todayPurchaseAmt = await Task.Run(() => _purchaseRepo.GetTodayTotal());
+            decimal todayCogsAmt = await Task.Run(() => _saleRepo.GetTodayCostOfGoodsSold());
             decimal todayRefundAmt = await Task.Run(() => _refundRepo.GetTodayTotalCompleted());
             decimal todayPatientReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalPatientReturns());
             decimal todaySupplierReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalSupplierReturns());
             
-            decimal todayProfitAmt = todaySalesAmt - todayPurchaseAmt - todayRefundAmt - todayPatientReturns + todaySupplierReturns;
+            decimal todayProfitAmt = todaySalesAmt - todayCogsAmt - todayRefundAmt - todayPatientReturns + todaySupplierReturns;
 
             // 30-day chart + totals (from optimized queries)
             var dailySales = await Task.Run(() => _saleRepo.GetDailyRevenueLast30Days().ToDictionary(x => x.Date, x => x));
+            var dailyCogs = await Task.Run(() => _saleRepo.GetDailyCostOfGoodsSoldLast30Days().ToDictionary(x => x.Date, x => x.Cogs));
             var dailyPurchases = await Task.Run(() => _purchaseRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
             var dailyRefunds = await Task.Run(() => _refundRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
             var dailyPatientReturns = await Task.Run(() => _productReturnRepo.GetDailyPatientReturnsLast30Days().ToDictionary(x => (DateTime)x.Date, x => (decimal)x.Total));
@@ -197,7 +198,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             var revenueData = new List<double>();
             var profitData  = new List<double>();
 
-            double totalRevenue = 0, totalExpenses = 0, totalConsultations = 0, totalRefunds = 0, totalSupplierCredits = 0;
+            double totalRevenue = 0, totalCogs = 0, totalConsultations = 0, totalRefunds = 0, totalSupplierCredits = 0;
 
             for (int i = 0; i < 30; i++)
             {
@@ -205,47 +206,49 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 // Show every 3rd label to avoid clutter
                 dateLabels.Add(i % 3 == 0 ? d.ToString("MMM dd") : "");
 
-                double daySales = 0, dayCons = 0, dayPurchases = 0, dayRefunds = 0;
+                double daySales = 0, dayCons = 0, dayCogs = 0, dayRefunds = 0;
 
                 if (dailySales.TryGetValue(d, out var saleData))
                 {
                     daySales = (double)saleData.Revenue;
-                    dayCons = (double)saleData.Consultation;
+                    dayCons  = (double)saleData.Consultation;
                 }
-                
-                if (dailyPurchases.TryGetValue(d, out var purchaseTotal))
+
+                if (dailyCogs.TryGetValue(d, out var cogsTotal))
                 {
-                    dayPurchases = (double)purchaseTotal;
+                    dayCogs = (double)cogsTotal;
                 }
 
                 if (dailyRefunds.TryGetValue(d, out var refundTotal))
                 {
                     dayRefunds += (double)refundTotal;
                 }
-                
+
                 if (dailyPatientReturns.TryGetValue(d, out var patientReturns))
                 {
                     dayRefunds += (double)patientReturns;
                 }
-                
+
                 double daySupplierCredits = 0;
                 if (dailySupplierReturns.TryGetValue(d, out var supplierReturns))
                 {
                     daySupplierCredits = (double)supplierReturns;
                 }
 
-                revenueData.Add(daySales + daySupplierCredits);
-                profitData.Add(Math.Max(0, daySales + daySupplierCredits - dayPurchases - dayRefunds));
+                // Revenue line = total billed (incl. consultation)
+                revenueData.Add(daySales);
+                // Profit line = revenue minus cost of goods sold and refunds
+                profitData.Add(Math.Max(0, daySales - dayCogs - dayRefunds + daySupplierCredits));
 
-                totalRevenue       += daySales;
-                totalConsultations += dayCons;
-                totalExpenses      += dayPurchases;
-                totalRefunds       += dayRefunds;
+                totalRevenue         += daySales;
+                totalConsultations   += dayCons;
+                totalCogs            += dayCogs;
+                totalRefunds         += dayRefunds;
                 totalSupplierCredits += daySupplierCredits;
             }
 
-            totalRevenue += totalSupplierCredits;
-            double totalProfit = Math.Max(0, totalRevenue - totalExpenses - totalRefunds);
+            // True 30-day profit = revenue - cost of goods sold - refunds + supplier credits
+            double totalProfit = Math.Max(0, totalRevenue - totalCogs - totalRefunds + totalSupplierCredits);
 
             // ── Build chart series ─────────────────────────────────────────
             var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
@@ -307,7 +310,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { totalExpenses },
+                    Values         = new double[] { totalCogs },
                     Name           = "Purchases",
                     Fill           = new SolidColorPaint(new SKColor(0xA7, 0x8B, 0xFA)),
                     InnerRadius    = 80

@@ -82,7 +82,7 @@ public class ProductRepository
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.ExpiryDate IS NOT NULL AND p.ExpiryDate <= CAST(GETDATE() AS DATE)
+              WHERE p.ExpiryDate IS NOT NULL AND p.ExpiryDate < CAST(GETDATE() AS DATE)
               ORDER BY p.ExpiryDate");
     }
 
@@ -113,7 +113,7 @@ public class ProductRepository
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
               WHERE p.ExpiryDate IS NOT NULL 
-                AND p.ExpiryDate > CAST(GETDATE() AS DATE)
+                AND p.ExpiryDate >= CAST(GETDATE() AS DATE)
                 AND p.ExpiryDate <= DATEADD(day, @days, CAST(GETDATE() AS DATE))
               ORDER BY p.ExpiryDate", new { days });
     }

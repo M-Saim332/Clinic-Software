@@ -76,7 +76,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
 
-    public decimal GrandTotal => LineItems.Sum(x => x.Quantity * x.PurchasePrice - x.Discount + x.Tax);
+    public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
@@ -138,6 +138,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
 
+        // Compute line total using percentage-based discount and tax
         var item = new PurchaseItem
         {
             ProductID = SelectedProduct.ProductID,
@@ -149,6 +150,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             Discount = Discount,
             Tax = Tax
         };
+        // Align stored TotalAmount with the same % formula
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));

@@ -102,7 +102,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     public bool PatientIsSelected => SelectedPatient != null;
     public bool IsWalkIn => SelectedPatient == null;
 
-    public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.Quantity * x.ProductPrice - x.Discount + x.Tax);
+    public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.LineNetTotal);
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
@@ -181,6 +181,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
         if (Quantity > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock} in stock."; return; }
 
+        // Compute line total using percentage-based discount and tax
         var item = new SaleItem
         {
             ProductID = SelectedProduct.ProductID,
@@ -190,6 +191,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             Tax = Tax,
             ProductPrice = ProductPrice
         };
+        // LineNetTotal is a computed property — store it as LineTotal for the DB
+        item.LineTotal = item.LineNetTotal;
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
@@ -319,6 +322,10 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         OnPropertyChanged(nameof(PatientIsSelected));
         OnPropertyChanged(nameof(IsWalkIn));
+        if (value != null)
+        {
+            ConsultationFee = value.ConsultationFee;
+        }
     }
 
     partial void OnProductSearchTermChanged(string value)
