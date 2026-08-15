@@ -14,6 +14,7 @@ using ClinicSystem.UI.ViewModels.Sales;
 using ClinicSystem.UI.ViewModels.Inventory;
 using ClinicSystem.UI.ViewModels.Dashboard;
 
+using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
 using ClinicSystem.Data;

@@ -64,7 +64,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         LowStock = new ObservableCollection<Product>(list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
         OutOfStock = new ObservableCollection<Product>(list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
         Expired = new ObservableCollection<Product>(list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
-        NearExpiry = new ObservableCollection<Product>(list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value <= today.AddDays(30)).OrderBy(m => m.ExpiryDate));
+        NearExpiry = new ObservableCollection<Product>(list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value.Date <= today.AddDays(30)).OrderBy(m => m.ExpiryDate));
     }
 
     public async Task InitializeAsync()

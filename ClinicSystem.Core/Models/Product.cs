@@ -26,7 +26,7 @@ public class Product
     public decimal Price => SellingPrice;
     public string? Manufacturer => CompanyName;
 
-    public bool IsExpired => ExpiryDate.HasValue && ExpiryDate.Value.Date <= DateTime.Today;
+    public bool IsExpired => ExpiryDate.HasValue && ExpiryDate.Value.Date < DateTime.Today;
     public bool IsLowStock => Stock <= MinimumStockLevel;
     public string StockStatus => IsExpired ? "EXPIRED" : IsLowStock ? "LOW" : "OK";
 }

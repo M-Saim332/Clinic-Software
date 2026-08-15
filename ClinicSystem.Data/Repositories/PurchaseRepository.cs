@@ -151,15 +151,15 @@ public class PurchaseRepository
                     // Create new batch variant
                     var newProdId = conn.ExecuteScalar<int>(
                         @"INSERT INTO Products 
-                            (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel, Barcode)
+                            (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
                           VALUES 
-                            (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, 0, @MinimumStockLevel, @Barcode);
+                            (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, 0, @MinimumStockLevel);
                           SELECT SCOPE_IDENTITY();",
                         new { 
                             originalProd.Name, originalProd.GenericName, originalProd.CompanyID, originalProd.CompanyName, 
                             originalProd.SupplierID, originalProd.SupplierName, 
                             item.BatchNumber, originalProd.Type, originalProd.Category, originalProd.Rack, item.ExpiryDate, 
-                            item.PurchasePrice, originalProd.SellingPrice, originalProd.MinimumStockLevel, originalProd.Barcode
+                            item.PurchasePrice, originalProd.SellingPrice, originalProd.MinimumStockLevel
                         }, tx);
                     item.ProductID = newProdId;
                 }
