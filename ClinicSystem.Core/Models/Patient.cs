@@ -2,6 +2,7 @@ namespace ClinicSystem.Core.Models;
 
 public class Patient
 {
+    public bool IsActive { get; set; } = true;
     public int PatientID { get; set; }
     public string Name { get; set; } = string.Empty;
     public int? Age { get; set; }

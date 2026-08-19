@@ -8,6 +8,8 @@ public class ProductReturn
     public int ProductId { get; set; }
     public string BatchNo { get; set; } = string.Empty;
     public int Quantity { get; set; }
+    public string UnitType { get; set; } = "Tablet";
+    public int StockQuantity { get; set; }
     public string ReturnType { get; set; } = "Patient Return"; // Patient Return or Supplier Return
     public string Reason { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
@@ -21,4 +23,7 @@ public class ProductReturn
     // Join helpers for UI
     public string? ProductName { get; set; }
     public string? CreatedByName { get; set; }
+    public string? PatientName { get; set; }
+    public string? SupplierName { get; set; }
+    public string CounterpartyName => PatientName ?? SupplierName ?? string.Empty;
 }

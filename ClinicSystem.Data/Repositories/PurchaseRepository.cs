@@ -13,9 +13,11 @@ public class PurchaseRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Purchase>(
-            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName
+            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName,
+                     COALESCE(u.FullName, p.CreatedByName) AS CreatedByName
               FROM Purchases p
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              LEFT JOIN Users u ON p.CreatedBy = u.UserID
               ORDER BY p.PurchaseDate DESC");
     }
 
@@ -24,6 +26,12 @@ public class PurchaseRepository
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(
             "SELECT ISNULL(SUM(TotalAmount), 0) FROM Purchases WHERE CAST(PurchaseDate AS DATE) = CAST(GETDATE() AS DATE)");
+    }
+
+    public decimal GetTotalByRange(DateTime fromInclusive, DateTime toExclusive)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(TotalAmount), 0) FROM Purchases WHERE PurchaseDate >= @fromInclusive AND PurchaseDate < @toExclusive", new { fromInclusive, toExclusive });
     }
 
     /// <summary>Returns daily purchase totals for the last 30 days for the profit chart.</summary>
@@ -45,9 +53,11 @@ public class PurchaseRepository
     {
         using var conn = _session.CreateConnection();
         var purchase = conn.QuerySingleOrDefault<Purchase>(
-            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName
+            @"SELECT p.*, COALESCE(s.Name, p.SupplierName) AS SupplierName,
+                     COALESCE(u.FullName, p.CreatedByName) AS CreatedByName
               FROM Purchases p
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              LEFT JOIN Users u ON p.CreatedBy = u.UserID
               WHERE p.PurchaseID = @id", new { id });
 
         if (purchase == null) return null;
@@ -77,8 +87,8 @@ public class PurchaseRepository
             }
 
             var purchaseId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Purchases (InvoiceNumber, PurchaseDate, SupplierID, SupplierName, TotalAmount)
-                  VALUES (@InvoiceNumber, @PurchaseDate, @SupplierID, @SupplierName, @TotalAmount);
+                @"INSERT INTO Purchases (InvoiceNumber, PurchaseDate, SupplierID, SupplierName, TotalAmount, CreatedBy, CreatedByName)
+                  VALUES (@InvoiceNumber, @PurchaseDate, @SupplierID, @SupplierName, @TotalAmount, @CreatedBy, @CreatedByName);
                   SELECT SCOPE_IDENTITY();", p, tx);
 
             ProcessPurchaseItems(conn, tx, purchaseId, p.Items);
@@ -114,7 +124,8 @@ public class PurchaseRepository
             // Update header
             conn.Execute(
                 @"UPDATE Purchases 
-                  SET PurchaseDate = @PurchaseDate, SupplierID = @SupplierID, SupplierName = @SupplierName, TotalAmount = @TotalAmount
+                  SET PurchaseDate = @PurchaseDate, SupplierID = @SupplierID, SupplierName = @SupplierName,
+                      TotalAmount = @TotalAmount, CreatedBy = @CreatedBy, CreatedByName = @CreatedByName
                   WHERE PurchaseID = @PurchaseID", p, tx);
 
             ProcessPurchaseItems(conn, tx, p.PurchaseID, p.Items);
@@ -133,6 +144,9 @@ public class PurchaseRepository
         foreach (var item in items)
         {
             item.PurchaseID = purchaseId;
+            item.PackageQuantity = item.PackageQuantity > 0 ? item.PackageQuantity : item.Quantity;
+            item.UnitsPerPackage = Math.Max(1, item.UnitsPerPackage);
+            item.Quantity = item.TotalStockUnits;
             
             // Batch Logic
             var originalProd = conn.QuerySingleOrDefault<Product>("SELECT * FROM Products WHERE ProductID = @ProductID", new { item.ProductID }, tx);
@@ -151,23 +165,24 @@ public class PurchaseRepository
                     // Create new batch variant
                     var newProdId = conn.ExecuteScalar<int>(
                         @"INSERT INTO Products 
-                            (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+                            (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, TabletsPerBox, Stock, MinimumStockLevel, IsReturnable, IsActive)
                           VALUES 
-                            (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, 0, @MinimumStockLevel);
+                            (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @TabletsPerBox, 0, @MinimumStockLevel, @IsReturnable, 1);
                           SELECT SCOPE_IDENTITY();",
                         new { 
                             originalProd.Name, originalProd.GenericName, originalProd.CompanyID, originalProd.CompanyName, 
                             originalProd.SupplierID, originalProd.SupplierName, 
                             item.BatchNumber, originalProd.Type, originalProd.Category, originalProd.Rack, item.ExpiryDate, 
-                            item.PurchasePrice, originalProd.SellingPrice, originalProd.MinimumStockLevel
+                            item.PurchasePrice, originalProd.SellingPrice, originalProd.TabletsPerBox,
+                            originalProd.MinimumStockLevel, originalProd.IsReturnable
                         }, tx);
                     item.ProductID = newProdId;
                 }
             }
 
             conn.Execute(
-                @"INSERT INTO PurchaseItems (PurchaseID, ProductID, BatchNumber, ExpiryDate, Quantity, PurchasePrice, Discount, Tax)
-                  VALUES (@PurchaseID, @ProductID, @BatchNumber, @ExpiryDate, @Quantity, @PurchasePrice, @Discount, @Tax)",
+                @"INSERT INTO PurchaseItems (PurchaseID, ProductID, BatchNumber, ExpiryDate, Quantity, BonusQuantity, PackageType, PackageQuantity, UnitsPerPackage, PurchasePrice, Discount, Tax)
+                  VALUES (@PurchaseID, @ProductID, @BatchNumber, @ExpiryDate, @Quantity, @BonusQuantity, @PackageType, @PackageQuantity, @UnitsPerPackage, @PurchasePrice, @Discount, @Tax)",
                 item, tx);
 
             // Update product stock (tied to purchases)

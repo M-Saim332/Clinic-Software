@@ -13,17 +13,58 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Sale>(
-            @"SELECT s.*, COALESCE(p.Name, s.PatientName) AS PatientName
+            @"SELECT s.*, COALESCE(p.Name, s.PatientName) AS PatientName,
+                     COALESCE(u.FullName, s.ReceptionistName) AS ReceptionistName
               FROM Sales s
               LEFT JOIN Patients p ON s.PatientID = p.PatientID
+              LEFT JOIN Users u ON s.ReceptionistId = u.UserID
+              WHERE s.IsActive = 1
               ORDER BY s.SaleDate DESC");
+    }
+
+    public IEnumerable<Sale> GetByRange(DateTime fromInclusive, DateTime toExclusive, string? receptionistName = null)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<Sale>(
+            @"SELECT s.*, COALESCE(p.Name, s.PatientName) AS PatientName,
+                     COALESCE(u.FullName, s.ReceptionistName) AS ReceptionistName
+              FROM Sales s
+              LEFT JOIN Patients p ON s.PatientID = p.PatientID
+              LEFT JOIN Users u ON s.ReceptionistId = u.UserID
+              WHERE s.SaleDate >= @fromInclusive AND s.SaleDate < @toExclusive
+                AND (@receptionistName IS NULL OR COALESCE(u.FullName, s.ReceptionistName) = @receptionistName)
+              ORDER BY s.SaleDate DESC", new { fromInclusive, toExclusive, receptionistName });
+    }
+
+    public (int UnitsSold, decimal CostOfGoods) GetItemMetricsByRange(DateTime fromInclusive, DateTime toExclusive, string? receptionistName = null)
+    {
+        using var conn = _session.CreateConnection();
+        var row = conn.QuerySingle(
+            @"SELECT ISNULL(SUM(si.StockQuantity), 0) AS UnitsSold,
+                     ISNULL(SUM(si.StockQuantity * (p.PurchasePrice / NULLIF(p.TabletsPerBox, 0))), 0) AS CostOfGoods
+              FROM Sales s
+              JOIN SaleItems si ON s.SaleID = si.SaleID
+              JOIN Products p ON si.ProductID = p.ProductID
+              LEFT JOIN Users u ON s.ReceptionistId = u.UserID
+              WHERE s.IsPosted = 1 AND s.SaleDate >= @fromInclusive AND s.SaleDate < @toExclusive
+                AND (@receptionistName IS NULL OR COALESCE(u.FullName, s.ReceptionistName) = @receptionistName)",
+            new { fromInclusive, toExclusive, receptionistName });
+        return ((int)row.UnitsSold, (decimal)row.CostOfGoods);
+    }
+
+    public IEnumerable<string> GetReceptionistNames()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<string>(@"SELECT DISTINCT COALESCE(u.FullName, s.ReceptionistName)
+            FROM Sales s LEFT JOIN Users u ON s.ReceptionistId = u.UserID
+            WHERE COALESCE(u.FullName, s.ReceptionistName) IS NOT NULL ORDER BY 1");
     }
 
     public int GetCountForDate(DateTime date)
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM Sales WHERE CAST(SaleDate AS DATE) = @date",
+            "SELECT COUNT(*) FROM Sales WHERE IsActive = 1 AND CAST(SaleDate AS DATE) = @date",
             new { date });
     }
 
@@ -38,7 +79,7 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(
-            @"SELECT ISNULL(SUM(si.Quantity * p.PurchasePrice), 0)
+            @"SELECT ISNULL(SUM(si.StockQuantity * (p.PurchasePrice / NULLIF(p.TabletsPerBox, 0))), 0)
               FROM Sales s
               JOIN SaleItems si ON s.SaleID = si.SaleID
               JOIN Products p ON si.ProductID = p.ProductID
@@ -55,7 +96,7 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(
-            @"SELECT ISNULL(SUM(si.Quantity * p.PurchasePrice), 0)
+            @"SELECT ISNULL(SUM(si.StockQuantity * (p.PurchasePrice / NULLIF(p.TabletsPerBox, 0))), 0)
               FROM Sales s
               JOIN SaleItems si ON s.SaleID = si.SaleID
               JOIN Products p ON si.ProductID = p.ProductID
@@ -99,7 +140,7 @@ public class SaleRepository
         using var conn = _session.CreateConnection();
         var rows = conn.Query(
             @"SELECT CAST(s.SaleDate AS DATE) AS SaleDay,
-                     ISNULL(SUM(si.Quantity * p.PurchasePrice), 0) AS Cogs
+                     ISNULL(SUM(si.StockQuantity * (p.PurchasePrice / NULLIF(p.TabletsPerBox, 0))), 0) AS Cogs
               FROM Sales s
               JOIN SaleItems si ON s.SaleID = si.SaleID
               JOIN Products p ON si.ProductID = p.ProductID
@@ -115,15 +156,17 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         var sale = conn.QuerySingleOrDefault<Sale>(
-            @"SELECT s.*, p.Name AS PatientName
+            @"SELECT s.*, COALESCE(p.Name, s.PatientName) AS PatientName,
+                     COALESCE(u.FullName, s.ReceptionistName) AS ReceptionistName
               FROM Sales s
               LEFT JOIN Patients p ON s.PatientID = p.PatientID
-              WHERE s.SaleID = @id", new { id });
+              LEFT JOIN Users u ON s.ReceptionistId = u.UserID
+              WHERE s.SaleID = @id AND s.IsActive = 1", new { id });
 
         if (sale == null) return null;
 
         sale.Items = conn.Query<SaleItem>(
-            @"SELECT si.*, m.Name AS ProductName, m.SellingPrice AS ProductPrice
+            @"SELECT si.*, m.Name AS ProductName
               FROM SaleItems si
               JOIN Products m ON si.ProductID = m.ProductID
               WHERE si.SaleID = @id", new { id }).ToList();
@@ -138,14 +181,14 @@ public class SaleRepository
             @"SELECT s.*, p.Name AS PatientName
               FROM Sales s
               LEFT JOIN Patients p ON s.PatientID = p.PatientID
-              WHERE s.PatientID = @patientId AND s.IsPosted = 1
+              WHERE s.PatientID = @patientId AND s.IsActive = 1 AND s.IsPosted = 1
               ORDER BY s.SaleDate DESC", new { patientId }).ToList();
 
         if (sales.Any())
         {
             var saleIds = sales.Select(s => s.SaleID).ToArray();
             var items = conn.Query<SaleItem>(
-                @"SELECT si.*, m.Name AS ProductName, m.SellingPrice AS ProductPrice
+                @"SELECT si.*, m.Name AS ProductName
                   FROM SaleItems si
                   JOIN Products m ON si.ProductID = m.ProductID
                   WHERE si.SaleID IN @saleIds", new { saleIds }).ToList();
@@ -166,24 +209,25 @@ public class SaleRepository
         try
         {
             var saleId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Sales (InvoiceNumber, SaleDate, PatientID, PatientName, ConsultationFee, GrandTotal, PaymentMethod, IsPosted)
-                  VALUES (@InvoiceNumber, @SaleDate, @PatientID, @PatientName, @ConsultationFee, @GrandTotal, @PaymentMethod, @IsPosted);
+                @"INSERT INTO Sales (InvoiceNumber, SaleDate, PatientID, PatientName, ConsultationFee, GrandTotal, PaymentMethod, IsPosted, ReceptionistId, ReceptionistName, IsActive)
+                  VALUES (@InvoiceNumber, @SaleDate, @PatientID, @PatientName, @ConsultationFee, @GrandTotal, @PaymentMethod, @IsPosted, @ReceptionistId, @ReceptionistName, 1);
                   SELECT SCOPE_IDENTITY();", s, tx);
 
             foreach (var item in s.Items)
             {
                 item.SaleID = saleId;
                 conn.Execute(
-                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, Discount, Tax, LineTotal)
-                      VALUES (@SaleID, @ProductID, @Quantity, @Discount, @Tax, @LineTotal)",
+                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, UnitTypeSold, StockQuantity, UnitPrice, Discount, Tax, LineTotal)
+                      VALUES (@SaleID, @ProductID, @Quantity, @UnitTypeSold, @StockQuantity, @UnitPrice, @Discount, @Tax, @LineTotal)",
                     item, tx);
 
                 // If posted on insert, decrement product stock
                 if (s.IsPosted)
                 {
-                    conn.Execute(
-                        "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
-                        new { item.Quantity, item.ProductID }, tx);
+                    var updated = conn.Execute(
+                        "UPDATE Products SET Stock = Stock - @StockQuantity WHERE ProductID = @ProductID AND IsActive = 1 AND Stock >= @StockQuantity",
+                        new { item.StockQuantity, item.ProductID }, tx);
+                    if (updated != 1) throw new InvalidOperationException($"Insufficient stock for {item.ProductName ?? $"product #{item.ProductID}"}.");
                 }
             }
 
@@ -214,7 +258,8 @@ public class SaleRepository
             conn.Execute(
                 @"UPDATE Sales SET
                     InvoiceNumber = @InvoiceNumber, SaleDate = @SaleDate, PatientID = @PatientID,
-                    ConsultationFee = @ConsultationFee, GrandTotal = @GrandTotal, PaymentMethod = @PaymentMethod, IsPosted = @IsPosted
+                    PatientName = @PatientName, ConsultationFee = @ConsultationFee, GrandTotal = @GrandTotal,
+                    PaymentMethod = @PaymentMethod, IsPosted = @IsPosted, ReceptionistId = @ReceptionistId, ReceptionistName = @ReceptionistName
                   WHERE SaleID = @SaleID", s, tx);
 
             // Delete old items
@@ -225,16 +270,17 @@ public class SaleRepository
             {
                 item.SaleID = s.SaleID;
                 conn.Execute(
-                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, Discount, Tax, LineTotal)
-                      VALUES (@SaleID, @ProductID, @Quantity, @Discount, @Tax, @LineTotal)",
+                    @"INSERT INTO SaleItems (SaleID, ProductID, Quantity, UnitTypeSold, StockQuantity, UnitPrice, Discount, Tax, LineTotal)
+                      VALUES (@SaleID, @ProductID, @Quantity, @UnitTypeSold, @StockQuantity, @UnitPrice, @Discount, @Tax, @LineTotal)",
                     item, tx);
 
                 // If now posting, decrement product stock
                 if (s.IsPosted)
                 {
-                    conn.Execute(
-                        "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
-                        new { item.Quantity, item.ProductID }, tx);
+                    var updated = conn.Execute(
+                        "UPDATE Products SET Stock = Stock - @StockQuantity WHERE ProductID = @ProductID AND IsActive = 1 AND Stock >= @StockQuantity",
+                        new { item.StockQuantity, item.ProductID }, tx);
+                    if (updated != 1) throw new InvalidOperationException($"Insufficient stock for {item.ProductName ?? $"product #{item.ProductID}"}.");
                 }
             }
 
@@ -256,12 +302,17 @@ public class SaleRepository
             if (current == null) return false;
             if (current.IsPosted) return false;
 
-            conn.Execute("DELETE FROM Sales WHERE SaleID = @id", new { id });
-            return true;
+            return conn.Execute("UPDATE Sales SET IsActive = 0 WHERE SaleID = @id", new { id }) == 1;
         }
         catch
         {
             return false;
         }
+    }
+
+    public int SoftDeleteAll()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Execute("UPDATE Sales SET IsActive = 0 WHERE IsActive = 1");
     }
 }

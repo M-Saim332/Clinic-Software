@@ -61,19 +61,24 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private string _purchasePrice = "0.00";
     [ObservableProperty] private string _sellingPrice = "0.00";
+    [ObservableProperty] private string _tabletsPerBox = "1";
     [ObservableProperty] private string _stock = "0";
     [ObservableProperty] private string _minimumStockLevel = "10";
 
     private int CurrentStock => int.TryParse(Stock, out var value) ? value : 0;
     private decimal CurrentPurchasePrice => decimal.TryParse(PurchasePrice, out var value) ? value : 0;
     private decimal CurrentSellingPrice => decimal.TryParse(SellingPrice, out var value) ? value : 0;
+    private int CurrentTabletsPerBox => int.TryParse(TabletsPerBox, out var value) && value > 0 ? value : 1;
+    public string PricePerTabletDisplay => FormatMoney(CurrentSellingPrice / CurrentTabletsPerBox);
+    public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     // ── Delete confirmation state ──────────────────────────────────────
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PendingDeleteLabel))]
     private Product? _pendingDeleteProduct;
     [ObservableProperty] private bool _showDeleteConfirm;
-    public string PendingDeleteLabel => PendingDeleteProduct is { } p ? p.Name : string.Empty;
+    [ObservableProperty] private bool _deleteAllRequested;
+    public string PendingDeleteLabel => DeleteAllRequested ? "All active products" : PendingDeleteProduct?.Name ?? string.Empty;
 
     // ── Return Modal State (Patient Return & Supplier Return) ──────────
     [ObservableProperty] private bool _isReturnModalOpen;
@@ -130,6 +135,17 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         var target = PendingDeleteProduct;
         ShowDeleteConfirm = false;
         PendingDeleteProduct = null;
+        if (DeleteAllRequested)
+        {
+            DeleteAllRequested = false;
+            if (!IsAdmin) { StatusMessage = "Only an administrator can archive all products."; return; }
+            var count = await Task.Run(_repo.SoftDeleteAll);
+            StatusMessage = $"{count} product(s) archived. Historical transactions were preserved.";
+            LogActivity("Products Archived", $"Archived all {count} active products", "Products");
+            await InitializeAsync();
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            return;
+        }
         if (target == null) return;
 
         var ok = await Task.Run(() => _repo.Delete(target.ProductID));
@@ -152,6 +168,17 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     {
         ShowDeleteConfirm = false;
         PendingDeleteProduct = null;
+        DeleteAllRequested = false;
+    }
+
+    [RelayCommand]
+    private void RequestDeleteAll()
+    {
+        if (!IsAdmin) { StatusMessage = "Only an administrator can archive all products."; return; }
+        DeleteAllRequested = true;
+        PendingDeleteProduct = null;
+        ShowDeleteConfirm = true;
+        OnPropertyChanged(nameof(PendingDeleteLabel));
     }
 
     [RelayCommand]
@@ -176,6 +203,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         if (!decimal.TryParse(SellingPrice, out var sell) || sell < 0) { StatusMessage = "Enter a valid selling price."; return; }
         if (!int.TryParse(Stock, out var stock) || stock < 0) { StatusMessage = "Enter valid stock."; return; }
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
+        if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Tablets per box must be at least 1."; return; }
 
         var m = BuildProduct();
         try
@@ -370,6 +398,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         ExpiryDate = null;
         PurchasePrice = "0.00";
         SellingPrice = "0.00";
+        TabletsPerBox = "1";
         Stock = "0";
         MinimumStockLevel = "10";
         SelectedCompany = null;
@@ -388,6 +417,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
         PurchasePrice = m.PurchasePrice.ToString("F2");
         SellingPrice = m.SellingPrice.ToString("F2");
+        TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
         Stock = m.Stock.ToString();
         MinimumStockLevel = m.MinimumStockLevel.ToString();
         SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID);
@@ -406,6 +436,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
         ExpiryDate = ExpiryDate?.Date,
         PurchasePrice = decimal.TryParse(PurchasePrice, out var bp) ? bp : 0,
         SellingPrice = decimal.TryParse(SellingPrice, out var sp) ? sp : 0,
+        TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
         Stock = int.TryParse(Stock, out var s) ? s : 0,
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
         CompanyID = SelectedCompany?.CompanyID,
@@ -421,10 +452,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     partial void OnStockChanged(string value) => NotifyCalculatedTotals();
     partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnSellingPriceChanged(string value) => NotifyCalculatedTotals();
+    partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
 
     private void NotifyCalculatedTotals()
     {
-
+        OnPropertyChanged(nameof(PricePerTabletDisplay));
     }
 
     private static string FormatMoney(decimal value) => $"Rs. {value:N2}";
@@ -444,7 +476,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
 
                 LowStockCount   = Products.Count(m => m.IsLowStock && !m.IsExpired);
                 ExpiredCount     = Products.Count(m => m.IsExpired);
-                var totalVal     = Products.Sum(m => m.Stock * m.SellingPrice);
+                var totalVal     = Products.Sum(m => m.Stock * m.PricePerTablet);
                 TotalInventoryValue = FormatMoney(totalVal);
             });
         }

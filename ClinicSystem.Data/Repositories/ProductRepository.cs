@@ -17,26 +17,27 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
+              WHERE p.IsActive = 1
               ORDER BY p.Name");
     }
 
     public int GetCount()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Products");
+        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Products WHERE IsActive = 1");
     }
 
     public decimal GetTotalStockValue()
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(
-            "SELECT ISNULL(SUM(CAST(SellingPrice AS DECIMAL(18,2)) * CAST(Stock AS DECIMAL(18,2))), 0) FROM Products");
+            "SELECT ISNULL(SUM((SellingPrice / NULLIF(TabletsPerBox, 0)) * Stock), 0) FROM Products WHERE IsActive = 1");
     }
 
     public Product? GetById(int id)
@@ -44,13 +45,13 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.QuerySingleOrDefault<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.ProductID = @id", new { id });
+              WHERE p.ProductID = @id AND p.IsActive = 1", new { id });
     }
 
     public IEnumerable<Product> Search(string term)
@@ -58,15 +59,15 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.Name LIKE @term
+              WHERE p.IsActive = 1 AND (p.Name LIKE @term
                  OR p.GenericName LIKE @term
-                 OR c.Name LIKE @term
+                 OR c.Name LIKE @term)
               ORDER BY p.Name",
             new { term = $"%{term}%" });
     }
@@ -76,13 +77,13 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.ExpiryDate IS NOT NULL AND p.ExpiryDate < CAST(GETDATE() AS DATE)
+              WHERE p.IsActive = 1 AND p.ExpiryDate IS NOT NULL AND p.ExpiryDate < CAST(GETDATE() AS DATE)
               ORDER BY p.ExpiryDate");
     }
 
@@ -91,13 +92,13 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.Stock <= p.MinimumStockLevel
+              WHERE p.IsActive = 1 AND p.Stock <= p.MinimumStockLevel
               ORDER BY p.Stock");
     }
 
@@ -106,13 +107,13 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.ExpiryDate IS NOT NULL 
+              WHERE p.IsActive = 1 AND p.ExpiryDate IS NOT NULL
                 AND p.ExpiryDate >= CAST(GETDATE() AS DATE)
                 AND p.ExpiryDate <= DATEADD(day, @days, CAST(GETDATE() AS DATE))
               ORDER BY p.ExpiryDate", new { days });
@@ -123,13 +124,13 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Product>(
             @"SELECT p.ProductID, p.Name, p.GenericName, p.CompanyID,
-                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName, 
+                     c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
                      p.BatchNumber, p.Type, p.Category, p.Rack, p.ExpiryDate,
-                     p.PurchasePrice, p.SellingPrice, p.Stock, p.MinimumStockLevel
+                     p.PurchasePrice, p.SellingPrice, p.TabletsPerBox, p.Stock, p.MinimumStockLevel, p.IsReturnable, p.IsActive
               FROM Products p
               LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
               LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID
-              WHERE p.Stock > 0
+              WHERE p.IsActive = 1 AND p.Stock > 0
                 AND (p.ExpiryDate IS NULL OR p.ExpiryDate > CAST(GETDATE() AS DATE))
               ORDER BY p.Name");
     }
@@ -139,9 +140,9 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<int>(
             @"INSERT INTO Products
-                (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, Stock, MinimumStockLevel)
+                (Name, GenericName, CompanyID, CompanyName, SupplierID, SupplierName, BatchNumber, Type, Category, Rack, ExpiryDate, PurchasePrice, SellingPrice, TabletsPerBox, Stock, MinimumStockLevel, IsReturnable, IsActive)
               VALUES
-                (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @Stock, @MinimumStockLevel);
+                (@Name, @GenericName, @CompanyID, @CompanyName, @SupplierID, @SupplierName, @BatchNumber, @Type, @Category, @Rack, @ExpiryDate, @PurchasePrice, @SellingPrice, @TabletsPerBox, @Stock, @MinimumStockLevel, @IsReturnable, 1);
               SELECT SCOPE_IDENTITY();", m);
     }
 
@@ -153,7 +154,8 @@ public class ProductRepository
                 Name = @Name, GenericName = @GenericName, CompanyID = @CompanyID, CompanyName = @CompanyName,
                 SupplierID = @SupplierID, SupplierName = @SupplierName, BatchNumber = @BatchNumber,
                 Type = @Type, Category = @Category, Rack = @Rack, ExpiryDate = @ExpiryDate,
-                PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice,
+                PurchasePrice = @PurchasePrice, SellingPrice = @SellingPrice, TabletsPerBox = @TabletsPerBox,
+                IsReturnable = @IsReturnable,
                 Stock = @Stock, MinimumStockLevel = @MinimumStockLevel
               WHERE ProductID = @ProductID", m);
     }
@@ -163,22 +165,7 @@ public class ProductRepository
         try
         {
             using var conn = _session.CreateConnection();
-            using var tx = conn.BeginTransaction();
-
-            // Cascade delete SaleItems
-            conn.Execute("DELETE FROM SaleItems WHERE ProductID = @id", new { id }, tx);
-
-            // Cascade delete PurchaseItems
-            conn.Execute("DELETE FROM PurchaseItems WHERE ProductID = @id", new { id }, tx);
-
-            // Cascade delete Returns
-            conn.Execute("DELETE FROM Returns WHERE ProductId = @id", new { id }, tx);
-
-            // Delete the Product
-            conn.Execute("DELETE FROM Products WHERE ProductID = @id", new { id }, tx);
-
-            tx.Commit();
-            return true;
+            return conn.Execute("UPDATE Products SET IsActive = 0 WHERE ProductID = @id AND IsActive = 1", new { id }) == 1;
         }
         catch (System.Exception ex)
         {
@@ -187,11 +174,17 @@ public class ProductRepository
         }
     }
 
+    public int SoftDeleteAll()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Execute("UPDATE Products SET IsActive = 0 WHERE IsActive = 1");
+    }
+
     public void DecrementStock(int productId, int quantity)
     {
         using var conn = _session.CreateConnection();
         conn.Execute(
-            "UPDATE Products SET Stock = Stock - @quantity WHERE ProductID = @productId",
+            "UPDATE Products SET Stock = Stock - @quantity WHERE ProductID = @productId AND Stock >= @quantity AND IsActive = 1",
             new { quantity, productId });
     }
 

@@ -24,19 +24,22 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     private readonly PrescriptionRepository _prescriptionRepo;
     private readonly SaleRepository _saleRepo;
     private readonly PurchaseRepository _purchaseRepo;
+    private readonly ReturnRepository _returnRepo;
 
     public ReportsViewModel(
         PatientRepository patientRepo, 
         ProductRepository productRepo, 
         PrescriptionRepository prescriptionRepo,
         SaleRepository saleRepo,
-        PurchaseRepository purchaseRepo)
+        PurchaseRepository purchaseRepo,
+        ReturnRepository returnRepo)
     {
         _patientRepo = patientRepo;
         _productRepo = productRepo;
         _prescriptionRepo = prescriptionRepo;
         _saleRepo = saleRepo;
         _purchaseRepo = purchaseRepo;
+        _returnRepo = returnRepo;
     }
 
     [ObservableProperty] private int _selectedTabIndex;
@@ -49,6 +52,15 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private decimal _totalRevenue;
     [ObservableProperty] private decimal _totalExpenses;
     [ObservableProperty] private decimal _netProfit;
+    [ObservableProperty] private decimal _grossProfit;
+    [ObservableProperty] private decimal _totalReturns;
+    [ObservableProperty] private decimal _supplierCredits;
+    [ObservableProperty] private decimal _netRevenue;
+    [ObservableProperty] private int _totalMedicinesSold;
+    [ObservableProperty] private DateTimeOffset _startDate = new(DateTime.Today.AddDays(-29));
+    [ObservableProperty] private DateTimeOffset _endDate = new(DateTime.Today);
+    [ObservableProperty] private ObservableCollection<string> _receptionistNames = new() { "All" };
+    [ObservableProperty] private string _selectedReceptionist = "All";
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -112,15 +124,32 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     private async Task LoadFinancialsAsync()
     {
         IsBusy = true;
-        var sales = await Task.Run(_saleRepo.GetAll);
-        var purchases = await Task.Run(_purchaseRepo.GetAll);
+        try
+        {
+            if (EndDate.Date < StartDate.Date) { StatusMessage = "End date cannot be before start date."; return; }
+            var from = StartDate.Date;
+            var to = EndDate.Date.AddDays(1);
+            var receptionist = SelectedReceptionist == "All" ? null : SelectedReceptionist;
+            var sales = await Task.Run(() => _saleRepo.GetByRange(from, to, receptionist));
+            var itemMetrics = await Task.Run(() => _saleRepo.GetItemMetricsByRange(from, to, receptionist));
+            var purchaseTotal = await Task.Run(() => _purchaseRepo.GetTotalByRange(from, to));
+            var returns = await Task.Run(() => _returnRepo.GetByRange(from, to, receptionist));
+            var names = await Task.Run(_saleRepo.GetReceptionistNames);
 
-        TotalRevenue = sales.Where(s => s.IsPosted).Sum(s => s.GrandTotal);
-        TotalExpenses = purchases.Sum(p => p.TotalAmount);
-        NetProfit = TotalRevenue - TotalExpenses;
-
-        StatusMessage = "Financials loaded.";
-        IsBusy = false;
+            TotalRevenue = sales.Where(s => s.IsPosted).Sum(s => s.GrandTotal);
+            TotalExpenses = purchaseTotal;
+            TotalMedicinesSold = itemMetrics.UnitsSold;
+            TotalReturns = returns.Where(r => r.ReturnType == "Patient Return").Sum(r => r.RefundAmount);
+            SupplierCredits = returns.Where(r => r.ReturnType == "Supplier Return").Sum(r => r.RefundAmount);
+            NetRevenue = TotalRevenue - TotalReturns;
+            GrossProfit = TotalRevenue - TotalExpenses;
+            NetProfit = GrossProfit - TotalReturns + SupplierCredits;
+            ReceptionistNames = new ObservableCollection<string>(new[] { "All" }.Concat(names));
+            if (!ReceptionistNames.Contains(SelectedReceptionist)) SelectedReceptionist = "All";
+            StatusMessage = $"Financials loaded for {StartDate:dd MMM yyyy} – {EndDate:dd MMM yyyy}.";
+        }
+        catch (Exception ex) { StatusMessage = $"Failed to load financials: {ex.Message}"; }
+        finally { IsBusy = false; }
     }
 
     partial void OnSelectedTabIndexChanged(int value)
@@ -270,8 +299,12 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         IsBusy = true; StatusMessage = "Exporting Excel...";
         try
         {
-            var sales = await Task.Run(_saleRepo.GetAll);
-            var purchases = await Task.Run(_purchaseRepo.GetAll);
+            var from = StartDate.Date;
+            var to = EndDate.Date.AddDays(1);
+            var receptionist = SelectedReceptionist == "All" ? null : SelectedReceptionist;
+            var sales = await Task.Run(() => _saleRepo.GetByRange(from, to, receptionist));
+            var purchases = await Task.Run(() => _purchaseRepo.GetAll().Where(p => p.PurchaseDate >= from && p.PurchaseDate < to));
+            var returns = await Task.Run(() => _returnRepo.GetByRange(from, to, receptionist));
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("Financials");
             ws.Cell(1, 1).Value = "Type"; ws.Cell(1, 2).Value = "Date"; ws.Cell(1, 3).Value = "Reference"; ws.Cell(1, 4).Value = "Amount";
@@ -281,9 +314,13 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             { ws.Cell(row, 1).Value = "Revenue"; ws.Cell(row, 2).Value = s.SaleDate.ToString("yyyy-MM-dd"); ws.Cell(row, 3).Value = s.InvoiceNumber; ws.Cell(row, 4).Value = (double)s.GrandTotal; row++; }
             foreach (var p in purchases)
             { ws.Cell(row, 1).Value = "Expense"; ws.Cell(row, 2).Value = p.PurchaseDate.ToString("yyyy-MM-dd"); ws.Cell(row, 3).Value = p.InvoiceNumber; ws.Cell(row, 4).Value = (double)p.TotalAmount; row++; }
+            foreach (var r in returns)
+            { ws.Cell(row, 1).Value = r.ReturnType; ws.Cell(row, 2).Value = r.CreatedAt.ToString("yyyy-MM-dd"); ws.Cell(row, 3).Value = r.ReturnNo; ws.Cell(row, 4).Value = (double)r.RefundAmount; row++; }
             row += 2;
             ws.Cell(row, 3).Value = "Total Revenue:"; ws.Cell(row, 4).Value = (double)TotalRevenue;
             row++; ws.Cell(row, 3).Value = "Total Expenses:"; ws.Cell(row, 4).Value = (double)TotalExpenses;
+            row++; ws.Cell(row, 3).Value = "Patient Returns:"; ws.Cell(row, 4).Value = (double)TotalReturns;
+            row++; ws.Cell(row, 3).Value = "Supplier Credits:"; ws.Cell(row, 4).Value = (double)SupplierCredits;
             row++; ws.Cell(row, 3).Value = "Net Profit:"; ws.Cell(row, 4).Value = (double)NetProfit;
             ws.Row(row).Style.Font.Bold = true;
             ws.Columns().AdjustToContents();
@@ -349,12 +386,15 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
                 try
                 {
                     var since = DateTime.Now - timeSpan;
-                    var sales = await Task.Run(() => _saleRepo.GetAll().Where(s => s.IsPosted && s.SaleDate >= since).ToList());
+                    var sales = await Task.Run(() => _saleRepo.GetByRange(since, DateTime.Now.AddTicks(1)).Where(s => s.IsPosted).ToList());
                     var purchases = await Task.Run(() => _purchaseRepo.GetAll().Where(p => p.PurchaseDate >= since).ToList());
+                    var returns = await Task.Run(() => _returnRepo.GetByRange(since, DateTime.Now.AddTicks(1)).ToList());
 
                     var totalRevenue = sales.Sum(s => s.GrandTotal);
                     var totalExpenses = purchases.Sum(p => p.TotalAmount);
-                    var netProfit = totalRevenue - totalExpenses;
+                    var patientReturns = returns.Where(r => r.ReturnType == "Patient Return").Sum(r => r.RefundAmount);
+                    var supplierCredits = returns.Where(r => r.ReturnType == "Supplier Return").Sum(r => r.RefundAmount);
+                    var netProfit = totalRevenue - totalExpenses - patientReturns + supplierCredits;
 
                     // Generate PDF in memory first to avoid holding file lock too long
                     using var stream = new MemoryStream();
@@ -429,6 +469,8 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
                                     {
                                         innerCol.Item().Row(r => { r.RelativeItem().Text("Total Revenue:"); r.ConstantItem(100).AlignRight().Text($"{totalRevenue:C2}"); });
                                         innerCol.Item().Row(r => { r.RelativeItem().Text("Total Expenses:"); r.ConstantItem(100).AlignRight().Text($"{totalExpenses:C2}"); });
+                                        innerCol.Item().Row(r => { r.RelativeItem().Text("Patient Returns:"); r.ConstantItem(100).AlignRight().Text($"{patientReturns:C2}"); });
+                                        innerCol.Item().Row(r => { r.RelativeItem().Text("Supplier Credits:"); r.ConstantItem(100).AlignRight().Text($"{supplierCredits:C2}"); });
                                         innerCol.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
                                         innerCol.Item().Row(r => { r.RelativeItem().Text("Net Profit:").SemiBold(); r.ConstantItem(100).AlignRight().Text($"{netProfit:C2}").SemiBold(); });
                                     });

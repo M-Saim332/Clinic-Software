@@ -22,6 +22,7 @@ using ClinicSystem.UI.ViewModels.Users;
 using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
+using ClinicSystem.UI.ViewModels.Returns;
 using ClinicSystem.UI.Views;
 using CommunityToolkit.Mvvm.Messaging;
 using ClinicSystem.UI.Messages;
@@ -160,6 +161,7 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<DiscountRefundViewModel>();
         services.AddSingleton<ProfileViewModel>();
+        services.AddSingleton<ReturnsViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
         _services = services.BuildServiceProvider();

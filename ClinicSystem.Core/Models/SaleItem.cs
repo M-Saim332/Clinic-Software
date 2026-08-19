@@ -6,6 +6,8 @@ public class SaleItem
     public int SaleID { get; set; }
     public int ProductID { get; set; }
     public int Quantity { get; set; }
+    public string UnitTypeSold { get; set; } = "Tablet";
+    public int StockQuantity { get; set; }
     public decimal Discount { get; set; }
     public decimal Tax { get; set; }
     public decimal LineTotal { get; set; }
@@ -13,6 +15,7 @@ public class SaleItem
     // Join helper properties
     public string? ProductName { get; set; }
     public decimal ProductPrice { get; set; }
+    public decimal UnitPrice { get => ProductPrice; set => ProductPrice = value; }
 
     // Derived properties for billing formula layer
     public decimal GrossLineAmount => Quantity * ProductPrice;

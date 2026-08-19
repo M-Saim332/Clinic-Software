@@ -17,6 +17,7 @@ using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
+using ClinicSystem.UI.ViewModels.Returns;
 using ClinicSystem.Data;
 using Dapper;
 using System;
@@ -49,6 +50,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SaleViewModel             _saleVM;
     private readonly InventoryViewModel        _inventoryVM;
     private readonly ProfileViewModel          _profileVM;
+    private readonly ReturnsViewModel          _returnsVM;
     private readonly DatabaseSession           _dbSession;
 
     public ChangePasswordViewModel ChangePasswordVM { get; }
@@ -71,6 +73,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SaleViewModel             saleVM,
         InventoryViewModel        inventoryVM,
         ProfileViewModel          profileVM,
+        ReturnsViewModel          returnsVM,
         ChangePasswordViewModel   changePasswordVM,
         DatabaseSession           dbSession)
     {
@@ -91,6 +94,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _saleVM         = saleVM;
         _inventoryVM    = inventoryVM;
         _profileVM      = profileVM;
+        _returnsVM      = returnsVM;
         _dbSession      = dbSession;
 
         ChangePasswordVM = changePasswordVM;
@@ -144,6 +148,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _saleVM.InitializeAsync();
                 await _purchaseVM.InitializeAsync();
                 await _inventoryVM.InitializeAsync();
+                await _returnsVM.InitializeAsync();
                 await _settingsVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
                 
@@ -224,12 +229,13 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessSales        => CurrentUser?.HasAccess("Sales") ?? false;
     public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
     public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
+    public bool CanAccessReturns      => CurrentUser?.HasAccess("Returns") ?? false;
     public bool CanAccessUsers        => CurrentUser?.IsAdmin ?? false;
     public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
-    public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales;
+    public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
     public bool HasUserSettingsAccess => CanAccessUsers || CanAccessSettings;
 
@@ -242,6 +248,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _isPurchasesActive;
     [ObservableProperty] private bool _isSalesActive;
+    [ObservableProperty] private bool _isReturnsActive;
     [ObservableProperty] private bool _isInventoryActive;
     [ObservableProperty] private bool _isAppointmentsActive;
     [ObservableProperty] private bool _isUsersActive;
@@ -270,6 +277,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             case "Purchases":    IsPurchasesActive    = true; break;
             case "Sales & Billing": IsSalesActive     = true; break;
+            case "Returns":      IsReturnsActive   = true; break;
             case "Inventory":    IsInventoryActive    = true; break;
             case "Appointments": IsAppointmentsActive = true; break;
             case "Users":        IsUsersActive        = true; break;
@@ -282,7 +290,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearActiveFlags()
     {
         IsDashboardActive = IsPatientsActive = IsProductsActive =
-        IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = 
+        IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive =
         IsUsersActive = IsReportsActive = IsSettingsActive = IsProfileActive = false;
     }
@@ -296,6 +304,7 @@ public partial class MainWindowViewModel : ViewModelBase
  
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
     [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales & Billing"); _ = _saleVM.InitializeAsync(); }
+    [RelayCommand] private void ShowReturns()      { NavigateTo(_returnsVM,      "Returns"); _ = _returnsVM.InitializeAsync(); }
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }

@@ -17,9 +17,15 @@ public class Product
     public DateTime? ExpiryDate { get; set; }
     public decimal PurchasePrice { get; set; }
     public decimal SellingPrice { get; set; }
+    public int TabletsPerBox { get; set; } = 1;
     public int Stock { get; set; }
     public int MinimumStockLevel { get; set; } = 10;
     public bool IsReturnable { get; set; } = true;
+    public bool IsActive { get; set; } = true;
+
+    public decimal PricePerTablet => TabletsPerBox > 0
+        ? Math.Round(SellingPrice / TabletsPerBox, 2, MidpointRounding.AwayFromZero)
+        : 0;
 
     // Alias properties used by XAML bindings in Reports view
     public int MinStock => MinimumStockLevel;

@@ -72,6 +72,7 @@
                             <StackPanel Grid.Column="0" Spacing="4">
                                 <TextBlock Text="BILL TO:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
                                 <TextBlock Text="{Binding SaleData.PatientName}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                                <TextBlock Text="{Binding SaleData.ReceptionistName, StringFormat='Processed by: {0}'}" FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
                                 <TextBlock Text="AMOUNT DUE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Right"/>
@@ -89,6 +90,7 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ITEM DESCRIPTION" Binding="{Binding ProductName}" Width="*"/>
                             <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="Auto" MinWidth="60"/>
+                            <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="Auto" MinWidth="70"/>
                             <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="90"/>
                             <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}%'}" Width="Auto" MinWidth="110"/>
                             <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="110"/>
