@@ -32,51 +32,71 @@ public class DatabaseSession
         return conn;
     }
 
-    private bool _schemaChecked = false;
+    private bool _schemaChecked;
+    private readonly object _schemaLock = new();
     private void EnsureSchemaUpdated(IDbConnection conn)
     {
-        if (_schemaChecked) return;
-        _schemaChecked = true;
-        
-        // 1. Auto-run idempotent Schema.sql to ensure all tables and columns exist
-        ExecuteSqlScript(conn, "Schema.sql");
-        ExecuteSqlScript(conn, "Migration_AddDiscountRefunds.sql");
-
-        string migrationsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "Migrations");
-        if (Directory.Exists(migrationsDir))
+        lock (_schemaLock)
         {
-            var sqlFiles = Directory.GetFiles(migrationsDir, "*.sql").OrderBy(f => f);
-            foreach (var file in sqlFiles)
-            {
-                ExecuteSqlScript(conn, Path.Combine("Migrations", Path.GetFileName(file)));
-            }
-        }
+            if (_schemaChecked) return;
 
-        // Force reset admin password for recovery
-        try
-        {
-            int adminCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Users WHERE Username = 'admin'");
-            if (adminCount == 0)
-            {
-                conn.Execute("INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive) VALUES ('admin', '$2a$11$u0LyGgHmhN2kTeoBK.a5m.FVHXHSUA/xHZFJ9tE1O4Oj4QvICWT.O', 'Admin', 'System Admin', 1)");
-            }
-        }
-        catch { }
+            // The base schema must succeed before optional migrations are attempted.
+            ExecuteSqlScript(conn, "Schema.sql", throwOnError: true);
+            ExecuteSqlScript(conn, "Migration_AddDiscountRefunds.sql");
 
-
-        // 2. Check if Bulk Data is missing (Empty Patients table)
-        try
-        {
-            int patientCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
-            if (patientCount == 0)
+            string migrationsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "Migrations");
+            if (Directory.Exists(migrationsDir))
             {
-                ExecuteSqlScript(conn, "BulkTestData.sql");
+                var sqlFiles = Directory.GetFiles(migrationsDir, "*.sql").OrderBy(f => f);
+                foreach (var file in sqlFiles)
+                    ExecuteSqlScript(conn, Path.Combine("Migrations", Path.GetFileName(file)));
             }
+
+            VerifyRequiredSchema(conn);
+            _schemaChecked = true;
+
+            // Ensure the recovery administrator exists without changing an existing password.
+            try
+            {
+                int adminCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Users WHERE Username = 'admin'");
+                if (adminCount == 0)
+                    conn.Execute("INSERT INTO Users (Username, PasswordHash, Role, FullName, IsActive) VALUES ('admin', '$2a$11$u0LyGgHmhN2kTeoBK.a5m.FVHXHSUA/xHZFJ9tE1O4Oj4QvICWT.O', 'Admin', 'System Admin', 1)");
+            }
+            catch { }
+
+            try
+            {
+                int patientCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
+                if (patientCount == 0) ExecuteSqlScript(conn, "BulkTestData.sql");
+            }
+            catch { }
         }
-        catch { }
     }
 
-    private void ExecuteSqlScript(IDbConnection conn, string fileName)
+    private static void VerifyRequiredSchema(IDbConnection conn)
+    {
+        string[] tables = ["Patients", "Products", "Suppliers", "Companies", "Users", "Appointments", "Purchases", "PurchaseItems", "Sales", "SaleItems", "Returns"];
+        var missingTables = tables.Where(table => conn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@table, 'U') IS NULL THEN 1 ELSE 0 END", new { table }) == 1).ToList();
+        if (missingTables.Count > 0)
+            throw new InvalidOperationException($"Database upgrade incomplete. Missing tables: {string.Join(", ", missingTables)}. Ensure the database user has CREATE TABLE and ALTER permissions.");
+
+        (string Table, string Column)[] columns =
+        [
+            ("Patients", "Phone"), ("Patients", "IsActive"),
+            ("Products", "TabletsPerBox"), ("Products", "IsActive"),
+            ("Sales", "ReceptionistId"), ("Sales", "IsActive"),
+            ("SaleItems", "StockQuantity"), ("PurchaseItems", "PackageQuantity"),
+            ("Returns", "StockQuantity")
+        ];
+        var missingColumns = columns.Where(item => conn.ExecuteScalar<int>(
+            "SELECT CASE WHEN COL_LENGTH(@table, @column) IS NULL THEN 1 ELSE 0 END",
+            new { table = item.Table, column = item.Column }) == 1).Select(item => $"{item.Table}.{item.Column}").ToList();
+        if (missingColumns.Count > 0)
+            throw new InvalidOperationException($"Database upgrade incomplete. Missing columns: {string.Join(", ", missingColumns)}. Ensure the database user has ALTER permissions.");
+    }
+
+    private void ExecuteSqlScript(IDbConnection conn, string fileName, bool throwOnError = false)
     {
         string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", fileName);
         if (!File.Exists(filePath)) return;
@@ -106,12 +126,15 @@ public class DatabaseSession
                 }
                 catch (Exception ex)
                 {
+                    if (throwOnError)
+                        throw new InvalidOperationException($"Failed to execute required schema batch from {fileName}: {ex.Message}", ex);
                     System.Console.WriteLine($"Failed to execute script part from {fileName}:\n{ex.Message}");
                 }
             }
         }
         catch (Exception ex)
         {
+            if (throwOnError) throw;
             System.Console.WriteLine($"Failed to read {fileName}: {ex.Message}");
         }
     }
@@ -284,4 +307,3 @@ public class DatabaseSession
         Restore(rollbackPath);
     }
 }
-

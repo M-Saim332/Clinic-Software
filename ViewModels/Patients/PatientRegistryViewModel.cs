@@ -64,6 +64,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     public bool IsReadOnly          => Mode == FormMode.Details || Mode == FormMode.View;
     public bool ShowSaveButton      => Mode == FormMode.Add || Mode == FormMode.Edit;
     public bool ShowEditButton      => Mode == FormMode.Details;
+    public bool IsAdmin             => CurrentUser?.IsAdmin ?? false;
+    [ObservableProperty] private bool _showDeleteAllConfirm;
 
     // Navigation delegates
     public Action<Patient>? RequestBookAppointment { get; set; }
@@ -141,6 +143,27 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private void RequestDeleteAll()
+    {
+        if (!IsAdmin) { StatusMessage = "Only an administrator can archive all patients."; return; }
+        ShowDeleteAllConfirm = true;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAllAsync()
+    {
+        ShowDeleteAllConfirm = false;
+        if (!IsAdmin) { StatusMessage = "Administrator authorization is required."; return; }
+        var count = await Task.Run(_repo.SoftDeleteAll);
+        StatusMessage = $"{count} patient(s) archived. Historical records were preserved.";
+        LogActivity("Patients Archived", $"Archived all {count} active patients", "Patients");
+        await InitializeAsync();
+    }
+
+    [RelayCommand]
+    private void CancelDeleteAll() => ShowDeleteAllConfirm = false;
+
+    [RelayCommand]
     private void BookAppointmentSpecific(Patient p)
     {
         if (p == null) return;
@@ -162,24 +185,30 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
 
         var p = BuildPatient();
 
-        await Task.Run(() =>
+        try
         {
-            if (Mode == FormMode.Add)
+            await Task.Run(() =>
             {
-                // Auto-register new walk-in patients as "Waiting" for today
-                p.VisitStatus = "Waiting";
-                p.LastVisitDate = DateTime.Today;
-                _repo.Insert(p);
-            }
-            else
-            {
-                p.PatientID = SelectedPatient!.PatientID;
-                // Preserve existing visit status when editing
-                p.VisitStatus = SelectedPatient.VisitStatus;
-                p.LastVisitDate = SelectedPatient.LastVisitDate;
-                _repo.Update(p);
-            }
-        });
+                if (Mode == FormMode.Add)
+                {
+                    p.VisitStatus = "Waiting";
+                    p.LastVisitDate = DateTime.Today;
+                    _repo.Insert(p);
+                }
+                else
+                {
+                    p.PatientID = SelectedPatient!.PatientID;
+                    p.VisitStatus = SelectedPatient.VisitStatus;
+                    p.LastVisitDate = SelectedPatient.LastVisitDate;
+                    _repo.Update(p);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to save patient: {ex.Message}";
+            return;
+        }
 
         StatusMessage = Mode == FormMode.Add ? "Patient added." : "Patient updated.";
         if (Mode == FormMode.Add)

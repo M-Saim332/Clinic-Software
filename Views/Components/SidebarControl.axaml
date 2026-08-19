@@ -94,6 +94,13 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Command="{Binding ShowReturnsCommand}" Classes="navbtn" Classes.active="{Binding IsReturnsActive}" IsVisible="{Binding CanAccessReturns}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Returns" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <!-- ANALYSIS SECTION -->
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasAnalysisAccess}"/>
                     <TextBlock Text="ANALYSIS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasAnalysisAccess}"/>

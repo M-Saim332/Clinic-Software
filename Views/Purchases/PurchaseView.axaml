@@ -85,6 +85,7 @@
                                 <DataGridTextColumn Header="INVOICE NO." Binding="{Binding InvoiceNumber}" Width="200"/>
                                 <DataGridTextColumn Header="DATE" Binding="{Binding PurchaseDate, StringFormat=\{0:dd MMM yyyy\}}" Width="180"/>
                                 <DataGridTextColumn Header="SUPPLIER" Binding="{Binding SupplierName}" Width="*"/>
+                                <DataGridTextColumn Header="CREATED BY" Binding="{Binding CreatedByName}" Width="150"/>
                                 <DataGridTextColumn Header="TOTAL AMOUNT" Binding="{Binding TotalAmount, StringFormat='Rs. {0:N2}'}" Width="160"/>
                             </DataGrid.Columns>
                         </DataGrid>
@@ -131,6 +132,9 @@
                                        Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                        FontFamily="{DynamicResource FontLexend}"/>
                             <Separator/>
+                            <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="10">
+                                <TextBlock Text="{Binding LoggedInUserName, StringFormat='Recorded by: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                            </Border>
                             
                             <Grid ColumnDefinitions="*,*">
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,12">
@@ -212,20 +216,37 @@
                                     </StackPanel>
                                 </Grid>
                                 
-                                <Grid ColumnDefinitions="*,*,*">
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Qty" Classes="label"/>
+                                        <TextBlock Text="Packages" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,8,0">
+                                        <TextBlock Text="Bonus Packages" Classes="label"/>
+                                        <NumericUpDown Value="{Binding BonusQuantity}" Minimum="0" FormatString="N0"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,8,0">
+                                        <TextBlock Text="Package Type" Classes="label"/>
+                                        <ComboBox ItemsSource="{Binding PackageTypes}" SelectedItem="{Binding PackageType}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Spacing="6" Margin="8,0,0,0">
+                                        <TextBlock Text="Units / Package" Classes="label"/>
+                                        <NumericUpDown Value="{Binding UnitsPerPackage}" Minimum="1" FormatString="N0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                         <TextBlock Text="Price" Classes="label"/>
                                         <NumericUpDown Value="{Binding PurchasePrice}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                         <TextBlock Text="Discount (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
                                 </Grid>
+                                <Border Background="{DynamicResource BrushTeal50}" CornerRadius="8" Padding="10">
+                                    <TextBlock Text="{Binding TotalUnitsToStock, StringFormat='Total individual units added to stock: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushTeal}"/>
+                                </Border>
                             </StackPanel>
 
                             <!-- If not SaveCancelEnabled, show grand total big -->
@@ -249,7 +270,10 @@
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="110"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
-                                    <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
+                                    <DataGridTextColumn Header="PACKAGES" Binding="{Binding PackageQuantity}" Width="90"/>
+                                    <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="70"/>
+                                    <DataGridTextColumn Header="TYPE" Binding="{Binding PackageType}" Width="80"/>
+                                    <DataGridTextColumn Header="STOCK UNITS" Binding="{Binding Quantity}" Width="100"/>
                                     <DataGridTextColumn Header="PRICE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
                                     <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="100"/>
                                     <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>

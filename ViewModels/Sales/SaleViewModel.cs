@@ -98,6 +98,15 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
     [ObservableProperty] private decimal _productPrice;
+    [ObservableProperty] private string _selectedUnitType = "Tablet";
+    [ObservableProperty] private bool _showDeleteAllConfirm;
+
+    public List<string> UnitTypes { get; } = new() { "Tablet", "Box" };
+    public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
+    public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
+    public string AvailableStockDisplay => SelectedProduct == null
+        ? string.Empty
+        : $"Available: {SelectedProduct.Stock} tablets ({SelectedProduct.Stock / Math.Max(1, SelectedProduct.TabletsPerBox)} full boxes)";
 
     public bool PatientIsSelected => SelectedPatient != null;
     public bool IsWalkIn => SelectedPatient == null;
@@ -179,7 +188,9 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
-        if (Quantity > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock} in stock."; return; }
+        var stockQuantity = SelectedUnitType == "Box" ? Quantity * Math.Max(1, SelectedProduct.TabletsPerBox) : Quantity;
+        var alreadyAllocated = LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity);
+        if (stockQuantity + alreadyAllocated > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock - alreadyAllocated} tablet/unit(s) remain available for this invoice."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
@@ -188,6 +199,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             ProductID = SelectedProduct.ProductID,
             ProductName = SelectedProduct.Name,
             Quantity = Quantity,
+            UnitTypeSold = SelectedUnitType,
+            StockQuantity = stockQuantity,
             Discount = Discount,
             Tax = Tax,
             ProductPrice = ProductPrice
@@ -204,6 +217,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         Discount = 0;
         Tax = 0;
         ProductPrice = 0;
+        SelectedUnitType = "Tablet";
         StatusMessage = string.Empty;
     }
 
@@ -220,6 +234,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task PostSaleAsync()
     {
+        if (LineItems.Count == 0 && ConsultationFee <= 0) { StatusMessage = "Add at least one medicine or a consultation fee."; return; }
         // Patient is optional — allow walk-in
         string patientNameForSale = SelectedPatient?.Name ?? 
             (string.IsNullOrWhiteSpace(WalkInPatientName) ? "Walk-in" : WalkInPatientName.Trim());
@@ -234,6 +249,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             GrandTotal = GrandTotal,
             PaymentMethod = PaymentMethod,
             IsPosted = true,
+            ReceptionistId = CurrentUser?.UserID,
+            ReceptionistName = LoggedInUserName,
             Items = LineItems.ToList()
         };
 
@@ -257,6 +274,26 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             StatusMessage = $"Error saving sale: {ex.Message}";
         }
     }
+
+    [RelayCommand]
+    private void RequestDeleteAll()
+    {
+        if (!IsAdmin) { StatusMessage = "Only an administrator can archive all sales."; return; }
+        ShowDeleteAllConfirm = true;
+    }
+
+    [RelayCommand]
+    private async Task ConfirmDeleteAllAsync()
+    {
+        ShowDeleteAllConfirm = false;
+        if (!IsAdmin) { StatusMessage = "Administrator authorization is required."; return; }
+        var count = await Task.Run(_repo.SoftDeleteAll);
+        StatusMessage = $"{count} sale(s) archived. Financial history remains in the database.";
+        LogActivity("Sales Archived", $"Archived all {count} active sales", "Sales");
+        await InitializeAsync();
+    }
+
+    [RelayCommand] private void CancelDeleteAll() => ShowDeleteAllConfirm = false;
 
     [RelayCommand]
     private void Cancel()
@@ -307,6 +344,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         PaymentMethod = "Cash";
         LineItems.Clear();
         ProductSearchTerm = string.Empty;
+        SelectedUnitType = "Tablet";
         OnPropertyChanged(nameof(GrandTotal));
     }
 
@@ -345,8 +383,16 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         if (value != null)
         {
-            ProductPrice = value.SellingPrice;
+            ProductPrice = SelectedUnitType == "Box" ? value.SellingPrice : value.PricePerTablet;
         }
+        OnPropertyChanged(nameof(AvailableStockDisplay));
+    }
+
+    partial void OnSelectedUnitTypeChanged(string value)
+    {
+        if (SelectedProduct != null)
+            ProductPrice = value == "Box" ? SelectedProduct.SellingPrice : SelectedProduct.PricePerTablet;
+        OnPropertyChanged(nameof(AvailableStockDisplay));
     }
     
     partial void OnConsultationFeeChanged(decimal value)

@@ -23,6 +23,7 @@ using ClinicSystem.UI.ViewModels.Dashboard;
 using ClinicSystem.UI.ViewModels.Search;
 using ClinicSystem.UI.ViewModels.Settings;
 using ClinicSystem.UI.ViewModels.Profile;
+using ClinicSystem.UI.ViewModels.Returns;
 using ClinicSystem.UI.Views.Companies;
 using ClinicSystem.UI.Views.Suppliers;
 
@@ -34,6 +35,7 @@ using ClinicSystem.UI.Views.Dashboard;
 using ClinicSystem.UI.Views.Search;
 using ClinicSystem.UI.Views.Settings;
 using ClinicSystem.UI.Views.Profile;
+using ClinicSystem.UI.Views.Returns;
 
 namespace ClinicSystem.UI;
 
@@ -61,6 +63,7 @@ public class ViewLocator : IDataTemplate
             SettingsViewModel          => new SettingsView          { DataContext = param },
             InvoiceViewModel          => new InvoiceView          { DataContext = param },
             ProfileViewModel          => new ProfileView          { DataContext = param },
+            ReturnsViewModel          => new ReturnsView          { DataContext = param },
             DiscountRefundViewModel   => new DiscountRefundPanel  { DataContext = param },
             _ => new TextBlock { Text = $"No view for {param?.GetType().Name}" }
         };

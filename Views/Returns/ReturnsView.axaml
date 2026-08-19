@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Returns" xmlns:models="using:ClinicSystem.Core.Models"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="ClinicSystem.UI.Views.Returns.ReturnsView" x:DataType="vm:ReturnsViewModel" x:CompileBindings="True"
+             Background="{DynamicResource BrushBackground}">
+  <Grid RowDefinitions="Auto,Auto,*">
+    <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+      <DockPanel>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}"><materialIcons:MaterialIcon Kind="KeyboardReturn" Width="20" Height="20" Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+          <StackPanel><TextBlock Text="Medicine Returns" FontSize="20" FontWeight="Bold"/><TextBlock Text="Patient refunds and supplier credits with automatic stock adjustment" FontSize="12" Foreground="{DynamicResource BrushInk600}"/></StackPanel>
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Right" Text="{Binding ProcessedBy, StringFormat='Logged in: {0}'}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+      </DockPanel>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,*" Margin="28,20,28,12">
+      <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,10,0">
+        <StackPanel Spacing="12">
+          <TextBlock Text="NEW RETURN" FontSize="11" FontWeight="Bold" LetterSpacing="1.5" Foreground="{DynamicResource BrushInk400}"/>
+          <Grid ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0"><TextBlock Text="Return Type"/><ComboBox ItemsSource="{Binding ReturnTypes}" SelectedItem="{Binding ReturnType}"/></StackPanel>
+            <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"><TextBlock Text="Medicine"/><ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"><ComboBox.ItemTemplate><DataTemplate x:DataType="models:Product"><TextBlock Text="{Binding Name}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+          </Grid>
+          <Grid ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Patient"/><ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"><ComboBox.ItemTemplate><DataTemplate x:DataType="models:Patient"><TextBlock Text="{Binding Name}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0" IsVisible="{Binding IsSupplierReturn}"><TextBlock Text="Supplier"/><ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"><ComboBox.ItemTemplate><DataTemplate x:DataType="models:Supplier"><TextBlock Text="{Binding Name}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+            <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Original Sale (optional)"/><ComboBox ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}"><ComboBox.ItemTemplate><DataTemplate x:DataType="models:Sale"><TextBlock Text="{Binding InvoiceNumber}"/></DataTemplate></ComboBox.ItemTemplate></ComboBox></StackPanel>
+          </Grid>
+          <Grid ColumnDefinitions="*,*">
+            <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0"><TextBlock Text="Unit Type"/><ComboBox ItemsSource="{Binding UnitTypes}" SelectedItem="{Binding UnitType}"/></StackPanel>
+            <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"><TextBlock Text="Quantity"/><NumericUpDown Value="{Binding Quantity}" Minimum="1"/></StackPanel>
+          </Grid>
+          <TextBox Text="{Binding Reason}" PlaceholderText="Reason *"/>
+          <TextBox Text="{Binding Notes}" PlaceholderText="Notes (optional)" AcceptsReturn="True" Height="55" TextWrapping="Wrap"/>
+          <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="10"><StackPanel><TextBlock Text="{Binding StockQuantity, StringFormat='Stock units adjusted: {0}'}"/><TextBlock Text="{Binding RefundAmount, StringFormat='Refund / credit: Rs. {0:N2}'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/></StackPanel></Border>
+          <Button Command="{Binding ProcessReturnCommand}" Classes="btn-primary" HorizontalAlignment="Right"><StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/><TextBlock Text="Process Return"/></StackPanel></Button>
+        </StackPanel>
+      </Border>
+
+      <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="10,0,0,0">
+        <StackPanel Spacing="12"><TextBlock Text="RETURN POLICY" FontSize="11" FontWeight="Bold" LetterSpacing="1.5" Foreground="{DynamicResource BrushInk400}"/><TextBlock Text="Patient returns add stock and reduce net revenue. Supplier returns remove stock and reduce net purchase cost. Gross figures remain unchanged for audit purposes." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/><TextBlock Text="Box quantities are converted using the medicine's Tablets per Box value. Individual tablet pricing is calculated automatically." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/></StackPanel>
+      </Border>
+    </Grid>
+
+    <Grid Grid.Row="2" RowDefinitions="Auto,*" Margin="28,0,28,24">
+      <DockPanel Grid.Row="0" Margin="0,0,0,8"><TextBlock Text="RETURN HISTORY" FontWeight="Bold"/><Button DockPanel.Dock="Right" Command="{Binding GenerateReturnInvoiceCommand}" Classes="btn-secondary" Content="Export Selected Invoice"/></DockPanel>
+      <DataGrid Grid.Row="1" ItemsSource="{Binding Returns}" SelectedItem="{Binding SelectedReturn}" AutoGenerateColumns="False" IsReadOnly="True" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" GridLinesVisibility="Horizontal">
+        <DataGrid.Columns><DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="155"/><DataGridTextColumn Header="DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="145"/><DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="120"/><DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}" Width="*"/><DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="60"/><DataGridTextColumn Header="UNIT" Binding="{Binding UnitType}" Width="75"/><DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="140"/><DataGridTextColumn Header="AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="110"/><DataGridTextColumn Header="BY" Binding="{Binding CreatedByName}" Width="120"/></DataGrid.Columns>
+      </DataGrid>
+      <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" VerticalAlignment="Bottom" Margin="12" Foreground="{DynamicResource BrushRose}" IsHitTestVisible="False"/>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -33,13 +33,14 @@
                         </StackPanel>
                     </StackPanel>
                     <!-- Primary action: + Add Product -->
-                    <Button  Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Plus" Width="18" Height="18"/>
-        <TextBlock Text="Add Product" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Command="{Binding RequestDeleteAllCommand}" Classes="btn-danger" IsVisible="{Binding IsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="DeleteSweep" Width="18" Height="18"/><TextBlock Text="Archive All"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding NewCommand}" Classes="btn-primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Plus" Width="18" Height="18"/><TextBlock Text="Add Product"/></StackPanel>
+                        </Button>
+                    </StackPanel>
                 </DockPanel>
             </Border>
 
@@ -85,6 +86,8 @@
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
+                                    <DataGridTextColumn Header="TABLETS/BOX" Binding="{Binding TabletsPerBox}" Width="120"/>
+                                    <DataGridTextColumn Header="PER TABLET" Binding="{Binding PricePerTablet, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -218,7 +221,7 @@
                             <TextBlock Text="{Binding PendingDeleteLabel}"
                                        FontSize="14" Foreground="{DynamicResource BrushInk600}"
                                        TextWrapping="Wrap"/>
-                            <TextBlock Text="This action cannot be undone. The product will be permanently removed."
+                            <TextBlock Text="The selected records will be archived and hidden. Historical sales, purchases, and reports remain intact."
                                        FontSize="12" Foreground="{DynamicResource BrushInk400}"
                                        TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -334,7 +337,7 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                             <!-- Name -->
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
@@ -370,9 +373,16 @@
                             
                             <!-- Current Stock -->
                             <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Current Stock" Classes="label"/>
+                                <TextBlock Text="Current Stock (individual tablets/units)" Classes="label"/>
                                 <TextBox Text="{Binding Stock}" PlaceholderText="0"/>
                             </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Tablets per Box" Classes="label"/>
+                                <TextBox Text="{Binding TabletsPerBox}" PlaceholderText="1"/>
+                            </StackPanel>
+                            <Border Grid.ColumnSpan="2" Grid.Row="4" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
+                                <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Calculated price per tablet: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                            </Border>
                         </Grid>
                     </StackPanel>
 

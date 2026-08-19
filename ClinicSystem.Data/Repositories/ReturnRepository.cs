@@ -14,11 +14,30 @@ public class ReturnRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<ProductReturn>(
-            @"SELECT r.*, p.Name AS ProductName, u.FullName AS CreatedByName
+            @"SELECT r.*, p.Name AS ProductName, u.FullName AS CreatedByName,
+                     pat.Name AS PatientName, sup.Name AS SupplierName
               FROM Returns r
               JOIN Products p ON r.ProductId = p.ProductId
               LEFT JOIN Users u ON r.CreatedBy = u.UserID
+              LEFT JOIN Patients pat ON r.PatientId = pat.PatientID
+              LEFT JOIN Suppliers sup ON r.SupplierId = sup.SupplierID
               ORDER BY r.CreatedAt DESC");
+    }
+
+    public IEnumerable<ProductReturn> GetByRange(DateTime fromInclusive, DateTime toExclusive, string? processedByName = null)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<ProductReturn>(
+            @"SELECT r.*, p.Name AS ProductName, u.FullName AS CreatedByName,
+                     pat.Name AS PatientName, sup.Name AS SupplierName
+              FROM Returns r
+              JOIN Products p ON r.ProductId = p.ProductId
+              LEFT JOIN Users u ON r.CreatedBy = u.UserID
+              LEFT JOIN Patients pat ON r.PatientId = pat.PatientID
+              LEFT JOIN Suppliers sup ON r.SupplierId = sup.SupplierID
+              WHERE r.CreatedAt >= @fromInclusive AND r.CreatedAt < @toExclusive
+                AND (@processedByName IS NULL OR u.FullName = @processedByName)
+              ORDER BY r.CreatedAt DESC", new { fromInclusive, toExclusive, processedByName });
     }
 
     public void Insert(ProductReturn ret)
@@ -27,9 +46,11 @@ public class ReturnRepository
         using var tx = conn.BeginTransaction();
         try
         {
+            if (ret.Quantity <= 0) throw new ArgumentOutOfRangeException(nameof(ret.Quantity));
+            ret.StockQuantity = ret.StockQuantity > 0 ? ret.StockQuantity : ret.Quantity;
             var returnId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Returns (ReturnNo, ProductId, BatchNo, Quantity, ReturnType, Reason, Notes, PatientId, SupplierId, SaleId, RefundAmount, CreatedBy, CreatedAt)
-                  VALUES (@ReturnNo, @ProductId, @BatchNo, @Quantity, @ReturnType, @Reason, @Notes, @PatientId, @SupplierId, @SaleId, @RefundAmount, @CreatedBy, @CreatedAt);
+                @"INSERT INTO Returns (ReturnNo, ProductId, BatchNo, Quantity, UnitType, StockQuantity, ReturnType, Reason, Notes, PatientId, SupplierId, SaleId, RefundAmount, CreatedBy, CreatedAt)
+                  VALUES (@ReturnNo, @ProductId, @BatchNo, @Quantity, @UnitType, @StockQuantity, @ReturnType, @Reason, @Notes, @PatientId, @SupplierId, @SaleId, @RefundAmount, @CreatedBy, @CreatedAt);
                   SELECT SCOPE_IDENTITY();", ret, tx);
             ret.ReturnId = returnId;
 
@@ -37,12 +58,14 @@ public class ReturnRepository
             if (ret.ReturnType == "Patient Return")
             {
                 // Patient returned product to clinic => Stock increases
-                conn.Execute("UPDATE Products SET Stock = Stock + @Quantity WHERE ProductId = @ProductId", new { ret.Quantity, ret.ProductId }, tx);
+                var updated = conn.Execute("UPDATE Products SET Stock = Stock + @StockQuantity WHERE ProductId = @ProductId AND IsActive = 1", new { ret.StockQuantity, ret.ProductId }, tx);
+                if (updated != 1) throw new InvalidOperationException("The selected product is unavailable.");
             }
             else if (ret.ReturnType == "Supplier Return")
             {
                 // Clinic returned product to supplier => Stock decreases
-                conn.Execute("UPDATE Products SET Stock = Stock - @Quantity WHERE ProductId = @ProductId", new { ret.Quantity, ret.ProductId }, tx);
+                var updated = conn.Execute("UPDATE Products SET Stock = Stock - @StockQuantity WHERE ProductId = @ProductId AND IsActive = 1 AND Stock >= @StockQuantity", new { ret.StockQuantity, ret.ProductId }, tx);
+                if (updated != 1) throw new InvalidOperationException("Insufficient stock for this supplier return.");
             }
 
             tx.Commit();

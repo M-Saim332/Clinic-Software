@@ -29,13 +29,14 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button  Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="AccountPlus" Width="18" Height="18"/>
-        <TextBlock Text="Add Patient" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Command="{Binding RequestDeleteAllCommand}" Classes="btn-danger" IsVisible="{Binding IsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="DeleteSweep" Width="18" Height="18"/><TextBlock Text="Archive All"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding NewCommand}" Classes="btn-primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="AccountPlus" Width="18" Height="18"/><TextBlock Text="Add Patient"/></StackPanel>
+                        </Button>
+                    </StackPanel>
                 </DockPanel>
             </Border>
 
@@ -297,7 +298,18 @@
             </Border>
         </Grid>
 
-        <!-- RETURN MEDICINE MODAL MOVED TO PRODUCTS -->
+        <Border IsVisible="{Binding ShowDeleteAllConfirm}" Background="#80000000" ZIndex="200">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="28" Width="430" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Archive all patients?" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="All active patients will be hidden. Their appointments, prescriptions, sales, and report history will remain stored." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Command="{Binding CancelDeleteAllCommand}" Classes="btn-secondary" Content="Cancel"/>
+                        <Button Command="{Binding ConfirmDeleteAllCommand}" Classes="btn-danger" Content="Archive All"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 
     <UserControl.Styles>

@@ -31,13 +31,14 @@
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
-                    <Button  Command="{Binding NewCommand}"
-                            Classes="btn-primary" DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Plus" Width="18" Height="18"/>
-        <TextBlock Text="New Sale" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Command="{Binding RequestDeleteAllCommand}" Classes="btn-danger" IsVisible="{Binding IsAdmin}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="DeleteSweep" Width="18" Height="18"/><TextBlock Text="Archive All"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding NewCommand}" Classes="btn-primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Plus" Width="18" Height="18"/><TextBlock Text="New Sale"/></StackPanel>
+                        </Button>
+                    </StackPanel>
                 </DockPanel>
             </Border>
 
@@ -93,6 +94,7 @@
                                 <DataGridTextColumn Header="INVOICE NO." Binding="{Binding InvoiceNumber}" Width="150"/>
                                 <DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
                                 <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
+                                <DataGridTextColumn Header="RECEPTIONIST" Binding="{Binding ReceptionistName}" Width="160"/>
                                 <DataGridTextColumn Header="METHOD" Binding="{Binding PaymentMethod}" Width="110"/>
                                 <DataGridTextColumn Header="GRAND TOTAL" Binding="{Binding GrandTotal, StringFormat='Rs. {0:N2}'}" Width="160"/>
                             </DataGrid.Columns>
@@ -140,6 +142,9 @@
                                        Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                        FontFamily="{DynamicResource FontLexend}"/>
                             <Separator/>
+                            <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="10">
+                                <TextBlock Text="{Binding LoggedInUserName, StringFormat='Processed by: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                            </Border>
                             
                             <Grid ColumnDefinitions="*,*">
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,12">
@@ -207,8 +212,9 @@
                             <StackPanel Spacing="12" IsVisible="{Binding IsNewSale}">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
-                                        <TextBlock Text="Select Product *" Classes="label"/>
-                                        <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" HorizontalAlignment="Stretch" PlaceholderText="Select Product">
+                                        <TextBlock Text="Search &amp; Select Product *" Classes="label"/>
+                                        <TextBox Text="{Binding ProductSearchTerm}" PlaceholderText="Type medicine, generic, or company name..." Margin="0,0,0,6"/>
+                                        <ComboBox ItemsSource="{Binding FilteredProducts}" SelectedItem="{Binding SelectedProduct}" HorizontalAlignment="Stretch" PlaceholderText="Select matching product">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate x:DataType="models:Product">
                                                     <TextBlock Text="{Binding Name}"/>
@@ -226,16 +232,21 @@
                                     </StackPanel>
                                 </Grid>
                                 
-                                <Grid ColumnDefinitions="*,*,*">
+                                <TextBlock Text="{Binding AvailableStockDisplay}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,6,0">
                                         <TextBlock Text="Qty" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="6,0,6,0">
-                                        <TextBlock Text="Price" Classes="label"/>
-                                        <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0"/>
+                                        <TextBlock Text="Unit Type" Classes="label"/>
+                                        <ComboBox ItemsSource="{Binding UnitTypes}" SelectedItem="{Binding SelectedUnitType}"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="6,0,0,0">
+                                    <StackPanel Grid.Column="2" Spacing="6" Margin="6,0,6,0">
+                                        <TextBlock Text="Price" Classes="label"/>
+                                        <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0" IsReadOnly="True"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Spacing="6" Margin="6,0,0,0">
                                         <TextBlock Text="Discount (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
@@ -262,6 +273,7 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
+                                    <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="90"/>
                                     <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. {0:N2}'}" Width="100"/>
@@ -313,6 +325,18 @@
         <!-- 3. INVOICE PRINT VIEW                                        -->
         <!-- ============================================================ -->
         <ContentControl IsVisible="{Binding ShowInvoicePrint}" Content="{Binding InvoiceVM}"/>
+        <Border IsVisible="{Binding ShowDeleteAllConfirm}" Background="#80000000" ZIndex="250">
+            <Border Background="{DynamicResource BrushCardBackground}" CornerRadius="12" Padding="28" Width="440" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Archive all sales?" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="Sales will disappear from daily lists, but invoices, stock movements, returns, and historical database records will remain preserved." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
+                        <Button Command="{Binding CancelDeleteAllCommand}" Classes="btn-secondary" Content="Cancel"/>
+                        <Button Command="{Binding ConfirmDeleteAllCommand}" Classes="btn-danger" Content="Archive All"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 
     <UserControl.Styles>

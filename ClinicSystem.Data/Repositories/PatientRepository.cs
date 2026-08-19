@@ -17,27 +17,27 @@ public class PatientRepository
                      Diagnosis, Prescription, ConsultationFee,
                      ISNULL(Discount, 0) AS Discount,
                      NextAppointmentDate, NextAppointmentTime,
-                     VisitStatus, LastVisitDate
-              FROM Patients ORDER BY Name");
+                     VisitStatus, LastVisitDate, IsActive
+              FROM Patients WHERE IsActive = 1 ORDER BY Name");
     }
 
     public int GetCount()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
+        return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients WHERE IsActive = 1");
     }
 
     public decimal GetTotalConsultationFee()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ConsultationFee - (ConsultationFee * ISNULL(Discount, 0) / 100.0)), 0) FROM Patients");
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(ConsultationFee - (ConsultationFee * ISNULL(Discount, 0) / 100.0)), 0) FROM Patients WHERE IsActive = 1");
     }
 
     public Patient? GetById(int id)
     {
         using var conn = _session.CreateConnection();
         return conn.QuerySingleOrDefault<Patient>(
-            "SELECT * FROM Patients WHERE PatientID = @id", new { id });
+            "SELECT * FROM Patients WHERE PatientID = @id AND IsActive = 1", new { id });
     }
 
     public IEnumerable<Patient> Search(string term)
@@ -45,7 +45,7 @@ public class PatientRepository
         using var conn = _session.CreateConnection();
         return conn.Query<Patient>(
             @"SELECT * FROM Patients
-              WHERE Name LIKE @term OR Phone LIKE @term
+              WHERE IsActive = 1 AND (Name LIKE @term OR Phone LIKE @term)
               ORDER BY Name",
             new { term = $"%{term}%" });
     }
@@ -93,29 +93,17 @@ public class PatientRepository
         try
         {
             using var conn = _session.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            
-            // Cascade delete Appointments
-            conn.Execute("DELETE FROM Appointments WHERE PatientID = @id", new { id }, tx);
-            
-            // Cascade delete SaleItems related to Patient's Sales
-            conn.Execute(@"
-                DELETE FROM SaleItems 
-                WHERE SaleID IN (SELECT SaleID FROM Sales WHERE PatientID = @id)", 
-                new { id }, tx);
-                
-            // Cascade delete Sales
-            conn.Execute("DELETE FROM Sales WHERE PatientID = @id", new { id }, tx);
-            
-            // Delete the Patient
-            conn.Execute("DELETE FROM Patients WHERE PatientID = @id", new { id }, tx);
-            
-            tx.Commit();
-            return true;
+            return conn.Execute("UPDATE Patients SET IsActive = 0 WHERE PatientID = @id AND IsActive = 1", new { id }) == 1;
         }
         catch 
         {
             return false;
         }
+    }
+
+    public int SoftDeleteAll()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Execute("UPDATE Patients SET IsActive = 0 WHERE IsActive = 1");
     }
 }

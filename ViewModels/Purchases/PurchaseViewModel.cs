@@ -72,9 +72,16 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _batchNumber = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private int _quantity = 1;
+    [ObservableProperty] private int _bonusQuantity;
+    [ObservableProperty] private string _packageType = "Box";
+    [ObservableProperty] private int _unitsPerPackage = 1;
     [ObservableProperty] private decimal _purchasePrice;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
+
+    public List<string> PackageTypes { get; } = new() { "Box", "Carton", "Pack", "Bottle", "Piece" };
+    public int TotalUnitsToStock => (Quantity + BonusQuantity) * Math.Max(1, UnitsPerPackage);
+    public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
 
@@ -137,6 +144,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
+        if (BonusQuantity < 0 || UnitsPerPackage <= 0) { StatusMessage = "Bonus and units-per-package values are invalid."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
@@ -146,7 +154,11 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             ProductName = SelectedProduct.Name,
             BatchNumber = BatchNumber,
             ExpiryDate = ExpiryDate?.DateTime,
-            Quantity = Quantity,
+            PackageQuantity = Quantity,
+            BonusQuantity = BonusQuantity,
+            PackageType = PackageType,
+            UnitsPerPackage = UnitsPerPackage,
+            Quantity = TotalUnitsToStock,
             PurchasePrice = PurchasePrice,
             Discount = Discount,
             Tax = Tax
@@ -161,6 +173,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         BatchNumber = string.Empty;
         ExpiryDate = null;
         Quantity = 1;
+        BonusQuantity = 0;
+        PackageType = "Box";
+        UnitsPerPackage = 1;
         PurchasePrice = 0;
         Discount = 0;
         Tax = 0;
@@ -206,6 +221,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             SupplierID = SelectedSupplier?.SupplierID,
             SupplierName = SelectedSupplier == null ? SupplierName : null,
             TotalAmount = GrandTotal,
+            CreatedBy = CurrentUser?.UserID,
+            CreatedByName = LoggedInUserName,
             Items = LineItems.ToList()
         };
 
@@ -275,6 +292,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         SelectedSupplier = null;
         SupplierName = string.Empty;
         PurchaseDate = DateTimeOffset.Now;
+        Quantity = 1;
+        BonusQuantity = 0;
+        PackageType = "Box";
+        UnitsPerPackage = 1;
         LineItems.Clear();
         OnPropertyChanged(nameof(GrandTotal));
     }
@@ -290,7 +311,12 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         if (value != null)
         {
             PurchasePrice = value.PurchasePrice;
+            UnitsPerPackage = Math.Max(1, value.TabletsPerBox);
             Tax = 0;
         }
     }
+
+    partial void OnQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
+    partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
+    partial void OnUnitsPerPackageChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
 }

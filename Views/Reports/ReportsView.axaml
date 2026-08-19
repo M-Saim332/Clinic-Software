@@ -186,7 +186,10 @@
             <!-- Tab 5: Financials -->
             <TabItem Header="Financials">
                 <DockPanel Margin="0,12,0,0">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="0,0,0,24">
+                    <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,24">
+                        <StackPanel Margin="0,0,12,0"><TextBlock Text="Start Date" FontSize="11"/><DatePicker SelectedDate="{Binding StartDate}"/></StackPanel>
+                        <StackPanel Margin="0,0,12,0"><TextBlock Text="End Date" FontSize="11"/><DatePicker SelectedDate="{Binding EndDate}"/></StackPanel>
+                        <StackPanel Margin="0,0,12,0" Width="170"><TextBlock Text="Receptionist" FontSize="11"/><ComboBox ItemsSource="{Binding ReceptionistNames}" SelectedItem="{Binding SelectedReceptionist}"/></StackPanel>
                         <Button Command="{Binding LoadFinancialsCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
@@ -211,14 +214,19 @@
                                 <TextBlock Text="Export to Excel" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
 
                     <!-- Financial Summary cards in full-page swap layout style -->
-                    <StackPanel Spacing="20" HorizontalAlignment="Left">
-                        <comp:SummaryCardControl Title="Total Revenue" Value="{Binding TotalRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="380"/>
+                    <WrapPanel HorizontalAlignment="Left">
+                        <comp:SummaryCardControl Title="Medicines Sold (units)" Value="{Binding TotalMedicinesSold, StringFormat={}{0}}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300" Margin="0,0,16,16"/>
+                        <comp:SummaryCardControl Title="Gross Revenue" Value="{Binding TotalRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="300" Margin="0,0,16,16"/>
+                        <comp:SummaryCardControl Title="Patient Returns" Value="{Binding TotalReturns, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushRose}" Width="300" Margin="0,0,16,16"/>
+                        <comp:SummaryCardControl Title="Net Revenue" Value="{Binding NetRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="300" Margin="0,0,16,16"/>
                         <comp:SummaryCardControl Title="Total Expenses (Purchases)" Value="{Binding TotalExpenses, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushRose}" Width="380"/>
-                        <comp:SummaryCardControl Title="Net Profit" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="380"/>
-                    </StackPanel>
+                        <comp:SummaryCardControl Title="Supplier Return Credits" Value="{Binding SupplierCredits, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushAmber}" Width="300" Margin="16,0,16,0"/>
+                        <comp:SummaryCardControl Title="Gross Profit" Value="{Binding GrossProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300" Margin="0,0,16,0"/>
+                        <comp:SummaryCardControl Title="Net Profit" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300"/>
+                    </WrapPanel>
                 </DockPanel>
             </TabItem>
         </TabControl>
