@@ -6,32 +6,54 @@
   <ScrollViewer>
     <StackPanel Margin="24" Spacing="20">
       <StackPanel Spacing="4">
-        <TextBlock Text="Clinical Dashboard" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-        <TextBlock Text="Today's appointments, waiting patients, and recent clinical activity." Foreground="{DynamicResource BrushInk500}"/>
+        <TextBlock Text="Clinical Dashboard" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+        <TextBlock Text="Today's appointments, waiting patients, and recent clinical activity." Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
       </StackPanel>
+
+      <!-- Summary Cards -->
       <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
-        <Border Grid.Column="0" Classes="card-section" Padding="22">
-          <StackPanel Spacing="8"><TextBlock Text="TODAY'S APPOINTMENTS" Foreground="{DynamicResource BrushInk500}"/>
-            <TextBlock Text="{Binding TodaysAppointments}" FontSize="32" FontWeight="Bold"/></StackPanel>
+        <Border Grid.Column="0" Classes="card" Padding="24">
+          <StackPanel Spacing="8">
+            <TextBlock Text="TODAY'S APPOINTMENTS" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+            <TextBlock Text="{Binding TodaysAppointments}" FontSize="36" FontWeight="Bold" Foreground="{DynamicResource ThemePrimaryBrush}"/>
+          </StackPanel>
         </Border>
-        <Border Grid.Column="1" Classes="card-section" Padding="22">
-          <StackPanel Spacing="8"><TextBlock Text="PATIENTS WAITING" Foreground="{DynamicResource BrushInk500}"/>
-            <TextBlock Text="{Binding PatientsWaiting}" FontSize="32" FontWeight="Bold"/></StackPanel>
+        <Border Grid.Column="1" Classes="card" Padding="24">
+          <StackPanel Spacing="8">
+            <TextBlock Text="PATIENTS WAITING" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+            <TextBlock Text="{Binding PatientsWaiting}" FontSize="36" FontWeight="Bold" Foreground="#F59E0B"/>
+          </StackPanel>
         </Border>
       </Grid>
-      <Border Classes="card-section" Padding="20">
-        <StackPanel Spacing="12">
-          <TextBlock Text="RECENT VISITS" FontSize="16" FontWeight="Bold"/>
-          <ItemsControl ItemsSource="{Binding RecentPatients}">
-            <ItemsControl.ItemTemplate><DataTemplate>
-              <Grid ColumnDefinitions="2*,*,*" Margin="0,6">
-                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                <TextBlock Grid.Column="1" Text="{Binding ReasonOfVisit}" Foreground="{DynamicResource BrushInk500}"/>
-                <TextBlock Grid.Column="2" Text="{Binding LastVisitDate, StringFormat='{}{0:dd MMM yyyy}'}" HorizontalAlignment="Right"/>
-              </Grid>
-            </DataTemplate></ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"/>
+
+      <!-- Recent Visits -->
+      <Border Classes="card" Padding="0">
+        <StackPanel>
+          <Border BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,0,0,1" Padding="24,18">
+            <TextBlock Text="RECENT VISITS" Classes="sectionTitle"/>
+          </Border>
+          
+          <DataGrid ItemsSource="{Binding RecentPatients}" AutoGenerateColumns="False" 
+                    IsReadOnly="True" SelectionMode="Single"
+                    GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                    Background="Transparent" BorderThickness="0" Margin="0,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="PATIENT NAME" Binding="{Binding Name}" Width="2*"/>
+              <DataGridTextColumn Header="REASON OF VISIT" Binding="{Binding ReasonOfVisit}" Width="2*"/>
+              <DataGridTextColumn Header="LAST VISIT" Binding="{Binding LastVisitDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="*"/>
+              <DataGridTemplateColumn Header="STATUS" Width="120">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding VisitStatus}" VerticalAlignment="Center" 
+                               Foreground="{Binding VisitStatus, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               FontWeight="Medium"/>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <TextBlock Text="{Binding StatusMessage}" Foreground="#EF4444" Margin="24,0,24,16" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         </StackPanel>
       </Border>
     </StackPanel>

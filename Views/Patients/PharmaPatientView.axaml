@@ -2,7 +2,7 @@
  xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients" x:Class="ClinicSystem.UI.Views.Patients.PharmaPatientView"
  x:DataType="vm:PharmaPatientViewModel">
  <Grid ColumnDefinitions="360,*" Margin="24" ColumnSpacing="20">
-  <Border Classes="card-section" Padding="20"><StackPanel Spacing="12"><TextBlock Text="Pharma Patient" FontSize="20" FontWeight="Bold"/>
+  <Border Classes="card" Padding="20"><StackPanel Spacing="12"><TextBlock Text="Pharma Patient" FontSize="20" FontWeight="Bold"/>
    <TextBox Text="{Binding Name}" PlaceholderText="Name"/><TextBox Text="{Binding Phone}" PlaceholderText="Phone"/>
    <TextBox Text="{Binding CNIC}" PlaceholderText="CNIC (optional)"/><Button Command="{Binding SaveCommand}" Content="Save Pharma Patient"/>
    <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap"/></StackPanel></Border>

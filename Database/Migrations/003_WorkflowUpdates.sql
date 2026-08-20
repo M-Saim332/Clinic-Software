@@ -39,10 +39,10 @@ IF @statusConstraint IS NOT NULL
     EXEC('ALTER TABLE Appointments DROP CONSTRAINT ' + @statusConstraint);
 
 UPDATE Appointments SET Status = 'Missed' WHERE Status IN ('No-Show', 'No Show');
-UPDATE Appointments SET Status = 'Scheduled' WHERE Status = 'Checked-In';
+-- Note: 'Checked-In' is a valid status used by the application; do NOT migrate it away.
 
 ALTER TABLE Appointments ADD CONSTRAINT CK_Appointments_Status
-    CHECK (Status IN ('Scheduled', 'Completed', 'Cancelled', 'Missed'));
+    CHECK (Status IN ('Scheduled', 'Checked-In', 'Completed', 'Cancelled', 'Missed'));
 
 -- Purchases: optional supplier + manual name
 BEGIN TRY
