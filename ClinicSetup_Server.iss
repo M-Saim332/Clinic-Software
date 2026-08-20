@@ -63,8 +63,7 @@ Source: "Database\Migration_AddDiscountRefunds.sql"; DestDir: "{app}\Database"; 
 Source: "Database\TestData.sql";                  DestDir: "{app}\Database"; Flags: ignoreversion
 Source: "Database\GenerateMockTransactions.sql";  DestDir: "{app}\Database"; Flags: ignoreversion
 
-; ── Default appsettings (placeholder → triggers DB Setup screen at first run) 
-Source: "Installer\appsettings_server.json"; DestDir: "{app}"; DestName: "appsettings.json"; Flags: ignoreversion
+; ── Default appsettings is generated via [Code] section
 
 [Icons]
 Name: "{group}\{#AppName}";     Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"
@@ -76,4 +75,55 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; WorkingDir: "{app
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
 
 [Messages]
-FinishedLabel=Setup finished!%n%nNEXT STEPS (Doctor PC / Server):%n%n1. Open SQL Server Management Studio (SSMS)%n2. Connect to your SQL Server instance%n3. Open and run: {app}\Database\Schema.sql%n4. Launch the app - a setup screen will guide you through connection configuration.
+FinishedLabel=Setup finished!%n%nNEXT STEPS (Doctor PC / Server):%n%n1. Open SQL Server Management Studio (SSMS)%n2. Connect to your SQL Server instance%n3. Open and run: {app}\Database\Schema.sql%n4. Launch the app.
+
+[Code]
+var
+  DbPage: TInputQueryWizardPage;
+
+procedure InitializeWizard;
+begin
+  DbPage := CreateInputQueryPage(wpSelectTasks,
+    'Database Configuration', 'Configure SQL Server Connection',
+    'Please specify your SQL Server connection details. If using Windows Authentication, leave Username and Password blank.');
+  
+  DbPage.Add('Server Name / IP Address:', False);
+  DbPage.Add('Database Name:', False);
+  DbPage.Add('SQL Username (leave blank for Windows Auth):', False);
+  DbPage.Add('SQL Password (leave blank for Windows Auth):', True);
+  
+  DbPage.Values[0] := '(local)\SQLEXPRESS';
+  DbPage.Values[1] := 'ClinicDB';
+  DbPage.Values[2] := '';
+  DbPage.Values[3] := '';
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  JsonContent: String;
+  ConnString: String;
+  Server, Db, User, Pass: String;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    Server := DbPage.Values[0];
+    Db := DbPage.Values[1];
+    User := DbPage.Values[2];
+    Pass := DbPage.Values[3];
+    
+    if (User = '') and (Pass = '') then
+      ConnString := 'Server=' + Server + ';Database=' + Db + ';Integrated Security=True;TrustServerCertificate=True;'
+    else
+      ConnString := 'Server=' + Server + ';Database=' + Db + ';User Id=' + User + ';Password=' + Pass + ';TrustServerCertificate=True;';
+      
+    StringChangeEx(ConnString, '\', '\\', True);
+    
+    JsonContent := '{' + #13#10 +
+                   '  "ConnectionStrings": {' + #13#10 +
+                   '    "ClinicDB": "' + ConnString + '"' + #13#10 +
+                   '  }' + #13#10 +
+                   '}';
+                   
+    SaveStringToFile(ExpandConstant('{app}\appsettings.json'), JsonContent, False);
+  end;
+end;

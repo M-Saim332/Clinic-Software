@@ -5,17 +5,25 @@ USE ClinicDB;
 GO
 
 IF COL_LENGTH('Companies', 'CCode') IS NULL
+BEGIN
     ALTER TABLE Companies ADD CCode INT NOT NULL CONSTRAINT DF_Companies_CCode DEFAULT 0;
-UPDATE Companies SET CCode = CompanyID WHERE CCode = 0;
+END
+GO
+
+EXEC('UPDATE Companies SET CCode = CompanyID WHERE CCode = 0');
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Companies_CCode')
-    CREATE UNIQUE INDEX UX_Companies_CCode ON Companies(CCode);
+    EXEC('CREATE UNIQUE INDEX UX_Companies_CCode ON Companies(CCode)');
 GO
 
 IF COL_LENGTH('Suppliers', 'SCode') IS NULL
+BEGIN
     ALTER TABLE Suppliers ADD SCode INT NOT NULL CONSTRAINT DF_Suppliers_SCode DEFAULT 0;
-UPDATE Suppliers SET SCode = SupplierID WHERE SCode = 0;
+END
+GO
+
+EXEC('UPDATE Suppliers SET SCode = SupplierID WHERE SCode = 0');
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_Suppliers_SCode')
-    CREATE UNIQUE INDEX UX_Suppliers_SCode ON Suppliers(SCode);
+    EXEC('CREATE UNIQUE INDEX UX_Suppliers_SCode ON Suppliers(SCode)');
 GO
 
 IF COL_LENGTH('Products', 'PCode') IS NULL
@@ -51,14 +59,21 @@ GO
 IF COL_LENGTH('Purchases', 'IsPosted') IS NULL
 BEGIN
     ALTER TABLE Purchases ADD IsPosted BIT NOT NULL CONSTRAINT DF_Purchases_IsPosted DEFAULT 0;
-    -- Legacy purchases already changed stock, so migrate them as posted to prevent double-counting.
-    UPDATE Purchases SET IsPosted = 1;
 END
+GO
+
+-- Legacy purchases already changed stock, so migrate them as posted to prevent double-counting.
+EXEC('UPDATE Purchases SET IsPosted = 1 WHERE IsPosted = 0');
+GO
+
 IF COL_LENGTH('Purchases', 'PostedAt') IS NULL
 BEGIN
     ALTER TABLE Purchases ADD PostedAt DATETIME2 NULL;
-    UPDATE Purchases SET PostedAt = PurchaseDate WHERE IsPosted = 1;
 END
+GO
+
+EXEC('UPDATE Purchases SET PostedAt = PurchaseDate WHERE IsPosted = 1 AND PostedAt IS NULL');
+GO
 IF COL_LENGTH('Purchases', 'ATax') IS NULL
     ALTER TABLE Purchases ADD ATax DECIMAL(5,2) NOT NULL CONSTRAINT DF_Purchases_ATax DEFAULT 0;
 IF COL_LENGTH('PurchaseItems', 'ExtraDiscount') IS NULL
@@ -101,14 +116,21 @@ GO
 IF COL_LENGTH('Returns', 'IsPosted') IS NULL
 BEGIN
     ALTER TABLE Returns ADD IsPosted BIT NOT NULL CONSTRAINT DF_Returns_IsPosted DEFAULT 0;
-    -- Legacy returns already changed stock, so migrate them as posted.
-    UPDATE Returns SET IsPosted = 1;
 END
+GO
+
+-- Legacy returns already changed stock, so migrate them as posted.
+EXEC('UPDATE Returns SET IsPosted = 1 WHERE IsPosted = 0');
+GO
+
 IF COL_LENGTH('Returns', 'PostedAt') IS NULL
 BEGIN
     ALTER TABLE Returns ADD PostedAt DATETIME2 NULL;
-    UPDATE Returns SET PostedAt = CreatedAt WHERE IsPosted = 1;
 END
+GO
+
+EXEC('UPDATE Returns SET PostedAt = CreatedAt WHERE IsPosted = 1 AND PostedAt IS NULL');
+GO
 GO
 BEGIN TRY
     ALTER TABLE Returns ALTER COLUMN ProductId INT NULL;
