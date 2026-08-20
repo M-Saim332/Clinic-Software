@@ -75,7 +75,7 @@ public class DatabaseSession
 
     private static void VerifyRequiredSchema(IDbConnection conn)
     {
-        string[] tables = ["Patients", "Products", "Suppliers", "Companies", "Users", "Appointments", "Purchases", "PurchaseItems", "Sales", "SaleItems", "Returns"];
+        string[] tables = ["Patients", "Products", "Suppliers", "Companies", "Users", "Appointments", "Purchases", "PurchaseItems", "Sales", "SaleItems", "Prescriptions", "PrescriptionItems", "Returns", "ReturnItems"];
         var missingTables = tables.Where(table => conn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@table, 'U') IS NULL THEN 1 ELSE 0 END", new { table }) == 1).ToList();
         if (missingTables.Count > 0)
@@ -87,7 +87,13 @@ public class DatabaseSession
             ("Products", "TabletsPerBox"), ("Products", "IsActive"),
             ("Sales", "ReceptionistId"), ("Sales", "IsActive"),
             ("SaleItems", "StockQuantity"), ("PurchaseItems", "PackageQuantity"),
-            ("Returns", "StockQuantity")
+            ("Returns", "StockQuantity"),
+            ("Companies", "CCode"), ("Suppliers", "SCode"), ("Products", "PCode"),
+            ("Products", "Packing"), ("Products", "PiecesPerUnit"), ("Products", "LastStockUpdateDate"),
+            ("Appointments", "CNIC"), ("Patients", "PatientContext"), ("Patients", "ReasonOfVisit"),
+            ("Purchases", "IsPosted"), ("Purchases", "PostedAt"), ("Purchases", "ATax"), ("PurchaseItems", "ExtraDiscount"),
+            ("PurchaseItems", "ATax"), ("Sales", "SalesTax"), ("Sales", "PostedAt"),
+            ("Returns", "IsPosted"), ("Returns", "PostedAt")
         ];
         var missingColumns = columns.Where(item => conn.ExecuteScalar<int>(
             "SELECT CASE WHEN COL_LENGTH(@table, @column) IS NULL THEN 1 ELSE 0 END",

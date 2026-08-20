@@ -15,14 +15,18 @@ public class PurchaseItem
     public decimal PurchasePrice { get; set; }
     public decimal Discount { get; set; }
     public decimal Tax { get; set; }
+    public decimal ExtraDiscount { get; set; }
+    public decimal ATax { get; set; }
 
     // Join helper property
     public string? ProductName { get; set; }
 
     // Derived properties for billing formula layer
     public int TotalStockUnits => (PackageQuantity + BonusQuantity) * Math.Max(1, UnitsPerPackage);
-    public decimal GrossLineAmount => PackageQuantity * PurchasePrice;
-    public decimal DiscountedValue => GrossLineAmount * (Discount / 100);
-    public decimal TaxableOverhead => (GrossLineAmount - DiscountedValue) * (Tax / 100);
-    public decimal LineNetTotal => (GrossLineAmount - DiscountedValue) + TaxableOverhead;
+    public decimal EffectiveRate => Math.Round(PurchasePrice * 0.85m, 2, MidpointRounding.AwayFromZero);
+    public decimal GrossLineAmount => PackageQuantity * EffectiveRate;
+    public decimal DiscountedValue => GrossLineAmount * (Discount / 100m);
+    public decimal ExtraDiscountedValue => GrossLineAmount * (ExtraDiscount / 100m);
+    public decimal TaxableOverhead => GrossLineAmount * (ATax / 100m);
+    public decimal LineNetTotal => Math.Max(0, GrossLineAmount - DiscountedValue - ExtraDiscountedValue + TaxableOverhead);
 }

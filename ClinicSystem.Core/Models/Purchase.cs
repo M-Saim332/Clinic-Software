@@ -10,6 +10,8 @@ public class Purchase
     public decimal TotalAmount { get; set; }
     public int? CreatedBy { get; set; }
     public string? CreatedByName { get; set; }
+    public bool IsPosted { get; set; }
+    public DateTime? PostedAt { get; set; }
 
     public List<PurchaseItem> Items { get; set; } = new();
 }

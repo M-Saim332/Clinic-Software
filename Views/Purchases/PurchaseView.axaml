@@ -150,14 +150,9 @@
                             <Grid ColumnDefinitions="*,*">
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                     <TextBlock Text="Supplier (Optional)" Classes="label"/>
-                                    <ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
-                                              IsEnabled="{Binding SaveCancelEnabled}" HorizontalAlignment="Stretch" PlaceholderText="Select Supplier">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Supplier">
-                                                <TextBlock Text="{Binding Name}"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
+                                    <comp:SearchableComboBoxControl ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
+                                              IsEnabled="{Binding SaveCancelEnabled}" DisplayMemberPath="Name" DetailMemberPath="SCode" Placeholder="Search supplier..."/>
+                                    <Button Command="{Binding QuickAddSupplierCommand}" Content="Add Supplier" Classes="btn-secondary" HorizontalAlignment="Left" IsVisible="{Binding SaveCancelEnabled}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0" IsVisible="{Binding SelectedSupplier, Converter={x:Static ObjectConverters.IsNull}}">
                                     <TextBlock Text="Supplier Name" Classes="label"/>
@@ -187,13 +182,9 @@
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
                                         <TextBlock Text="Product *" Classes="label"/>
-                                        <ComboBox ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" HorizontalAlignment="Stretch">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="models:Product">
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
+                                        <comp:SearchableComboBoxControl ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                                            DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search product..."/>
+                                        <Button Command="{Binding QuickAddProductCommand}" Content="Add Product" Classes="btn-secondary" HorizontalAlignment="Left"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Bottom">
                                         <Button  Command="{Binding AddLineItemCommand}" Classes="btn-secondary" Width="80">
@@ -216,36 +207,36 @@
                                     </StackPanel>
                                 </Grid>
                                 
-                                <Grid ColumnDefinitions="*,*,*,*">
+                                <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Packages" Classes="label"/>
+                                        <TextBlock Text="Qty / Packaging" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,8,0">
-                                        <TextBlock Text="Bonus Packages" Classes="label"/>
+                                        <TextBlock Text="Bonus" Classes="label"/>
                                         <NumericUpDown Value="{Binding BonusQuantity}" Minimum="0" FormatString="N0"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,8,0">
-                                        <TextBlock Text="Package Type" Classes="label"/>
-                                        <ComboBox ItemsSource="{Binding PackageTypes}" SelectedItem="{Binding PackageType}"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="3" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Units / Package" Classes="label"/>
-                                        <NumericUpDown Value="{Binding UnitsPerPackage}" Minimum="1" FormatString="N0"/>
-                                    </StackPanel>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,*">
+                                <Grid ColumnDefinitions="*,*,*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Price" Classes="label"/>
+                                        <TextBlock Text="Input Rate (15% company discount applied)" Classes="label"/>
                                         <NumericUpDown Value="{Binding PurchasePrice}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                         <TextBlock Text="Discount (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
+                                        <TextBlock Text="Extra Discount (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding ExtraDiscount}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Spacing="6" Margin="8,0,0,0">
+                                        <TextBlock Text="Additional Tax (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding ATax}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                    </StackPanel>
                                 </Grid>
                                 <Border Background="{DynamicResource BrushTeal50}" CornerRadius="8" Padding="10">
-                                    <TextBlock Text="{Binding TotalUnitsToStock, StringFormat='Total individual units added to stock: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushTeal}"/>
+                                    <TextBlock Text="{Binding EffectiveRate, StringFormat='Effective rate after 15% discount: Rs. {0:N2}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushTeal}"/>
                                 </Border>
                             </StackPanel>
 
@@ -270,12 +261,12 @@
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="110"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
-                                    <DataGridTextColumn Header="PACKAGES" Binding="{Binding PackageQuantity}" Width="90"/>
+                                    <DataGridTextColumn Header="QTY / PACKAGING" Binding="{Binding PackageQuantity}" Width="110"/>
                                     <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="70"/>
-                                    <DataGridTextColumn Header="TYPE" Binding="{Binding PackageType}" Width="80"/>
-                                    <DataGridTextColumn Header="STOCK UNITS" Binding="{Binding Quantity}" Width="100"/>
-                                    <DataGridTextColumn Header="PRICE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="RATE" Binding="{Binding EffectiveRate, StringFormat='Rs. {0:N2}'}" Width="100"/>
                                     <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="EXTRA DISC (%)" Binding="{Binding ExtraDiscount}" Width="100"/>
+                                    <DataGridTextColumn Header="A.TAX (%)" Binding="{Binding ATax}" Width="90"/>
                                     <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:PurchaseViewModel)DataContext).SaveCancelEnabled}">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -315,6 +306,12 @@
         <TextBlock Text="Save Invoice" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
+                        <Button Command="{Binding EditDraftCommand}" Classes="btn-secondary" Content="Edit Draft" IsVisible="{Binding CanEditDraft}"/>
+                        <Button Command="{Binding EditCheckedInvoiceCommand}" Classes="btn-secondary" Content="Edit Draft" IsVisible="{Binding IsCheckingInvoice}"/>
+                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-secondary" Content="Check Invoice" IsVisible="{Binding CanCheckInvoice}"/>
+                        <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary" Content="Post Invoice" IsVisible="{Binding IsCheckingInvoice}"/>
+                        <Button Command="{Binding PostAndAddAnotherCommand}" Classes="btn-primary" Content="Post &amp; Add Another" IsVisible="{Binding IsCheckingInvoice}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

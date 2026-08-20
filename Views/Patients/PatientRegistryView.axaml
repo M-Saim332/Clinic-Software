@@ -2,6 +2,8 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Patients"
+             xmlns:models="using:ClinicSystem.Core.Models"
+             xmlns:prescvm="using:ClinicSystem.UI.ViewModels.Prescriptions"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Patients.PatientRegistryView"
              x:Name="Root"
@@ -55,8 +57,8 @@
                     Value="{Binding WaitingTodayCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushTeal}"/>
                 <comp:SummaryCardControl Grid.Column="3"
-                    Title="Total Consult. Fee"
-                    Value="{Binding AvgConsultationFee}"
+                    Title="Clinical Records"
+                    Value="{Binding TotalPatientsCount, StringFormat={}{0}}"
                     BorderColor="{DynamicResource BrushRose}"/>
             </Grid>
             
@@ -74,7 +76,7 @@
                                     <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="80"/>
                                     <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
                                     <DataGridTextColumn Header="APPT. TIME" Binding="{Binding AppointmentTimeDisplay}" Width="140"/>
-                                    <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="2*" MinWidth="120"/>
+                                    <DataGridTextColumn Header="REASON OF VISIT" Binding="{Binding ReasonOfVisit}" Width="2*" MinWidth="120"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="200">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -111,7 +113,7 @@
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
                                     <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
                                     <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
-                                    <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
+                                    <DataGridTextColumn Header="REASON OF VISIT" Binding="{Binding ReasonOfVisit}" Width="*"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="300">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -140,7 +142,7 @@
                                     <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
                                     <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="120"/>
                                     <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="160"/>
-                                    <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
+                                    <DataGridTextColumn Header="REASON OF VISIT" Binding="{Binding ReasonOfVisit}" Width="*"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="300">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -221,7 +223,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Gender" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" DisplayMemberPath="" Placeholder="Search gender..." HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                             </StackPanel>
 
                             <!-- Row 2: CNIC + Appointment Time -->
@@ -240,27 +242,56 @@
                                 <TextBox Text="{Binding Address}" AcceptsReturn="True" Height="60" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             
-                            <!-- Row 4: Diagnosis + Prescription -->
+                            <!-- Row 4: clinical context and merged history -->
                             <StackPanel Grid.Column="0" Grid.Row="4" Spacing="6" Margin="0,0,12,16">
-                                <TextBlock Text="Diagnosis" Classes="label"/>
-                                <TextBox Text="{Binding Diagnosis}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                                <TextBlock Text="Reason of Visit" Classes="label"/>
+                                <TextBox Text="{Binding ReasonOfVisit}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="4" Spacing="6" Margin="12,0,0,16">
-                                <TextBlock Text="Prescription / Notes" Classes="label"/>
-                                <TextBox Text="{Binding Prescription}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
+                                <TextBlock Text="Drug Selection &amp; Visit History" Classes="label"/>
+                                <TextBlock Text="Use the patient visit action to select in-stock drugs. Existing prescriptions and visits remain linked to this patient." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
                             
-                            <!-- Row 5: Fee + Discount -->
-                            <StackPanel Grid.Column="0" Grid.Row="5" Spacing="6" Margin="0,0,12,0">
-                                <TextBlock Text="Consultation Fee" Classes="label"/>
-                                <TextBox Text="{Binding ConsultationFee}" PlaceholderText="0.00" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="5" Spacing="6" Margin="12,0,0,0">
-                                <TextBlock Text="Discount (%)" Classes="label"/>
-                                <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100" IsEnabled="{Binding !IsReadOnly}" HorizontalAlignment="Stretch"/>
-                            </StackPanel>
-
                         </Grid>
+
+                        <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="16" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="DRUG SELECTION" FontWeight="Bold"/>
+                                <Grid ColumnDefinitions="2*,*,*,Auto" ColumnSpacing="8">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBox Text="{Binding DrugSearch}" PlaceholderText="Search in-stock drugs..."/>
+                                        <comp:SearchableComboBoxControl ItemsSource="{Binding FilteredDrugs}" SelectedItem="{Binding SelectedDrug}"
+                                            DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search drug..."/>
+                                    </StackPanel>
+                                    <NumericUpDown Grid.Column="1" Value="{Binding DrugQuantity}" Minimum="1" VerticalAlignment="Bottom"/>
+                                    <TextBox Grid.Column="2" Text="{Binding Dosage}" PlaceholderText="Dosage / directions" VerticalAlignment="Bottom"/>
+                                    <Button Grid.Column="3" Command="{Binding AddDrugCommand}" Content="Add" Classes="btn-secondary" VerticalAlignment="Bottom"/>
+                                </Grid>
+                                <DataGrid ItemsSource="{Binding SelectedDrugs}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="150">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="DRUG" Binding="{Binding ProductName}" Width="*"/>
+                                        <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
+                                        <DataGridTextColumn Header="DOSAGE" Binding="{Binding Dosage}" Width="*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="16" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="VISIT HISTORY" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding VisitHistory}">
+                                    <ItemsControl.ItemTemplate><DataTemplate x:DataType="models:Prescription">
+                                        <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="0,8">
+                                            <StackPanel Spacing="3"><TextBlock Text="{Binding VisitDate, StringFormat='{}{0:dd MMM yyyy hh:mm tt}'}" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Notes}" Foreground="{DynamicResource BrushInk500}"/>
+                                                <ItemsControl ItemsSource="{Binding Items}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="models:PrescriptionItem"><TextBlock Text="{Binding ProductName, StringFormat='• {0}'}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate></ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     </StackPanel>
                 </Border>
@@ -293,6 +324,8 @@
         <TextBlock Text="Save Patient" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}" Content="Print"/>
+                        <Button Command="{Binding PostAndSyncCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}" Content="Post &amp; Sync with Receptionist"/>
                     </StackPanel>
                 </Grid>
             </Border>

@@ -8,6 +8,7 @@ namespace ClinicSystem.UI.ViewModels.Suppliers;
 
 public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
 {
+    public event Action<Supplier>? SupplierSaved;
     private readonly SupplierRepository _repo;
     private ObservableCollection<Supplier> _allSuppliers = new();
 
@@ -42,7 +43,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
             var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
             Suppliers = new ObservableCollection<Supplier>(
                 _allSuppliers.Where(s => s.Name.ToLower().Contains(term)
-                                   || s.SupplierID.ToString().Contains(term)
+                                   || s.SCode.ToString().Contains(term)
                                    || (s.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (s.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (s.Email?.ToLower().Contains(term) ?? false)));
@@ -60,6 +61,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
     private string _email = string.Empty;
     [ObservableProperty]
     private string _cNIC = string.Empty;
+    [ObservableProperty] private int _sCode;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -71,9 +73,18 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
     private void New()
     {
         ClearFields();
+        SCode = _repo.GetNextSCode();
         Mode = FormMode.Add;
         NotifyButtonStates();
         StatusMessage = "Enter new supplier details.";
+    }
+
+    [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (Mode == FormMode.View) New();
     }
 
     [RelayCommand]
@@ -119,7 +130,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
         var s = new Supplier { Name = Name, Address = Address, Phone = Phone, Email = Email, CNIC = CNIC };
         if (Mode == FormMode.Add)
         {
-            await Task.Run(() => _repo.Insert(s));
+            s.SupplierID = await Task.Run(() => _repo.Insert(s));
             StatusMessage = "Supplier created.";
             LogActivity("Supplier Added", $"New supplier '{s.Name}' added", "Suppliers");
         }
@@ -133,6 +144,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
         Mode = FormMode.View;
         NotifyButtonStates();
         await InitializeAsync();
+        SupplierSaved?.Invoke(s);
     }
 
     [RelayCommand]

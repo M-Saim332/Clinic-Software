@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
+using ClinicSystem.Core.Enums;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,8 +9,12 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Purchases;
 
-public partial class PurchaseViewModel : ViewModelBase, ISearchable
+public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigationContext
 {
+    public event Action? RequestAddSupplier;
+    public event Action? RequestAddProduct;
+    public int? PreselectedEntityId { get; set; }
+    public Action<int>? ReturnToCaller { get; set; }
     private readonly PurchaseRepository _repo;
     private readonly SupplierRepository _supplierRepo;
     private readonly ProductRepository _productRepo;
@@ -21,9 +26,15 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         _productRepo = productRepo;
     }
 
-    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditDraft))]
+    [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
+    private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
-    [ObservableProperty] private bool _showForm;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditDraft))]
+    [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
+    private bool _showForm;
     
     [ObservableProperty] private ObservableCollection<Purchase> _purchases = new();
     private ObservableCollection<Purchase> _allPurchases = new();
@@ -78,12 +89,28 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private decimal _purchasePrice;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
+    [ObservableProperty] private decimal _extraDiscount;
+    [ObservableProperty] private decimal _aTax;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDraftInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsCheckingInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsPostedInvoice))]
+    [NotifyPropertyChangedFor(nameof(CanEditDraft))]
+    [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
+    private InvoiceState _invoiceState = InvoiceState.Draft;
+    private int _currentPurchaseId;
 
     public List<string> PackageTypes { get; } = new() { "Box", "Carton", "Pack", "Bottle", "Piece" };
     public int TotalUnitsToStock => (Quantity + BonusQuantity) * Math.Max(1, UnitsPerPackage);
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
+    public decimal EffectiveRate => Math.Round(PurchasePrice * 0.85m, 2);
+    public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
+    public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
+    public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
+    public bool CanEditDraft => ShowForm && Mode == FormMode.View && InvoiceState == InvoiceState.Draft && _currentPurchaseId > 0;
+    public bool CanCheckInvoice => CanEditDraft;
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
@@ -92,7 +119,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     private async Task NewAsync()
     {
         ClearFields();
-        InvoiceNumber = "Auto-generated";
+        InvoiceNumber = await Task.Run(_repo.GetNextInvoiceNumber);
+        InvoiceState = InvoiceState.Draft;
+        _currentPurchaseId = 0;
 
         // Ensure suppliers and products are loaded before showing the form
         try
@@ -125,6 +154,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
             var items = purchaseWithItems?.Items ?? new List<PurchaseItem>();
             LineItems = new ObservableCollection<PurchaseItem>(items);
+            _currentPurchaseId = SelectedPurchase.PurchaseID;
+            InvoiceState = purchaseWithItems?.IsPosted == true ? InvoiceState.Posted : InvoiceState.Draft;
             
             OnPropertyChanged(nameof(GrandTotal));
             
@@ -144,8 +175,11 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
+        if (!ExpiryDate.HasValue) { StatusMessage = "Expiry date is required."; return; }
         if (BonusQuantity < 0 || UnitsPerPackage <= 0) { StatusMessage = "Bonus and units-per-package values are invalid."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
+        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(ExtraDiscount)) { StatusMessage = "Extra discount must be between 0% and 100%."; return; }
+        if (ATax < 0 || ATax > 100) { StatusMessage = "Additional tax must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
         var item = new PurchaseItem
@@ -161,7 +195,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
             Quantity = TotalUnitsToStock,
             PurchasePrice = PurchasePrice,
             Discount = Discount,
-            Tax = Tax
+            Tax = Tax,
+            ExtraDiscount = ExtraDiscount,
+            ATax = ATax
         };
         // Align stored TotalAmount with the same % formula
 
@@ -179,6 +215,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         PurchasePrice = 0;
         Discount = 0;
         Tax = 0;
+        ExtraDiscount = 0;
+        ATax = 0;
         StatusMessage = string.Empty;
     }
 
@@ -230,17 +268,26 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
         {
             if (Mode == FormMode.Add)
             {
-                await Task.Run(() => _repo.Insert(p));
-                StatusMessage = "Purchase created and stock updated.";
+                _currentPurchaseId = await Task.Run(() => _repo.Insert(p));
+                p.PurchaseID = _currentPurchaseId;
+                InvoiceNumber = p.InvoiceNumber;
+                SelectedPurchase = p;
+                StatusMessage = "Draft saved. Check the invoice before posting; stock is unchanged.";
                 var supplierLabel = SelectedSupplier?.Name ?? SupplierName;
                 LogActivity("Purchase Created", $"Invoice #{p.InvoiceNumber} from {supplierLabel} — Rs. {p.TotalAmount:N2}", "Purchases");
             }
-
-            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            else if (Mode == FormMode.Edit)
+            {
+                p.PurchaseID = _currentPurchaseId;
+                await Task.Run(() => _repo.Update(p));
+                SelectedPurchase = p;
+                StatusMessage = "Draft updated. Check the invoice before posting.";
+                LogActivity("Purchase Updated", $"Draft invoice #{p.InvoiceNumber} updated", "Purchases");
+            }
 
             await InitializeAsync();
             Mode = FormMode.View;
-            ShowForm = false;
+            ShowForm = true;
             NotifyButtonStates();
         }
         catch (Exception ex)
@@ -304,6 +351,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     {
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
+        OnPropertyChanged(nameof(CanEditDraft));
+        OnPropertyChanged(nameof(CanCheckInvoice));
     }
 
     partial void OnSelectedProductChanged(Product? value)
@@ -319,4 +368,70 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable
     partial void OnQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
     partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
     partial void OnUnitsPerPackageChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
+    partial void OnPurchasePriceChanged(decimal value) => OnPropertyChanged(nameof(EffectiveRate));
+    [RelayCommand] private void QuickAddSupplier() => RequestAddSupplier?.Invoke();
+    [RelayCommand] private void QuickAddProduct() => RequestAddProduct?.Invoke();
+
+    public async Task PreselectSupplierAsync(int id)
+    {
+        Suppliers = new ObservableCollection<Supplier>(await Task.Run(_supplierRepo.GetAll));
+        SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == id); PreselectedEntityId = id;
+    }
+
+    public async Task PreselectProductAsync(int id)
+    {
+        Products = new ObservableCollection<Product>(await Task.Run(_productRepo.GetAll));
+        SelectedProduct = Products.FirstOrDefault(p => p.ProductID == id); PreselectedEntityId = id;
+    }
+
+    [RelayCommand]
+    private void CheckInvoice()
+    {
+        if (_currentPurchaseId == 0 && SelectedPurchase?.PurchaseID > 0) _currentPurchaseId = SelectedPurchase.PurchaseID;
+        if (_currentPurchaseId == 0) { StatusMessage = "Save the draft before checking it."; return; }
+        InvoiceState = InvoiceState.Checking;
+        StatusMessage = "Invoice checked. Review it, then post.";
+    }
+
+    [RelayCommand]
+    private async Task PostInvoiceAsync()
+    {
+        if (InvoiceState != InvoiceState.Checking) { CheckInvoice(); return; }
+        var id = _currentPurchaseId > 0 ? _currentPurchaseId : SelectedPurchase?.PurchaseID ?? 0;
+        if (id == 0) { StatusMessage = "Save and check the invoice first."; return; }
+        try
+        {
+            await Task.Run(() => _repo.PostPurchase(id));
+            InvoiceState = InvoiceState.Posted;
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            StatusMessage = "Purchase posted. Stock and product rates were updated.";
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Posting failed: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    private async Task PostAndAddAnotherAsync()
+    {
+        await PostInvoiceAsync();
+        if (InvoiceState == InvoiceState.Posted) await NewAsync();
+    }
+
+    [RelayCommand]
+    private void EditCheckedInvoice()
+    {
+        if (IsPostedInvoice) return;
+        InvoiceState = InvoiceState.Draft;
+        if (_currentPurchaseId > 0) Mode = FormMode.Edit;
+        NotifyButtonStates();
+        StatusMessage = "Invoice returned to draft editing.";
+    }
+    [RelayCommand]
+    private void EditDraft()
+    {
+        if (!CanEditDraft) return;
+        Mode = FormMode.Edit;
+        NotifyButtonStates();
+        StatusMessage = "Editing draft invoice.";
+    }
 }

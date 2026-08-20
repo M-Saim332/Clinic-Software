@@ -45,12 +45,11 @@ public partial class DiscountRefundViewModel : ViewModelBase
     partial void OnOriginalFeeChanged(decimal value)   => OnPropertyChanged(nameof(ComputedRefund));
     partial void OnDiscountPercentageChanged(decimal value) => OnPropertyChanged(nameof(ComputedRefund));
 
-    /// <summary>When a patient is picked from the dropdown, fill name and fee.</summary>
+    /// <summary>When a patient is picked, fill identity only; no consultation fee is inferred.</summary>
     partial void OnSelectedPatientChanged(Patient? value)
     {
         if (value == null) return;
         PatientName  = value.Name;
-        OriginalFee  = value.ConsultationFee;
     }
 
     // ── Initialization ───────────────────────────────────────────────────────

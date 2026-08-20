@@ -67,8 +67,11 @@ BEGIN
         ExpiryDate        DATE,
         PurchasePrice     DECIMAL(10,2) DEFAULT 0,
         SellingPrice      DECIMAL(10,2) DEFAULT 0,
+        TabletsPerBox     INT NOT NULL DEFAULT 1,
         Stock             INT DEFAULT 0,
-        MinimumStockLevel INT DEFAULT 0
+        MinimumStockLevel INT DEFAULT 0,
+        IsReturnable      BIT NOT NULL DEFAULT 1,
+        IsActive          BIT NOT NULL DEFAULT 1
     );
 END
 ELSE
@@ -83,8 +86,12 @@ BEGIN
     IF COL_LENGTH('Products', 'Rack') IS NULL ALTER TABLE Products ADD Rack VARCHAR(50) NULL;
     IF COL_LENGTH('Products', 'ExpiryDate') IS NULL ALTER TABLE Products ADD ExpiryDate DATE NULL;
     IF COL_LENGTH('Products', 'PurchasePrice') IS NULL ALTER TABLE Products ADD PurchasePrice DECIMAL(10,2) DEFAULT 0;
+    IF COL_LENGTH('Products', 'SellingPrice') IS NULL ALTER TABLE Products ADD SellingPrice DECIMAL(10,2) DEFAULT 0;
+    IF COL_LENGTH('Products', 'TabletsPerBox') IS NULL ALTER TABLE Products ADD TabletsPerBox INT NOT NULL DEFAULT 1;
     IF COL_LENGTH('Products', 'Stock') IS NULL ALTER TABLE Products ADD Stock INT DEFAULT 0;
     IF COL_LENGTH('Products', 'MinimumStockLevel') IS NULL ALTER TABLE Products ADD MinimumStockLevel INT DEFAULT 0;
+    IF COL_LENGTH('Products', 'IsReturnable') IS NULL ALTER TABLE Products ADD IsReturnable BIT NOT NULL DEFAULT 1;
+    IF COL_LENGTH('Products', 'IsActive') IS NULL ALTER TABLE Products ADD IsActive BIT NOT NULL DEFAULT 1;
 END
 GO
 
@@ -105,7 +112,8 @@ BEGIN
         NextAppointmentTime TIME,
         VisitStatus     VARCHAR(20) NULL,
         LastVisitDate   DATE NULL,
-        CNIC            NVARCHAR(50) NULL
+        CNIC            NVARCHAR(50) NULL,
+        IsActive        BIT NOT NULL DEFAULT 1
     );
 END
 ELSE
@@ -114,6 +122,8 @@ BEGIN
     IF COL_LENGTH('Patients', 'LastVisitDate') IS NULL ALTER TABLE Patients ADD LastVisitDate DATE NULL;
     IF COL_LENGTH('Patients', 'Age') IS NULL ALTER TABLE Patients ADD Age INT NULL;
     IF COL_LENGTH('Patients', 'Gender') IS NULL ALTER TABLE Patients ADD Gender VARCHAR(10) NULL;
+    IF COL_LENGTH('Patients', 'Phone') IS NULL ALTER TABLE Patients ADD Phone VARCHAR(50) NULL;
+    IF COL_LENGTH('Patients', 'Address') IS NULL ALTER TABLE Patients ADD Address VARCHAR(255) NULL;
     IF COL_LENGTH('Patients', 'Diagnosis') IS NULL ALTER TABLE Patients ADD Diagnosis TEXT NULL;
     IF COL_LENGTH('Patients', 'Prescription') IS NULL ALTER TABLE Patients ADD Prescription TEXT NULL;
     IF COL_LENGTH('Patients', 'ConsultationFee') IS NULL ALTER TABLE Patients ADD ConsultationFee DECIMAL(10,2) DEFAULT 0;
@@ -121,6 +131,9 @@ BEGIN
     IF COL_LENGTH('Patients', 'NextAppointmentDate') IS NULL ALTER TABLE Patients ADD NextAppointmentDate DATE NULL;
     IF COL_LENGTH('Patients', 'NextAppointmentTime') IS NULL ALTER TABLE Patients ADD NextAppointmentTime TIME NULL;
     IF COL_LENGTH('Patients', 'CNIC') IS NULL ALTER TABLE Patients ADD CNIC NVARCHAR(50) NULL;
+    IF COL_LENGTH('Patients', 'IsActive') IS NULL ALTER TABLE Patients ADD IsActive BIT NOT NULL DEFAULT 1;
+    IF COL_LENGTH('Patients', 'Phone') IS NOT NULL AND COL_LENGTH('Patients', 'Contact') IS NOT NULL
+        EXEC('UPDATE Patients SET Phone = Contact WHERE Phone IS NULL AND Contact IS NOT NULL');
 END
 GO
 
@@ -210,12 +223,16 @@ BEGIN
         PurchaseDate  DATETIME DEFAULT GETDATE(),
         SupplierID    INT FOREIGN KEY REFERENCES Suppliers(SupplierID),
         SupplierName  VARCHAR(150),
-        TotalAmount   DECIMAL(12,2) DEFAULT 0
+        TotalAmount   DECIMAL(12,2) DEFAULT 0,
+        CreatedBy     INT NULL FOREIGN KEY REFERENCES Users(UserID),
+        CreatedByName NVARCHAR(150) NULL
     );
 END
 ELSE
 BEGIN
     IF COL_LENGTH('Purchases', 'SupplierName') IS NULL ALTER TABLE Purchases ADD SupplierName VARCHAR(150) NULL;
+    IF COL_LENGTH('Purchases', 'CreatedBy') IS NULL ALTER TABLE Purchases ADD CreatedBy INT NULL FOREIGN KEY REFERENCES Users(UserID);
+    IF COL_LENGTH('Purchases', 'CreatedByName') IS NULL ALTER TABLE Purchases ADD CreatedByName NVARCHAR(150) NULL;
 END
 GO
 
@@ -228,10 +245,21 @@ BEGIN
         BatchNumber    VARCHAR(50),
         ExpiryDate     DATE,
         Quantity       INT NOT NULL,
+        BonusQuantity  INT NOT NULL DEFAULT 0,
+        PackageType    NVARCHAR(30) NOT NULL DEFAULT 'Box',
+        PackageQuantity INT NOT NULL DEFAULT 0,
+        UnitsPerPackage INT NOT NULL DEFAULT 1,
         PurchasePrice  DECIMAL(10,2),
         Discount       DECIMAL(10,2) DEFAULT 0,
         Tax            DECIMAL(5,2) DEFAULT 0
     );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('PurchaseItems', 'BonusQuantity') IS NULL ALTER TABLE PurchaseItems ADD BonusQuantity INT NOT NULL DEFAULT 0;
+    IF COL_LENGTH('PurchaseItems', 'PackageType') IS NULL ALTER TABLE PurchaseItems ADD PackageType NVARCHAR(30) NOT NULL DEFAULT 'Box';
+    IF COL_LENGTH('PurchaseItems', 'PackageQuantity') IS NULL ALTER TABLE PurchaseItems ADD PackageQuantity INT NOT NULL DEFAULT 0;
+    IF COL_LENGTH('PurchaseItems', 'UnitsPerPackage') IS NULL ALTER TABLE PurchaseItems ADD UnitsPerPackage INT NOT NULL DEFAULT 1;
 END
 GO
 
@@ -246,12 +274,18 @@ BEGIN
         ConsultationFee DECIMAL(10,2) DEFAULT 0,
         GrandTotal      DECIMAL(12,2) DEFAULT 0,
         PaymentMethod   VARCHAR(20) CHECK (PaymentMethod IN ('Cash', 'Card', 'Online')),
-        IsPosted        BIT DEFAULT 0
+        IsPosted        BIT DEFAULT 0,
+        ReceptionistId  INT NULL FOREIGN KEY REFERENCES Users(UserID),
+        ReceptionistName NVARCHAR(150) NULL,
+        IsActive        BIT NOT NULL DEFAULT 1
     );
 END
 ELSE
 BEGIN
     IF COL_LENGTH('Sales', 'PatientName') IS NULL ALTER TABLE Sales ADD PatientName VARCHAR(150) NULL;
+    IF COL_LENGTH('Sales', 'ReceptionistId') IS NULL ALTER TABLE Sales ADD ReceptionistId INT NULL FOREIGN KEY REFERENCES Users(UserID);
+    IF COL_LENGTH('Sales', 'ReceptionistName') IS NULL ALTER TABLE Sales ADD ReceptionistName NVARCHAR(150) NULL;
+    IF COL_LENGTH('Sales', 'IsActive') IS NULL ALTER TABLE Sales ADD IsActive BIT NOT NULL DEFAULT 1;
 END
 GO
 
@@ -262,10 +296,19 @@ BEGIN
         SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
         ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
         Quantity   INT NOT NULL,
+        UnitTypeSold NVARCHAR(20) NOT NULL DEFAULT 'Tablet',
+        StockQuantity INT NOT NULL DEFAULT 0,
+        UnitPrice DECIMAL(10,2) NOT NULL DEFAULT 0,
         Discount   DECIMAL(10,2) DEFAULT 0,
         Tax        DECIMAL(5,2) DEFAULT 0,
         LineTotal  DECIMAL(10,2) DEFAULT 0
     );
+END
+ELSE
+BEGIN
+    IF COL_LENGTH('SaleItems', 'UnitTypeSold') IS NULL ALTER TABLE SaleItems ADD UnitTypeSold NVARCHAR(20) NOT NULL DEFAULT 'Tablet';
+    IF COL_LENGTH('SaleItems', 'StockQuantity') IS NULL ALTER TABLE SaleItems ADD StockQuantity INT NOT NULL DEFAULT 0;
+    IF COL_LENGTH('SaleItems', 'UnitPrice') IS NULL ALTER TABLE SaleItems ADD UnitPrice DECIMAL(10,2) NOT NULL DEFAULT 0;
 END
 GO
 
@@ -278,22 +321,50 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID('Prescriptions', 'U') IS NULL
+BEGIN
+    CREATE TABLE Prescriptions (
+        PrescriptionID INT IDENTITY(1,1) PRIMARY KEY,
+        PatientID      INT NOT NULL FOREIGN KEY REFERENCES Patients(PatientID),
+        DoctorID       INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
+        VisitDate      DATETIME NOT NULL,
+        Diagnosis      NVARCHAR(MAX) NULL,
+        Notes          NVARCHAR(MAX) NULL,
+        CreatedAt      DATETIME NOT NULL DEFAULT GETDATE()
+    );
+END
+GO
+
+IF OBJECT_ID('PrescriptionItems', 'U') IS NULL
+BEGIN
+    CREATE TABLE PrescriptionItems (
+        PrescriptionItemID INT IDENTITY(1,1) PRIMARY KEY,
+        PrescriptionID     INT NOT NULL FOREIGN KEY REFERENCES Prescriptions(PrescriptionID) ON DELETE CASCADE,
+        ProductID          INT NOT NULL FOREIGN KEY REFERENCES Products(ProductID),
+        Quantity           INT NOT NULL,
+        Dosage             NVARCHAR(255) NULL
+    );
+END
+GO
+
 IF OBJECT_ID('Returns', 'U') IS NULL
 BEGIN
     CREATE TABLE Returns (
         ReturnId INT IDENTITY(1,1) PRIMARY KEY,
         ReturnNo NVARCHAR(50) NOT NULL,
-        ProductId INT NOT NULL,
+        ProductId INT NOT NULL FOREIGN KEY REFERENCES Products(ProductID),
         BatchNo NVARCHAR(50) NULL,
         Quantity INT NOT NULL,
+        UnitType NVARCHAR(20) NOT NULL DEFAULT 'Tablet',
+        StockQuantity INT NOT NULL DEFAULT 0,
         ReturnType NVARCHAR(50) NOT NULL,
         Reason NVARCHAR(200) NULL,
         Notes NVARCHAR(500) NULL,
-        PatientId INT NULL,
-        SupplierId INT NULL,
-        SaleId INT NULL,
+        PatientId INT NULL FOREIGN KEY REFERENCES Patients(PatientID),
+        SupplierId INT NULL FOREIGN KEY REFERENCES Suppliers(SupplierID),
+        SaleId INT NULL FOREIGN KEY REFERENCES Sales(SaleID),
         RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0,
-        CreatedBy INT NULL,
+        CreatedBy INT NULL FOREIGN KEY REFERENCES Users(UserID),
         CreatedAt DATETIME2 NOT NULL DEFAULT GETDATE()
     );
 END
@@ -303,6 +374,8 @@ BEGIN
     IF COL_LENGTH('Returns', 'SupplierId') IS NULL ALTER TABLE Returns ADD SupplierId INT NULL;
     IF COL_LENGTH('Returns', 'SaleId') IS NULL ALTER TABLE Returns ADD SaleId INT NULL;
     IF COL_LENGTH('Returns', 'RefundAmount') IS NULL ALTER TABLE Returns ADD RefundAmount DECIMAL(12,2) NOT NULL DEFAULT 0;
+    IF COL_LENGTH('Returns', 'UnitType') IS NULL ALTER TABLE Returns ADD UnitType NVARCHAR(20) NOT NULL DEFAULT 'Tablet';
+    IF COL_LENGTH('Returns', 'StockQuantity') IS NULL ALTER TABLE Returns ADD StockQuantity INT NOT NULL DEFAULT 0;
 END
 GO
 
@@ -362,7 +435,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_DiscountRefunds_IsComple
 GO
 
 -- ============================================================
---  SEED DATA 
+--  SEED DATA
 -- ============================================================
 IF NOT EXISTS (SELECT 1 FROM Users WHERE Username = 'admin')
 BEGIN

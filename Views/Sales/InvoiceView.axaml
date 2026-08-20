@@ -104,11 +104,6 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="12" Width="260">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="Consultation Fee:" Foreground="{DynamicResource BrushInk600}" FontSize="14"/>
-                                <TextBlock Grid.Column="1" Text="{Binding SaleData.ConsultationFee, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushInk900}" FontSize="14" FontWeight="Medium"/>
-                            </Grid>
-                            <Border Height="1" Background="{DynamicResource BrushLine}"/>
-                            <Grid ColumnDefinitions="*,Auto">
                                 <TextBlock Grid.Column="0" Text="GRAND TOTAL:" Foreground="{DynamicResource BrushInk900}" FontSize="16" FontWeight="Bold"/>
                                 <TextBlock Grid.Column="1" Text="{Binding SaleData.GrandTotal, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushPrimaryBlue}" FontSize="18" FontWeight="Bold"/>
                             </Grid>

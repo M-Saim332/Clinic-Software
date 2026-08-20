@@ -36,6 +36,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private Product? _selectedProduct;
     [ObservableProperty] private int _adjustmentQuantity;
     [ObservableProperty] private string _adjustmentReason = string.Empty;
+    [ObservableProperty] private DateTimeOffset _adjustmentDate=DateTimeOffset.Now;
 
     // Supplier Return Fields
     [ObservableProperty] private bool _isSupplierReturnModalOpen;
@@ -115,12 +116,13 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
 
         try
         {
-            await Task.Run(() => _productRepo.AddStock(SelectedProduct.ProductID, AdjustmentQuantity));
+            await Task.Run(() => _productRepo.AdjustStock(SelectedProduct.ProductID, AdjustmentQuantity, AdjustmentDate.Date));
             StatusMessage = $"Stock adjusted for {SelectedProduct.Name} by {AdjustmentQuantity}.";
             
             SelectedProduct = null;
             AdjustmentQuantity = 0;
             AdjustmentReason = string.Empty;
+            AdjustmentDate=DateTimeOffset.Now;
             
             await InitializeAsync();
         }

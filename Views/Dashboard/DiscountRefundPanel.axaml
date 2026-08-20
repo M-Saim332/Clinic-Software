@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
              xmlns:models="using:ClinicSystem.Core.Models"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Dashboard.DiscountRefundPanel"
              x:DataType="vm:DiscountRefundViewModel">
     
@@ -16,7 +17,7 @@
                 <TextBlock Text="Apply Discount &amp; Refund" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource BrushInk900}"/>
             </StackPanel>
             
-            <TextBlock Text="Apply a discount to a patient's consultation fee after they have paid."
+            <TextBlock Text="Record an approved discount or refund against an existing payment."
                        Foreground="{DynamicResource BrushInk600}" FontSize="12" TextWrapping="Wrap"/>
             
             <Separator Margin="0,4"/>
@@ -28,18 +29,13 @@
             <!-- Patient Selection -->
             <StackPanel Spacing="6">
                 <TextBlock Text="Patient" Classes="label"/>
-                <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" HorizontalAlignment="Stretch" PlaceholderText="Select Patient...">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="models:Patient">
-                            <TextBlock Text="{Binding Name}"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                <comp:SearchableComboBoxControl ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
+                    DisplayMemberPath="Name" DetailMemberPath="Phone" Placeholder="Search patient..." HorizontalAlignment="Stretch"/>
             </StackPanel>
             
             <Grid ColumnDefinitions="*,*">
                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                    <TextBlock Text="Original Fee" Classes="label"/>
+                    <TextBlock Text="Original Amount" Classes="label"/>
                     <NumericUpDown Value="{Binding OriginalFee}" FormatString="N2" Minimum="0"/>
                 </StackPanel>
                 

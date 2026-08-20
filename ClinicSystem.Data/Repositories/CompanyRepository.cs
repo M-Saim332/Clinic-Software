@@ -12,7 +12,7 @@ public class CompanyRepository
     public IEnumerable<Company> GetAll()
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Company>("SELECT * FROM Companies ORDER BY Name");
+        return conn.Query<Company>("SELECT * FROM Companies ORDER BY CCode, Name");
     }
 
     public Company? GetById(int id)
@@ -28,17 +28,28 @@ public class CompanyRepository
         return conn.Query<Company>(
             @"SELECT * FROM Companies
               WHERE Name LIKE @term OR Phone LIKE @term OR Email LIKE @term
-              ORDER BY Name",
-            new { term = $"%{term}%" });
+                 OR CCode = TRY_CONVERT(INT, @rawTerm)
+              ORDER BY CCode, Name",
+            new { term = $"%{term}%", rawTerm = term.Trim() });
+    }
+
+    public int GetNextCCode()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>("SELECT ISNULL(MAX(CCode), 0) + 1 FROM Companies");
     }
 
     public int Insert(Company c)
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<int>(
-            @"INSERT INTO Companies (Name, Address, Phone, Email)
-              VALUES (@Name, @Address, @Phone, @Email);
-              SELECT SCOPE_IDENTITY();", c);
+        using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        c.CCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(CCode), 0) + 1 FROM Companies WITH (UPDLOCK, HOLDLOCK)", transaction: tx);
+        var id = conn.ExecuteScalar<int>(
+            @"INSERT INTO Companies (CCode, Name, Address, Phone, Email)
+              VALUES (@CCode, @Name, @Address, @Phone, @Email);
+              SELECT CONVERT(INT, SCOPE_IDENTITY());", c, tx);
+        tx.Commit();
+        return id;
     }
 
     public void Update(Company c)
@@ -55,34 +66,8 @@ public class CompanyRepository
         try
         {
             using var conn = _session.CreateConnection();
-            using var tx = conn.BeginTransaction();
-
-            // Step 1: Delete SaleItems that reference Products belonging to this company
-            conn.Execute(@"
-                DELETE FROM SaleItems 
-                WHERE ProductID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
-                new { id }, tx);
-
-            // Step 2: Delete PurchaseItems for products from this company
-            conn.Execute(@"
-                DELETE FROM PurchaseItems 
-                WHERE ProductID IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
-                new { id }, tx);
-
-            // Step 3: Delete Returns for products from this company
-            conn.Execute(@"
-                DELETE FROM Returns 
-                WHERE ProductId IN (SELECT ProductID FROM Products WHERE CompanyID = @id)",
-                new { id }, tx);
-
-            // Step 4: Delete Products from this company
-            conn.Execute("DELETE FROM Products WHERE CompanyID = @id", new { id }, tx);
-
-            // Step 5: Delete the Company itself
-            conn.Execute("DELETE FROM Companies WHERE CompanyID = @id", new { id }, tx);
-
-            tx.Commit();
-            return true;
+            if (conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Products WHERE CompanyID=@id", new { id }) > 0) return false;
+            return conn.Execute("DELETE FROM Companies WHERE CompanyID=@id", new { id }) == 1;
         }
         catch (System.Exception ex)
         {

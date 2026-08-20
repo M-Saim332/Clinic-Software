@@ -12,16 +12,22 @@
     <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto,*,Auto">
             <!-- Logo / Brand -->
-            <Border Grid.Row="0" Padding="20,24" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
+            <Border Grid.Row="0" Padding="20,18" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
+                <StackPanel Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushBlue50}">
                         <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18"
                                   Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="Clinic" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="Management" FontSize="11" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontInter}"/>
+                        <TextBlock Text="MediCompare" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="{Binding CurrentSystemMode}" FontSize="11" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontInter}"/>
                     </StackPanel>
+                </StackPanel>
+                <Grid ColumnDefinitions="*,*" IsVisible="{Binding CanSwitchSystemMode}">
+                    <Button Grid.Column="0" Content="Clinical" Command="{Binding SwitchToClinicalCommand}" Padding="6" FontSize="11"/>
+                    <Button Grid.Column="1" Content="Pharma" Command="{Binding SwitchToPharmaCommand}" Padding="6" FontSize="11"/>
+                </Grid>
                 </StackPanel>
             </Border>
 
@@ -58,7 +64,7 @@
                     <Button Command="{Binding ShowProductsCommand}" Classes="navbtn" Classes.active="{Binding IsProductsActive}" IsVisible="{Binding CanAccessProducts}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <materialIcons:MaterialIcon Kind="Pill" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Products" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ProductNavigationLabel}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -131,6 +137,13 @@
                     <StackPanel Orientation="Horizontal" Spacing="12">
                         <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center"/>
                         <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <materialIcons:MaterialIcon Kind="AccountGroup" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="User Management" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 

@@ -136,6 +136,7 @@ public partial class App : Application
         services.AddSingleton<PurchaseRepository>();
         services.AddSingleton<SaleRepository>();
         services.AddSingleton<ReturnRepository>();
+        services.AddSingleton<ReturnItemRepository>();
         services.AddSingleton<DiscountRefundRepository>();
         services.AddSingleton<ActivityLogRepository>();
         services.AddSingleton<SettingsRepository>();
@@ -143,6 +144,7 @@ public partial class App : Application
         // ViewModels
         services.AddTransient<LoginViewModel>();
         services.AddSingleton<PatientRegistryViewModel>();
+        services.AddSingleton<PharmaPatientViewModel>();
         services.AddSingleton<ProductRegistryViewModel>();
         services.AddSingleton<PrescriptionViewModel>();
         services.AddSingleton<VisitHistoryViewModel>();
@@ -156,6 +158,7 @@ public partial class App : Application
         services.AddSingleton<InvoiceViewModel>();
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
+        services.AddSingleton<ClinicalDashboardViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();
@@ -186,7 +189,15 @@ public partial class App : Application
         var loginVM     = _services.GetRequiredService<LoginViewModel>();
         var loginWindow = new LoginWindow { DataContext = loginVM };
 
-        loginVM.LoginSucceeded += _ => ShowMainWindow(desktop, loginWindow);
+        loginVM.LoginSucceeded += user =>
+        {
+            if (user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist or ClinicSystem.Core.Enums.UserRole.Pharmacist)
+            {
+                var theme = _services.GetRequiredService<SettingsRepository>().GetValue("ReceptionistTheme", "System Default");
+                ClinicSystem.UI.Services.ThemeService.ApplyTheme(theme);
+            }
+            ShowMainWindow(desktop, loginWindow);
+        };
 
         desktop.MainWindow = loginWindow;
         loginWindow.Show();

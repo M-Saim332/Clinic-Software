@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
+             x:Class="ClinicSystem.UI.Views.Dashboard.ClinicalDashboardView"
+             x:DataType="vm:ClinicalDashboardViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24" Spacing="20">
+      <StackPanel Spacing="4">
+        <TextBlock Text="Clinical Dashboard" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+        <TextBlock Text="Today's appointments, waiting patients, and recent clinical activity." Foreground="{DynamicResource BrushInk500}"/>
+      </StackPanel>
+      <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+        <Border Grid.Column="0" Classes="card-section" Padding="22">
+          <StackPanel Spacing="8"><TextBlock Text="TODAY'S APPOINTMENTS" Foreground="{DynamicResource BrushInk500}"/>
+            <TextBlock Text="{Binding TodaysAppointments}" FontSize="32" FontWeight="Bold"/></StackPanel>
+        </Border>
+        <Border Grid.Column="1" Classes="card-section" Padding="22">
+          <StackPanel Spacing="8"><TextBlock Text="PATIENTS WAITING" Foreground="{DynamicResource BrushInk500}"/>
+            <TextBlock Text="{Binding PatientsWaiting}" FontSize="32" FontWeight="Bold"/></StackPanel>
+        </Border>
+      </Grid>
+      <Border Classes="card-section" Padding="20">
+        <StackPanel Spacing="12">
+          <TextBlock Text="RECENT VISITS" FontSize="16" FontWeight="Bold"/>
+          <ItemsControl ItemsSource="{Binding RecentPatients}">
+            <ItemsControl.ItemTemplate><DataTemplate>
+              <Grid ColumnDefinitions="2*,*,*" Margin="0,6">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                <TextBlock Grid.Column="1" Text="{Binding ReasonOfVisit}" Foreground="{DynamicResource BrushInk500}"/>
+                <TextBlock Grid.Column="2" Text="{Binding LastVisitDate, StringFormat='{}{0:dd MMM yyyy}'}" HorizontalAlignment="Right"/>
+              </Grid>
+            </DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

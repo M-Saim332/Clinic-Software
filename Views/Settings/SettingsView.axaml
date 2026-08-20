@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Settings"
              xmlns:userviews="using:ClinicSystem.UI.Views.Users"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Settings.SettingsView"
              x:DataType="vm:SettingsViewModel" x:CompileBindings="True"
              Background="{DynamicResource ThemeContentBackgroundBrush}">
@@ -31,7 +32,7 @@
                                    FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
                     </StackPanel>
                 </StackPanel>
-                <Button Command="{Binding SaveSettingsCommand}"
+                <Button Command="{Binding SaveSettingsCommand}" IsVisible="{Binding IsAdmin}"
                         Classes="btn-primary" DockPanel.Dock="Right"
                         HorizontalAlignment="Right" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -43,7 +44,15 @@
         </Border>
 
         <!-- ══════════════════════════ MAIN CONTENT ═════════════════════════ -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24">
+        <Border Grid.Row="1" IsVisible="{Binding !IsAdmin}" Margin="28,24" Padding="24"
+                Background="{DynamicResource ThemeCardBackgroundBrush}" BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1" CornerRadius="12">
+            <StackPanel Spacing="16" MaxWidth="520">
+                <TextBlock Text="Account Security" FontSize="20" FontWeight="Bold"/>
+                <TextBlock Text="Receptionist settings are limited to changing your own password." TextWrapping="Wrap" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                <Button Command="{Binding OpenChangePasswordCommand}" Classes="btn-primary" Content="Change My Password" HorizontalAlignment="Left"/>
+            </StackPanel>
+        </Border>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24" IsVisible="{Binding IsAdmin}">
             <StackPanel Spacing="20" MaxWidth="940" HorizontalAlignment="Left">
 
                 <!-- ── GENERAL SETTINGS ─────────────────────────────────── -->
@@ -53,42 +62,46 @@
                     <StackPanel Spacing="16">
                         <TextBlock Text="GENERAL SETTINGS" Classes="sectionLabel"/>
                         <Separator/>
-                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
+                            <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Spacing="4" Margin="0,0,0,12">
+                                <TextBlock Text="Pharmacy Name" Classes="label"/>
+                                <TextBox Text="{Binding PharmacyName}" PlaceholderText="Enter pharmacy name"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,0,12,12">
                                 <TextBlock Text="Clinic Name" Classes="label"/>
                                 <TextBox Text="{Binding ClinicName}" PlaceholderText="Enter clinic name"/>
                             </StackPanel>
-                            <StackPanel Grid.Row="0" Grid.Column="1" Spacing="4" Margin="12,0,0,12">
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" Margin="12,0,0,12">
                                 <TextBlock Text="Contact Number" Classes="label"/>
                                 <TextBox Text="{Binding ClinicPhone}" PlaceholderText="03001234567" MaxLength="11"/>
                             </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="0" Spacing="4" Margin="0,12,12,0">
+                            <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4" Margin="0,12,12,0">
                                 <TextBlock Text="Email Address" Classes="label"/>
                                 <TextBox Text="{Binding ClinicEmail}" PlaceholderText="Enter clinic email"/>
                             </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" Margin="12,12,0,0">
+                            <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4" Margin="12,12,0,0">
                                 <TextBlock Text="Physical Address" Classes="label"/>
                                 <TextBox Text="{Binding ClinicAddress}" PlaceholderText="Enter clinic physical address"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Spacing="4" Margin="0,12,0,0">
+                                <TextBlock Text="Receptionist Theme" Classes="label"/>
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding ReceptionistThemeOptions}" SelectedItem="{Binding ReceptionistTheme}" DisplayMemberPath="" Placeholder="Search theme..." Width="280" HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- ── BILLING SETTINGS ──────────────────────────────────── -->
-                <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
+                <Border Background="{DynamicResource ThemeCardBackgroundBrush}" IsVisible="False"
                         BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
                         CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
                     <StackPanel Spacing="16">
                         <TextBlock Text="BILLING SETTINGS" Classes="sectionLabel"/>
                         <Separator/>
                         <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
+                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0" IsVisible="False">
                                 <TextBlock Text="Invoice Prefix" Classes="label"/>
                                 <TextBox Text="{Binding InvoicePrefix}" PlaceholderText="e.g. INV-"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,12,0">
-                                <TextBlock Text="Default Tax Rate (%)" Classes="label"/>
-                                <NumericUpDown Value="{Binding DefaultTaxRate}" FormatString="N2" Increment="0.1"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
                                 <TextBlock Text="Currency" Classes="label"/>
@@ -106,10 +119,6 @@
                         <TextBlock Text="INVENTORY SETTINGS" Classes="sectionLabel"/>
                         <Separator/>
                         <Grid ColumnDefinitions="*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
-                                <TextBlock Text="Low Stock Threshold" Classes="label"/>
-                                <NumericUpDown Value="{Binding LowStockThreshold}" Minimum="1" Maximum="1000"/>
-                            </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
                                 <TextBlock Text="Expiry Alert Days" Classes="label"/>
                                 <NumericUpDown Value="{Binding ExpiryAlertDays}" Minimum="1" Maximum="365"/>
@@ -128,20 +137,20 @@
                         <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
                             <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                                 <TextBlock Text="Date Format" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding DateFormatOptions}"
-                                          SelectedItem="{Binding DateFormat}"
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding DateFormatOptions}"
+                                          SelectedItem="{Binding DateFormat}" DisplayMemberPath="" Placeholder="Search date format..."
                                           HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,12,0">
                                 <TextBlock Text="Time Format" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding TimeFormatOptions}"
-                                          SelectedItem="{Binding TimeFormat}"
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding TimeFormatOptions}"
+                                          SelectedItem="{Binding TimeFormat}" DisplayMemberPath="" Placeholder="Search time format..."
                                           HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
                                 <TextBlock Text="Language" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding LanguageOptions}"
-                                          SelectedItem="{Binding Language}"
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding LanguageOptions}"
+                                          SelectedItem="{Binding Language}" DisplayMemberPath="" Placeholder="Search language..."
                                           HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>

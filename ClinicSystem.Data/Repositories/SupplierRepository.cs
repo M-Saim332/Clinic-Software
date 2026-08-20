@@ -12,7 +12,7 @@ public class SupplierRepository
     public IEnumerable<Supplier> GetAll()
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Supplier>("SELECT * FROM Suppliers ORDER BY Name");
+        return conn.Query<Supplier>("SELECT * FROM Suppliers ORDER BY SCode, Name");
     }
 
     public Supplier? GetById(int id)
@@ -28,17 +28,28 @@ public class SupplierRepository
         return conn.Query<Supplier>(
             @"SELECT * FROM Suppliers
               WHERE Name LIKE @term OR Phone LIKE @term OR Email LIKE @term
-              ORDER BY Name",
-            new { term = $"%{term}%" });
+                 OR SCode = TRY_CONVERT(INT, @rawTerm)
+              ORDER BY SCode, Name",
+            new { term = $"%{term}%", rawTerm = term.Trim() });
+    }
+
+    public int GetNextSCode()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<int>("SELECT ISNULL(MAX(SCode), 0) + 1 FROM Suppliers");
     }
 
     public int Insert(Supplier s)
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<int>(
-            @"INSERT INTO Suppliers (Name, Address, Phone, Email, CNIC)
-              VALUES (@Name, @Address, @Phone, @Email, @CNIC);
-              SELECT SCOPE_IDENTITY();", s);
+        using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        s.SCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(SCode), 0) + 1 FROM Suppliers WITH (UPDLOCK, HOLDLOCK)", transaction: tx);
+        var id = conn.ExecuteScalar<int>(
+            @"INSERT INTO Suppliers (SCode, Name, Address, Phone, Email, CNIC)
+              VALUES (@SCode, @Name, @Address, @Phone, @Email, @CNIC);
+              SELECT CONVERT(INT, SCOPE_IDENTITY());", s, tx);
+        tx.Commit();
+        return id;
     }
 
     public void Update(Supplier s)
@@ -55,43 +66,12 @@ public class SupplierRepository
         try
         {
             using var conn = _session.CreateConnection();
-            using var tx = conn.BeginTransaction();
-            
-            // Cascade delete PurchaseItems for purchases from this supplier
-            conn.Execute(@"
-                DELETE FROM PurchaseItems 
-                WHERE PurchaseID IN (SELECT PurchaseID FROM Purchases WHERE SupplierID = @id)", 
-                new { id }, tx);
-                
-            // Cascade delete Purchases
-            conn.Execute("DELETE FROM Purchases WHERE SupplierID = @id", new { id }, tx);
-            
-            // Cascade delete SaleItems for products from this supplier
-            conn.Execute(@"
-                DELETE FROM SaleItems 
-                WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
-                new { id }, tx);
-                
-            // Cascade delete PurchaseItems for products from this supplier (if not already covered)
-            conn.Execute(@"
-                DELETE FROM PurchaseItems 
-                WHERE ProductID IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
-                new { id }, tx);
-
-            // Cascade delete Returns for products from this supplier or directly referencing supplier
-            conn.Execute(@"
-                DELETE FROM Returns 
-                WHERE SupplierId = @id OR ProductId IN (SELECT ProductID FROM Products WHERE SupplierID = @id)", 
-                new { id }, tx);
-
-            // Cascade delete Products
-            conn.Execute("DELETE FROM Products WHERE SupplierID = @id", new { id }, tx);
-            
-            // Delete Supplier
-            conn.Execute("DELETE FROM Suppliers WHERE SupplierID = @id", new { id }, tx);
-            
-            tx.Commit();
-            return true;
+            var referenced = conn.ExecuteScalar<int>(@"SELECT
+                (SELECT COUNT(*) FROM Purchases WHERE SupplierID=@id) +
+                (SELECT COUNT(*) FROM Products WHERE SupplierID=@id) +
+                (SELECT COUNT(*) FROM Returns WHERE SupplierId=@id)", new { id });
+            if (referenced > 0) return false;
+            return conn.Execute("DELETE FROM Suppliers WHERE SupplierID=@id", new { id }) == 1;
         }
         catch (System.Exception ex)
         {

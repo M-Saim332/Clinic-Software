@@ -69,6 +69,7 @@
                                   SelectionMode="Single" Background="Transparent" BorderThickness="0"
                                   GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
+                                <DataGridTextColumn Header="S.CODE" Binding="{Binding SCode}" Width="80"/>
                                 <DataGridTextColumn Header="SUPPLIER NAME" Binding="{Binding Name}"    Width="*"/>
                                 <DataGridTextColumn Header="PHONE"         Binding="{Binding Phone}"   Width="160"/>
                                 <DataGridTextColumn Header="EMAIL"         Binding="{Binding Email}"   Width="220"/>
@@ -175,6 +176,7 @@
         <TextBlock Text="Save Supplier" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <Button Command="{Binding AddAnotherCommand}" Classes="btn-secondary" IsVisible="{Binding ShowSaveButton}" Content="Save &amp; Add Another"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

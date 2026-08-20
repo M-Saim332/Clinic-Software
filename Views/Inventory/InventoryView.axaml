@@ -77,20 +77,15 @@
                         <StackPanel Spacing="16">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Select Product *" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
-                                          HorizontalAlignment="Stretch">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name, StringFormat='{}{0}'}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
+                                          DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search product..."/>
                             </StackPanel>
 
                             <StackPanel Spacing="6">
-                                <TextBlock Text="Quantity Change (+ to Add, - to Remove) *" Classes="label"/>
+                                <TextBlock Text="Update Stock (+ to Add, - to Remove) *" Classes="label"/>
                                 <NumericUpDown Value="{Binding AdjustmentQuantity}" FormatString="N0"/>
                             </StackPanel>
+                            <StackPanel Spacing="6"><TextBlock Text="Update Date" Classes="label"/><DatePicker SelectedDate="{Binding AdjustmentDate}"/></StackPanel>
 
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Reason for Adjustment" Classes="label"/>
@@ -118,7 +113,7 @@
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="120"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
-                                        <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
+                                        <DataGridTextColumn Header="UPDATE DATE" Binding="{Binding LastStockUpdateDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </comp:DataTableShellControl.TableContent>

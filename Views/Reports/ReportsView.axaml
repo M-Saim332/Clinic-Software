@@ -159,7 +159,7 @@
 
             <!-- Tab 4: Visit History -->
             <TabItem Header="Visit History">
-                <comp:DataTableShellControl Title="Patient Consultations &amp; Visits" RecordCount="{Binding AllVisits.Count}">
+                <comp:DataTableShellControl Title="Patient Visits" RecordCount="{Binding AllVisits.Count}">
                     <comp:DataTableShellControl.FilterToolbar>
                         <Button Command="{Binding LoadAllVisitsCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -189,7 +189,7 @@
                     <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,24">
                         <StackPanel Margin="0,0,12,0"><TextBlock Text="Start Date" FontSize="11"/><DatePicker SelectedDate="{Binding StartDate}"/></StackPanel>
                         <StackPanel Margin="0,0,12,0"><TextBlock Text="End Date" FontSize="11"/><DatePicker SelectedDate="{Binding EndDate}"/></StackPanel>
-                        <StackPanel Margin="0,0,12,0" Width="170"><TextBlock Text="Receptionist" FontSize="11"/><ComboBox ItemsSource="{Binding ReceptionistNames}" SelectedItem="{Binding SelectedReceptionist}"/></StackPanel>
+                        <StackPanel Margin="0,0,12,0" Width="210"><TextBlock Text="Receptionist" FontSize="11"/><comp:SearchableComboBoxControl ItemsSource="{Binding ReceptionistNames}" SelectedItem="{Binding SelectedReceptionist}" DisplayMemberPath="" Placeholder="Search receptionist..."/></StackPanel>
                         <Button Command="{Binding LoadFinancialsCommand}" Classes="btn-secondary">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
@@ -228,6 +228,40 @@
                         <comp:SummaryCardControl Title="Net Profit" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300"/>
                     </WrapPanel>
                 </DockPanel>
+            </TabItem>
+            <TabItem Header="Sale Invoice Summary">
+                <DockPanel Margin="0,12"><StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
+                    <DatePicker SelectedDate="{Binding StartDate}"/><DatePicker SelectedDate="{Binding EndDate}"/>
+                    <comp:SearchableComboBoxControl ItemsSource="{Binding ReceptionistNames}" SelectedItem="{Binding SelectedReceptionist}" DisplayMemberPath="" Placeholder="Search receptionist..." IsVisible="{Binding CanFilterByUser}" Width="220"/>
+                    <Button Command="{Binding LoadPharmaReportsCommand}" Content="Apply Filters" Classes="btn-secondary"/></StackPanel>
+                    <DataGrid ItemsSource="{Binding SaleInvoiceSummary}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
+                        <DataGridTextColumn Header="INVOICE NO" Binding="{Binding InvoiceNumber}" Width="150"/><DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="130"/>
+                        <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/><DataGridTextColumn Header="RECEPTIONIST" Binding="{Binding ReceptionistName}" Width="180"/>
+                        <DataGridTextColumn Header="TOTAL" Binding="{Binding GrandTotal, StringFormat='Rs. {0:N2}'}" Width="140"/></DataGrid.Columns></DataGrid>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Best Selling Products">
+                <DockPanel Margin="0,12"><Button DockPanel.Dock="Top" Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                    <DataGrid ItemsSource="{Binding BestSellingProducts}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
+                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/><DataGridTextColumn Header="PIECES SOLD" Binding="{Binding PiecesSold}" Width="150"/>
+                        <DataGridTextColumn Header="REVENUE" Binding="{Binding Revenue, StringFormat='Rs. {0:N2}'}" Width="170"/></DataGrid.Columns></DataGrid>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Company-wise Sale">
+                <DockPanel Margin="0,12"><Button DockPanel.Dock="Top" Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                    <DataGrid ItemsSource="{Binding CompanyWiseSales}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
+                        <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="*"/><DataGridTextColumn Header="PIECES" Binding="{Binding PiecesSold}" Width="110"/>
+                        <DataGridTextColumn Header="SALES" Binding="{Binding Revenue, StringFormat='Rs. {0:N2}'}" Width="150"/><DataGridTextColumn Header="COST" Binding="{Binding Cost, StringFormat='Rs. {0:N2}'}" Width="150"/>
+                        <DataGridTextColumn Header="PROFIT" Binding="{Binding Profit, StringFormat='Rs. {0:N2}'}" Width="150"/></DataGrid.Columns></DataGrid>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="P&amp;L Summary">
+                <WrapPanel Margin="0,20">
+                    <comp:SummaryCardControl Title="Revenue" Value="{Binding TotalRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="280" Margin="0,0,16,16"/>
+                    <comp:SummaryCardControl Title="Purchases" Value="{Binding TotalExpenses, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushRose}" Width="280" Margin="0,0,16,16"/>
+                    <comp:SummaryCardControl Title="Returns" Value="{Binding TotalReturns, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushAmber}" Width="280" Margin="0,0,16,16"/>
+                    <comp:SummaryCardControl Title="Net Profit / Loss" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300"/>
+                </WrapPanel>
             </TabItem>
         </TabControl>
 

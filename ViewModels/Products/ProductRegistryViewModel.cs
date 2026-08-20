@@ -10,8 +10,12 @@ namespace ClinicSystem.UI.ViewModels.Products;
 
 public enum FormMode { View, Add, Edit }
 
-public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
+public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INavigationContext
 {
+    public event Action? RequestAddCompany;
+    public event Action<Product>? ProductSaved;
+    public int? PreselectedEntityId { get; set; }
+    public Action<int>? ReturnToCaller { get; set; }
     private readonly ProductRepository _repo;
     private readonly CompanyRepository _companyRepo;
     private readonly ReturnRepository _returnRepo;
@@ -35,7 +39,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _totalInventoryValue = "Rs. 0.00";
 
     public string MutationEnabled_str => Mode.ToString();
-    public bool MutationEnabled => Mode == FormMode.View;
+    public bool CanManageProducts => CurrentUser?.IsAdmin == true || CurrentUser?.UserRole != ClinicSystem.Core.Enums.UserRole.Doctor;
+    public bool MutationEnabled => Mode == FormMode.View && CanManageProducts;
     public bool SaveCancelEnabled => Mode != FormMode.View;
 
     // ── Tab selection ──────────────────────────────────────────────────
@@ -49,9 +54,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     // Companies for selection ComboBox
     [ObservableProperty] private ObservableCollection<Company> _companies = new();
     [ObservableProperty] private Company? _selectedCompany;
+    [ObservableProperty] private Company? _companyFilter;
 
     // Fields
     [ObservableProperty] private string _name = string.Empty;
+    [ObservableProperty] private int _pCode;
     [ObservableProperty] private string _genericName = string.Empty;
     [ObservableProperty] private string _type = string.Empty;
     [ObservableProperty] private string _category = string.Empty;
@@ -110,6 +117,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task EditSpecificAsync(Product product)
     {
+        if (!CanManageProducts) { StatusMessage = "The doctor's drug inventory is read-only."; return; }
         if (product == null) return;
         SelectedProduct = product;
         var comps = await Task.Run(() => _companyRepo.GetAll());
@@ -124,6 +132,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private void RequestDeleteSpecific(Product product)
     {
+        if (!CanManageProducts) { StatusMessage = "The doctor's drug inventory is read-only."; return; }
         if (product == null) return;
         PendingDeleteProduct = product;
         ShowDeleteConfirm = true;
@@ -199,27 +208,21 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     private async Task SaveAsync()
     {
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
+        if (SelectedCompany == null) { StatusMessage = "Select a company before adding a product."; return; }
         if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid purchase price."; return; }
         if (!decimal.TryParse(SellingPrice, out var sell) || sell < 0) { StatusMessage = "Enter a valid selling price."; return; }
         if (!int.TryParse(Stock, out var stock) || stock < 0) { StatusMessage = "Enter valid stock."; return; }
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
-        if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Tablets per box must be at least 1."; return; }
+        if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Pieces per unit must be at least 1."; return; }
 
         var m = BuildProduct();
         try
         {
             await Task.Run(() =>
             {
-                if (m.CompanyID == null && !string.IsNullOrWhiteSpace(m.CompanyName))
-                {
-                    var newCompany = new Company { Name = m.CompanyName, Phone = string.Empty, Email = string.Empty, Address = string.Empty };
-                    var newId = _companyRepo.Insert(newCompany);
-                    m.CompanyID = newId;
-                }
-
                 if (Mode == FormMode.Add)
                 {
-                    _repo.Insert(m);
+                    m.ProductID = _repo.Insert(m);
                 }
                 else
                 {
@@ -236,7 +239,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
             
             Mode = FormMode.View;
             NotifyButtonStates();
-            _ = InitializeAsync();
+            await InitializeAsync();
+            ProductSaved?.Invoke(m);
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
         }
         catch (Exception ex)
@@ -255,6 +259,22 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand] private void Find() { ShowList = !ShowList; FilterProducts(); }
+    [RelayCommand] private void QuickAddCompany() => RequestAddCompany?.Invoke();
+    [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (Mode == FormMode.View) NewCommand.Execute(null);
+    }
+
+    public async Task PreselectCompanyAsync(int companyId)
+    {
+        Companies = new ObservableCollection<Company>(await Task.Run(_companyRepo.GetAll));
+        if (Mode == FormMode.View) NewCommand.Execute(null);
+        SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == companyId);
+        PreselectedEntityId = companyId;
+    }
     [RelayCommand] private void List() { ShowList = true; FilterProducts(); }
     [RelayCommand] private void CloseList() => ShowList = false;
 
@@ -268,6 +288,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     }
 
     partial void OnSearchTermChanged(string value) => FilterProducts();
+    partial void OnCompanyFilterChanged(Company? value) => FilterProducts();
+    [RelayCommand] private void ClearCompanyFilter() => CompanyFilter = null;
 
     // ── Return Commands ────────────────────────────────────────────────
     /// <summary>Open modal to return a product back FROM a patient (stock increases, revenue decreases).</summary>
@@ -334,11 +356,14 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
             ProductId   = ReturnTargetProduct.ProductID,
             BatchNo     = ReturnTargetProduct.BatchNumber ?? string.Empty,
             Quantity    = ReturnQuantity,
+            StockQuantity = ReturnQuantity,
+            UnitType = "Pieces",
             ReturnType  = ReturnType,
             Reason      = ReturnReason,
             RefundAmount = refundAmount,
             CreatedBy   = CurrentUser?.UserID,
-            CreatedAt   = DateTime.Now
+            CreatedAt   = DateTime.Now,
+            IsPosted = true
         };
 
         try
@@ -372,6 +397,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
             2 => Products.Where(m => !m.IsExpired && m.Stock > 0), // unsold = has stock, not expired, no sales reduction (approximate by stock > 0)
             _ => Products
         };
+        if (CompanyFilter != null) source = source.Where(m => m.CompanyID == CompanyFilter.CompanyID);
 
         if (string.IsNullOrWhiteSpace(SearchTerm))
             FilteredProducts = new ObservableCollection<Product>(source);
@@ -383,12 +409,15 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
                     m.Name.ToLower().Contains(t) ||
                     (m.GenericName?.ToLower().Contains(t) ?? false) ||
                     (m.CompanyName?.ToLower().Contains(t) ?? false) ||
+                    m.PCode.ToString().Contains(t) ||
+                    (m.CompanyID.HasValue && Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID)?.CCode.ToString().Contains(t) == true) ||
                     (m.BatchNumber?.ToLower().Contains(t) ?? false)));
         }
     }
 
     private void ClearFields()
     {
+        PCode = 0;
         Name = string.Empty;
         GenericName = string.Empty;
         Type = string.Empty;
@@ -408,6 +437,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
 
     private void FillFields(Product m)
     {
+        PCode = m.PCode;
         Name = m.Name;
         GenericName = m.GenericName ?? string.Empty;
         Type = m.Type ?? string.Empty;
@@ -427,6 +457,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
 
     private Product BuildProduct() => new()
     {
+        PCode = PCode,
         Name = Name,
         GenericName = string.IsNullOrWhiteSpace(GenericName) ? null : GenericName.Trim(),
         Type = string.IsNullOrWhiteSpace(Type) ? null : Type.Trim(),
@@ -453,6 +484,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable
     partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnSellingPriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
+    partial void OnSelectedCompanyChanged(Company? value)
+    {
+        CompanyName=value?.Name ?? string.Empty;
+        PCode=value==null ? 0 : _repo.GetNextPCode(value.CompanyID);
+    }
 
     private void NotifyCalculatedTotals()
     {

@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using ClinicSystem.Core.Models;
 
 
 namespace ClinicSystem.UI.ViewModels;
@@ -34,6 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     // ── Injected ViewModels ────────────────────────────────────────────────
     private readonly DashboardViewModel        _dashboardVM;
+    private readonly ClinicalDashboardViewModel _clinicalDashboardVM;
     private readonly PatientRegistryViewModel  _patientVM;
     private readonly ProductRegistryViewModel _productVM;
     private readonly PrescriptionViewModel     _prescriptionVM;
@@ -52,11 +54,15 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ProfileViewModel          _profileVM;
     private readonly ReturnsViewModel          _returnsVM;
     private readonly DatabaseSession           _dbSession;
+    private Action<Company>? _pendingCompanyReturn;
+    private Action<Supplier>? _pendingSupplierReturn;
+    private Action<Product>? _pendingProductReturn;
 
     public ChangePasswordViewModel ChangePasswordVM { get; }
 
     public MainWindowViewModel(
         DashboardViewModel        dashboardVM,
+        ClinicalDashboardViewModel clinicalDashboardVM,
         PatientRegistryViewModel  patientVM,
         ProductRegistryViewModel productVM,
         PrescriptionViewModel     prescriptionVM,
@@ -78,6 +84,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DatabaseSession           dbSession)
     {
         _dashboardVM    = dashboardVM;
+        _clinicalDashboardVM = clinicalDashboardVM;
         _patientVM      = patientVM;
         _productVM     = productVM;
         _prescriptionVM = prescriptionVM;
@@ -124,8 +131,34 @@ public partial class MainWindowViewModel : ViewModelBase
             _appointmentVM.PreselectPatient(patient);
         };
 
-        // Start on the first available page
-        if (CanAccessDashboard) NavigateTo(_dashboardVM, "Dashboard");
+        _productVM.RequestAddCompany += () =>
+        {
+            _pendingCompanyReturn = async company => { NavigateTo(_productVM, "Products"); await _productVM.PreselectCompanyAsync(company.CompanyID); };
+            NavigateTo(_companyVM, "Companies"); _companyVM.NewCommand.Execute(null);
+        };
+        _purchaseVM.RequestAddSupplier += () =>
+        {
+            _pendingSupplierReturn = async supplier => { NavigateTo(_purchaseVM, "Purchases"); await _purchaseVM.PreselectSupplierAsync(supplier.SupplierID); };
+            NavigateTo(_supplierVM, "Suppliers"); _supplierVM.NewCommand.Execute(null);
+        };
+        _purchaseVM.RequestAddProduct += () =>
+        {
+            _pendingProductReturn = async product => { NavigateTo(_purchaseVM, "Purchases"); await _purchaseVM.PreselectProductAsync(product.ProductID); };
+            NavigateTo(_productVM, "Products"); _productVM.NewCommand.Execute(null);
+        };
+        _saleVM.RequestAddProduct += () =>
+        {
+            _pendingProductReturn = async product => { NavigateTo(_saleVM, "Sales & Billing"); await _saleVM.PreselectProductAsync(product.ProductID); };
+            NavigateTo(_productVM, "Products"); _productVM.NewCommand.Execute(null);
+        };
+        _companyVM.CompanySaved += company => { var callback=_pendingCompanyReturn; _pendingCompanyReturn=null; callback?.Invoke(company); };
+        _supplierVM.SupplierSaved += supplier => { var callback=_pendingSupplierReturn; _pendingSupplierReturn=null; callback?.Invoke(supplier); };
+        _productVM.ProductSaved += product => { var callback=_pendingProductReturn; _pendingProductReturn=null; callback?.Invoke(product); };
+
+        CurrentSystemMode = CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Doctor ? "Clinical" : "Pharma";
+
+        // Start on the role's dashboard.
+        if (CanAccessDashboard) NavigateTo(CurrentSystemMode == "Clinical" ? _clinicalDashboardVM : _dashboardVM, "Dashboard");
         else if (CanAccessPatients) NavigateTo(_patientVM, "Patients");
         else if (CanAccessAppointments) NavigateTo(_appointmentVM, "Appointments");
         else if (CanAccessPurchases) NavigateTo(_purchaseVM, "Purchases");
@@ -151,6 +184,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _returnsVM.InitializeAsync();
                 await _settingsVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
+                await _clinicalDashboardVM.InitializeAsync();
                 
                 // Load Clinic Name for the top bar
                 var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>("SELECT SettingValue FROM Settings WHERE SettingKey = 'ClinicName'") ?? "Care & Cure Clinic");
@@ -195,6 +229,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool   _isLoading;
     [ObservableProperty] private string _alertMessage = string.Empty;
     [ObservableProperty] private bool   _showAlert;
+    [ObservableProperty] private string _currentSystemMode = "Pharma";
+
+    public bool IsClinicalMode => CurrentSystemMode == "Clinical";
+    public bool IsPharmaMode => CurrentSystemMode == "Pharma";
+    public bool CanSwitchSystemMode => CurrentUser?.IsAdmin ?? false;
+    public string ProductNavigationLabel => IsClinicalMode ? "Drugs" : "Products";
+
+    partial void OnCurrentSystemModeChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsClinicalMode));
+        OnPropertyChanged(nameof(IsPharmaMode));
+        OnPropertyChanged(nameof(ProductNavigationLabel));
+        NotifyAccessChanged();
+    }
 
     [ObservableProperty] private string _searchText = string.Empty;
     public string SearchPlaceholder => (CurrentPageViewModel as ISearchable)?.SearchPlaceholder ?? "Search...";
@@ -219,19 +267,22 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsAdmin            => CurrentUser?.IsAdmin ?? false;
 
     // Module Access properties for UI binding
-    public bool CanAccessDashboard    => CurrentUser?.HasAccess("Dashboard") ?? false;
-    public bool CanAccessPatients     => CurrentUser?.HasAccess("Patients") ?? false;
-    public bool CanAccessAppointments => CurrentUser?.HasAccess("Appointments") ?? false;
-    public bool CanAccessProducts     => CurrentUser?.HasAccess("Products") ?? false;
-    public bool CanAccessCompanies    => CurrentUser?.HasAccess("Companies") ?? false;
-    public bool CanAccessSuppliers    => CurrentUser?.HasAccess("Suppliers") ?? false;
-    public bool CanAccessPurchases    => CurrentUser?.HasAccess("Purchases") ?? false;
-    public bool CanAccessSales        => CurrentUser?.HasAccess("Sales") ?? false;
-    public bool CanAccessInventory    => CurrentUser?.HasAccess("Inventory") ?? false;
-    public bool CanAccessReports      => CurrentUser?.HasAccess("Reports") ?? false;
-    public bool CanAccessReturns      => CurrentUser?.HasAccess("Returns") ?? false;
-    public bool CanAccessUsers        => CurrentUser?.IsAdmin ?? false;
-    public bool CanAccessSettings     => CurrentUser?.HasAccess("Settings") ?? true;
+    public bool CanAccessDashboard    => true;
+    public bool CanAccessPatients     => IsClinicalMode && (CurrentUser?.IsDoctor ?? false);
+    public bool CanAccessAppointments => IsClinicalMode && (CurrentUser?.IsDoctor ?? false);
+    public bool CanAccessProducts     => IsClinicalMode ? (CurrentUser?.IsDoctor ?? false) : HasPharmaAccess("Products");
+    public bool CanAccessCompanies    => IsPharmaMode && HasPharmaAccess("Companies");
+    public bool CanAccessSuppliers    => IsPharmaMode && HasPharmaAccess("Suppliers");
+    public bool CanAccessPurchases    => IsPharmaMode && HasPharmaAccess("Purchases");
+    public bool CanAccessSales        => IsPharmaMode && HasPharmaAccess("Sales");
+    public bool CanAccessInventory    => IsPharmaMode && HasPharmaAccess("Inventory");
+    public bool CanAccessReports      => IsPharmaMode && HasPharmaAccess("Reports");
+    public bool CanAccessReturns      => IsPharmaMode && HasPharmaAccess("Returns");
+    public bool CanAccessUsers        => IsPharmaMode && (CurrentUser?.IsAdmin ?? false);
+    public bool CanAccessSettings     => IsPharmaMode && HasPharmaAccess("Settings");
+
+    private bool HasPharmaAccess(string module) => CurrentUser?.IsAdmin == true ||
+        ((CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Receptionist || CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Pharmacist) && CurrentUser.HasAccess(module));
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
@@ -272,6 +323,7 @@ public partial class MainWindowViewModel : ViewModelBase
             case "Dashboard":    IsDashboardActive    = true; break;
             case "Patients":     IsPatientsActive     = true; break;
             case "Products":    IsProductsActive    = true; break;
+            case "Drugs":       IsProductsActive    = true; break;
             case "Companies":    IsCompaniesActive    = true; break;
             case "Suppliers":    IsSuppliersActive    = true; break;
 
@@ -296,9 +348,13 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
-    [RelayCommand] private void ShowDashboard()    { NavigateTo(_dashboardVM,    "Dashboard");    _ = _dashboardVM.InitializeAsync(); }
+    [RelayCommand] private void ShowDashboard()
+    {
+        if (IsClinicalMode) { NavigateTo(_clinicalDashboardVM, "Dashboard"); _ = _clinicalDashboardVM.InitializeAsync(); }
+        else { NavigateTo(_dashboardVM, "Dashboard"); _ = _dashboardVM.InitializeAsync(); }
+    }
     [RelayCommand] private void ShowPatients()     { NavigateTo(_patientVM,      "Patients");     _ = _patientVM.InitializeAsync(); }
-    [RelayCommand] private void ShowProducts()    { NavigateTo(_productVM,     "Products");    _ = _productVM.InitializeAsync(); }
+    [RelayCommand] private void ShowProducts()    { NavigateTo(_productVM, ProductNavigationLabel); _ = _productVM.InitializeAsync(); }
     [RelayCommand] private void ShowCompanies()    { NavigateTo(_companyVM,      "Companies");    _ = _companyVM.InitializeAsync(); }
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
  
@@ -314,6 +370,31 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _profileVM.LoadFromCurrentUser();
         NavigateTo(_profileVM, "Profile");
+    }
+
+    [RelayCommand]
+    private void SwitchToClinical()
+    {
+        if (!CanSwitchSystemMode) return;
+        CurrentSystemMode = "Clinical";
+        ShowDashboard();
+    }
+
+    [RelayCommand]
+    private void SwitchToPharma()
+    {
+        if (!CanSwitchSystemMode) return;
+        CurrentSystemMode = "Pharma";
+        ShowDashboard();
+    }
+
+    private void NotifyAccessChanged()
+    {
+        foreach (var property in new[] { nameof(CanAccessDashboard), nameof(CanAccessPatients), nameof(CanAccessAppointments),
+            nameof(CanAccessProducts), nameof(CanAccessCompanies), nameof(CanAccessSuppliers), nameof(CanAccessPurchases),
+            nameof(CanAccessSales), nameof(CanAccessReturns), nameof(CanAccessInventory), nameof(CanAccessReports),
+            nameof(CanAccessUsers), nameof(CanAccessSettings), nameof(HasManagementAccess), nameof(HasTransactionsAccess),
+            nameof(HasAnalysisAccess), nameof(HasUserSettingsAccess) }) OnPropertyChanged(property);
     }
 
     [RelayCommand]
