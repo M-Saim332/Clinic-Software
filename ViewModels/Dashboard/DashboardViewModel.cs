@@ -116,7 +116,6 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     [ObservableProperty] private string _summaryTotalRevenue      = "Rs. 0.00";
     [ObservableProperty] private string _summaryTotalProfit       = "Rs. 0.00";
     [ObservableProperty] private string _totalStockValue          = "Rs. 0.00";
-    [ObservableProperty] private string _totalConsultationFee     = "Rs. 0.00";
 
     // ── Charts Data ────────────────────────────────────────────────────────
     [ObservableProperty] private ISeries[] _profitSeries  = Array.Empty<ISeries>();
@@ -164,12 +163,6 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             int todayPatientsCount = await Task.Run(() => _appointmentRepo.GetTodayDistinctPatientCount());
             
             decimal stockValue = await Task.Run(() => _productRepo.GetTotalStockValue());
-            decimal patientConsultFee = await Task.Run(() => _patientRepo.GetTotalConsultationFee());
-            decimal salesConsultFee = await Task.Run(() => _saleRepo.GetTotalConsultationFee());
-            
-            // Avoid double counting if they create sales for patients. 
-            // If they only use the Patients tab, salesConsultFee will be 0.
-            decimal totalConsultFee = Math.Max(patientConsultFee, salesConsultFee);
             
             var lowStock = await Task.Run(() => _productRepo.GetLowStock().Take(6).ToList());
             var expiringSoon = await Task.Run(() => _productRepo.GetExpiringSoon(30).Take(6).ToList());
@@ -198,7 +191,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             var revenueData = new List<double>();
             var profitData  = new List<double>();
 
-            double totalRevenue = 0, totalCogs = 0, totalConsultations = 0, totalRefunds = 0, totalSupplierCredits = 0;
+            double totalRevenue = 0, totalCogs = 0, totalRefunds = 0, totalSupplierCredits = 0;
 
             for (int i = 0; i < 30; i++)
             {
@@ -206,12 +199,11 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 // Show every 3rd label to avoid clutter
                 dateLabels.Add(i % 3 == 0 ? d.ToString("MMM dd") : "");
 
-                double daySales = 0, dayCons = 0, dayCogs = 0, dayRefunds = 0;
+                double daySales = 0, dayCogs = 0, dayRefunds = 0;
 
                 if (dailySales.TryGetValue(d, out var saleData))
                 {
                     daySales = (double)saleData.Revenue;
-                    dayCons  = (double)saleData.Consultation;
                 }
 
                 if (dailyCogs.TryGetValue(d, out var cogsTotal))
@@ -235,13 +227,12 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                     daySupplierCredits = (double)supplierReturns;
                 }
 
-                // Revenue line = total billed (incl. consultation)
+                // Revenue line = posted product sales.
                 revenueData.Add(daySales);
                 // Profit line = revenue minus cost of goods sold and refunds
                 profitData.Add(Math.Max(0, daySales - dayCogs - dayRefunds + daySupplierCredits));
 
                 totalRevenue         += daySales;
-                totalConsultations   += dayCons;
                 totalCogs            += dayCogs;
                 totalRefunds         += dayRefunds;
                 totalSupplierCredits += daySupplierCredits;
@@ -291,7 +282,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
 
             // Donut/Pie series for revenue overview
             // Calculate real values from live data instead of hardcoded percentages
-            double productSalesValue = Math.Max(0, totalRevenue - totalConsultations);
+            double productSalesValue = Math.Max(0, totalRevenue);
             var donutSeries = new ISeries[]
             {
                 new PieSeries<double>
@@ -299,13 +290,6 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                     Values         = new double[] { productSalesValue },
                     Name           = "Product Sales",
                     Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
-                    InnerRadius    = 80
-                },
-                new PieSeries<double>
-                {
-                    Values         = new double[] { totalConsultations },
-                    Name           = "Consultation",
-                    Fill           = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
                     InnerRadius    = 80
                 },
                 new PieSeries<double>
@@ -337,7 +321,6 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 SummaryTotalRevenue    = $"Rs. {totalRevenue:N2}";
                 SummaryTotalProfit     = $"Rs. {totalProfit:N2}";
                 TotalStockValue        = $"Rs. {stockValue:N2}";
-                TotalConsultationFee   = $"Rs. {totalConsultFee:N2}";
 
                 LowStockProducts     = new ObservableCollection<Product>(lowStock);
                 ExpiringSoonProducts = new ObservableCollection<Product>(expiringSoon);

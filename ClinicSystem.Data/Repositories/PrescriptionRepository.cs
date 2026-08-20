@@ -61,7 +61,7 @@ public class PrescriptionRepository
         return prescription;
     }
 
-    /// <summary>Inserts a prescription with its items and decrements stock atomically.</summary>
+    /// <summary>Inserts the doctor's drug selection. Dispensing and stock deduction happen in posted sales.</summary>
     public int Insert(Prescription prescription)
     {
         using var conn = _session.CreateConnection();
@@ -83,10 +83,6 @@ public class PrescriptionRepository
                       VALUES (@PrescriptionID, @ProductID, @Quantity, @Dosage)",
                     item, tx);
 
-                // Decrement stock
-                conn.Execute(
-                    "UPDATE Products SET Stock = Stock - @Quantity WHERE ProductID = @ProductID",
-                    new { item.Quantity, item.ProductID }, tx);
             }
 
             tx.Commit();

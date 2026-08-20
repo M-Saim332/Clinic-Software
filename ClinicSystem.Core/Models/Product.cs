@@ -3,6 +3,7 @@ namespace ClinicSystem.Core.Models;
 public class Product
 {
     public int ProductID { get; set; }
+    public int PCode { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? GenericName { get; set; }
     public string? Barcode { get; set; }
@@ -12,19 +13,22 @@ public class Product
     public string? SupplierName { get; set; }
     public string? BatchNumber { get; set; }
     public string? Type { get; set; }
-    public string? Category { get; set; }
+    public string? Packing { get; set; }
+    public string? Category { get => Packing; set => Packing = value; }
     public string? Rack { get; set; }
     public DateTime? ExpiryDate { get; set; }
     public decimal PurchasePrice { get; set; }
     public decimal SellingPrice { get; set; }
-    public int TabletsPerBox { get; set; } = 1;
+    public int PiecesPerUnit { get; set; } = 1;
+    public int TabletsPerBox { get => PiecesPerUnit; set => PiecesPerUnit = value; }
     public int Stock { get; set; }
     public int MinimumStockLevel { get; set; } = 10;
     public bool IsReturnable { get; set; } = true;
     public bool IsActive { get; set; } = true;
+    public DateTime? LastStockUpdateDate { get; set; }
 
-    public decimal PricePerTablet => TabletsPerBox > 0
-        ? Math.Round(SellingPrice / TabletsPerBox, 2, MidpointRounding.AwayFromZero)
+    public decimal PricePerTablet => PiecesPerUnit > 0
+        ? Math.Round(SellingPrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
         : 0;
 
     // Alias properties used by XAML bindings in Reports view

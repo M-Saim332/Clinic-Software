@@ -48,6 +48,9 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private ObservableCollection<Product> _expiredProducts = new();
     [ObservableProperty] private ObservableCollection<Product> _lowStockProducts = new();
     [ObservableProperty] private ObservableCollection<Prescription> _allVisits = new();
+    [ObservableProperty] private ObservableCollection<SaleInvoiceSummaryRow> _saleInvoiceSummary = new();
+    [ObservableProperty] private ObservableCollection<BestSellingProductRow> _bestSellingProducts = new();
+    [ObservableProperty] private ObservableCollection<CompanySaleRow> _companyWiseSales = new();
     
     [ObservableProperty] private decimal _totalRevenue;
     [ObservableProperty] private decimal _totalExpenses;
@@ -61,6 +64,7 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private DateTimeOffset _endDate = new(DateTime.Today);
     [ObservableProperty] private ObservableCollection<string> _receptionistNames = new() { "All" };
     [ObservableProperty] private string _selectedReceptionist = "All";
+    public bool CanFilterByUser => CurrentUser?.IsAdmin ?? false;
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -77,7 +81,7 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     private async Task LoadPatientListAsync()
     {
         IsBusy = true;
-        PatientList = new ObservableCollection<Patient>(await Task.Run(_patientRepo.GetAll));
+        PatientList = new ObservableCollection<Patient>(await Task.Run(() => _patientRepo.GetAll()));
         StatusMessage = $"{PatientList.Count} patients.";
         IsBusy = false;
     }
@@ -129,7 +133,9 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             if (EndDate.Date < StartDate.Date) { StatusMessage = "End date cannot be before start date."; return; }
             var from = StartDate.Date;
             var to = EndDate.Date.AddDays(1);
-            var receptionist = SelectedReceptionist == "All" ? null : SelectedReceptionist;
+            var receptionist = CurrentUser?.IsAdmin == true
+                ? (SelectedReceptionist == "All" ? null : SelectedReceptionist)
+                : CurrentUser?.DisplayName;
             var sales = await Task.Run(() => _saleRepo.GetByRange(from, to, receptionist));
             var itemMetrics = await Task.Run(() => _saleRepo.GetItemMetricsByRange(from, to, receptionist));
             var purchaseTotal = await Task.Run(() => _purchaseRepo.GetTotalByRange(from, to));
@@ -152,6 +158,33 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         finally { IsBusy = false; }
     }
 
+    [RelayCommand]
+    private async Task LoadPharmaReportsAsync()
+    {
+        IsBusy=true;
+        try
+        {
+            var from=StartDate.Date; var to=EndDate.Date.AddDays(1);
+            int? userId = CurrentUser?.IsAdmin == true
+                ? (SelectedReceptionist == "All" ? null : await Task.Run(() => _saleRepo.GetReceptionistIdByName(SelectedReceptionist)))
+                : CurrentUser?.UserID;
+            var invoices=await Task.Run(() => _saleRepo.GetInvoiceSummary(from,to,userId));
+            var best=await Task.Run(() => _saleRepo.GetBestSellingProducts(from,to,userId));
+            var companies=await Task.Run(() => _saleRepo.GetCompanyWiseSales(from,to,userId));
+            SaleInvoiceSummary=new ObservableCollection<SaleInvoiceSummaryRow>(invoices);
+            BestSellingProducts=new ObservableCollection<BestSellingProductRow>(best);
+            CompanyWiseSales=new ObservableCollection<CompanySaleRow>(companies);
+            if (CurrentUser?.IsAdmin == true)
+            {
+                var names=await Task.Run(_saleRepo.GetReceptionistNames);
+                ReceptionistNames=new ObservableCollection<string>(new[]{"All"}.Concat(names));
+            }
+            StatusMessage=$"Loaded {SaleInvoiceSummary.Count} posted invoice(s).";
+        }
+        catch(Exception ex){StatusMessage=$"Failed to load pharma reports: {ex.Message}";}
+        finally{IsBusy=false;}
+    }
+
     partial void OnSelectedTabIndexChanged(int value)
     {
         _ = value switch
@@ -161,6 +194,10 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             2 => LoadExpiredLowStockAsync(),
             3 => LoadAllVisitsAsync(),
             4 => LoadFinancialsAsync(),
+            5 => LoadPharmaReportsAsync(),
+            6 => LoadPharmaReportsAsync(),
+            7 => LoadPharmaReportsAsync(),
+            8 => LoadFinancialsAsync(),
             _ => Task.CompletedTask
         };
     }

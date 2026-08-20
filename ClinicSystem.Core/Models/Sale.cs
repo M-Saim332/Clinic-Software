@@ -6,10 +6,11 @@ public class Sale
     public string InvoiceNumber { get; set; } = string.Empty;
     public DateTime SaleDate { get; set; } = DateTime.Now;
     public int? PatientID { get; set; }
-    public decimal ConsultationFee { get; set; }
+    public decimal SalesTax { get; set; }
     public decimal GrandTotal { get; set; }
     public string? PaymentMethod { get; set; }
     public bool IsPosted { get; set; }
+    public DateTime? PostedAt { get; set; }
     public int? ReceptionistId { get; set; }
     public string? ReceptionistName { get; set; }
     public bool IsActive { get; set; } = true;

@@ -37,7 +37,7 @@
                         <Button Command="{Binding RequestDeleteAllCommand}" Classes="btn-danger" IsVisible="{Binding IsAdmin}">
                             <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="DeleteSweep" Width="18" Height="18"/><TextBlock Text="Archive All"/></StackPanel>
                         </Button>
-                        <Button Command="{Binding NewCommand}" Classes="btn-primary">
+                        <Button Command="{Binding NewCommand}" Classes="btn-primary" IsVisible="{Binding CanManageProducts}">
                             <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Plus" Width="18" Height="18"/><TextBlock Text="Add Product"/></StackPanel>
                         </Button>
                     </StackPanel>
@@ -71,6 +71,14 @@
                 <TabItem Header="All Products" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Product Inventory" RecordCount="{Binding FilteredProducts.Count}" Margin="0,12,0,0">
 
+                        <comp:DataTableShellControl.FilterToolbar>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <comp:SearchableComboBoxControl Width="330" ItemsSource="{Binding Companies}" SelectedItem="{Binding CompanyFilter}"
+                                    DisplayMemberPath="Name" DetailMemberPath="CCode" Placeholder="Company first: search by CCode or name"/>
+                                <Button Command="{Binding ClearCompanyFilterCommand}" Classes="btn-secondary" Content="All Companies" VerticalAlignment="Top"/>
+                            </StackPanel>
+                        </comp:DataTableShellControl.FilterToolbar>
+
                         <!-- Table -->
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid x:Name="ProductGrid"
@@ -82,17 +90,17 @@
                                       HorizontalScrollBarVisibility="Auto"
                                       RowBackground="{DynamicResource BrushCardBackground}">
                                 <DataGrid.Columns>
+                                    <DataGridTextColumn Header="P.CODE" Binding="{Binding PCode}" Width="75"/>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
-                                    <DataGridTextColumn Header="TABLETS/BOX" Binding="{Binding TabletsPerBox}" Width="120"/>
-                                    <DataGridTextColumn Header="PER TABLET" Binding="{Binding PricePerTablet, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                                    <DataGridTextColumn Header="PIECES / UNIT" Binding="{Binding PiecesPerUnit}" Width="120"/>
+                                    <DataGridTextColumn Header="PER PIECE" Binding="{Binding PricePerTablet, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTextColumn Header="SELLING" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="6"
+                                                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).CanManageProducts}"
                                                             HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <!-- Patient Return: medicine comes back, revenue decreases -->
                                                     <Button Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).OpenPatientReturnCommand}"
@@ -272,8 +280,8 @@
                             <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                 <TextBlock Text="Reason" FontSize="12" FontWeight="Medium"
                                            Foreground="{DynamicResource BrushInk700}"/>
-                                <ComboBox ItemsSource="{Binding ReturnReasons}"
-                                          SelectedItem="{Binding ReturnReason}"
+                                <comp:SearchableComboBoxControl ItemsSource="{Binding ReturnReasons}"
+                                          SelectedItem="{Binding ReturnReason}" DisplayMemberPath="" Placeholder="Search reason..."
                                           HorizontalAlignment="Stretch"/>
                             </StackPanel>
                         </Grid>
@@ -331,6 +339,15 @@
             <!-- Scrollable Form Body -->
             <ScrollViewer Grid.Row="1" Padding="28,24,28,24">
                 <StackPanel Spacing="24" MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,0,100">
+                    <Border Background="{DynamicResource BrushBlue50}" CornerRadius="10" Padding="16">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="1. SELECT COMPANY FIRST" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                            <comp:SearchableComboBoxControl ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
+                                DisplayMemberPath="Name" DetailMemberPath="CCode" Placeholder="Search company by CCode or name..."/>
+                            <Button Command="{Binding QuickAddCompanyCommand}" Content="Company not found? Add Company"
+                                    Classes="btn-secondary" HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
                     <!-- SECTION 1: Quick Entry -->
                     <StackPanel Spacing="16">
                         <TextBlock Text="QUICK ENTRY" FontSize="11" FontWeight="Bold"
@@ -342,6 +359,7 @@
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
                                 <TextBox Text="{Binding Name}" PlaceholderText="e.g. Amoxicillin 500mg"/>
+                                <TextBlock Text="{Binding PCode, StringFormat='Product Code: {0}'}" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                             </StackPanel>
                             <!-- Type -->
                             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
@@ -351,8 +369,8 @@
                             
                             <!-- Category -->
                             <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Category" Classes="label"/>
-                                <TextBox Text="{Binding Category}" PlaceholderText="e.g. Antibiotics"/>
+                                <TextBlock Text="Packing (box)" Classes="label"/>
+                                <TextBox Text="{Binding Category}" PlaceholderText="e.g. Box, strip, bottle"/>
                             </StackPanel>
                             <!-- Batch Number -->
                             <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
@@ -373,11 +391,11 @@
                             
                             <!-- Current Stock -->
                             <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Current Stock (individual tablets/units)" Classes="label"/>
-                                <TextBox Text="{Binding Stock}" PlaceholderText="0"/>
+                                <TextBlock Text="Current Stock (pieces)" Classes="label"/>
+                                <TextBox Text="{Binding Stock}" PlaceholderText="0" IsReadOnly="True"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Tablets per Box" Classes="label"/>
+                                <TextBlock Text="Pieces Per Unit" Classes="label"/>
                                 <TextBox Text="{Binding TabletsPerBox}" PlaceholderText="1"/>
                             </StackPanel>
                             <Border Grid.ColumnSpan="2" Grid.Row="4" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
@@ -399,25 +417,17 @@
                                 </StackPanel>
                                 <!-- Company -->
                                 <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
-                                    <TextBlock Text="Company" Classes="label"/>
-                                    <ComboBox ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}" HorizontalAlignment="Stretch" PlaceholderText="Select Company (Optional)">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Company">
-                                                <TextBlock Text="{Binding Name}"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <TextBox Text="{Binding CompanyName}" PlaceholderText="Or type Company Name here..." Margin="0,4,0,0"
-                                             IsVisible="{Binding SelectedCompany, Converter={x:Static ObjectConverters.IsNull}}"/>
+                                    <TextBlock Text="Selected Company" Classes="label"/>
+                                    <TextBox Text="{Binding CompanyName}" IsReadOnly="True"/>
                                 </StackPanel>
                                 
                                 <!-- Rack -->
-                                <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
+                                <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12" IsVisible="False">
                                     <TextBlock Text="Rack" Classes="label"/>
                                     <TextBox Text="{Binding Rack}" PlaceholderText="e.g. A1, Shelf 3"/>
                                 </StackPanel>
                                 <!-- Expiry Date -->
-                                <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12" IsVisible="False">
                                     <TextBlock Text="Expiry Date" Classes="label"/>
                                     <DatePicker SelectedDate="{Binding ExpiryDate}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
@@ -451,6 +461,8 @@
         <TextBlock Text="Back" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <Button Command="{Binding AddAnotherCommand}" Classes="btn-secondary" IsVisible="{Binding SaveCancelEnabled}"
+                                Content="Save &amp; Add Another"/>
                         <Button  Command="{Binding SaveCommand}" Classes="btn-primary">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>

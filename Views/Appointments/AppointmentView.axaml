@@ -168,12 +168,9 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="Patient (Optional)" Classes="label"/>
                         <Grid ColumnDefinitions="*,Auto">
-                            <ComboBox Grid.Column="0" ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                      HorizontalAlignment="Stretch" PlaceholderText="Select Existing Patient or leave blank to enter manually" IsEnabled="{Binding !IsReadOnly}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <comp:SearchableComboBoxControl Grid.Column="0" ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
+                                      DisplayMemberPath="Name" DetailMemberPath="CNIC"
+                                      Placeholder="Search existing patient by name or CNIC" IsEnabled="{Binding !IsReadOnly}"/>
                             <Button Grid.Column="1" Command="{Binding ClearPatientCommand}" Classes="btn-ghost" Margin="8,0,0,0" ToolTip.Tip="Clear Patient Selection" IsVisible="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNotNull}}" Padding="8">
                                 <materialIcons:MaterialIcon Kind="Close"/>
                             </Button>
@@ -192,15 +189,36 @@
                         </StackPanel>
                     </Grid>
 
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="CNIC (Optional)" Classes="label"/>
+                        <TextBox Text="{Binding Cnic}" PlaceholderText="35202-1234567-1" MaxLength="15" IsReadOnly="{Binding IsReadOnly}"/>
+                        <TextBlock Text="{Binding PatientLookupMessage}" FontSize="11" Foreground="{DynamicResource BrushTeal}"/>
+                    </StackPanel>
+
+                    <Border Classes="card" Padding="14" IsVisible="{Binding HasExistingPatientHistory}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Existing Patient History" FontWeight="SemiBold" FontSize="15"/>
+                            <ItemsControl ItemsSource="{Binding ExistingPatientHistory}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:AppointmentHistoryRow">
+                                        <Grid ColumnDefinitions="110,120,*" Margin="0,3">
+                                            <TextBlock Text="{Binding Date, StringFormat=\{0:dd MMM yyyy\}}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Kind}" FontWeight="SemiBold"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Summary}" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Gender + Age -->
                     <Grid ColumnDefinitions="*,*">
                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                             <TextBlock Text="Gender (Optional)" Classes="label"/>
-                            <ComboBox SelectedItem="{Binding Gender}" HorizontalAlignment="Stretch" IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}">
-                                <x:String>Male</x:String>
-                                <x:String>Female</x:String>
-                                <x:String>Other</x:String>
-                            </ComboBox>
+                            <comp:SearchableComboBoxControl ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}"
+                                DisplayMemberPath="" Placeholder="Search gender..." HorizontalAlignment="Stretch"
+                                IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">
                             <TextBlock Text="Age (Optional)" Classes="label"/>

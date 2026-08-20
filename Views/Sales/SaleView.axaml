@@ -159,35 +159,24 @@
                             
                             <Grid ColumnDefinitions="*,*">
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,12">
-                                    <TextBlock Text="Patient (Optional)" Classes="label"/>
-                                    <ComboBox ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
-                                              IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"
-                                              PlaceholderText="Select Patient">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="models:Patient">
-                                                <TextBlock Text="{Binding Name}"/>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
+                                    <TextBlock Text="Patient Name" Classes="label"/>
+                                    <TextBox Text="{Binding PatientName}" PlaceholderText="Enter patient name" IsEnabled="{Binding IsNewSale}"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,12">
-                                    <TextBlock Text="Walk-in Name" Classes="label" IsVisible="{Binding IsWalkIn}"/>
-                                    <TextBox Text="{Binding WalkInPatientName}"
-                                             PlaceholderText="e.g. John"
-                                             IsVisible="{Binding IsWalkIn}"
-                                             IsEnabled="{Binding IsNewSale}"/>
+                                    <TextBlock Text="Sales Tax (%)" Classes="label"/>
+                                    <NumericUpDown Value="{Binding SalesTax}" Minimum="0" Maximum="100" FormatString="N2" IsEnabled="{Binding IsNewSale}"/>
                                 </StackPanel>
                             </Grid>
                             
                             <Grid ColumnDefinitions="*,*">
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                    <TextBlock Text="Consultation Fee" Classes="label"/>
-                                    <NumericUpDown Value="{Binding ConsultationFee}" Minimum="0" FormatString="N2" IsEnabled="{Binding IsNewSale}"/>
+                                    <TextBlock Text="Sale Mode" Classes="label"/>
+                                    <TextBox Text="Pieces" IsReadOnly="True"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                     <TextBlock Text="Payment Method" Classes="label"/>
-                                    <ComboBox ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}"
-                                              IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"/>
+                                    <comp:SearchableComboBoxControl ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}"
+                                              DisplayMemberPath="" Placeholder="Search payment method..." IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -213,14 +202,9 @@
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
                                         <TextBlock Text="Search &amp; Select Product *" Classes="label"/>
-                                        <TextBox Text="{Binding ProductSearchTerm}" PlaceholderText="Type medicine, generic, or company name..." Margin="0,0,0,6"/>
-                                        <ComboBox ItemsSource="{Binding FilteredProducts}" SelectedItem="{Binding SelectedProduct}" HorizontalAlignment="Stretch" PlaceholderText="Select matching product">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="models:Product">
-                                                    <TextBlock Text="{Binding Name}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
+                                        <comp:SearchableComboBoxControl ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                                            DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Type medicine, generic, or company name..."/>
+                                        <Button Command="{Binding QuickAddProductCommand}" Classes="btn-secondary" Content="Product not found? Add Product" HorizontalAlignment="Left"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Bottom">
                                         <Button  Command="{Binding AddLineItemCommand}" Classes="btn-secondary" Width="80">
@@ -239,8 +223,8 @@
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="6,0,6,0">
-                                        <TextBlock Text="Unit Type" Classes="label"/>
-                                        <ComboBox ItemsSource="{Binding UnitTypes}" SelectedItem="{Binding SelectedUnitType}"/>
+                                        <TextBlock Text="Pieces" Classes="label"/>
+                                        <TextBox Text="Pieces" IsReadOnly="True"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="6" Margin="6,0,6,0">
                                         <TextBlock Text="Price" Classes="label"/>
@@ -310,12 +294,15 @@
         <TextBlock Text="Close" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
-                        <Button  Command="{Binding PostSaleCommand}" Classes="btn-primary" IsVisible="{Binding SaveCancelEnabled}">
+                        <Button  Command="{Binding PostSaleCommand}" Classes="btn-primary" IsVisible="{Binding IsCheckingInvoice}">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="Send" Width="18" Height="18"/>
         <TextBlock Text="Post Invoice" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <Button Command="{Binding EditInvoiceCommand}" Classes="btn-secondary" IsVisible="{Binding IsCheckingInvoice}" Content="Edit Draft"/>
+                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-secondary" IsVisible="{Binding IsDraftInvoice}" Content="Check Invoice"/>
+                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </DockPanel>
             </Border>

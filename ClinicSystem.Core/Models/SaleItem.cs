@@ -6,7 +6,7 @@ public class SaleItem
     public int SaleID { get; set; }
     public int ProductID { get; set; }
     public int Quantity { get; set; }
-    public string UnitTypeSold { get; set; } = "Tablet";
+    public string UnitTypeSold { get; set; } = "Pieces";
     public int StockQuantity { get; set; }
     public decimal Discount { get; set; }
     public decimal Tax { get; set; }

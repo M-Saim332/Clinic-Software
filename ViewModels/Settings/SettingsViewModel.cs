@@ -48,17 +48,18 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
 
     // ── General Settings ─────────────────────────────────────────────────────
     [ObservableProperty] private string _clinicName    = "Care & Cure Clinic";
+    [ObservableProperty] private string _pharmacyName = "My Pharmacy";
+    [ObservableProperty] private string _receptionistTheme = "System Default";
+    public IEnumerable<string> ReceptionistThemeOptions => ThemeService.AllThemes.Select(t => t.Name);
     [ObservableProperty] private string _clinicAddress = "123 Health Ave, Medical District";
     [ObservableProperty] private string _clinicPhone   = "+92 300 1234567";
     [ObservableProperty] private string _clinicEmail   = "info@careandcure.com";
 
     // ── Billing Settings ─────────────────────────────────────────────────────
     [ObservableProperty] private string  _invoicePrefix  = "INV-";
-    [ObservableProperty] private decimal _defaultTaxRate = 0m;
     [ObservableProperty] private string  _currency       = "PKR";
 
     // ── Inventory Settings ───────────────────────────────────────────────────
-    [ObservableProperty] private int _lowStockThreshold = 10;
     [ObservableProperty] private int _expiryAlertDays   = 30;
 
     // ── System Settings ──────────────────────────────────────────────────────
@@ -218,16 +219,15 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 if (dict.TryGetValue("ClinicName",    out var val)) ClinicName    = val;
+                if (dict.TryGetValue("PharmacyName",  out val)) PharmacyName = val;
+                if (dict.TryGetValue("ReceptionistTheme", out val)) ReceptionistTheme = val;
                 if (dict.TryGetValue("ClinicAddress", out val))     ClinicAddress = val;
                 if (dict.TryGetValue("ClinicPhone",   out val))     ClinicPhone   = val;
                 if (dict.TryGetValue("ClinicEmail",   out val))     ClinicEmail   = val;
 
                 if (dict.TryGetValue("InvoicePrefix",  out val)) InvoicePrefix  = val;
-                if (dict.TryGetValue("DefaultTaxRate", out val) &&
-                    decimal.TryParse(val, NumberStyles.Any, CultureInfo.InvariantCulture, out var t)) DefaultTaxRate = t;
                 if (dict.TryGetValue("Currency", out val)) Currency = val;
 
-                if (dict.TryGetValue("LowStockThreshold", out val) && int.TryParse(val, out var ls)) LowStockThreshold = ls;
                 if (dict.TryGetValue("ExpiryAlertDays",   out val) && int.TryParse(val, out var ed)) ExpiryAlertDays   = ed;
 
                 if (dict.TryGetValue("DateFormat", out val)) DateFormat = val;
@@ -274,15 +274,15 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             await Task.Run(() =>
             {
                 _repo.SetValue("ClinicName",    ClinicName);
+                _repo.SetValue("PharmacyName",  PharmacyName);
+                _repo.SetValue("ReceptionistTheme", ReceptionistTheme);
                 _repo.SetValue("ClinicAddress", ClinicAddress);
                 _repo.SetValue("ClinicPhone",   ClinicPhone);
                 _repo.SetValue("ClinicEmail",   ClinicEmail);
 
                 _repo.SetValue("InvoicePrefix",  InvoicePrefix);
-                _repo.SetValue("DefaultTaxRate", DefaultTaxRate.ToString(CultureInfo.InvariantCulture));
                 _repo.SetValue("Currency",       Currency);
 
-                _repo.SetValue("LowStockThreshold", LowStockThreshold.ToString());
                 _repo.SetValue("ExpiryAlertDays",   ExpiryAlertDays.ToString());
 
                 _repo.SetValue("DateFormat", DateFormat);

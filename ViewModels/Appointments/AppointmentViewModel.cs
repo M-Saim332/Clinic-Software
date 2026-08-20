@@ -11,12 +11,15 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     private readonly AppointmentRepository _repo;
     private readonly PatientRepository _patientRepo;
     private readonly UserRepository _userRepo;
+    private readonly PrescriptionRepository _prescriptionRepo;
 
-    public AppointmentViewModel(AppointmentRepository repo, PatientRepository patientRepo, UserRepository userRepo)
+    public AppointmentViewModel(AppointmentRepository repo, PatientRepository patientRepo, UserRepository userRepo,
+        PrescriptionRepository prescriptionRepo)
     {
         _repo = repo;
         _patientRepo = patientRepo;
         _userRepo = userRepo;
+        _prescriptionRepo = prescriptionRepo;
     }
 
     [ObservableProperty]
@@ -66,7 +69,14 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private Patient? _selectedPatient;
     [ObservableProperty] private string _patientName = string.Empty;
     [ObservableProperty] private string _patientPhone = string.Empty;
+    [ObservableProperty] private string _cnic = string.Empty;
+    [ObservableProperty] private string _patientLookupMessage = string.Empty;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasExistingPatientHistory))]
+    private ObservableCollection<AppointmentHistoryRow> _existingPatientHistory = new();
+    public bool HasExistingPatientHistory => ExistingPatientHistory.Count > 0;
     [ObservableProperty] private string _gender = string.Empty;
+    public IReadOnlyList<string> GenderOptions { get; } = new[] { "Male", "Female", "Other" };
     [ObservableProperty] private int? _age;
     // Removed doctor selection, using CurrentUser
     [ObservableProperty] private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
@@ -94,16 +104,55 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         {
             PatientName = value.Name;
             PatientPhone = value.Phone ?? string.Empty;
+            Cnic = value.CNIC ?? string.Empty;
             Gender = value.Gender ?? string.Empty;
             Age = value.Age;
+            _ = LoadExistingPatientHistoryAsync(value.PatientID);
         }
         else if (Mode == FormMode.Add)
         {
             PatientName = string.Empty;
             PatientPhone = string.Empty;
+            Cnic = string.Empty;
             Gender = string.Empty;
             Age = null;
+            ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>();
         }
+    }
+
+    partial void OnCnicChanged(string value)
+    {
+        if (SelectedPatient != null || value.Count(char.IsDigit) < 13) return;
+        _ = LookupExistingPatientAsync();
+    }
+
+    private async Task LookupExistingPatientAsync()
+    {
+        var patient = await Task.Run(() => _repo.GetPatientByCNICOrPhone(Cnic, PatientPhone));
+        if (patient == null) { PatientLookupMessage = "No existing clinical patient found."; return; }
+        SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == patient.PatientID) ?? patient;
+        PatientLookupMessage = $"Existing patient found: {patient.Name}. Clinical history will stay linked.";
+    }
+
+    private async Task LoadExistingPatientHistoryAsync(int patientId)
+    {
+        var prescriptions = await Task.Run(() => _prescriptionRepo.GetByPatient(patientId).ToList());
+        var appointments = await Task.Run(() => _repo.GetAll().Where(a => a.PatientID == patientId).ToList());
+        var rows = appointments.Select(a => new AppointmentHistoryRow
+            {
+                Date = a.AppointmentDate,
+                Kind = "Visit",
+                Summary = string.IsNullOrWhiteSpace(a.Reason) ? a.Status : $"{a.Reason} ({a.Status})"
+            })
+            .Concat(prescriptions.Select(p => new AppointmentHistoryRow
+            {
+                Date = p.VisitDate,
+                Kind = "Drug selection",
+                Summary = string.IsNullOrWhiteSpace(p.Notes) ? "Prescription recorded" : p.Notes!
+            }))
+            .OrderByDescending(x => x.Date)
+            .ToList();
+        ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>(rows);
     }
 
     [RelayCommand]
@@ -161,6 +210,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             int? finalPatientId = SelectedPatient?.PatientID;
             string finalPatientName = SelectedPatient == null ? PatientName : SelectedPatient.Name;
             string finalPhone = SelectedPatient == null ? PatientPhone : (SelectedPatient.Phone ?? string.Empty);
+            string finalCnic = SelectedPatient == null ? Cnic : (SelectedPatient.CNIC ?? string.Empty);
             string finalGender = SelectedPatient == null ? Gender : (SelectedPatient.Gender ?? string.Empty);
             int? finalAge = SelectedPatient == null ? Age : SelectedPatient.Age;
 
@@ -187,6 +237,9 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
                 {
                     Name = finalPatientName,
                     Phone = finalPhone,
+                    CNIC = finalCnic,
+                    ReasonOfVisit = Reason,
+                    PatientContext = "Clinical",
                     Gender = string.IsNullOrWhiteSpace(finalGender) ? "Other" : finalGender,
                     Age = finalAge,
                     VisitStatus = "Waiting",
@@ -206,6 +259,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
                 PatientID = finalPatientId,
                 PatientName = finalPatientName,
                 Phone = finalPhone,
+                CNIC = finalCnic,
                 Gender = finalGender,
                 Age = finalAge,
                 DoctorID = ViewModelBase.CurrentUser?.UserID ?? 1,
@@ -356,9 +410,6 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             var users = await Task.Run(() => _userRepo.GetAll());
             var doctors = users.Where(u => u.Role == "Doctor").ToList();
             
-            // Auto-cleanup old appointments (older than 3 days)
-            await Task.Run(() => _repo.CleanupOldAppointments());
-            
             var appointments = await Task.Run(() => _repo.GetAll());
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
@@ -386,6 +437,9 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         SelectedPatient = null;
         PatientName = string.Empty;
         PatientPhone = string.Empty;
+        Cnic = string.Empty;
+        PatientLookupMessage = string.Empty;
+        ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>();
         Gender = string.Empty;
         Age = null;
         AppointmentDate = DateTimeOffset.Now;
@@ -400,6 +454,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == a.PatientID);
         PatientName = a.PatientName ?? string.Empty;
         PatientPhone = a.Phone ?? string.Empty;
+        Cnic = a.CNIC ?? string.Empty;
         Gender = a.Gender ?? string.Empty;
         Age = a.Age;
         AppointmentDate = new DateTimeOffset(a.AppointmentDate);
@@ -417,4 +472,11 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         OnPropertyChanged(nameof(ShowSaveButton));
         OnPropertyChanged(nameof(ShowEditButton));
     }
+}
+
+public sealed class AppointmentHistoryRow
+{
+    public DateTime Date { get; init; }
+    public string Kind { get; init; } = string.Empty;
+    public string Summary { get; init; } = string.Empty;
 }

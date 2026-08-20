@@ -46,12 +46,14 @@ public class ViewLocator : IDataTemplate
         return param switch
         {
             PatientRegistryViewModel   => new PatientRegistryView   { DataContext = param },
+            PharmaPatientViewModel     => new PharmaPatientView     { DataContext = param },
             ProductRegistryViewModel  => new ProductRegistryView  { DataContext = param },
             PrescriptionViewModel      => new PrescriptionView      { DataContext = param },
             VisitHistoryViewModel      => new VisitHistoryView      { DataContext = param },
             UserRegistryViewModel      => new UserRegistryView      { DataContext = param },
             ReportsViewModel           => new ReportsView           { DataContext = param },
             DashboardViewModel         => new DashboardView         { DataContext = param },
+            ClinicalDashboardViewModel => new ClinicalDashboardView { DataContext = param },
             CompanyRegistryViewModel   => new CompanyRegistryView   { DataContext = param },
             SupplierRegistryViewModel  => new SupplierRegistryView  { DataContext = param },
 

@@ -3,6 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using ClinicSystem.UI.ViewModels.Prescriptions;
 
 namespace ClinicSystem.UI.ViewModels.Patients;
 
@@ -13,15 +19,18 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     private readonly SaleRepository _saleRepo;
 
     private readonly ProductRepository _productRepo;
+    private readonly PrescriptionRepository _prescriptionRepo;
 
     public PatientRegistryViewModel(
         PatientRepository repo,
         SaleRepository saleRepo,
-        ProductRepository productRepo)
+        ProductRepository productRepo,
+        PrescriptionRepository prescriptionRepo)
     {
         _repo = repo;
         _saleRepo = saleRepo;
         _productRepo = productRepo;
+        _prescriptionRepo = prescriptionRepo;
 
         var timer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
         timer.Tick += (s, e) => 
@@ -49,7 +58,6 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private int _totalPatientsCount;
     [ObservableProperty] private int _activeThisMonthCount;
     [ObservableProperty] private int _waitingTodayCount;
-    [ObservableProperty] private string _avgConsultationFee = "Rs. 0.00";
 
     // ── Tab State ──────────────────────────────────────────────────────────
     [ObservableProperty] private int _selectedTab = 0; // 0 = Waiting, 1 = Visited, 2 = All
@@ -85,11 +93,16 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _phone = string.Empty;
     [ObservableProperty] private string _cNIC = string.Empty;
     [ObservableProperty] private string _address = string.Empty;
-    [ObservableProperty] private string _diagnosis = string.Empty;
-    [ObservableProperty] private string _prescription = string.Empty;
-    [ObservableProperty] private string _consultationFee = "0.00";
-    [ObservableProperty] private decimal _discount;
+    [ObservableProperty] private string _reasonOfVisit = string.Empty;
     [ObservableProperty] private TimeSpan? _nextAppointmentTime;
+    [ObservableProperty] private ObservableCollection<Product> _availableDrugs = new();
+    [ObservableProperty] private ObservableCollection<Product> _filteredDrugs = new();
+    [ObservableProperty] private ObservableCollection<PrescriptionItemRow> _selectedDrugs = new();
+    [ObservableProperty] private ObservableCollection<Prescription> _visitHistory = new();
+    [ObservableProperty] private Product? _selectedDrug;
+    [ObservableProperty] private string _drugSearch = string.Empty;
+    [ObservableProperty] private int _drugQuantity = 1;
+    [ObservableProperty] private string _dosage = string.Empty;
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
 
@@ -117,7 +130,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
-    private void ViewSpecific(Patient p)
+    private async Task ViewSpecificAsync(Patient p)
     {
         if (p == null) return;
         SelectedPatient = p;
@@ -125,6 +138,63 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Mode = FormMode.Details;
         NotifyButtonStates();
         StatusMessage = "Viewing patient details.";
+        await LoadClinicalDetailAsync(p.PatientID);
+    }
+
+    [RelayCommand]
+    private void AddDrug()
+    {
+        if (SelectedDrug == null) { StatusMessage = "Select an in-stock drug."; return; }
+        if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
+        SelectedDrugs.Add(new PrescriptionItemRow { ProductID=SelectedDrug.ProductID, ProductName=SelectedDrug.Name,
+            Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=SelectedDrug.Stock });
+        SelectedDrug=null; DrugQuantity=1; Dosage=string.Empty;
+    }
+
+    [RelayCommand] private void RemoveDrug(PrescriptionItemRow? row) { if (row != null) SelectedDrugs.Remove(row); }
+
+    [RelayCommand]
+    private async Task PostAndSyncAsync()
+    {
+        if (SelectedPatient == null) { StatusMessage = "Select a clinical patient."; return; }
+        if (SelectedDrugs.Count == 0) { StatusMessage = "Select at least one drug."; return; }
+        var prescription = new Prescription {
+            PatientID=SelectedPatient.PatientID, DoctorID=CurrentUser?.UserID ?? 0, VisitDate=DateTime.Now,
+            Diagnosis=null, Notes=ReasonOfVisit,
+            Items=SelectedDrugs.Select(d => new PrescriptionItem { ProductID=d.ProductID, Quantity=d.Quantity, Dosage=d.Dosage }).ToList()
+        };
+        try
+        {
+            await Task.Run(() => _prescriptionRepo.Insert(prescription));
+            await Task.Run(() => _repo.ShareWithPharma(SelectedPatient.PatientID));
+            await Task.Run(() => _repo.UpdateVisitStatus(SelectedPatient.PatientID, "Visited", DateTime.Today));
+            SelectedDrugs.Clear();
+            await LoadClinicalDetailAsync(SelectedPatient.PatientID);
+            StatusMessage = "Visit posted and patient shared with Pharma.";
+            LogActivity("Clinical Visit Posted", $"Visit for {SelectedPatient.Name} shared with Pharma", "Patients");
+        }
+        catch (Exception ex) { StatusMessage = $"Unable to post visit: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    private async Task PrintClinicalSummaryAsync()
+    {
+        if (SelectedPatient == null || Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
+        var file = await desktop.MainWindow!.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions {
+            Title="Print Clinical Patient Summary", SuggestedFileName=$"{SelectedPatient.Name}-clinical-summary.pdf", DefaultExtension="pdf",
+            FileTypeChoices=new[] { new FilePickerFileType("PDF document") { Patterns=new[] { "*.pdf" } } }
+        });
+        if (file == null) return;
+        await using var stream = await file.OpenWriteAsync();
+        var patient=SelectedPatient; var history=VisitHistory.ToList(); var reason=ReasonOfVisit;
+        Document.Create(c => c.Page(page => { page.Size(PageSizes.A4); page.Margin(36);
+            page.Header().Text("CLINICAL PATIENT SUMMARY").FontSize(20).Bold();
+            page.Content().Column(col => { col.Spacing(8); col.Item().Text($"Patient: {patient.Name}").Bold();
+                col.Item().Text($"Phone: {patient.Phone ?? "—"}   CNIC: {patient.CNIC ?? "—"}"); col.Item().Text($"Reason of visit: {reason}");
+                col.Item().PaddingTop(12).Text("Visit History").FontSize(15).Bold();
+                foreach (var visit in history) col.Item().Text($"{visit.VisitDate:dd MMM yyyy} — {string.Join(", ", visit.Items.Select(i => i.ProductName))}"); });
+        })).GeneratePdf(stream);
+        StatusMessage="Clinical summary exported for printing.";
     }
 
     [RelayCommand]
@@ -179,9 +249,6 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         
         int age = 0;
         if (!string.IsNullOrWhiteSpace(Age) && (!int.TryParse(Age, out age) || age < 0)) { StatusMessage = "Age must be a positive number."; return; }
-        decimal fee = 0;
-        if (!string.IsNullOrWhiteSpace(ConsultationFee) && (!decimal.TryParse(ConsultationFee, out fee) || fee < 0)) { StatusMessage = "Fee must be a positive number."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         var p = BuildPatient();
 
@@ -279,17 +346,21 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     }
 
     partial void OnSearchTermChanged(string value) => FilterPatients();
+    partial void OnDrugSearchChanged(string value) => FilterDrugList();
 
     // ── Helpers ────────────────────────────────────────────────────────────
     public async Task InitializeAsync()
     {
         try
         {
-            var list = await Task.Run(() => _repo.GetAll());
+            var list = await Task.Run(() => _repo.GetAll("Clinical"));
+            var drugs = await Task.Run(() => _productRepo.GetPrescribable());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 StatusMessage = string.Empty;
                 Patients = new ObservableCollection<Patient>(list);
+                AvailableDrugs = new ObservableCollection<Product>(drugs);
+                FilterDrugList();
                 
                 var now = DateTime.Now.TimeOfDay;
                 WaitingPatientsList = new ObservableCollection<Patient>(
@@ -305,9 +376,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
                 FilterPatients();
 
                 TotalPatientsCount = Patients.Count;
-                ActiveThisMonthCount = Patients.Count(p => p.TotalBill > 0);
+                ActiveThisMonthCount = Patients.Count(p => p.LastVisitDate >= DateTime.Today.AddMonths(-1));
                 WaitingTodayCount = WaitingPatientsList.Count;
-                AvgConsultationFee = $"Rs. {Patients.Sum(p => p.TotalBill):N2}";
             });
         }
         catch (Exception ex)
@@ -315,6 +385,20 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 StatusMessage = $"Failed to load patients: {ex.Message}");
         }
+    }
+
+    private async Task LoadClinicalDetailAsync(int patientId)
+    {
+        var history = await Task.Run(() => _prescriptionRepo.GetByPatient(patientId)
+            .Select(p => _prescriptionRepo.GetByIdWithItems(p.PrescriptionID) ?? p).ToList());
+        VisitHistory = new ObservableCollection<Prescription>(history);
+    }
+
+    private void FilterDrugList()
+    {
+        var q=DrugSearch.Trim();
+        FilteredDrugs = new ObservableCollection<Product>(string.IsNullOrWhiteSpace(q) ? AvailableDrugs : AvailableDrugs.Where(d =>
+            d.Name.Contains(q,StringComparison.OrdinalIgnoreCase) || (d.GenericName?.Contains(q,StringComparison.OrdinalIgnoreCase) ?? false)));
     }
 
 
@@ -338,7 +422,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
                                    || (p.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (p.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (p.Address?.ToLower().Contains(term) ?? false)
-                                   || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
+                                   || (p.ReasonOfVisit?.ToLower().Contains(term) ?? false)));
         }
     }
 
@@ -346,8 +430,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     {
         Name = string.Empty; Age = string.Empty; Gender = "Male";
         Phone = string.Empty; CNIC = string.Empty; Address = string.Empty;
-        Diagnosis = string.Empty; Prescription = string.Empty;
-        ConsultationFee = "0.00"; Discount = 0;
+        ReasonOfVisit = string.Empty;
         NextAppointmentTime = null;
     }
 
@@ -357,8 +440,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         Gender = p.Gender ?? "Male"; Phone = p.Phone ?? string.Empty;
         CNIC = p.CNIC ?? string.Empty;
         Address = p.Address ?? string.Empty;
-        Diagnosis = p.Diagnosis ?? string.Empty; Prescription = p.Prescription ?? string.Empty;
-        ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = Math.Clamp(p.Discount ?? 0m, 0m, 100m);
+        ReasonOfVisit = p.ReasonOfVisit ?? string.Empty;
         NextAppointmentTime = p.NextAppointmentTime;
     }
 
@@ -366,10 +448,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     {
         Name = Name, Age = int.TryParse(Age, out var a) ? a : null,
         Gender = Gender, Phone = Phone, CNIC = CNIC, Address = Address,
-        Diagnosis = Diagnosis, Prescription = Prescription,
-        ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
-        // Always clamp Discount to valid 0-100% range before saving
-        Discount = Math.Clamp(Discount, 0m, 100m),
+        ReasonOfVisit = ReasonOfVisit, PatientContext = "Clinical",
         NextAppointmentTime = NextAppointmentTime
     };
 

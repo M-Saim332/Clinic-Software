@@ -177,10 +177,10 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         switch (value)
         {
             case "Pharmacist":
-                AccProducts = AccSales = AccInventory = AccPurchases = AccReturns = AccDashboard = true;
+                AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
                 break;
             case "Receptionist":
-                AccDashboard = AccPatients = AccAppointments = AccSales = true;
+                AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
                 break;
             case "Doctor":
                 // Full access — module checkboxes hidden
@@ -547,7 +547,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         AccSuppliers = AccPurchases = AccSales = AccReturns =
         AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
         // Default permissions for Receptionist
-        AccDashboard = AccPatients = AccAppointments = AccSales = true;
+        AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
         StatusMessage = string.Empty;
     }
 

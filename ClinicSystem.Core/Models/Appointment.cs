@@ -7,12 +7,14 @@ public class Appointment
     public int? PatientID { get; set; }
     public string? PatientName { get; set; }
     public string? Phone { get; set; }
+    public string? CNIC { get; set; }
     public string? Gender { get; set; }
     public int? Age { get; set; }
     public int DoctorID { get; set; }
     public DateTime AppointmentDate { get; set; }
     public TimeSpan AppointmentTime { get; set; }
     public string? Reason { get; set; }
+    public string? ReasonOfVisit { get => Reason; set => Reason = value; }
     public string Status { get; set; } = "Scheduled";
     public string? Remarks { get; set; }
     public string? CancellationReason { get; set; }
@@ -24,6 +26,6 @@ public class Appointment
 
     public string DisplayPatientName =>
         !string.IsNullOrWhiteSpace(PatientName) ? PatientName
-        : !string.IsNullOrWhiteSpace(PatientPhone) ? "Walk-in"
+        : !string.IsNullOrWhiteSpace(PatientPhone) ? "Unlinked patient"
         : "—";
 }

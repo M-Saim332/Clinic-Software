@@ -8,6 +8,7 @@ namespace ClinicSystem.UI.ViewModels.Companies;
 
 public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
 {
+    public event Action<Company>? CompanySaved;
     private readonly CompanyRepository _repo;
     private ObservableCollection<Company> _allCompanies = new();
 
@@ -42,7 +43,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
             var term = SearchTerm.ToLower().Replace(" ", "");
             Companies = new ObservableCollection<Company>(
                 _allCompanies.Where(c => c.Name.ToLower().Contains(term)
-                                   || c.CompanyID.ToString().Contains(term)
+                                   || c.CCode.ToString().Contains(term)
                                    || (c.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
                                    || (c.Email?.ToLower().Contains(term) ?? false)));
         }
@@ -62,6 +63,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
     private string _phone = string.Empty;
     [ObservableProperty]
     private string _email = string.Empty;
+    [ObservableProperty] private int _cCode;
 
     public bool MutationEnabled => Mode == FormMode.View;
     public bool SaveCancelEnabled => Mode != FormMode.View;
@@ -77,9 +79,18 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
     private void New()
     {
         ClearFields();
+        CCode = _repo.GetNextCCode();
         Mode = FormMode.Add;
         NotifyButtonStates();
         StatusMessage = "Enter new company details.";
+    }
+
+    [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (Mode == FormMode.View) New();
     }
 
     // ── Row-level commands (match Patients pattern) ────────────────────
@@ -150,7 +161,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
         var c = new Company { Name = Name, Address = Address, Phone = Phone, Email = Email };
         if (Mode == FormMode.Add)
         {
-            await Task.Run(() => _repo.Insert(c));
+            c.CompanyID = await Task.Run(() => _repo.Insert(c));
             StatusMessage = "Company created.";
             LogActivity("Company Added", $"New company '{c.Name}' added", "Companies");
         }
@@ -164,6 +175,7 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
         Mode = FormMode.View;
         NotifyButtonStates();
         await InitializeAsync();
+        CompanySaved?.Invoke(c);
     }
 
     [RelayCommand]

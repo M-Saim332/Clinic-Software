@@ -76,7 +76,7 @@
                 </Border>
             </Grid>
 
-            <!-- KPI Row 2: Today's financials + Consultation Fee -->
+            <!-- KPI Row 2: today's pharma financials -->
             <Grid ColumnDefinitions="*,*,*,*" Height="100" Margin="0,-6,0,0">
                 <!-- Today's Revenue -->
                 <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
@@ -124,15 +124,15 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <!-- Total Consultation Fee -->
+                <!-- Inventory Value -->
                 <Border Grid.Column="3" Classes="kpiCard" Margin="10,0,0,0">
                     <Grid ColumnDefinitions="Auto,*">
                         <Border Grid.Column="0" Classes="kpiIcon" Background="#F0FDFA">
                             <materialIcons:MaterialIcon Kind="Stethoscope" Width="22" Height="22" Foreground="#0D9488"/>
                         </Border>
                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="Total Consult. Fee" Classes="kpiLabel"/>
-                            <TextBlock Text="{Binding TotalConsultationFee}" Classes="kpiValue" FontSize="18"/>
+                            <TextBlock Text="Inventory Value" Classes="kpiLabel"/>
+                            <TextBlock Text="{Binding TotalStockValue}" Classes="kpiValue" FontSize="18"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -233,10 +233,6 @@
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Border Width="10" Height="10" CornerRadius="5" Background="#10B981" VerticalAlignment="Center"/>
                                 <TextBlock Text="Product Sales" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
-                            </StackPanel>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Border Width="10" Height="10" CornerRadius="5" Background="#3799F8" VerticalAlignment="Center"/>
-                                <TextBlock Text="Consultation Fees" FontSize="12" Foreground="#374151" VerticalAlignment="Center"/>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <Border Width="10" Height="10" CornerRadius="5" Background="#A78BFA" VerticalAlignment="Center"/>
@@ -480,4 +476,3 @@
     </UserControl.Styles>
 
 </UserControl>
-

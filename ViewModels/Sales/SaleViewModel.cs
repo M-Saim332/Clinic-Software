@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
+using ClinicSystem.Core.Enums;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,10 +9,12 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Sales;
 
-public partial class SaleViewModel : ViewModelBase, ISearchable
+public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationContext
 {
+    public event Action? RequestAddProduct;
+    public int? PreselectedEntityId { get; set; }
+    public Action<int>? ReturnToCaller { get; set; }
     private readonly SaleRepository _repo;
-    private readonly PatientRepository _patientRepo;
     private readonly ProductRepository _productRepo;
 
     private readonly ActivityLogRepository _activityRepo;
@@ -20,13 +23,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
 
     public SaleViewModel(
         SaleRepository repo, 
-        PatientRepository patientRepo, 
         ProductRepository productRepo,
         ActivityLogRepository activityRepo,
         InvoiceViewModel invoiceVM)
     {
         _repo = repo;
-        _patientRepo = patientRepo;
         _productRepo = productRepo;
         _activityRepo = activityRepo;
         InvoiceVM = invoiceVM;
@@ -46,7 +47,6 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     
     [ObservableProperty] private ObservableCollection<Sale> _sales = new();
     private ObservableCollection<Sale> _allSales = new();
-    [ObservableProperty] private ObservableCollection<Patient> _patients = new();
     [ObservableProperty] private ObservableCollection<Product> _products = new(); // non-expired
     [ObservableProperty] private Sale? _selectedSale;
 
@@ -79,10 +79,15 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
 
     // Header Fields
     [ObservableProperty] private string _invoiceNumber = string.Empty;
-    [ObservableProperty] private Patient? _selectedPatient;
-    [ObservableProperty] private string _walkInPatientName = string.Empty;
+    [ObservableProperty] private string _patientName = string.Empty;
     [ObservableProperty] private DateTimeOffset _saleDate = DateTimeOffset.Now;
-    [ObservableProperty] private decimal _consultationFee;
+    [ObservableProperty] private decimal _salesTax;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDraftInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsCheckingInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsPostedInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsNewSale))]
+    private InvoiceState _invoiceState = InvoiceState.Draft;
     [ObservableProperty] private string _paymentMethod = "Cash";
 
     public List<string> PaymentMethods { get; } = new() { "Cash", "Card", "Online" };
@@ -101,21 +106,22 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _selectedUnitType = "Tablet";
     [ObservableProperty] private bool _showDeleteAllConfirm;
 
-    public List<string> UnitTypes { get; } = new() { "Tablet", "Box" };
+    public List<string> UnitTypes { get; } = new() { "Pieces" };
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
     public string AvailableStockDisplay => SelectedProduct == null
         ? string.Empty
-        : $"Available: {SelectedProduct.Stock} tablets ({SelectedProduct.Stock / Math.Max(1, SelectedProduct.TabletsPerBox)} full boxes)";
+        : $"Available stock: {SelectedProduct.Stock} pieces";
 
-    public bool PatientIsSelected => SelectedPatient != null;
-    public bool IsWalkIn => SelectedPatient == null;
-
-    public decimal GrandTotal => ConsultationFee + LineItems.Sum(x => x.LineNetTotal);
+    public decimal Subtotal => LineItems.Sum(x => x.LineNetTotal);
+    public decimal GrandTotal => Subtotal + (Subtotal * SalesTax / 100m);
+    public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
+    public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
+    public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
-    public bool IsNewSale => Mode == FormMode.Add;
+    public bool IsNewSale => Mode == FormMode.Add && InvoiceState == InvoiceState.Draft;
 
     [RelayCommand]
     private async Task NewAsync()
@@ -125,18 +131,14 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         // Ensure patients and products are loaded before showing the form
         try
         {
-            var patients = await Task.Run(() => _patientRepo.GetAll());
             var products = await Task.Run(() => _productRepo.GetAll());
-            Patients = new System.Collections.ObjectModel.ObservableCollection<Patient>(patients);
             Products = new System.Collections.ObjectModel.ObservableCollection<Product>(
                 products.Where(m => !m.IsExpired).OrderBy(m => m.Name));
         }
         catch { /* silently keep existing lists if refresh fails */ }
 
-        // Generate SAL-YYYYMMDD-XXX invoice number
-        var today = DateTime.Today;
-        var count = await Task.Run(() => _repo.GetCountForDate(today));
-        InvoiceNumber = $"SAL-{today:yyyyMMdd}-{(count + 1):D3}";
+        InvoiceNumber = "Assigned after posting";
+        InvoiceState = InvoiceState.Draft;
         Mode = FormMode.Add;
         ShowForm = true;
         NotifyButtonStates();
@@ -151,14 +153,15 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         try
         {
             InvoiceNumber = SelectedSale.InvoiceNumber;
-            SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == SelectedSale.PatientID);
             SaleDate = new DateTimeOffset(SelectedSale.SaleDate);
-            ConsultationFee = SelectedSale.ConsultationFee;
             PaymentMethod = SelectedSale.PaymentMethod ?? "Cash";
             
             var saleWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedSale.SaleID));
             var items = saleWithItems?.Items ?? new List<SaleItem>();
+            PatientName = saleWithItems?.PatientName ?? SelectedSale.PatientName ?? string.Empty;
             LineItems = new ObservableCollection<SaleItem>(items);
+            SalesTax = saleWithItems?.SalesTax ?? 0;
+            InvoiceState = saleWithItems?.IsPosted == true ? InvoiceState.Posted : InvoiceState.Draft;
             
             OnPropertyChanged(nameof(GrandTotal));
             
@@ -188,7 +191,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
-        var stockQuantity = SelectedUnitType == "Box" ? Quantity * Math.Max(1, SelectedProduct.TabletsPerBox) : Quantity;
+        var stockQuantity = Quantity;
         var alreadyAllocated = LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity);
         if (stockQuantity + alreadyAllocated > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock - alreadyAllocated} tablet/unit(s) remain available for this invoice."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
@@ -199,7 +202,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             ProductID = SelectedProduct.ProductID,
             ProductName = SelectedProduct.Name,
             Quantity = Quantity,
-            UnitTypeSold = SelectedUnitType,
+            UnitTypeSold = "Pieces",
             StockQuantity = stockQuantity,
             Discount = Discount,
             Tax = Tax,
@@ -217,7 +220,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         Discount = 0;
         Tax = 0;
         ProductPrice = 0;
-        SelectedUnitType = "Tablet";
+        SelectedUnitType = "Pieces";
         StatusMessage = string.Empty;
     }
 
@@ -234,18 +237,17 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task PostSaleAsync()
     {
-        if (LineItems.Count == 0 && ConsultationFee <= 0) { StatusMessage = "Add at least one medicine or a consultation fee."; return; }
-        // Patient is optional — allow walk-in
-        string patientNameForSale = SelectedPatient?.Name ?? 
-            (string.IsNullOrWhiteSpace(WalkInPatientName) ? "Walk-in" : WalkInPatientName.Trim());
+        if (InvoiceState == InvoiceState.Draft) { CheckInvoice(); return; }
+        if (LineItems.Count == 0) { StatusMessage = "Add at least one product."; return; }
+        string patientNameForSale = string.IsNullOrWhiteSpace(PatientName) ? "Anonymous" : PatientName.Trim();
 
         var s = new Sale
         {
             InvoiceNumber = InvoiceNumber,
             SaleDate = SaleDate.DateTime,
-            PatientID = SelectedPatient?.PatientID,
+            PatientID = null,
             PatientName = patientNameForSale,
-            ConsultationFee = ConsultationFee,
+            SalesTax = SalesTax,
             GrandTotal = GrandTotal,
             PaymentMethod = PaymentMethod,
             IsPosted = true,
@@ -259,15 +261,14 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
             if (Mode == FormMode.Add)
             {
                 await Task.Run(() => _repo.Insert(s));
+                InvoiceState = InvoiceState.Posted;
                 StatusMessage = "Sale posted successfully. Stock updated.";
                 LogActivity("Sale Completed", $"Invoice #{s.InvoiceNumber} posted for {s.PatientName} — Rs. {s.GrandTotal:N2}", "Sales");
                 WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             }
             
-            Mode = FormMode.View;
-            ShowForm = false;
-            NotifyButtonStates();
             await InitializeAsync();
+            await NewAsync();
         }
         catch (Exception ex)
         {
@@ -308,13 +309,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         try
         {
-            var patients = await Task.Run(() => _patientRepo.GetAll());
             var products = await Task.Run(() => _productRepo.GetAll());
             var sales = await Task.Run(() => _repo.GetAll());
             
             Avalonia.Threading.Dispatcher.UIThread.Post(() => 
             {
-                Patients = new ObservableCollection<Patient>(patients);
                 Products = new ObservableCollection<Product>(
                     products.Where(m => !m.IsExpired).OrderBy(m => m.Name));
                 FilteredProducts = new ObservableCollection<Product>(Products);
@@ -337,14 +336,13 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     private void ClearFields()
     {
         InvoiceNumber = string.Empty;
-        SelectedPatient = null;
-        WalkInPatientName = string.Empty;
+        PatientName = string.Empty;
         SaleDate = DateTimeOffset.Now;
-        ConsultationFee = 0;
+        SalesTax = 0;
         PaymentMethod = "Cash";
         LineItems.Clear();
         ProductSearchTerm = string.Empty;
-        SelectedUnitType = "Tablet";
+        SelectedUnitType = "Pieces";
         OnPropertyChanged(nameof(GrandTotal));
     }
 
@@ -353,18 +351,6 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
         OnPropertyChanged(nameof(MutationEnabled));
         OnPropertyChanged(nameof(SaveCancelEnabled));
         OnPropertyChanged(nameof(IsNewSale));
-        OnPropertyChanged(nameof(PatientIsSelected));
-        OnPropertyChanged(nameof(IsWalkIn));
-    }
-
-    partial void OnSelectedPatientChanged(Patient? value)
-    {
-        OnPropertyChanged(nameof(PatientIsSelected));
-        OnPropertyChanged(nameof(IsWalkIn));
-        if (value != null)
-        {
-            ConsultationFee = value.TotalBill;
-        }
     }
 
     partial void OnProductSearchTermChanged(string value)
@@ -383,20 +369,37 @@ public partial class SaleViewModel : ViewModelBase, ISearchable
     {
         if (value != null)
         {
-            ProductPrice = SelectedUnitType == "Box" ? value.SellingPrice : value.PricePerTablet;
+            ProductPrice = value.SellingPrice;
         }
         OnPropertyChanged(nameof(AvailableStockDisplay));
     }
 
     partial void OnSelectedUnitTypeChanged(string value)
     {
-        if (SelectedProduct != null)
-            ProductPrice = value == "Box" ? SelectedProduct.SellingPrice : SelectedProduct.PricePerTablet;
+        if (SelectedProduct != null) ProductPrice = SelectedProduct.SellingPrice;
         OnPropertyChanged(nameof(AvailableStockDisplay));
     }
-    
-    partial void OnConsultationFeeChanged(decimal value)
+
+    [RelayCommand] private void QuickAddProduct() => RequestAddProduct?.Invoke();
+
+    public async Task PreselectProductAsync(int id)
     {
-        OnPropertyChanged(nameof(GrandTotal));
+        Products = new ObservableCollection<Product>((await Task.Run(_productRepo.GetAll)).Where(p => !p.IsExpired).OrderBy(p => p.Name));
+        FilteredProducts = new ObservableCollection<Product>(Products);
+        SelectedProduct = Products.FirstOrDefault(p => p.ProductID == id);
+        PreselectedEntityId = id;
     }
+    
+    partial void OnSalesTaxChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
+
+    [RelayCommand]
+    private void CheckInvoice()
+    {
+        if (LineItems.Count == 0) { StatusMessage = "Add at least one product before checking the invoice."; return; }
+        InvoiceState = InvoiceState.Checking;
+        StatusMessage = "Invoice checked. Review the totals, then post it.";
+    }
+
+    [RelayCommand]
+    private void EditInvoice() { InvoiceState = InvoiceState.Draft; StatusMessage = "Invoice returned to draft."; }
 }
