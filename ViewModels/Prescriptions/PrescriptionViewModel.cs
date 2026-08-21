@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Prescriptions;
 
@@ -134,6 +135,56 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         }
         finally { IsBusy = false; }
     }
+
+    [RelayCommand]
+    private async Task SendToPharmacistAsync()
+    {
+        if (SelectedPatient == null) { StatusIsError = true; StatusMessage = "Select a patient."; return; }
+        if (!Items.Any()) { StatusIsError = true; StatusMessage = "Add at least one medicine."; return; }
+
+        IsBusy = true;
+        try
+        {
+            var prescription = BuildPrescription();
+            await Task.Run(() => _prescRepo.Insert(prescription, "SentToPharmacy"));
+            StatusIsError = false;
+            StatusMessage = $"{SelectedPatient.Name} was sent to the pharmacist. Reception has also been notified.";
+            Items.Clear();
+        }
+        catch (Exception ex) { StatusIsError = true; StatusMessage = $"Unable to send: {ex.Message}"; }
+        finally { IsBusy = false; }
+    }
+
+    [RelayCommand]
+    private async Task PrintPatientPrescriptionAsync()
+    {
+        if (SelectedPatient == null) { StatusIsError = true; StatusMessage = "Select a patient."; return; }
+        if (!Items.Any()) { StatusIsError = true; StatusMessage = "Add at least one medicine."; return; }
+        var prescription = BuildPrescription();
+        if (await PrescriptionPrintService.ExportAsync(prescription))
+        {
+            StatusIsError = false;
+            StatusMessage = "Prescription PDF is ready to print.";
+        }
+    }
+
+    private Prescription BuildPrescription() => new()
+    {
+        PatientID = SelectedPatient!.PatientID,
+        PatientName = SelectedPatient.Name,
+        PatientAge = SelectedPatient.Age,
+        PatientGender = SelectedPatient.Gender,
+        PatientPhone = SelectedPatient.Phone ?? SelectedPatient.Contact,
+        DoctorID = CurrentUser!.UserID,
+        DoctorName = CurrentUser.FullName,
+        VisitDate = VisitDate.DateTime,
+        Diagnosis = Diagnosis,
+        Notes = Notes,
+        Items = Items.Select(i => new PrescriptionItem
+        {
+            ProductID = i.ProductID, ProductName = i.ProductName, Quantity = i.Quantity, Dosage = i.Dosage
+        }).ToList()
+    };
 
     [RelayCommand]
     private void Reset()

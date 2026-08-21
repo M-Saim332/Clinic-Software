@@ -18,7 +18,8 @@ public class PrescriptionRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, u.FullName AS DoctorName
+            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
+                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
               FROM Prescriptions p
               JOIN Patients pat ON p.PatientID = pat.PatientID
               JOIN Users u ON p.DoctorID = u.UserID
@@ -29,7 +30,8 @@ public class PrescriptionRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, u.FullName AS DoctorName
+            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
+                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
               FROM Prescriptions p
               JOIN Patients pat ON p.PatientID = pat.PatientID
               JOIN Users u ON p.DoctorID = u.UserID
@@ -42,7 +44,8 @@ public class PrescriptionRepository
     {
         using var conn = _session.CreateConnection();
         var prescription = conn.QuerySingleOrDefault<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, u.FullName AS DoctorName
+            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
+                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
               FROM Prescriptions p
               JOIN Patients pat ON p.PatientID = pat.PatientID
               JOIN Users u ON p.DoctorID = u.UserID
@@ -62,7 +65,44 @@ public class PrescriptionRepository
     }
 
     /// <summary>Inserts the doctor's drug selection. Dispensing and stock deduction happen in posted sales.</summary>
-    public int Insert(Prescription prescription)
+    public IEnumerable<Prescription> GetPharmacyHandoffs(bool includeDispensed = false)
+    {
+        using var conn = _session.CreateConnection();
+        var rows = conn.Query<Prescription>(
+            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
+                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
+              FROM Prescriptions p
+              JOIN Patients pat ON p.PatientID = pat.PatientID
+              JOIN Users u ON p.DoctorID = u.UserID
+              WHERE p.WorkflowStatus IN ('SentToPharmacy', 'Printed')
+                 OR (@includeDispensed = 1 AND p.WorkflowStatus = 'Dispensed' AND p.DispensedAt >= DATEADD(day, -1, GETDATE()))
+              ORDER BY CASE WHEN p.WorkflowStatus = 'SentToPharmacy' THEN 0 WHEN p.WorkflowStatus = 'Printed' THEN 1 ELSE 2 END,
+                       p.SentToPharmacyAt DESC",
+            new { includeDispensed });
+
+        foreach (var row in rows)
+            row.Items = conn.Query<PrescriptionItem>(
+                @"SELECT pi.*, m.Name AS ProductName FROM PrescriptionItems pi
+                  JOIN Products m ON pi.ProductID = m.ProductID
+                  WHERE pi.PrescriptionID = @id", new { id = row.PrescriptionID }).ToList();
+        return rows;
+    }
+
+    public void MarkPrinted(int prescriptionId)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(@"UPDATE Prescriptions SET WorkflowStatus = 'Printed', PrintedAt = COALESCE(PrintedAt, GETDATE())
+                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus = 'SentToPharmacy'", new { prescriptionId });
+    }
+
+    public void MarkDispensed(int prescriptionId)
+    {
+        using var conn = _session.CreateConnection();
+        conn.Execute(@"UPDATE Prescriptions SET WorkflowStatus = 'Dispensed', DispensedAt = GETDATE()
+                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus IN ('SentToPharmacy', 'Printed')", new { prescriptionId });
+    }
+
+    public int Insert(Prescription prescription, string workflowStatus = "Draft")
     {
         using var conn = _session.CreateConnection();
         // Note: conn is already open — CreateConnection() opens it.
@@ -70,10 +110,12 @@ public class PrescriptionRepository
         try
         {
             var prescId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Prescriptions (PatientID, DoctorID, VisitDate, Diagnosis, Notes)
-                  VALUES (@PatientID, @DoctorID, @VisitDate, @Diagnosis, @Notes);
+                @"INSERT INTO Prescriptions (PatientID, DoctorID, VisitDate, Diagnosis, Notes, WorkflowStatus, SentToPharmacyAt)
+                  VALUES (@PatientID, @DoctorID, @VisitDate, @Diagnosis, @Notes, @WorkflowStatus,
+                          CASE WHEN @WorkflowStatus = 'SentToPharmacy' THEN GETDATE() ELSE NULL END);
                   SELECT SCOPE_IDENTITY();",
-                prescription, tx);
+                new { prescription.PatientID, prescription.DoctorID, prescription.VisitDate, prescription.Diagnosis,
+                      prescription.Notes, WorkflowStatus = workflowStatus }, tx);
 
             foreach (var item in prescription.Items)
             {
