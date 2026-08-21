@@ -9,6 +9,7 @@
              x:DataType="vm:DashboardViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
+    <Grid>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="20,16,20,20" Spacing="16">
 
@@ -137,6 +138,66 @@
                     </Grid>
                 </Border>
             </Grid>
+
+
+            <!-- Doctor -> Pharmacy notifications -->
+            <Border IsVisible="{Binding CanSeePrescriptionNotifications}" Classes="dashCard" Padding="20,18">
+                <StackPanel Spacing="14">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" CornerRadius="18" Background="#ECFDF5">
+                                <materialIcons:MaterialIcon Kind="Bell" Width="18" Height="18" Foreground="#0D9488"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Spacing="1">
+                                <TextBlock Text="Prescription Notifications" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                <TextBlock Text="Patients sent by doctors for pharmacy review" FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Border Grid.Column="1" Background="#0D9488" CornerRadius="12" Padding="9,3" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding NewPrescriptionCount, StringFormat='{}{0} new'}" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                        </Border>
+                    </Grid>
+
+                    <ItemsControl ItemsSource="{Binding PrescriptionNotifications}" IsVisible="{Binding HasPrescriptionNotifications}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:Prescription">
+                                <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}"
+                                        BorderThickness="1" CornerRadius="8" Padding="14,11" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="Auto,2*,*,*,Auto" ColumnSpacing="12">
+                                        <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17" Background="#EFF6FF">
+                                            <materialIcons:MaterialIcon Kind="Account" Width="16" Height="16" Foreground="{DynamicResource BrushPrimaryBlue}"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{Binding PatientName}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                                            <TextBlock Text="{Binding PatientPhone, FallbackValue='No phone'}" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="DOCTOR" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                                            <TextBlock Text="{Binding DoctorName}" FontSize="12"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{Binding WorkflowStatusLabel}" FontSize="11" FontWeight="SemiBold" Foreground="#0D9488"/>
+                                            <TextBlock Text="{Binding SentTimeDisplay}" FontSize="10" Foreground="{DynamicResource BrushInk500}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="4" Command="{Binding #Root.((vm:DashboardViewModel)DataContext).OpenHandoffCommand}"
+                                                CommandParameter="{Binding}" Classes="btn-secondary" Padding="12,0" Height="32">
+                                            <StackPanel Orientation="Horizontal" Spacing="6"><materialIcons:MaterialIcon Kind="Eye" Width="14" Height="14"/><TextBlock Text="Open"/></StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel IsVisible="{Binding !HasPrescriptionNotifications}" HorizontalAlignment="Center" Margin="0,12" Spacing="4">
+                        <TextBlock Text="No new patient handoffs" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
+                        <TextBlock Text="New prescriptions sent by doctors will appear here." FontSize="11" Foreground="{DynamicResource BrushInk400}"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding PrescriptionStatusMessage}" FontSize="12" Foreground="#0D9488"/>
+                </StackPanel>
+            </Border>
 
 
             <!-- ═══════════════════════════════════════════════════════════ -->
@@ -413,6 +474,69 @@
 
         </StackPanel>
     </ScrollViewer>
+
+    <!-- Prescription detail / dispensing workflow -->
+    <Border IsVisible="{Binding ShowHandoffDetails}" Background="#880F172A" ZIndex="100">
+        <Border Width="720" MaxHeight="600" Background="{DynamicResource BrushCardBackground}" CornerRadius="12"
+                Padding="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,18">
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Prescription Review" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                        <TextBlock Text="Doctor → Pharmacist → Receptionist" FontSize="12" Foreground="#0D9488" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Command="{Binding CloseHandoffCommand}" Background="Transparent" BorderThickness="0" Width="34" Height="34">
+                        <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </Grid>
+                <ScrollViewer Grid.Row="1">
+                    <StackPanel Spacing="16">
+                        <Border Background="{DynamicResource BrushBackground}" CornerRadius="8" Padding="16">
+                            <Grid ColumnDefinitions="*,*">
+                                <StackPanel Grid.Column="0" Spacing="4">
+                                    <TextBlock Text="PATIENT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.PatientName}" FontSize="17" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.PatientPhone, StringFormat='Phone: {0}'}" Foreground="{DynamicResource BrushInk600}"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.PatientAge, StringFormat='Age: {0}'}" Foreground="{DynamicResource BrushInk600}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="4">
+                                    <TextBlock Text="PRESCRIBED BY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.DoctorName}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.VisitDate, StringFormat='{}{0:dd MMM yyyy, h:mm tt}'}" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <StackPanel Spacing="5">
+                            <TextBlock Text="Diagnosis" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                            <TextBlock Text="{Binding SelectedHandoff.Diagnosis, FallbackValue='Not specified'}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <DataGrid ItemsSource="{Binding SelectedHandoff.Items}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="230">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}" Width="*"/>
+                                <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
+                                <DataGridTextColumn Header="DOSAGE / DIRECTIONS" Binding="{Binding Dosage}" Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="{Binding SelectedHandoff.Notes}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                        <TextBlock Text="{Binding PrescriptionStatusMessage}" Foreground="#0D9488" FontSize="12" FontWeight="Medium"/>
+                    </StackPanel>
+                </ScrollViewer>
+                <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,20,0,0">
+                    <Button Grid.Column="0" Command="{Binding CloseHandoffCommand}" Classes="btn-secondary" HorizontalAlignment="Left" Content="Close"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" IsVisible="{Binding CanManagePrescriptionHandoffs}">
+                        <Button Command="{Binding PrintHandoffCommand}" Classes="btn-secondary">
+                            <StackPanel Orientation="Horizontal" Spacing="7"><materialIcons:MaterialIcon Kind="Printer" Width="15" Height="15"/><TextBlock Text="Check &amp; Print"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding MarkMedicinesGivenCommand}" IsEnabled="{Binding CanDispenseSelected}"
+                                Background="#0D9488" Foreground="White" BorderThickness="0" CornerRadius="6" Padding="16,0" Height="36">
+                            <StackPanel Orientation="Horizontal" Spacing="7"><materialIcons:MaterialIcon Kind="CheckCircle" Width="15" Height="15"/><TextBlock Text="Medicines Given"/></StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </Border>
+    </Grid>
 
     <UserControl.Styles>
 
