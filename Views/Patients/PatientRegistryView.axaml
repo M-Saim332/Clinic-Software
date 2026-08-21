@@ -324,8 +324,12 @@
         <TextBlock Text="Save Patient" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
-                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}" Content="Print"/>
-                        <Button Command="{Binding PostAndSyncCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}" Content="Post &amp; Sync with Receptionist"/>
+                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/><TextBlock Text="Print Patient Prescription"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding PostAndSyncCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}" Background="#0D9488">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Send" Width="16" Height="16"/><TextBlock Text="Send to Pharmacist"/></StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
