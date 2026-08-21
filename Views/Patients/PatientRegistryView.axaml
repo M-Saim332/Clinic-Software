@@ -196,8 +196,8 @@
             </Border>
 
             <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
-                <Border Padding="28,24,28,96">
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,24" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Border>
                     <StackPanel Spacing="24">
                         <StackPanel Spacing="16">
                         <TextBlock Text="PATIENT DETAILS" FontSize="11" FontWeight="Bold"
@@ -223,7 +223,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,16">
                                 <TextBlock Text="Gender" Classes="label"/>
-                                <comp:SearchableComboBoxControl ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" DisplayMemberPath="" Placeholder="Search gender..." HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
+                                <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}" PlaceholderText="Select gender..." HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"/>
                             </StackPanel>
 
                             <!-- Row 2: CNIC + Appointment Time -->
