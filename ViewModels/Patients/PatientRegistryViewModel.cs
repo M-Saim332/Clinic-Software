@@ -9,6 +9,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ClinicSystem.UI.ViewModels.Prescriptions;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Patients;
 
@@ -165,13 +166,13 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         };
         try
         {
-            await Task.Run(() => _prescriptionRepo.Insert(prescription));
+            await Task.Run(() => _prescriptionRepo.Insert(prescription, "SentToPharmacy"));
             await Task.Run(() => _repo.ShareWithPharma(SelectedPatient.PatientID));
             await Task.Run(() => _repo.UpdateVisitStatus(SelectedPatient.PatientID, "Visited", DateTime.Today));
             SelectedDrugs.Clear();
             await LoadClinicalDetailAsync(SelectedPatient.PatientID);
-            StatusMessage = "Visit posted and patient shared with Pharma.";
-            LogActivity("Clinical Visit Posted", $"Visit for {SelectedPatient.Name} shared with Pharma", "Patients");
+            StatusMessage = "Patient sent to the pharmacist. Reception has also been notified.";
+            LogActivity("Patient Sent to Pharmacist", $"Prescription for {SelectedPatient.Name} is ready for pharmacy review", "Prescriptions");
         }
         catch (Exception ex) { StatusMessage = $"Unable to post visit: {ex.Message}"; }
     }
@@ -179,22 +180,20 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task PrintClinicalSummaryAsync()
     {
-        if (SelectedPatient == null || Avalonia.Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
-        var file = await desktop.MainWindow!.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions {
-            Title="Print Clinical Patient Summary", SuggestedFileName=$"{SelectedPatient.Name}-clinical-summary.pdf", DefaultExtension="pdf",
-            FileTypeChoices=new[] { new FilePickerFileType("PDF document") { Patterns=new[] { "*.pdf" } } }
-        });
-        if (file == null) return;
-        await using var stream = await file.OpenWriteAsync();
-        var patient=SelectedPatient; var history=VisitHistory.ToList(); var reason=ReasonOfVisit;
-        Document.Create(c => c.Page(page => { page.Size(PageSizes.A4); page.Margin(36);
-            page.Header().Text("CLINICAL PATIENT SUMMARY").FontSize(20).Bold();
-            page.Content().Column(col => { col.Spacing(8); col.Item().Text($"Patient: {patient.Name}").Bold();
-                col.Item().Text($"Phone: {patient.Phone ?? "—"}   CNIC: {patient.CNIC ?? "—"}"); col.Item().Text($"Reason of visit: {reason}");
-                col.Item().PaddingTop(12).Text("Visit History").FontSize(15).Bold();
-                foreach (var visit in history) col.Item().Text($"{visit.VisitDate:dd MMM yyyy} — {string.Join(", ", visit.Items.Select(i => i.ProductName))}"); });
-        })).GeneratePdf(stream);
-        StatusMessage="Clinical summary exported for printing.";
+        if (SelectedPatient == null) return;
+        var items = SelectedDrugs.Select(d => new PrescriptionItem
+        {
+            ProductID = d.ProductID, ProductName = d.ProductName, Quantity = d.Quantity, Dosage = d.Dosage
+        }).ToList();
+        if (items.Count == 0) items = VisitHistory.FirstOrDefault()?.Items.ToList() ?? new List<PrescriptionItem>();
+        if (items.Count == 0) { StatusMessage = "Add medicines before printing the prescription."; return; }
+        var prescription = new Prescription
+        {
+            PatientID = SelectedPatient.PatientID, PatientName = SelectedPatient.Name, PatientAge = SelectedPatient.Age,
+            PatientGender = SelectedPatient.Gender, PatientPhone = SelectedPatient.Phone, DoctorID = CurrentUser?.UserID ?? 0,
+            DoctorName = CurrentUser?.FullName, VisitDate = DateTime.Now, Notes = ReasonOfVisit, Items = items
+        };
+        if (await PrescriptionPrintService.ExportAsync(prescription)) StatusMessage = "Patient prescription is ready to print.";
     }
 
     [RelayCommand]

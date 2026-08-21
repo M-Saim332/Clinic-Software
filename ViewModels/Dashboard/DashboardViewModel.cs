@@ -10,6 +10,7 @@ using SkiaSharp;
 using CommunityToolkit.Mvvm.Messaging;
 using ClinicSystem.UI.Messages;
 using System.Timers;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
@@ -29,6 +30,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     private readonly DiscountRefundRepository _refundRepo;
     private readonly ReturnRepository     _productReturnRepo;
     private readonly ActivityLogRepository _activityRepo;
+    private readonly PrescriptionRepository _prescriptionRepo;
 
     // 30-second auto-refresh timer for pending refunds
     private readonly System.Timers.Timer _refundPollTimer;
@@ -58,7 +60,8 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
         DiscountRefundRepository refundRepo,
         ReturnRepository productReturnRepo,
         DiscountRefundViewModel discountRefundVM,
-        ActivityLogRepository activityRepo)
+        ActivityLogRepository activityRepo,
+        PrescriptionRepository prescriptionRepo)
     {
         _patientRepo     = patientRepo;
         _productRepo    = productRepo;
@@ -70,6 +73,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
         _refundRepo      = refundRepo;
         _productReturnRepo = productReturnRepo;
         _activityRepo    = activityRepo;
+        _prescriptionRepo = prescriptionRepo;
         DiscountRefundVM = discountRefundVM;
 
         WeakReferenceMessenger.Default.RegisterAll(this);
@@ -100,6 +104,20 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     [ObservableProperty] private ObservableCollection<DiscountRefund> _pendingRefunds = new();
     [ObservableProperty] private bool _hasPendingRefunds;
     [ObservableProperty] private ObservableCollection<DiscountRefund> _refundHistory = new();
+
+    // ── Doctor handoff notifications ─────────────────────────────────────
+    [ObservableProperty] private ObservableCollection<Prescription> _prescriptionNotifications = new();
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanDispenseSelected))]
+    private Prescription? _selectedHandoff;
+    [ObservableProperty] private bool _showHandoffDetails;
+    [ObservableProperty] private string _prescriptionStatusMessage = string.Empty;
+    [ObservableProperty] private int _newPrescriptionCount;
+    public bool CanSeePrescriptionNotifications => CurrentUser?.IsPharmacist == true ||
+        CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Receptionist;
+    public bool CanManagePrescriptionHandoffs => CurrentUser?.IsPharmacist == true;
+    public bool HasPrescriptionNotifications => PrescriptionNotifications.Count > 0;
+    public bool CanDispenseSelected => CanManagePrescriptionHandoffs && SelectedHandoff?.WorkflowStatus == "Printed";
 
     // ── Summary card counts ────────────────────────────────────────────────
     [ObservableProperty] private int _totalProducts;
@@ -153,6 +171,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
         {
             // Load pending refund notifications
             await LoadPendingRefundsAsync();
+            await LoadPrescriptionNotificationsAsync();
 
             var today = DateTime.Today;
 
@@ -400,5 +419,64 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             });
         }
         catch { /* silent — dashboard still loads */ }
+    }
+
+    public async Task LoadPrescriptionNotificationsAsync()
+    {
+        if (!CanSeePrescriptionNotifications) return;
+        try
+        {
+            var handoffs = await Task.Run(() => _prescriptionRepo.GetPharmacyHandoffs(includeDispensed: true).ToList());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                PrescriptionNotifications = new ObservableCollection<Prescription>(handoffs);
+                NewPrescriptionCount = handoffs.Count(p => p.WorkflowStatus == "SentToPharmacy");
+                OnPropertyChanged(nameof(HasPrescriptionNotifications));
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => PrescriptionStatusMessage = $"Notifications could not be loaded: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private void OpenHandoff(Prescription? prescription)
+    {
+        if (prescription == null) return;
+        SelectedHandoff = prescription;
+        ShowHandoffDetails = true;
+        PrescriptionStatusMessage = string.Empty;
+    }
+
+    [RelayCommand] private void CloseHandoff() => ShowHandoffDetails = false;
+
+    [RelayCommand]
+    private async Task PrintHandoffAsync()
+    {
+        if (SelectedHandoff == null || !CanManagePrescriptionHandoffs) return;
+        if (!await PrescriptionPrintService.ExportAsync(SelectedHandoff)) return;
+        await Task.Run(() => _prescriptionRepo.MarkPrinted(SelectedHandoff.PrescriptionID));
+        SelectedHandoff.WorkflowStatus = "Printed";
+        OnPropertyChanged(nameof(CanDispenseSelected));
+        PrescriptionStatusMessage = "Prescription checked and exported for printing.";
+        await LoadPrescriptionNotificationsAsync();
+    }
+
+    [RelayCommand]
+    private async Task MarkMedicinesGivenAsync()
+    {
+        if (SelectedHandoff == null || !CanManagePrescriptionHandoffs) return;
+        if (SelectedHandoff.WorkflowStatus != "Printed")
+        {
+            PrescriptionStatusMessage = "Check and print the prescription before giving medicines.";
+            return;
+        }
+        await Task.Run(() => _prescriptionRepo.MarkDispensed(SelectedHandoff.PrescriptionID));
+        var patientName = SelectedHandoff.PatientName;
+        ShowHandoffDetails = false;
+        PrescriptionStatusMessage = $"Medicines marked as given to {patientName}.";
+        LogActivity("Medicines Given", $"Prescription dispensed to {patientName}", "Prescriptions");
+        await LoadPrescriptionNotificationsAsync();
     }
 }

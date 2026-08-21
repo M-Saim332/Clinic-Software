@@ -70,6 +70,23 @@
                             </StackPanel>
                         </Button>
 
+                        <Button Command="{Binding SendToPharmacistCommand}" IsEnabled="{Binding !IsBusy}"
+                                Background="#0D9488" Foreground="White" BorderThickness="0"
+                                HorizontalAlignment="Stretch" Padding="12" CornerRadius="6">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Send" Width="16" Height="16" Foreground="White"/>
+                                <TextBlock Text="Send to Pharmacist" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding PrintPatientPrescriptionCommand}" IsEnabled="{Binding !IsBusy}"
+                                Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/>
+                                <TextBlock Text="Print Patient Prescription"/>
+                            </StackPanel>
+                        </Button>
+
                         <Button  Command="{Binding ResetCommand}" Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="Refresh" Width="18" Height="18"/>
@@ -210,4 +227,3 @@
         </Style>
     </UserControl.Styles>
 </UserControl>
-
