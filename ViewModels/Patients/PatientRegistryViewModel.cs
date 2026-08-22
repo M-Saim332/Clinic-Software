@@ -145,11 +145,24 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private void AddDrug()
     {
-        if (SelectedDrug == null) { StatusMessage = "Select an in-stock drug."; return; }
-        if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
-        SelectedDrugs.Add(new PrescriptionItemRow { ProductID=SelectedDrug.ProductID, ProductName=SelectedDrug.Name,
-            Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=SelectedDrug.Stock });
-        SelectedDrug=null; DrugQuantity=1; Dosage=string.Empty;
+        if (SelectedDrug != null)
+        {
+            if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
+            SelectedDrugs.Add(new PrescriptionItemRow { ProductID=SelectedDrug.ProductID, ProductName=SelectedDrug.Name,
+                Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=SelectedDrug.Stock });
+            SelectedDrug=null; DrugQuantity=1; Dosage=string.Empty; DrugSearch=string.Empty;
+        }
+        else if (!string.IsNullOrWhiteSpace(DrugSearch))
+        {
+            if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
+            SelectedDrugs.Add(new PrescriptionItemRow { ProductID=0, ProductName=DrugSearch,
+                Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=0 });
+            DrugSearch=string.Empty; DrugQuantity=1; Dosage=string.Empty;
+        }
+        else
+        {
+            StatusMessage = "Select an in-stock drug or type a custom drug name.";
+        }
     }
 
     [RelayCommand] private void RemoveDrug(PrescriptionItemRow? row) { if (row != null) SelectedDrugs.Remove(row); }

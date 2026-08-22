@@ -20,9 +20,13 @@ public partial class SearchableComboBoxControl : UserControl
     public static readonly StyledProperty<string> PlaceholderProperty =
         AvaloniaProperty.Register<SearchableComboBoxControl, string>(nameof(Placeholder), "Search and select...");
 
+    public static readonly StyledProperty<string> TextProperty =
+        AvaloniaProperty.Register<SearchableComboBoxControl, string>(nameof(Text), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
     private readonly ObservableCollection<SearchableOption> _options = new();
     private bool _synchronizing;
 
+    public string Text { get => GetValue(TextProperty); set => SetValue(TextProperty, value); }
     public IEnumerable? ItemsSource { get => GetValue(ItemsSourceProperty); set => SetValue(ItemsSourceProperty, value); }
     public object? SelectedItem { get => GetValue(SelectedItemProperty); set => SetValue(SelectedItemProperty, value); }
     public string DisplayMemberPath { get => GetValue(DisplayMemberPathProperty); set => SetValue(DisplayMemberPathProperty, value); }
@@ -31,6 +35,10 @@ public partial class SearchableComboBoxControl : UserControl
 
     static SearchableComboBoxControl()
     {
+        TextProperty.Changed.AddClassHandler<SearchableComboBoxControl>((c, _) => {
+            if (!c._synchronizing && c.FindControl<TextBox>("SearchBox") is { } box && box.Text != c.Text)
+                box.Text = c.Text;
+        });
         ItemsSourceProperty.Changed.AddClassHandler<SearchableComboBoxControl>((c, _) => c.RefreshOptions());
         SelectedItemProperty.Changed.AddClassHandler<SearchableComboBoxControl>((c, _) => c.SyncSelection(updateText: true));
         DisplayMemberPathProperty.Changed.AddClassHandler<SearchableComboBoxControl>((c, _) => c.RefreshOptions());
@@ -51,6 +59,7 @@ public partial class SearchableComboBoxControl : UserControl
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
     {
         if (_synchronizing) return;
+        Text = SearchBox.Text;
         RefreshOptions(SearchBox.Text);
         OptionsPopup.IsOpen = true;
     }
@@ -67,6 +76,7 @@ public partial class SearchableComboBoxControl : UserControl
         _synchronizing = true;
         SelectedItem = option.Value;
         SearchBox.Text = option.Label;
+        Text = option.Label;
         OptionsPopup.IsOpen = false;
         _synchronizing = false;
     }
@@ -92,7 +102,12 @@ public partial class SearchableComboBoxControl : UserControl
         if (_synchronizing) return;
         _synchronizing = true;
         OptionsList.SelectedItem = _options.FirstOrDefault(o => ReferenceEquals(o.Value, SelectedItem) || Equals(o.Value, SelectedItem));
-        if (updateText) SearchBox.Text = OptionsList.SelectedItem is SearchableOption option ? option.Label : string.Empty;
+        if (updateText) 
+        {
+            var newText = OptionsList.SelectedItem is SearchableOption option ? option.Label : string.Empty;
+            SearchBox.Text = newText;
+            Text = newText;
+        }
         _synchronizing = false;
     }
 

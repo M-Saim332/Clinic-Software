@@ -161,8 +161,8 @@
             </Border>
 
             <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,12,28,96">
-                <StackPanel Spacing="10" MaxWidth="800" HorizontalAlignment="Stretch">
+            <ScrollViewer Grid.Row="1" Padding="28,12,28,12">
+                <StackPanel Spacing="10" MaxWidth="800" HorizontalAlignment="Stretch" Margin="0,0,0,80">
 
                     <!-- Patient Row -->
                     <StackPanel Spacing="4">
@@ -216,8 +216,8 @@
                     <Grid ColumnDefinitions="*,*">
                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0">
                             <TextBlock Text="Gender (Optional)" Classes="label"/>
-                            <comp:SearchableComboBoxControl ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}"
-                                DisplayMemberPath="" Placeholder="Search gender..." HorizontalAlignment="Stretch"
+                            <ComboBox ItemsSource="{Binding GenderOptions}" SelectedItem="{Binding Gender}"
+                                PlaceholderText="Select gender..." HorizontalAlignment="Stretch"
                                 IsEnabled="{Binding SelectedPatient, Converter={x:Static ObjectConverters.IsNull}}"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="4" Margin="12,0,0,0">

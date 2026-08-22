@@ -47,17 +47,17 @@
                     <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
                     <TextBlock Text="MANAGEMENT" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
 
-                    <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="16" Height="16" VerticalAlignment="Center"/>
-                            <TextBlock Text="Patients" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
                     <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <materialIcons:MaterialIcon Kind="CalendarCheck" Width="16" Height="16" VerticalAlignment="Center"/>
                             <TextBlock Text="Appointments" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <TextBlock Text="Patients" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 

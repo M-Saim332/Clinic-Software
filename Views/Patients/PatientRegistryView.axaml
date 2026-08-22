@@ -196,15 +196,16 @@
             </Border>
 
             <!-- Form Body -->
-            <ScrollViewer Grid.Row="1" Padding="28,24,28,24" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer Grid.Row="1" Padding="28,24,28,12" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <Border>
-                    <StackPanel Spacing="24">
+                    <StackPanel Spacing="24" Margin="0,0,0,80">
                         <StackPanel Spacing="16">
                         <TextBlock Text="PATIENT DETAILS" FontSize="11" FontWeight="Bold"
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Stretch">
+                        <!-- Grid of fields -->
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,8,0,0" IsEnabled="{Binding !IsReadOnly}">
                             
                             <!-- Row 0: Name + Phone -->
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,16">
@@ -257,13 +258,12 @@
                         <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="16" IsVisible="{Binding ShowEditButton}">
                             <StackPanel Spacing="12">
                                 <TextBlock Text="DRUG SELECTION" FontWeight="Bold"/>
-                                <Grid ColumnDefinitions="2*,*,*,Auto" ColumnSpacing="8">
+                                <Grid ColumnDefinitions="3*,1.2*,2*,Auto" ColumnSpacing="8">
                                     <StackPanel Grid.Column="0" Spacing="4">
-                                        <TextBox Text="{Binding DrugSearch}" PlaceholderText="Search in-stock drugs..."/>
-                                        <comp:SearchableComboBoxControl ItemsSource="{Binding FilteredDrugs}" SelectedItem="{Binding SelectedDrug}"
+                                        <comp:SearchableComboBoxControl Text="{Binding DrugSearch}" ItemsSource="{Binding FilteredDrugs}" SelectedItem="{Binding SelectedDrug}"
                                             DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search drug..."/>
                                     </StackPanel>
-                                    <NumericUpDown Grid.Column="1" Value="{Binding DrugQuantity}" Minimum="1" VerticalAlignment="Bottom"/>
+                                    <NumericUpDown Grid.Column="1" Value="{Binding DrugQuantity}" Minimum="1" MinWidth="60" VerticalAlignment="Bottom"/>
                                     <TextBox Grid.Column="2" Text="{Binding Dosage}" PlaceholderText="Dosage / directions" VerticalAlignment="Bottom"/>
                                     <Button Grid.Column="3" Command="{Binding AddDrugCommand}" Content="Add" Classes="btn-secondary" VerticalAlignment="Bottom"/>
                                 </Grid>
