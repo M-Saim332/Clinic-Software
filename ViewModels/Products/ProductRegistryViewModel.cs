@@ -481,7 +481,14 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     }
 
     partial void OnStockChanged(string value) => NotifyCalculatedTotals();
-    partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
+    partial void OnPurchasePriceChanged(string value)
+    {
+        if (decimal.TryParse(value, out var purchasePrice) && purchasePrice >= 0)
+        {
+            SellingPrice = Math.Round(purchasePrice * 1.15m, 2, MidpointRounding.AwayFromZero).ToString("F2");
+        }
+        NotifyCalculatedTotals();
+    }
     partial void OnSellingPriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
     partial void OnSelectedCompanyChanged(Company? value)
@@ -505,10 +512,16 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
             var comps = await Task.Run(() => _companyRepo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                var prevSelectedId = SelectedProduct?.ProductID;
                 StatusMessage = string.Empty;
                 Companies = new ObservableCollection<Company>(comps);
                 Products = new ObservableCollection<Product>(meds);
                 FilterProducts();
+
+                if (prevSelectedId.HasValue)
+                {
+                    SelectedProduct = FilteredProducts.FirstOrDefault(p => p.ProductID == prevSelectedId.Value);
+                }
 
                 LowStockCount   = Products.Count(m => m.IsLowStock && !m.IsExpired);
                 ExpiredCount     = Products.Count(m => m.IsExpired);

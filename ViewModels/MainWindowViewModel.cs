@@ -219,6 +219,44 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         });
 
+        _syncTimer = new Avalonia.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(5)
+        };
+        _syncTimer.Tick += SyncTimer_Tick;
+        _syncTimer.Start();
+    }
+
+    private Avalonia.Threading.DispatcherTimer? _syncTimer;
+
+    private async void SyncTimer_Tick(object? sender, EventArgs e)
+    {
+        if (CurrentPageViewModel == null) return;
+        
+        if (CurrentPageViewModel is ProductRegistryViewModel productVM && productVM.Mode == ClinicSystem.UI.ViewModels.Products.FormMode.View)
+        {
+            await productVM.InitializeAsync();
+        }
+        else if (CurrentPageViewModel is CompanyRegistryViewModel companyVM && companyVM.Mode == ClinicSystem.UI.ViewModels.FormMode.View)
+        {
+            await companyVM.InitializeAsync();
+        }
+        else if (CurrentPageViewModel is SupplierRegistryViewModel supplierVM && supplierVM.Mode == ClinicSystem.UI.ViewModels.FormMode.View)
+        {
+            await supplierVM.InitializeAsync();
+        }
+        else if (CurrentPageViewModel is SaleViewModel saleVM && !saleVM.ShowForm)
+        {
+            await saleVM.InitializeAsync();
+        }
+        else if (CurrentPageViewModel is PurchaseViewModel purchaseVM && purchaseVM.Mode == ClinicSystem.UI.ViewModels.FormMode.View)
+        {
+            await purchaseVM.InitializeAsync();
+        }
+        else if (CurrentPageViewModel is InventoryViewModel inventoryVM)
+        {
+            await inventoryVM.InitializeAsync();
+        }
     }
 
     // ── State ──────────────────────────────────────────────────────────────

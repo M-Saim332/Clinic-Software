@@ -162,9 +162,15 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
             var list = await Task.Run(() => _repo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                var prevSelectedId = SelectedSupplier?.SupplierID;
                 StatusMessage = string.Empty;
                 _allSuppliers = new ObservableCollection<Supplier>(list);
                 FilterSuppliers();
+                
+                if (prevSelectedId.HasValue)
+                {
+                    SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == prevSelectedId.Value);
+                }
             });
         }
         catch (Exception ex)

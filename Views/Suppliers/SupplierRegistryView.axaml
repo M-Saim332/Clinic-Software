@@ -127,6 +127,9 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
+                        <Border Background="{DynamicResource BrushTeal50}" CornerRadius="8" Padding="12">
+                            <TextBlock Text="{Binding SCode, StringFormat='Supplier Code: {0}'}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}"/>
+                        </Border>
                         <StackPanel Spacing="6">
                             <TextBlock Text="Supplier Name *" Classes="label"/>
                             <TextBox Text="{Binding Name}" PlaceholderText="Enter supplier name" IsReadOnly="{Binding IsReadOnly}"/>

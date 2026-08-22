@@ -193,9 +193,15 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
             var list = await Task.Run(() => _repo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                var prevSelectedId = SelectedCompany?.CompanyID;
                 StatusMessage = string.Empty;
                 _allCompanies = new ObservableCollection<Company>(list);
                 FilterCompanies();
+                
+                if (prevSelectedId.HasValue)
+                {
+                    SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == prevSelectedId.Value);
+                }
             });
         }
         catch (Exception ex)

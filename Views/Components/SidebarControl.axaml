@@ -140,12 +140,6 @@
                     </StackPanel>
                 </Button>
 
-                <Button Command="{Binding ShowUsersCommand}" Classes="navbtn" Classes.active="{Binding IsUsersActive}" IsVisible="{Binding CanAccessUsers}">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <materialIcons:MaterialIcon Kind="AccountGroup" Width="16" Height="16" VerticalAlignment="Center"/>
-                        <TextBlock Text="User Management" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
 
                 <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
                     <StackPanel Orientation="Horizontal" Spacing="12">

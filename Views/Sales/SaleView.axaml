@@ -217,22 +217,26 @@
                                 </Grid>
                                 
                                 <TextBlock Text="{Binding AvailableStockDisplay}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
-                                <Grid ColumnDefinitions="*,*,*,*">
-                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,6,0">
+                                <!-- Row 1: Qty and Pieces -->
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                         <TextBlock Text="Qty" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="6" Margin="6,0,6,0">
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                         <TextBlock Text="Pieces" Classes="label"/>
                                         <TextBox Text="Pieces" IsReadOnly="True"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="6,0,6,0">
-                                        <TextBlock Text="Price" Classes="label"/>
-                                        <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0" IsReadOnly="True"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="3" Spacing="6" Margin="6,0,0,0">
+                                </Grid>
+                                <!-- Row 2: Discount and Price -->
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                         <TextBlock Text="Discount (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
+                                        <TextBlock Text="Price" Classes="label"/>
+                                        <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0" IsReadOnly="True"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
