@@ -59,10 +59,9 @@
                                   AutoGenerateColumns="False" IsReadOnly="True"
                                   SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Date"      Binding="{Binding VisitDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="155"/>
-                                <DataGridTextColumn Header="Patient"   Binding="{Binding PatientName}"                                   Width="*"/>
-                                <DataGridTextColumn Header="Doctor"    Binding="{Binding DoctorName}"                                    Width="160"/>
-                                <DataGridTextColumn Header="Diagnosis" Binding="{Binding Diagnosis}"                                     Width="*"/>
+                                <DataGridTextColumn Header="Date"    Binding="{Binding VisitDate, StringFormat=\{0:yyyy-MM-dd HH:mm\}}" Width="155"/>
+                                <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}"  Width="*"/>
+                                <DataGridTextColumn Header="Doctor"  Binding="{Binding DoctorName}"   Width="160"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
@@ -72,12 +71,18 @@
                 <Border Grid.Column="1" Background="#FFFFFF" Padding="24"
                         BorderBrush="#E5E7EB" BorderThickness="1,0,0,0">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Prescribed Products" Foreground="#1F2937"
+                        <TextBlock Text="Prescribed Medicines" Foreground="#1F2937"
                                    FontSize="15" FontWeight="SemiBold"/>
+                        <!-- Lab Tests (new workflow) -->
+                        <StackPanel Spacing="3" IsVisible="{Binding SelectedPrescription.LabTests, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="LAB TESTS" FontSize="9" FontWeight="Bold" Foreground="#6B7280"/>
+                            <TextBlock Text="{Binding SelectedPrescription.LabTests}"
+                                       Foreground="#1F2937" FontSize="13" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <!-- Legacy diagnosis/notes shown if LabTests is empty -->
                         <TextBlock Text="{Binding SelectedPrescription.Diagnosis, FallbackValue='Select a visit to see details'}"
-                                   Foreground="#6B7280" FontSize="13" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedPrescription.Notes}"
-                                   Foreground="#6B7280" FontSize="12" TextWrapping="Wrap"/>
+                                   Foreground="#6B7280" FontSize="13" TextWrapping="Wrap"
+                                   IsVisible="{Binding !SelectedPrescription.LabTests, FallbackValue=True}"/>
                         <Border Height="1" Background="#E5E7EB"/>
                         <DataGrid ItemsSource="{Binding PrescriptionItems}"
                                   AutoGenerateColumns="False" IsReadOnly="True"

@@ -327,9 +327,16 @@ BEGIN
         PrescriptionID INT IDENTITY(1,1) PRIMARY KEY,
         PatientID      INT NOT NULL FOREIGN KEY REFERENCES Patients(PatientID),
         DoctorID       INT NOT NULL FOREIGN KEY REFERENCES Users(UserID),
+        AppointmentID  INT NULL FOREIGN KEY REFERENCES Appointments(AppointmentID),
+        PharmacistID   INT NULL FOREIGN KEY REFERENCES Users(UserID),
         VisitDate      DATETIME NOT NULL,
         Diagnosis      NVARCHAR(MAX) NULL,
         Notes          NVARCHAR(MAX) NULL,
+        LabTests       NVARCHAR(MAX) NULL,
+        WorkflowStatus VARCHAR(30) NOT NULL DEFAULT 'Draft',
+        SentToPharmacyAt DATETIME NULL,
+        PrintedAt      DATETIME NULL,
+        DispensedAt    DATETIME NULL,
         CreatedAt      DATETIME NOT NULL DEFAULT GETDATE()
     );
 END
@@ -447,6 +454,28 @@ BEGIN
         'System Admin',
         1
     );
+END
+GO
+
+-- ============================================================
+--  MIGRATIONS: ADD NEW COLUMNS IDEMPOTENTLY
+-- ============================================================
+-- Add LabTests column to Prescriptions (new workflow: replaces free-text Diagnosis/Notes)
+IF COL_LENGTH('Prescriptions', 'LabTests') IS NULL
+    ALTER TABLE Prescriptions ADD LabTests NVARCHAR(MAX) NULL;
+GO
+
+IF COL_LENGTH('Prescriptions', 'AppointmentID') IS NULL
+BEGIN
+    ALTER TABLE Prescriptions ADD AppointmentID INT NULL;
+    ALTER TABLE Prescriptions ADD CONSTRAINT FK_Prescriptions_Appointments FOREIGN KEY (AppointmentID) REFERENCES Appointments(AppointmentID);
+END
+GO
+
+IF COL_LENGTH('Prescriptions', 'PharmacistID') IS NULL
+BEGIN
+    ALTER TABLE Prescriptions ADD PharmacistID INT NULL;
+    ALTER TABLE Prescriptions ADD CONSTRAINT FK_Prescriptions_Pharmacist FOREIGN KEY (PharmacistID) REFERENCES Users(UserID);
 END
 GO
 

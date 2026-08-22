@@ -23,6 +23,20 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         _productRepo = productRepo;
     }
 
+    // ── Appointment context (set externally when opened from an appointment) ─
+    /// <summary>
+    /// Appointment linked to this consultation. Set before the view is shown.
+    /// When set, the prescription will be linked to this appointment, and
+    /// duplicate handoff detection will use this ID.
+    /// </summary>
+    public int? CurrentAppointmentID { get; set; }
+
+    // Display the linked appointment badge when context is set
+    public bool HasAppointmentContext => CurrentAppointmentID.HasValue;
+    public string AppointmentContextLabel => CurrentAppointmentID.HasValue
+        ? $"APT-{CurrentAppointmentID}"
+        : string.Empty;
+
     // ── Patient selection ─────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Patient> _patients = new();
     [ObservableProperty]
@@ -39,7 +53,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _searchTerm = string.Empty;
     public string SearchPlaceholder => "Search Prescriptions...";
 
-    partial void OnSearchTermChanged(string value) 
+    partial void OnSearchTermChanged(string value)
     {
         // No prescription list to filter in this view yet.
     }
@@ -50,8 +64,13 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
 
     // ── Prescription fields ───────────────────────────────────────────────
     [ObservableProperty] private DateTimeOffset _visitDate = DateTimeOffset.Now;
-    [ObservableProperty] private string _diagnosis = string.Empty;
-    [ObservableProperty] private string _notes = string.Empty;
+    /// <summary>Lab tests ordered for this visit (optional).</summary>
+    [ObservableProperty] private string _labTests = string.Empty;
+
+    // ── Doctor Inventory modal ─────────────────────────────────────────────
+    [ObservableProperty] private bool _showInventoryModal;
+    [ObservableProperty] private string _inventorySearch = string.Empty;
+    [ObservableProperty] private ObservableCollection<Product> _filteredInventory = new();
 
     // ── Prescription items ────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Product> _availableProducts = new();
@@ -65,6 +84,26 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     // ── Commands ──────────────────────────────────────────────────────────
     [RelayCommand] private void PickPatient() { ShowPatientList = true; FilterPatients(); }
     [RelayCommand] private void ClosePatientList() => ShowPatientList = false;
+
+    // Inventory modal commands
+    [RelayCommand] private void OpenInventoryModal() { InventorySearch = string.Empty; FilterInventory(); ShowInventoryModal = true; }
+    [RelayCommand] private void CloseInventoryModal() => ShowInventoryModal = false;
+
+    [RelayCommand]
+    private void AddFromInventory(Product? product)
+    {
+        if (product == null) return;
+        if (Items.Any(i => i.ProductID == product.ProductID)) { StatusMessage = "Already added."; return; }
+        Items.Add(new PrescriptionItemRow
+        {
+            ProductID = product.ProductID,
+            ProductName = product.Name,
+            Quantity = 1,
+            Dosage = string.Empty,
+            AvailableStock = product.Stock
+        });
+        StatusMessage = $"{product.Name} added.";
+    }
 
     [RelayCommand]
     private void SelectPatient(Patient? p)
@@ -108,21 +147,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         IsBusy = true;
         try
         {
-            var prescription = new Prescription
-            {
-                PatientID = SelectedPatient.PatientID,
-                DoctorID = CurrentUser!.UserID,
-                VisitDate = VisitDate.DateTime,
-                Diagnosis = Diagnosis,
-                Notes = Notes,
-                Items = Items.Select(i => new PrescriptionItem
-                {
-                    ProductID = i.ProductID,
-                    Quantity = i.Quantity,
-                    Dosage = i.Dosage
-                }).ToList()
-            };
-
+            var prescription = BuildPrescription();
             await Task.Run(() => _prescRepo.Insert(prescription));
             StatusIsError = false;
             StatusMessage = "Prescription saved successfully.";
@@ -145,10 +170,35 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         IsBusy = true;
         try
         {
+            // ── Duplicate handoff prevention ──────────────────────────────
+            // First try appointment-level deduplication (precise), then fall back to patient+today.
+            Prescription? existingHandoff = null;
+            if (CurrentAppointmentID.HasValue)
+            {
+                existingHandoff = await Task.Run(() =>
+                    _prescRepo.GetActivePrescriptionForAppointment(CurrentAppointmentID.Value));
+            }
+            if (existingHandoff == null)
+            {
+                existingHandoff = await Task.Run(() =>
+                    _prescRepo.GetActivePrescriptionForPatientToday(SelectedPatient.PatientID));
+            }
+
+            if (existingHandoff != null)
+            {
+                StatusIsError = false;
+                StatusMessage = existingHandoff.WorkflowStatus == "Printed"
+                    ? $"{SelectedPatient.Name} is already with the pharmacist (checked & printed). No duplicate created."
+                    : $"{SelectedPatient.Name} has already been sent to the pharmacist. The pharmacist will attend shortly.";
+                return;
+            }
+
+            // ── Insert new handoff ────────────────────────────────────────
             var prescription = BuildPrescription();
             await Task.Run(() => _prescRepo.Insert(prescription, "SentToPharmacy"));
             StatusIsError = false;
             StatusMessage = $"{SelectedPatient.Name} was sent to the pharmacist. Reception has also been notified.";
+            LogActivity("Sent to Pharmacist", $"Prescription sent for {SelectedPatient.Name}", "Prescriptions");
             Items.Clear();
         }
         catch (Exception ex) { StatusIsError = true; StatusMessage = $"Unable to send: {ex.Message}"; }
@@ -177,9 +227,9 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         PatientPhone = SelectedPatient.Phone ?? SelectedPatient.Contact,
         DoctorID = CurrentUser!.UserID,
         DoctorName = CurrentUser.FullName,
+        AppointmentID = CurrentAppointmentID,
         VisitDate = VisitDate.DateTime,
-        Diagnosis = Diagnosis,
-        Notes = Notes,
+        LabTests = string.IsNullOrWhiteSpace(LabTests) ? null : LabTests,
         Items = Items.Select(i => new PrescriptionItem
         {
             ProductID = i.ProductID, ProductName = i.ProductName, Quantity = i.Quantity, Dosage = i.Dosage
@@ -190,8 +240,11 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     private void Reset()
     {
         SelectedPatient = null; VisitDate = DateTimeOffset.Now;
-        Diagnosis = string.Empty; Notes = string.Empty; Items.Clear();
+        LabTests = string.Empty; Items.Clear();
         StatusMessage = string.Empty;
+        CurrentAppointmentID = null;
+        OnPropertyChanged(nameof(HasAppointmentContext));
+        OnPropertyChanged(nameof(AppointmentContextLabel));
         _ = InitializeAsync();
     }
 
@@ -214,6 +267,20 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                 StatusMessage = $"Failed to load data: {ex.Message}");
+        }
+    }
+
+    partial void OnInventorySearchChanged(string value) => FilterInventory();
+
+    private void FilterInventory()
+    {
+        if (string.IsNullOrWhiteSpace(InventorySearch))
+            FilteredInventory = new ObservableCollection<Product>(AvailableProducts);
+        else
+        {
+            var t = InventorySearch.ToLower();
+            FilteredInventory = new ObservableCollection<Product>(
+                AvailableProducts.Where(p => p.Name.ToLower().Contains(t)));
         }
     }
 

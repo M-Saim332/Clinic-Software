@@ -31,15 +31,42 @@ public static class PrescriptionPrintService
             page.Size(PageSizes.A4);
             page.Margin(42);
             page.DefaultTextStyle(style => style.FontSize(10).FontColor(Colors.Grey.Darken3));
+
+            // ── Header ───────────────────────────────────────────────────
             page.Header().Column(header =>
             {
-                header.Item().Text("PATIENT PRESCRIPTION").FontSize(22).Bold().FontColor(Colors.Blue.Darken2);
-                header.Item().PaddingTop(4).Text($"Prescription #{(prescription.PrescriptionID > 0 ? prescription.PrescriptionID : "New")}")
-                    .FontSize(9).FontColor(Colors.Grey.Medium);
+                header.Item().Row(row =>
+                {
+                    row.RelativeItem().Column(clinic =>
+                    {
+                        clinic.Item().Text("PATIENT PRESCRIPTION")
+                            .FontSize(20).Bold().FontColor(Colors.Blue.Darken2);
+                        clinic.Item().PaddingTop(2)
+                            .Text($"Prescription #{(prescription.PrescriptionID > 0 ? prescription.PrescriptionID : "New")}")
+                            .FontSize(9).FontColor(Colors.Grey.Medium);
+                    });
+                    row.AutoItem().AlignRight().Column(apptCol =>
+                    {
+                        if (prescription.AppointmentID.HasValue)
+                        {
+                            apptCol.Item().AlignRight()
+                                .Text($"Appointment: APT-{prescription.AppointmentID}")
+                                .FontSize(9).FontColor(Colors.Blue.Darken1).Bold();
+                        }
+                        apptCol.Item().AlignRight()
+                            .Text($"Date: {prescription.VisitDate:dd MMM yyyy}")
+                            .FontSize(10);
+                    });
+                });
+                header.Item().PaddingTop(6).BorderBottom(1).BorderColor(Colors.Blue.Darken2);
             });
-            page.Content().PaddingVertical(20).Column(column =>
+
+            // ── Content ───────────────────────────────────────────────────
+            page.Content().PaddingVertical(16).Column(column =>
             {
                 column.Spacing(14);
+
+                // Patient + Doctor info panel
                 column.Item().Background(Colors.Grey.Lighten4).Padding(14).Row(row =>
                 {
                     row.RelativeItem().Column(info =>
@@ -51,14 +78,14 @@ public static class PrescriptionPrintService
                     });
                     row.RelativeItem().AlignRight().Column(info =>
                     {
-                        info.Item().AlignRight().Text($"Date: {prescription.VisitDate:dd MMM yyyy}");
-                        info.Item().AlignRight().Text($"Doctor: {prescription.DoctorName ?? "—"}");
+                        info.Item().AlignRight().Text("DOCTOR").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
+                        info.Item().AlignRight().Text(prescription.DoctorName ?? "—").FontSize(13).Bold();
+                        info.Item().AlignRight().Text($"Time: {prescription.VisitDate:hh:mm tt}").FontSize(9);
                     });
                 });
 
-                if (!string.IsNullOrWhiteSpace(prescription.Diagnosis))
-                    column.Item().Text(text => { text.Span("Diagnosis: ").Bold(); text.Span(prescription.Diagnosis); });
-
+                // Medicines table
+                column.Item().Text("PRESCRIBED MEDICINES").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -81,18 +108,30 @@ public static class PrescriptionPrintService
                         table.Cell().Element(BodyCell).Text(index++.ToString());
                         table.Cell().Element(BodyCell).Text(item.ProductName ?? "Medicine");
                         table.Cell().Element(BodyCell).Text(item.Quantity.ToString());
-                        table.Cell().Element(BodyCell).Text(item.Dosage ?? "—");
+                        table.Cell().Element(BodyCell).Text(
+                            string.IsNullOrWhiteSpace(item.Dosage) ? "—" : item.Dosage);
                     }
                 });
 
-                if (!string.IsNullOrWhiteSpace(prescription.Notes))
-                    column.Item().Text(text => { text.Span("Notes: ").Bold(); text.Span(prescription.Notes); });
+                // Lab Tests section (only when ordered)
+                if (!string.IsNullOrWhiteSpace(prescription.LabTests))
+                {
+                    column.Item().Text("LAB TESTS ORDERED").FontSize(9).Bold().FontColor(Colors.Grey.Medium);
+                    column.Item().Background(Colors.Yellow.Lighten4).Padding(12).Text(prescription.LabTests)
+                        .FontSize(10);
+                }
 
-                column.Item().PaddingTop(30).AlignRight().Width(180).BorderTop(1).BorderColor(Colors.Grey.Medium)
-                    .PaddingTop(6).AlignCenter().Text("Doctor's signature").FontSize(9);
+                // Doctor signature line
+                column.Item().PaddingTop(30).AlignRight().Width(180)
+                    .BorderTop(1).BorderColor(Colors.Grey.Medium)
+                    .PaddingTop(6).AlignCenter().Text("Doctor's Signature").FontSize(9);
             });
-            page.Footer().AlignCenter().Text("Please follow the prescribed dosage and consult your doctor if symptoms persist.")
+
+            // ── Footer ────────────────────────────────────────────────────
+            page.Footer().AlignCenter()
+                .Text("Please follow the prescribed dosage and consult your doctor if symptoms persist.")
                 .FontSize(8).FontColor(Colors.Grey.Medium);
+
         })).GeneratePdf(stream);
         return true;
     }

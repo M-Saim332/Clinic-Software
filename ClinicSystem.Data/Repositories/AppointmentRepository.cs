@@ -63,6 +63,24 @@ public class AppointmentRepository
             new { cnic = cnic?.Trim() ?? "", phone = phone?.Trim() ?? "" });
     }
 
+    public Patient? GetPatientByNamePhoneOrCNIC(string? name, string? phone, string? cnic)
+    {
+        if (string.IsNullOrWhiteSpace(name) && string.IsNullOrWhiteSpace(phone) && string.IsNullOrWhiteSpace(cnic)) return null;
+        using var conn = _session.CreateConnection();
+        return conn.QueryFirstOrDefault<Patient>(
+            @"SELECT TOP 1 * FROM Patients
+              WHERE IsActive=1 AND (
+                  (@cnic <> '' AND CNIC=@cnic) OR 
+                  (@phone <> '' AND Phone=@phone) OR 
+                  (@name <> '' AND Name=@name)
+              )
+              ORDER BY CASE WHEN CNIC=@cnic AND @cnic <> '' THEN 0 
+                            WHEN Phone=@phone AND @phone <> '' THEN 1 
+                            WHEN Name=@name AND @name <> '' THEN 2 
+                            ELSE 3 END, PatientID",
+            new { name = name?.Trim() ?? "", phone = phone?.Trim() ?? "", cnic = cnic?.Trim() ?? "" });
+    }
+
     public IEnumerable<Appointment> GetByDate(DateTime date)
     {
         using var conn = _session.CreateConnection();

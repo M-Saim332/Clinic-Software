@@ -14,29 +14,35 @@ public class PrescriptionRepository
         _productRepo = productRepo;
     }
 
+    // ── Core SELECT fragment (reused everywhere) ─────────────────────────────
+    private const string SelectCols = @"
+        p.PrescriptionID, p.PatientID, p.DoctorID, p.AppointmentID, p.PharmacistID,
+        p.VisitDate, p.Diagnosis, p.Notes, p.LabTests,
+        p.CreatedAt, p.WorkflowStatus, p.SentToPharmacyAt, p.PrintedAt, p.DispensedAt,
+        pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
+        pat.Phone AS PatientPhone, u.FullName AS DoctorName";
+
     public IEnumerable<Prescription> GetAll()
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
-                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
-              FROM Prescriptions p
-              JOIN Patients pat ON p.PatientID = pat.PatientID
-              JOIN Users u ON p.DoctorID = u.UserID
-              ORDER BY p.VisitDate DESC");
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               ORDER BY p.VisitDate DESC");
     }
 
     public IEnumerable<Prescription> GetByPatient(int patientId)
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
-                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
-              FROM Prescriptions p
-              JOIN Patients pat ON p.PatientID = pat.PatientID
-              JOIN Users u ON p.DoctorID = u.UserID
-              WHERE p.PatientID = @patientId
-              ORDER BY p.VisitDate DESC",
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               WHERE p.PatientID = @patientId
+               ORDER BY p.VisitDate DESC",
             new { patientId });
     }
 
@@ -44,12 +50,11 @@ public class PrescriptionRepository
     {
         using var conn = _session.CreateConnection();
         var prescription = conn.QuerySingleOrDefault<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
-                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
-              FROM Prescriptions p
-              JOIN Patients pat ON p.PatientID = pat.PatientID
-              JOIN Users u ON p.DoctorID = u.UserID
-              WHERE p.PrescriptionID = @prescriptionId",
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               WHERE p.PrescriptionID = @prescriptionId",
             new { prescriptionId });
 
         if (prescription == null) return null;
@@ -64,20 +69,55 @@ public class PrescriptionRepository
         return prescription;
     }
 
-    /// <summary>Inserts the doctor's drug selection. Dispensing and stock deduction happen in posted sales.</summary>
+    /// <summary>
+    /// Returns the active (non-dispensed) prescription for a specific appointment, if one exists.
+    /// Used to prevent duplicate handoffs when "Send to Pharmacist" is clicked multiple times.
+    /// </summary>
+    public Prescription? GetActivePrescriptionForAppointment(int appointmentId)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.QueryFirstOrDefault<Prescription>(
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               WHERE p.AppointmentID = @appointmentId
+                 AND p.WorkflowStatus IN ('SentToPharmacy', 'Printed')
+               ORDER BY p.CreatedAt DESC",
+            new { appointmentId });
+    }
+
+    /// <summary>
+    /// Returns the active (non-dispensed) prescription for a patient today.
+    /// Fallback duplicate detection when no AppointmentID context is available.
+    /// </summary>
+    public Prescription? GetActivePrescriptionForPatientToday(int patientId)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.QueryFirstOrDefault<Prescription>(
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               WHERE p.PatientID = @patientId
+                 AND p.WorkflowStatus IN ('SentToPharmacy', 'Printed')
+                 AND CAST(p.VisitDate AS DATE) = CAST(GETDATE() AS DATE)
+               ORDER BY p.CreatedAt DESC",
+            new { patientId });
+    }
+
     public IEnumerable<Prescription> GetPharmacyHandoffs(bool includeDispensed = false)
     {
         using var conn = _session.CreateConnection();
         var rows = conn.Query<Prescription>(
-            @"SELECT p.*, pat.Name AS PatientName, pat.Age AS PatientAge, pat.Gender AS PatientGender,
-                     pat.Phone AS PatientPhone, u.FullName AS DoctorName
-              FROM Prescriptions p
-              JOIN Patients pat ON p.PatientID = pat.PatientID
-              JOIN Users u ON p.DoctorID = u.UserID
-              WHERE p.WorkflowStatus IN ('SentToPharmacy', 'Printed')
-                 OR (@includeDispensed = 1 AND p.WorkflowStatus = 'Dispensed' AND p.DispensedAt >= DATEADD(day, -1, GETDATE()))
-              ORDER BY CASE WHEN p.WorkflowStatus = 'SentToPharmacy' THEN 0 WHEN p.WorkflowStatus = 'Printed' THEN 1 ELSE 2 END,
-                       p.SentToPharmacyAt DESC",
+            $@"SELECT {SelectCols}
+               FROM Prescriptions p
+               JOIN Patients pat ON p.PatientID = pat.PatientID
+               JOIN Users u ON p.DoctorID = u.UserID
+               WHERE p.WorkflowStatus IN ('SentToPharmacy', 'Printed')
+                  OR (@includeDispensed = 1 AND p.WorkflowStatus = 'Dispensed' AND p.DispensedAt >= DATEADD(day, -1, GETDATE()))
+               ORDER BY CASE WHEN p.WorkflowStatus = 'SentToPharmacy' THEN 0 WHEN p.WorkflowStatus = 'Printed' THEN 1 ELSE 2 END,
+                        p.SentToPharmacyAt DESC",
             new { includeDispensed });
 
         foreach (var row in rows)
@@ -91,31 +131,45 @@ public class PrescriptionRepository
     public void MarkPrinted(int prescriptionId)
     {
         using var conn = _session.CreateConnection();
-        conn.Execute(@"UPDATE Prescriptions SET WorkflowStatus = 'Printed', PrintedAt = COALESCE(PrintedAt, GETDATE())
-                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus = 'SentToPharmacy'", new { prescriptionId });
+        conn.Execute(@"UPDATE Prescriptions
+                       SET WorkflowStatus = 'Printed', PrintedAt = COALESCE(PrintedAt, GETDATE())
+                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus = 'SentToPharmacy'",
+            new { prescriptionId });
     }
 
-    public void MarkDispensed(int prescriptionId)
+    public void MarkDispensed(int prescriptionId, int pharmacistId)
     {
         using var conn = _session.CreateConnection();
-        conn.Execute(@"UPDATE Prescriptions SET WorkflowStatus = 'Dispensed', DispensedAt = GETDATE()
-                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus IN ('SentToPharmacy', 'Printed')", new { prescriptionId });
+        conn.Execute(@"UPDATE Prescriptions
+                       SET WorkflowStatus = 'Dispensed', DispensedAt = GETDATE(), PharmacistID = @pharmacistId
+                       WHERE PrescriptionID = @prescriptionId AND WorkflowStatus IN ('SentToPharmacy', 'Printed')",
+            new { prescriptionId, pharmacistId });
     }
 
     public int Insert(Prescription prescription, string workflowStatus = "Draft")
     {
         using var conn = _session.CreateConnection();
-        // Note: conn is already open — CreateConnection() opens it.
         using var tx = conn.BeginTransaction();
         try
         {
             var prescId = conn.ExecuteScalar<int>(
-                @"INSERT INTO Prescriptions (PatientID, DoctorID, VisitDate, Diagnosis, Notes, WorkflowStatus, SentToPharmacyAt)
-                  VALUES (@PatientID, @DoctorID, @VisitDate, @Diagnosis, @Notes, @WorkflowStatus,
-                          CASE WHEN @WorkflowStatus = 'SentToPharmacy' THEN GETDATE() ELSE NULL END);
+                @"INSERT INTO Prescriptions
+                    (PatientID, DoctorID, AppointmentID, VisitDate, Diagnosis, Notes, LabTests, WorkflowStatus, SentToPharmacyAt)
+                  VALUES
+                    (@PatientID, @DoctorID, @AppointmentID, @VisitDate, @Diagnosis, @Notes, @LabTests, @WorkflowStatus,
+                     CASE WHEN @WorkflowStatus = 'SentToPharmacy' THEN GETDATE() ELSE NULL END);
                   SELECT SCOPE_IDENTITY();",
-                new { prescription.PatientID, prescription.DoctorID, prescription.VisitDate, prescription.Diagnosis,
-                      prescription.Notes, WorkflowStatus = workflowStatus }, tx);
+                new
+                {
+                    prescription.PatientID,
+                    prescription.DoctorID,
+                    prescription.AppointmentID,
+                    prescription.VisitDate,
+                    prescription.Diagnosis,
+                    prescription.Notes,
+                    prescription.LabTests,
+                    WorkflowStatus = workflowStatus
+                }, tx);
 
             foreach (var item in prescription.Items)
             {
@@ -124,7 +178,6 @@ public class PrescriptionRepository
                     @"INSERT INTO PrescriptionItems (PrescriptionID, ProductID, Quantity, Dosage)
                       VALUES (@PrescriptionID, @ProductID, @Quantity, @Dosage)",
                     item, tx);
-
             }
 
             tx.Commit();

@@ -7,204 +7,344 @@
              x:DataType="vm:PrescriptionViewModel" x:CompileBindings="True"
              Background="#F8FAFC">
 
-    <Grid RowDefinitions="Auto,*,Auto">
-        <!-- Header -->
-        <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-            <DockPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <PathIcon Data="{StaticResource IconVisit}" Width="20" Height="20" Foreground="#2563EB"/>
-                    <TextBlock Text="New Visit / Prescription" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
-                </StackPanel>
-                
-            </DockPanel>
-        </Border>
+    <Panel>
+        <Grid RowDefinitions="Auto,*,Auto">
 
-        <Grid Grid.Row="1" ColumnDefinitions="340,*">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#FFFFFF" Padding="24,16" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                <DockPanel>
+                    <!-- Title + optional appointment context badge -->
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <PathIcon Data="{StaticResource IconVisit}" Width="20" Height="20" Foreground="#2563EB"/>
+                        <TextBlock Text="New Visit / Prescription" FontSize="20" FontWeight="Bold" Foreground="#1F2937"/>
+                        <!-- Appointment context badge — shown when opened from an appointment -->
+                        <Border Background="#EFF6FF" CornerRadius="12" Padding="10,4"
+                                IsVisible="{Binding HasAppointmentContext}" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="5">
+                                <materialIcons:MaterialIcon Kind="CalendarCheck" Width="12" Height="12" Foreground="#2563EB"/>
+                                <TextBlock Text="{Binding AppointmentContextLabel}" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
 
-            <!-- Left: Prescription Details -->
-            <Border Grid.Column="0" Background="#FFFFFF" Padding="24" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
-                <ScrollViewer>
-                    <StackPanel Spacing="16">
+                    <!-- Linear patient flow indicator -->
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                        <Border Background="#DBEAFE" CornerRadius="6" Padding="12,5">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="Stethoscope" Width="13" Height="13" Foreground="#2563EB"/>
+                                <TextBlock Text="Doctor" FontSize="12" FontWeight="Bold" Foreground="#2563EB"/>
+                            </StackPanel>
+                        </Border>
+                        <materialIcons:MaterialIcon Kind="ChevronRight" Width="16" Height="16" Foreground="#9CA3AF" Margin="4,0"/>
+                        <Border Background="#F3F4F6" CornerRadius="6" Padding="12,5">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="Pill" Width="13" Height="13" Foreground="#9CA3AF"/>
+                                <TextBlock Text="Pharmacist" FontSize="12" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </Border>
+                        <materialIcons:MaterialIcon Kind="ChevronRight" Width="16" Height="16" Foreground="#9CA3AF" Margin="4,0"/>
+                        <Border Background="#F3F4F6" CornerRadius="6" Padding="12,5">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="AccountCash" Width="13" Height="13" Foreground="#9CA3AF"/>
+                                <TextBlock Text="Receptionist" FontSize="12" Foreground="#9CA3AF"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
 
-                        <!-- Patient Selection -->
-                        <TextBlock Text="Patient" Classes="label" Foreground="#6B7280" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
-                        <Border Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="16">
-                            <StackPanel Spacing="10">
-                                <TextBlock Text="{Binding SelectedPatient.Name, FallbackValue='No patient selected'}"
-                                           Foreground="{Binding PatientNameColor}"
-                                           FontSize="15" FontWeight="Bold"/>
-                                <TextBlock Text="{Binding SelectedPatient.Contact}" Foreground="#6B7280" FontSize="13"
-                                           IsVisible="{Binding HasSelectedPatient}"/>
-                                <Button Command="{Binding PickPatientCommand}" Classes="primary" HorizontalAlignment="Left">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <materialIcons:MaterialIcon Kind="AccountMultiple" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Select Patient" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
+            <Grid Grid.Row="1" ColumnDefinitions="340,*">
+
+                <!-- Left: Prescription Details -->
+                <Border Grid.Column="0" Background="#FFFFFF" Padding="24" BorderBrush="#E5E7EB" BorderThickness="0,0,1,0">
+                    <ScrollViewer>
+                        <StackPanel Spacing="16">
+
+                            <!-- Patient Selection -->
+                            <TextBlock Text="Patient" Classes="label" Foreground="#6B7280" FontSize="11" FontWeight="Bold" Margin="0,0,0,4"/>
+                            <Border Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="16">
+                                <StackPanel Spacing="10">
+                                    <TextBlock Text="{Binding SelectedPatient.Name, FallbackValue='No patient selected'}"
+                                               Foreground="{Binding PatientNameColor}"
+                                               FontSize="15" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding SelectedPatient.Contact}" Foreground="#6B7280" FontSize="13"
+                                               IsVisible="{Binding HasSelectedPatient}"/>
+                                    <Button Command="{Binding PickPatientCommand}" Classes="primary" HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Select Patient" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <StackPanel Spacing="2">
+                                <TextBlock Text="Visit Date" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding VisitDate}" HorizontalAlignment="Stretch"/>
+                            </StackPanel>
+
+                            <!-- Lab Tests (Optional) -->
+                            <StackPanel Spacing="4">
+                                <DockPanel>
+                                    <TextBlock Text="Lab Tests" Classes="label" VerticalAlignment="Center"/>
+                                    <TextBlock DockPanel.Dock="Right" Text="Optional" FontSize="10"
+                                               Foreground="#6B7280" VerticalAlignment="Center"/>
+                                </DockPanel>
+                                <TextBox Text="{Binding LabTests}"
+                                         PlaceholderText="e.g. CBC, LFTs, Blood Sugar…"
+                                         AcceptsReturn="True" Height="72"
+                                         VerticalContentAlignment="Top" Padding="12,10"/>
+                            </StackPanel>
+
+                            <Separator Background="#E5E7EB" Height="1" Margin="0,8"/>
+
+                            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Padding="12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Save Prescription" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding SendToPharmacistCommand}" IsEnabled="{Binding !IsBusy}"
+                                    Background="#0D9488" Foreground="White" BorderThickness="0"
+                                    HorizontalAlignment="Stretch" Padding="12" CornerRadius="6">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="Send" Width="16" Height="16" Foreground="White"/>
+                                    <TextBlock Text="Send to Pharmacist" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding PrintPatientPrescriptionCommand}" IsEnabled="{Binding !IsBusy}"
+                                    Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/>
+                                    <TextBlock Text="Print Patient Prescription"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding ResetCommand}" Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
+                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="Refresh" Width="18" Height="18"/>
+                                    <TextBlock Text="Reset" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Right: Product Items -->
+                <Border Grid.Column="1" Padding="24">
+                    <DockPanel>
+
+                        <!-- Doctor Inventory Button + Quick Add Row -->
+                        <Border DockPanel.Dock="Top" Background="#FFFFFF" Classes="card" Margin="0,0,0,24">
+                            <StackPanel Spacing="14">
+                                <DockPanel>
+                                    <TextBlock Text="Add Medicines" Classes="panelTitle" FontSize="15" VerticalAlignment="Center"/>
+                                    <Button DockPanel.Dock="Right" Command="{Binding OpenInventoryModalCommand}"
+                                            Background="#2563EB" Foreground="White" BorderThickness="0"
+                                            CornerRadius="6" Padding="14,0" Height="34">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <materialIcons:MaterialIcon Kind="MedicalBag" Width="14" Height="14" Foreground="White"/>
+                                            <TextBlock Text="Doctor Inventory" FontSize="12" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DockPanel>
+
+                                <!-- Quick-add row (manual) -->
+                                <Grid ColumnDefinitions="*,100,*,Auto" HorizontalAlignment="Stretch">
+                                    <ComboBox Grid.Column="0"
+                                              ItemsSource="{Binding AvailableProducts}"
+                                              SelectedItem="{Binding SelectedProductToAdd}"
+                                              DisplayMemberBinding="{Binding Name}"
+                                              Margin="0,0,8,0"
+                                              HorizontalAlignment="Stretch"
+                                              PlaceholderText="Quick-select product..."/>
+                                    <TextBox Grid.Column="1" Text="{Binding QuantityToAdd}"
+                                             PlaceholderText="Qty" Margin="0,0,8,0"/>
+                                    <TextBox Grid.Column="2" Text="{Binding DosageToAdd}"
+                                             PlaceholderText="Dosage (e.g. 1 tab twice daily)" Margin="0,0,8,0"/>
+                                    <Button Grid.Column="3" Command="{Binding AddItemCommand}" Classes="primary">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Add" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
                             </StackPanel>
                         </Border>
 
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Visit Date" Classes="label"/>
-                            <DatePicker SelectedDate="{Binding VisitDate}" HorizontalAlignment="Stretch"/>
-                        </StackPanel>
+                        <!-- Items Grid -->
+                        <Border DockPanel.Dock="Top" Background="#FFFFFF" Classes="card">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Prescribed Products" Classes="panelTitle" FontSize="15" Margin="0,0,0,16"/>
+                                <DataGrid ItemsSource="{Binding Items}"
+                                          AutoGenerateColumns="False" IsReadOnly="False"
+                                          CanUserSortColumns="False">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Product"  Binding="{Binding ProductName}" Width="*" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="Quantity"  Binding="{Binding Quantity}"     Width="100"/>
+                                        <DataGridTextColumn Header="Dosage"    Binding="{Binding Dosage}"       Width="*"/>
+                                        <DataGridTemplateColumn Header="Remove" Width="90">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate x:DataType="vm:PrescriptionItemRow" x:CompileBindings="True">
+                                                    <Button Command="{Binding $parent[UserControl].((vm:PrescriptionViewModel)DataContext).RemoveItemCommand}"
+                                                            CommandParameter="{Binding}"
+                                                            Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand"
+                                                            Height="32" Width="32" HorizontalAlignment="Center">
+                                                        <materialIcons:MaterialIcon Kind="Close" Width="12" Height="12" Foreground="#DC2626"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </Border>
+                    </DockPanel>
+                </Border>
+            </Grid>
 
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Diagnosis" Classes="label"/>
-                            <TextBox Text="{Binding Diagnosis}" PlaceholderText="Primary diagnosis..."
-                                     AcceptsReturn="True" Height="80" VerticalContentAlignment="Top" Padding="12,10"/>
-                        </StackPanel>
-
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Notes" Classes="label"/>
-                            <TextBox Text="{Binding Notes}" PlaceholderText="Additional notes..."
-                                     AcceptsReturn="True" Height="80" VerticalContentAlignment="Top" Padding="12,10"/>
-                        </StackPanel>
-
-                        <Separator Background="#E5E7EB" Height="1" Margin="0,8"/>
-
-                        <Button Command="{Binding SaveCommand}" IsEnabled="{Binding !IsBusy}" Classes="primary" HorizontalAlignment="Stretch" Padding="12">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                <TextBlock Text="Save Prescription" VerticalAlignment="Center"/>
+            <!-- Patient Picker Overlay -->
+            <Border Grid.Row="1" IsVisible="{Binding ShowPatientList}"
+                    Background="rgba(31, 41, 55, 0.5)" ZIndex="100">
+                <Border Background="#FFFFFF" Classes="card"
+                        Width="500" Height="420" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                            <TextBlock Text="Select Patient" FontSize="18" FontWeight="Bold" Foreground="#1F2937" VerticalAlignment="Center"/>
+                            <Button DockPanel.Dock="Right" Command="{Binding ClosePatientListCommand}"
+                                    Background="Transparent" BorderThickness="0" Height="36" Width="36">
+                                <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" Foreground="#6B7280"/>
+                            </Button>
+                        </DockPanel>
+                        <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
+                                 PlaceholderText="Search patient..." Margin="0,0,0,16"/>
+                        <DataGrid ItemsSource="{Binding FilteredPatients}"
+                                  SelectedItem="{Binding SelectedFilteredPatient}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Name"    Binding="{Binding Name}"    Width="*"/>
+                                <DataGridTextColumn Header="Age"     Binding="{Binding Age}"     Width="70"/>
+                                <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="140"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Button DockPanel.Dock="Bottom" Margin="0,16,0,0"
+                                Command="{Binding SelectPatientCommand}"
+                                CommandParameter="{Binding SelectedFilteredPatient}"
+                                Classes="primary" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
+                                <TextBlock Text="Select" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-
-                        <Button Command="{Binding SendToPharmacistCommand}" IsEnabled="{Binding !IsBusy}"
-                                Background="#0D9488" Foreground="White" BorderThickness="0"
-                                HorizontalAlignment="Stretch" Padding="12" CornerRadius="6">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="Send" Width="16" Height="16" Foreground="White"/>
-                                <TextBlock Text="Send to Pharmacist" FontWeight="SemiBold"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button Command="{Binding PrintPatientPrescriptionCommand}" IsEnabled="{Binding !IsBusy}"
-                                Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/>
-                                <TextBlock Text="Print Patient Prescription"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button  Command="{Binding ResetCommand}" Classes="secondary" HorizontalAlignment="Stretch" Padding="12">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Refresh" Width="18" Height="18"/>
-        <TextBlock Text="Reset" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                    </StackPanel>
-                </ScrollViewer>
+                    </DockPanel>
+                </Border>
             </Border>
 
-            <!-- Right: Product Items -->
-            <Border Grid.Column="1" Padding="24">
-                <DockPanel>
-
-                    <!-- Add Product Row -->
-                    <Border DockPanel.Dock="Top" Background="#FFFFFF" Classes="card" Margin="0,0,0,24">
-                        <StackPanel Spacing="14">
-                            <TextBlock Text="Add Product" Classes="panelTitle" FontSize="15"/>
-                            <Grid ColumnDefinitions="*,100,*,Auto" HorizontalAlignment="Stretch">
-                                <ComboBox Grid.Column="0"
-                                          ItemsSource="{Binding AvailableProducts}"
-                                          SelectedItem="{Binding SelectedProductToAdd}"
-                                          DisplayMemberBinding="{Binding Name}"
-                                          Margin="0,0,8,0"
-                                          HorizontalAlignment="Stretch"
-                                          PlaceholderText="Select product..."/>
-                                <TextBox Grid.Column="1" Text="{Binding QuantityToAdd}"
-                                         PlaceholderText="Qty" Margin="0,0,8,0"/>
-                                <TextBox Grid.Column="2" Text="{Binding DosageToAdd}"
-                                         PlaceholderText="Dosage (e.g. 1 tab twice daily)" Margin="0,0,8,0"/>
-                                <Button Grid.Column="3" Command="{Binding AddItemCommand}" Classes="primary">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <materialIcons:MaterialIcon Kind="Plus" Width="14" Height="14" Foreground="White" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Add" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Items Grid -->
-                    <Border DockPanel.Dock="Top" Background="#FFFFFF" Classes="card">
-                        <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="Prescribed Products" Classes="panelTitle" FontSize="15" Margin="0,0,0,16"/>
-                            <DataGrid ItemsSource="{Binding Items}"
-                                      AutoGenerateColumns="False" IsReadOnly="False"
-                                      CanUserSortColumns="False">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Product"  Binding="{Binding ProductName}" Width="*" IsReadOnly="True"/>
-                                    <DataGridTextColumn Header="Quantity"  Binding="{Binding Quantity}"     Width="100"/>
-                                    <DataGridTextColumn Header="Dosage"    Binding="{Binding Dosage}"       Width="*"/>
-                                    <DataGridTemplateColumn Header="Remove" Width="90">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate x:DataType="vm:PrescriptionItemRow" x:CompileBindings="True">
-                                                <Button Command="{Binding $parent[UserControl].((vm:PrescriptionViewModel)DataContext).RemoveItemCommand}"
-                                                        CommandParameter="{Binding}"
-                                                        Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand"
-                                                        Height="32" Width="32" HorizontalAlignment="Center">
-                                                    <materialIcons:MaterialIcon Kind="Close" Width="12" Height="12" Foreground="#DC2626"/>
-                                                </Button>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </DockPanel>
-                    </Border>
-                </DockPanel>
+            <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+                <Panel>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#16A34A" FontSize="12"
+                               IsVisible="{Binding !StatusIsError}"/>
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="12"
+                               IsVisible="{Binding StatusIsError}"/>
+                </Panel>
             </Border>
         </Grid>
 
-        <!-- Patient Picker Overlay -->
-        <Border Grid.Row="1" IsVisible="{Binding ShowPatientList}"
-                Background="rgba(31, 41, 55, 0.5)" ZIndex="100">
-            <Border Background="#FFFFFF" Classes="card"
-                    Width="500" Height="420" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <DockPanel>
-                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
-                        <TextBlock Text="Select Patient" FontSize="18" FontWeight="Bold" Foreground="#1F2937" VerticalAlignment="Center"/>
-                        <Button DockPanel.Dock="Right" Command="{Binding ClosePatientListCommand}"
-                                Background="Transparent" BorderThickness="0" Height="36" Width="36">
-                            <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" Foreground="#6B7280"/>
-                        </Button>
-                    </DockPanel>
-                    <TextBox DockPanel.Dock="Top" Text="{Binding PatientSearch}"
-                             PlaceholderText="Search patient..." Margin="0,0,0,16"/>
-                    <DataGrid ItemsSource="{Binding FilteredPatients}"
-                              SelectedItem="{Binding SelectedFilteredPatient}"
-                              AutoGenerateColumns="False" IsReadOnly="True"
-                              SelectionMode="Single">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Name"    Binding="{Binding Name}"    Width="*"/>
-                            <DataGridTextColumn Header="Age"     Binding="{Binding Age}"     Width="70"/>
-                            <DataGridTextColumn Header="Contact" Binding="{Binding Contact}" Width="140"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button DockPanel.Dock="Bottom"  Margin="0,16,0,0"
-                            Command="{Binding SelectPatientCommand}"
-                            CommandParameter="{Binding SelectedFilteredPatient}"
-                            Classes="primary" HorizontalAlignment="Left">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
-        <TextBlock Text="Select" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                </DockPanel>
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- DOCTOR INVENTORY MODAL                                          -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <Border IsVisible="{Binding ShowInventoryModal}"
+                Background="rgba(15, 23, 42, 0.6)" ZIndex="200">
+            <Border Width="620" MaxHeight="560" Background="#FFFFFF" CornerRadius="12"
+                    Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    BoxShadow="0 20 60 0 #33000000">
+                <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+                    <!-- Modal Header -->
+                    <Border Grid.Row="0" Background="#1E3A5F" CornerRadius="12,12,0,0" Padding="20,16">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="3">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <materialIcons:MaterialIcon Kind="MedicalBag" Width="20" Height="20" Foreground="#60A5FA"/>
+                                    <TextBlock Text="Doctor Inventory" FontSize="18" FontWeight="Bold" Foreground="White"/>
+                                </StackPanel>
+                                <TextBlock Text="Select medicines to add to this prescription" FontSize="12" Foreground="#93C5FD"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Command="{Binding CloseInventoryModalCommand}"
+                                    Background="rgba(255,255,255,0.15)" BorderThickness="0"
+                                    Width="32" Height="32" CornerRadius="6">
+                                <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14" Foreground="White"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Search bar -->
+                    <Border Grid.Row="1" Padding="20,12" Background="#F8FAFC" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                        <Border Background="White" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="8" Padding="12,0">
+                            <Grid ColumnDefinitions="Auto,*">
+                                <materialIcons:MaterialIcon Grid.Column="0" Kind="Magnify" Width="16" Height="16" Foreground="#9CA3AF" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding InventorySearch}"
+                                         PlaceholderText="Search medicines by name…"
+                                         Background="Transparent" BorderThickness="0"
+                                         Padding="10,0" Height="38"/>
+                            </Grid>
+                        </Border>
+                    </Border>
+
+                    <!-- Medicine list -->
+                    <ScrollViewer Grid.Row="2" Padding="20,8">
+                        <ItemsControl ItemsSource="{Binding FilteredInventory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:Product" x:CompileBindings="True">
+                                    <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                                            CornerRadius="8" Padding="14,11" Margin="0,0,0,8">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                            <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="14" Foreground="#111827"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
+                                                               FontSize="11" Foreground="#6B7280"/>
+                                                    <TextBlock Text="{Binding Category, FallbackValue=''}"
+                                                               FontSize="11" Foreground="#9CA3AF"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1"
+                                                    Command="{Binding $parent[UserControl].((vm:PrescriptionViewModel)DataContext).AddFromInventoryCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#2563EB" Foreground="White"
+                                                    BorderThickness="0" CornerRadius="6"
+                                                    Padding="12,0" Height="32">
+                                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                                    <materialIcons:MaterialIcon Kind="Plus" Width="13" Height="13" Foreground="White"/>
+                                                    <TextBlock Text="Add" FontSize="12"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Modal footer -->
+                    <Border Grid.Row="3" Padding="20,14" Background="#F8FAFC"
+                            BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" CornerRadius="0,0,12,12">
+                        <DockPanel>
+                            <TextBlock Text="{Binding StatusMessage}" Foreground="#16A34A" FontSize="12" VerticalAlignment="Center"/>
+                            <Button DockPanel.Dock="Right" Command="{Binding CloseInventoryModalCommand}"
+                                    Classes="primary" Padding="16,0" Height="36">
+                                <TextBlock Text="Done"/>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </Border>
         </Border>
 
-        <Border Grid.Row="2" Background="#FFFFFF" Padding="24,8" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
-            <Panel>
-                <TextBlock Text="{Binding StatusMessage}" Foreground="#16A34A" FontSize="12"
-                           IsVisible="{Binding !StatusIsError}"/>
-                <TextBlock Text="{Binding StatusMessage}" Foreground="#DC2626" FontSize="12"
-                           IsVisible="{Binding StatusIsError}"/>
-            </Panel>
-        </Border>
-    </Grid>
+    </Panel>
 
     <UserControl.Styles>
         <Style Selector="Button.action">

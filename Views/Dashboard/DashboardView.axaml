@@ -159,6 +159,32 @@
                         </Border>
                     </Grid>
 
+                    <!-- Linear patient flow indicator strip -->
+                    <Border Background="{DynamicResource BrushBackground}" CornerRadius="8" Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="0" HorizontalAlignment="Center">
+                            <Border Background="#DBEAFE" CornerRadius="6" Padding="10,4">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <materialIcons:MaterialIcon Kind="Stethoscope" Width="12" Height="12" Foreground="#2563EB"/>
+                                    <TextBlock Text="Doctor" FontSize="11" FontWeight="Bold" Foreground="#2563EB"/>
+                                </StackPanel>
+                            </Border>
+                            <materialIcons:MaterialIcon Kind="ChevronRight" Width="14" Height="14" Foreground="#9CA3AF" Margin="4,0"/>
+                            <Border Background="#FEF3C7" CornerRadius="6" Padding="10,4">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <materialIcons:MaterialIcon Kind="Pill" Width="12" Height="12" Foreground="#D97706"/>
+                                    <TextBlock Text="Pharmacist" FontSize="11" FontWeight="Bold" Foreground="#D97706"/>
+                                </StackPanel>
+                            </Border>
+                            <materialIcons:MaterialIcon Kind="ChevronRight" Width="14" Height="14" Foreground="#9CA3AF" Margin="4,0"/>
+                            <Border Background="#F3F4F6" CornerRadius="6" Padding="10,4">
+                                <StackPanel Orientation="Horizontal" Spacing="5">
+                                    <materialIcons:MaterialIcon Kind="AccountCash" Width="12" Height="12" Foreground="#6B7280"/>
+                                    <TextBlock Text="Receptionist" FontSize="11" Foreground="#6B7280"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
                     <ItemsControl ItemsSource="{Binding PrescriptionNotifications}" IsVisible="{Binding HasPrescriptionNotifications}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:Prescription">
@@ -177,9 +203,32 @@
                                             <TextBlock Text="DOCTOR" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
                                             <TextBlock Text="{Binding DoctorName}" FontSize="12"/>
                                         </StackPanel>
-                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="2">
-                                            <TextBlock Text="{Binding WorkflowStatusLabel}" FontSize="11" FontWeight="SemiBold" Foreground="#0D9488"/>
-                                            <TextBlock Text="{Binding SentTimeDisplay}" FontSize="10" Foreground="{DynamicResource BrushInk500}"/>
+                                        <!-- Step-by-Step Flow Indicator -->
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" Spacing="4">
+                                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                                <!-- Doctor: Always active/completed since they sent it -->
+                                                <materialIcons:MaterialIcon Kind="CheckCircle" Width="12" Height="12" Foreground="#16A34A" ToolTip.Tip="Prescription Sent by Doctor"/>
+                                                
+                                                <Line StartPoint="0,6" EndPoint="8,6" Stroke="#E5E7EB" StrokeThickness="1.5" VerticalAlignment="Center"/>
+                                                
+                                                <!-- Pharmacist: Active if Printed or Dispensed, warning/pending if New -->
+                                                <Panel>
+                                                    <materialIcons:MaterialIcon Kind="CheckCircle" Width="12" Height="12" Foreground="#16A34A" IsVisible="{Binding IsPrintedOrDispensed}" ToolTip.Tip="Printed by Pharmacist"/>
+                                                    <materialIcons:MaterialIcon Kind="ClockOutline" Width="12" Height="12" Foreground="#F59E0B" IsVisible="{Binding IsSentToPharmacy}" ToolTip.Tip="Pending Pharmacist Print"/>
+                                                </Panel>
+                                                
+                                                <Line StartPoint="0,6" EndPoint="8,6" Stroke="#E5E7EB" StrokeThickness="1.5" VerticalAlignment="Center"/>
+                                                
+                                                <!-- Receptionist: Active if Dispensed, pending/alert if Printed, grey otherwise -->
+                                                <Panel>
+                                                    <materialIcons:MaterialIcon Kind="CheckCircle" Width="12" Height="12" Foreground="#16A34A" IsVisible="{Binding IsDispensed}" ToolTip.Tip="Dispensed by Receptionist"/>
+                                                    <materialIcons:MaterialIcon Kind="ClockOutline" Width="12" Height="12" Foreground="#F59E0B" IsVisible="{Binding IsPrinted}" ToolTip.Tip="Pending Dispensing by Receptionist"/>
+                                                    <materialIcons:MaterialIcon Kind="MinusCircleOutline" Width="12" Height="12" Foreground="#9CA3AF" IsVisible="{Binding IsSentToPharmacy}" ToolTip.Tip="Not Yet Printed"/>
+                                                </Panel>
+                                            </StackPanel>
+                                            
+                                            <!-- Status Text Label -->
+                                            <TextBlock Text="{Binding WorkflowStatusLabel}" FontSize="10" FontWeight="Bold" Foreground="#0D9488"/>
                                         </StackPanel>
                                         <Button Grid.Column="4" Command="{Binding #Root.((vm:DashboardViewModel)DataContext).OpenHandoffCommand}"
                                                 CommandParameter="{Binding}" Classes="btn-secondary" Padding="12,0" Height="32">
@@ -498,17 +547,24 @@
                                     <TextBlock Text="{Binding SelectedHandoff.PatientName}" FontSize="17" FontWeight="Bold"/>
                                     <TextBlock Text="{Binding SelectedHandoff.PatientPhone, StringFormat='Phone: {0}'}" Foreground="{DynamicResource BrushInk600}"/>
                                     <TextBlock Text="{Binding SelectedHandoff.PatientAge, StringFormat='Age: {0}'}" Foreground="{DynamicResource BrushInk600}"/>
+                                    <!-- Appointment reference -->
+                                    <Border Background="#EFF6FF" CornerRadius="4" Padding="7,3" HorizontalAlignment="Left"
+                                            IsVisible="{Binding SelectedHandoff.AppointmentID, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <TextBlock Text="{Binding SelectedHandoff.AppointmentID, StringFormat='APT-{0}'}" FontSize="10" FontWeight="Bold" Foreground="#2563EB"/>
+                                    </Border>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="4">
                                     <TextBlock Text="PRESCRIBED BY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Right"/>
                                     <TextBlock Text="{Binding SelectedHandoff.DoctorName}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
                                     <TextBlock Text="{Binding SelectedHandoff.VisitDate, StringFormat='{}{0:dd MMM yyyy, h:mm tt}'}" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="{Binding SelectedHandoff.SentToPharmacyAt, StringFormat='Sent: {0:h:mm tt}'}" Foreground="{DynamicResource BrushInk400}" FontSize="10" HorizontalAlignment="Right"
+                                               IsVisible="{Binding SelectedHandoff.SentToPharmacyAt, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
-                        <StackPanel Spacing="5">
-                            <TextBlock Text="Diagnosis" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
-                            <TextBlock Text="{Binding SelectedHandoff.Diagnosis, FallbackValue='Not specified'}" TextWrapping="Wrap"/>
+                        <StackPanel Spacing="5" IsVisible="{Binding SelectedHandoff.LabTests, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                            <TextBlock Text="LAB TESTS" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                            <TextBlock Text="{Binding SelectedHandoff.LabTests}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk800}"/>
                         </StackPanel>
                         <DataGrid ItemsSource="{Binding SelectedHandoff.Items}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="230">
                             <DataGrid.Columns>
@@ -517,7 +573,14 @@
                                 <DataGridTextColumn Header="DOSAGE / DIRECTIONS" Binding="{Binding Dosage}" Width="2*"/>
                             </DataGrid.Columns>
                         </DataGrid>
-                        <TextBlock Text="{Binding SelectedHandoff.Notes}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                        <!-- Receptionist read-only notice -->
+                        <Border Background="#FEF9C3" CornerRadius="6" Padding="10,7"
+                                IsVisible="{Binding !CanManagePrescriptionHandoffs}">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <materialIcons:MaterialIcon Kind="EyeOutline" Width="14" Height="14" Foreground="#92400E"/>
+                                <TextBlock Text="View only — actions are restricted to the Pharmacist." FontSize="11" Foreground="#92400E"/>
+                            </StackPanel>
+                        </Border>
                         <TextBlock Text="{Binding PrescriptionStatusMessage}" Foreground="#0D9488" FontSize="12" FontWeight="Medium"/>
                     </StackPanel>
                 </ScrollViewer>

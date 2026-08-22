@@ -118,9 +118,9 @@ public class DatabaseSession
                 if (string.IsNullOrWhiteSpace(trimmed)) continue;
                 
                 // Skip database creation lines since we are already connected to ClinicDB
-                if (trimmed.StartsWith("USE master", StringComparison.OrdinalIgnoreCase) ||
-                    trimmed.StartsWith("USE ClinicDB", StringComparison.OrdinalIgnoreCase) ||
-                    trimmed.StartsWith("CREATE DATABASE", StringComparison.OrdinalIgnoreCase) ||
+                if (trimmed.IndexOf("USE master", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    trimmed.IndexOf("USE ClinicDB", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    trimmed.IndexOf("CREATE DATABASE", StringComparison.OrdinalIgnoreCase) >= 0 ||
                     trimmed.Contains("sys.databases WHERE name = 'ClinicDB'"))
                 {
                     continue;

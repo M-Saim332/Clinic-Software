@@ -122,14 +122,30 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
 
     partial void OnCnicChanged(string value)
     {
-        if (SelectedPatient != null || value.Count(char.IsDigit) < 13) return;
+        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Count(char.IsDigit) < 13) return;
+        _ = LookupExistingPatientAsync();
+    }
+
+    partial void OnPatientPhoneChanged(string value)
+    {
+        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Count(char.IsDigit) < 11) return;
+        _ = LookupExistingPatientAsync();
+    }
+
+    partial void OnPatientNameChanged(string value)
+    {
+        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Trim().Length < 3) return;
         _ = LookupExistingPatientAsync();
     }
 
     private async Task LookupExistingPatientAsync()
     {
-        var patient = await Task.Run(() => _repo.GetPatientByCNICOrPhone(Cnic, PatientPhone));
-        if (patient == null) { PatientLookupMessage = "No existing clinical patient found."; return; }
+        var patient = await Task.Run(() => _repo.GetPatientByNamePhoneOrCNIC(PatientName, PatientPhone, Cnic));
+        if (patient == null) 
+        { 
+            PatientLookupMessage = "No existing clinical patient found."; 
+            return; 
+        }
         SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == patient.PatientID) ?? patient;
         PatientLookupMessage = $"Existing patient found: {patient.Name}. Clinical history will stay linked.";
     }
@@ -138,21 +154,39 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     {
         var prescriptions = await Task.Run(() => _prescriptionRepo.GetByPatient(patientId).ToList());
         var appointments = await Task.Run(() => _repo.GetAll().Where(a => a.PatientID == patientId).ToList());
-        var rows = appointments.Select(a => new AppointmentHistoryRow
-            {
-                Date = a.AppointmentDate,
-                Kind = "Visit",
-                Summary = string.IsNullOrWhiteSpace(a.Reason) ? a.Status : $"{a.Reason} ({a.Status})"
-            })
-            .Concat(prescriptions.Select(p => new AppointmentHistoryRow
+        
+        var rows = new List<AppointmentHistoryRow>();
+        
+        foreach (var p in prescriptions)
+        {
+            var fullPresc = await Task.Run(() => _prescriptionRepo.GetByIdWithItems(p.PrescriptionID));
+            var medicinesList = fullPresc != null && fullPresc.Items.Count > 0
+                ? string.Join(", ", fullPresc.Items.Select(i => $"{i.ProductName} ({i.Quantity})"))
+                : "No medicines";
+                
+            var summaryParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(p.LabTests))
+                summaryParts.Add($"Lab Tests: {p.LabTests}");
+            summaryParts.Add($"Medicines: {medicinesList}");
+            
+            rows.Add(new AppointmentHistoryRow
             {
                 Date = p.VisitDate,
-                Kind = "Drug selection",
-                Summary = string.IsNullOrWhiteSpace(p.Notes) ? "Prescription recorded" : p.Notes!
-            }))
-            .OrderByDescending(x => x.Date)
-            .ToList();
-        ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>(rows);
+                Kind = "Prescription",
+                Summary = string.Join(" | ", summaryParts)
+            });
+        }
+        
+        rows.AddRange(appointments.Select(a => new AppointmentHistoryRow
+        {
+            Date = a.AppointmentDate,
+            Kind = "Visit",
+            Summary = string.IsNullOrWhiteSpace(a.Reason) ? a.Status : $"{a.Reason} ({a.Status})"
+        }));
+        
+        ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>(
+            rows.OrderByDescending(x => x.Date)
+        );
     }
 
     [RelayCommand]

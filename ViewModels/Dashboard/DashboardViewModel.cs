@@ -472,7 +472,8 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             PrescriptionStatusMessage = "Check and print the prescription before giving medicines.";
             return;
         }
-        await Task.Run(() => _prescriptionRepo.MarkDispensed(SelectedHandoff.PrescriptionID));
+        var pharmacistId = CurrentUser?.UserID ?? 0;
+        await Task.Run(() => _prescriptionRepo.MarkDispensed(SelectedHandoff.PrescriptionID, pharmacistId));
         var patientName = SelectedHandoff.PatientName;
         ShowHandoffDetails = false;
         PrescriptionStatusMessage = $"Medicines marked as given to {patientName}.";

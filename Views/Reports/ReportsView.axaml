@@ -172,11 +172,10 @@
                         <DataGrid ItemsSource="{Binding AllVisits}" AutoGenerateColumns="False" IsReadOnly="True"
                                   Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="DATE" Binding="{Binding VisitDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="DATE"    Binding="{Binding VisitDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
                                 <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/>
-                                <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="160"/>
-                                <DataGridTextColumn Header="DIAGNOSIS" Binding="{Binding Diagnosis}" Width="*"/>
-                                <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="*"/>
+                                <DataGridTextColumn Header="DOCTOR"  Binding="{Binding DoctorName}"  Width="160"/>
+                                <DataGridTextColumn Header="LAB TESTS" Binding="{Binding LabTests}"  Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
