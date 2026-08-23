@@ -46,6 +46,7 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _returnType = "Patient Return";
     [ObservableProperty] private string _unitType = "Pieces";
     [ObservableProperty] private int _quantity = 1;
+    [ObservableProperty] private int _maxReturnQuantity = 99999;
     [ObservableProperty] private string _reason = string.Empty;
     [ObservableProperty] private string _notes = string.Empty;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -188,7 +189,31 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     partial void OnReturnTypeChanged(string value) { SelectedPatient = null; SelectedSupplier = null; SelectedSale = null; OnPropertyChanged(nameof(IsPatientReturn)); OnPropertyChanged(nameof(IsSupplierReturn)); OnPropertyChanged(nameof(RefundAmount)); }
     partial void OnUnitTypeChanged(string value) { OnPropertyChanged(nameof(StockQuantity)); OnPropertyChanged(nameof(RefundAmount)); }
     partial void OnQuantityChanged(int value) { OnPropertyChanged(nameof(StockQuantity)); OnPropertyChanged(nameof(RefundAmount)); }
-    partial void OnSelectedProductChanged(Product? value) { SelectedSupplier = value == null ? null : Suppliers.FirstOrDefault(s => s.SupplierID == value.SupplierID); OnPropertyChanged(nameof(StockQuantity)); OnPropertyChanged(nameof(RefundAmount)); }
+    partial void OnSelectedProductChanged(Product? value) { 
+        SelectedSupplier = value == null ? null : Suppliers.FirstOrDefault(s => s.SupplierID == value.SupplierID); 
+        MaxReturnQuantity = 99999;
+        if (IsPatientReturn && value != null)
+        {
+            var sale = _saleRepo.GetLatestSaleForProduct(value.ProductID, SelectedPatient?.PatientID);
+            if (sale != null)
+            {
+                if (!Sales.Any(s => s.SaleID == sale.SaleID)) Sales.Add(sale);
+                SelectedSale = Sales.FirstOrDefault(s => s.SaleID == sale.SaleID);
+                if (SelectedPatient == null && sale.PatientID.HasValue)
+                {
+                    SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == sale.PatientID);
+                }
+                var item = sale.Items.FirstOrDefault(i => i.ProductID == value.ProductID);
+                if (item != null)
+                {
+                    MaxReturnQuantity = item.Quantity;
+                    if (Quantity > MaxReturnQuantity) Quantity = MaxReturnQuantity;
+                }
+            }
+        }
+        OnPropertyChanged(nameof(StockQuantity)); 
+        OnPropertyChanged(nameof(RefundAmount)); 
+    }
     partial void OnSearchTermChanged(string value) => FilterReturns();
     private void FilterReturns()
     {

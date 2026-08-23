@@ -4,7 +4,7 @@
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
              x:Class="ClinicSystem.UI.Views.Returns.ReturnsView" x:DataType="vm:ReturnsViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
-  <Grid RowDefinitions="Auto,2*,*">
+  <Grid RowDefinitions="Auto,1.5*,*">
     <!-- Header -->
     <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
       <DockPanel>
@@ -27,13 +27,16 @@
               <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"><TextBlock Text="Medicine"/><comp:SearchableComboBoxControl ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}" DisplayMemberPath="Name" DetailMemberPath="Type" Placeholder="Search medicine..."/></StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,*" IsEnabled="{Binding IsDraftInvoice}">
-              <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Patient"/><comp:SearchableComboBoxControl ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" DisplayMemberPath="Name" DetailMemberPath="Phone"/></StackPanel>
+              <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Patient"/><comp:SearchableComboBoxControl ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}" DisplayMemberPath="Name" DetailMemberPath="Phone" Placeholder="Auto-filled or search..."/></StackPanel>
               <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0" IsVisible="{Binding IsSupplierReturn}"><TextBlock Text="Supplier"/><comp:SearchableComboBoxControl ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Name" DetailMemberPath="SCode"/></StackPanel>
-              <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Invoice No (optional)"/><comp:SearchableComboBoxControl ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}" DisplayMemberPath="InvoiceNumber" DetailMemberPath="PatientName"/></StackPanel>
+              <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0" IsVisible="{Binding IsPatientReturn}"><TextBlock Text="Original Invoice / Sale"/><comp:SearchableComboBoxControl ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}" DisplayMemberPath="InvoiceNumber" DetailMemberPath="PatientName" Placeholder="Auto-filled or search..."/></StackPanel>
             </Grid>
             <Grid ColumnDefinitions="*,*" IsEnabled="{Binding IsDraftInvoice}">
               <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0"><TextBlock Text="Pieces"/><TextBox Text="Pieces" IsReadOnly="True"/></StackPanel>
-              <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"><TextBlock Text="Quantity"/><NumericUpDown Value="{Binding Quantity}" Minimum="1"/></StackPanel>
+              <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0">
+                <TextBlock Text="{Binding MaxReturnQuantity, StringFormat='Quantity (Max: {0})', FallbackValue='Quantity'}"/>
+                <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="{Binding MaxReturnQuantity}"/>
+              </StackPanel>
             </Grid>
             <TextBox Text="{Binding Reason}" PlaceholderText="Reason / notes (optional)" IsEnabled="{Binding IsDraftInvoice}"/>
             <TextBox Text="{Binding Notes}" PlaceholderText="Notes (optional)" AcceptsReturn="True" Height="55" TextWrapping="Wrap" IsEnabled="{Binding IsDraftInvoice}"/>
@@ -75,21 +78,21 @@
     </ScrollViewer>
 
     <!-- Return History Table — fills remaining vertical space -->
-    <Grid Grid.Row="2" RowDefinitions="Auto,*" Margin="28,0,28,24">
+    <Grid Grid.Row="2" RowDefinitions="Auto,*,Auto" Margin="28,0,28,24">
       <DockPanel Grid.Row="0" Margin="0,0,0,8"><TextBlock Text="RETURN HISTORY" FontWeight="Bold"/><Button DockPanel.Dock="Right" Command="{Binding GenerateReturnInvoiceCommand}" Classes="btn-secondary" Content="Export Selected Invoice"/></DockPanel>
       <DataGrid Grid.Row="1" ItemsSource="{Binding Returns}" SelectedItem="{Binding SelectedReturn}" AutoGenerateColumns="False" IsReadOnly="True" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" GridLinesVisibility="Horizontal">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="155"/>
-          <DataGridTextColumn Header="DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="145"/>
-          <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="120"/>
+          <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="Auto"/>
+          <DataGridTextColumn Header="DATE" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="Auto"/>
+          <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="Auto"/>
           <DataGridTextColumn Header="MEDICINES" Binding="{Binding ProductSummary}" Width="*"/>
-          <DataGridTextColumn Header="PIECES" Binding="{Binding Quantity}" Width="70"/>
-          <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="140"/>
-          <DataGridTextColumn Header="AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="110"/>
-          <DataGridTextColumn Header="BY" Binding="{Binding CreatedByName}" Width="120"/>
+          <DataGridTextColumn Header="PIECES" Binding="{Binding Quantity}" Width="Auto"/>
+          <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="*"/>
+          <DataGridTextColumn Header="AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="Auto"/>
+          <DataGridTextColumn Header="BY" Binding="{Binding CreatedByName}" Width="Auto"/>
         </DataGrid.Columns>
       </DataGrid>
-      <TextBlock Grid.Row="1" Text="{Binding StatusMessage}" VerticalAlignment="Bottom" Margin="12" Foreground="{DynamicResource BrushRose}" IsHitTestVisible="False"/>
+      <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Margin="0,8,0,0" FontWeight="Bold" Foreground="{DynamicResource BrushRose}" IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
     </Grid>
   </Grid>
 </UserControl>

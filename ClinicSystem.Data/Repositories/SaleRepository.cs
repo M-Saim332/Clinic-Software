@@ -141,6 +141,20 @@ public class SaleRepository
         return sale;
     }
 
+    public Sale? GetLatestSaleForProduct(int productId, int? patientId = null)
+    {
+        using var conn = _session.CreateConnection();
+        var sql = $@"{SaleSelect} JOIN SaleItems si ON s.SaleID = si.SaleID 
+            WHERE s.IsPosted=1 AND s.IsActive=1 AND si.ProductID=@productId
+            {(patientId.HasValue ? " AND s.PatientID=@patientId" : "")}
+            ORDER BY s.SaleDate DESC";
+        var sale = conn.QueryFirstOrDefault<Sale>(sql, new { productId, patientId });
+        if (sale == null) return null;
+        sale.Items = conn.Query<SaleItem>(@"SELECT si.*,p.Name ProductName FROM SaleItems si
+            JOIN Products p ON si.ProductID=p.ProductID WHERE si.SaleID=@id", new { id = sale.SaleID }).ToList();
+        return sale;
+    }
+
     public IEnumerable<Sale> GetByPatientIdWithItems(int patientId) => Array.Empty<Sale>();
 
     public int Insert(Sale sale)
