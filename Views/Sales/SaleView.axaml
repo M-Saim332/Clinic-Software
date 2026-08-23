@@ -158,25 +158,14 @@
                             </Grid>
                             
                             <Grid ColumnDefinitions="*,*">
-                                <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,12">
+                                <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                     <TextBlock Text="Patient Name" Classes="label"/>
                                     <TextBox Text="{Binding PatientName}" PlaceholderText="Enter patient name" IsEnabled="{Binding IsNewSale}"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,12">
-                                    <TextBlock Text="Sales Tax (%)" Classes="label"/>
-                                    <NumericUpDown Value="{Binding SalesTax}" Minimum="0" Maximum="100" FormatString="N2" IsEnabled="{Binding IsNewSale}"/>
-                                </StackPanel>
-                            </Grid>
-                            
-                            <Grid ColumnDefinitions="*,*">
-                                <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                    <TextBlock Text="Sale Mode" Classes="label"/>
-                                    <TextBox Text="Pieces" IsReadOnly="True"/>
-                                </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                     <TextBlock Text="Payment Method" Classes="label"/>
-                                    <comp:SearchableComboBoxControl ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}"
-                                              DisplayMemberPath="" Placeholder="Search payment method..." IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"/>
+                                    <ComboBox ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}"
+                                              IsEnabled="{Binding IsNewSale}" HorizontalAlignment="Stretch"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -217,15 +206,15 @@
                                 </Grid>
                                 
                                 <TextBlock Text="{Binding AvailableStockDisplay}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
-                                <!-- Row 1: Qty and Pieces -->
+                                <!-- Row 1: Qty and Tax -->
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                         <TextBlock Text="Qty" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Pieces" Classes="label"/>
-                                        <TextBox Text="Pieces" IsReadOnly="True"/>
+                                        <TextBlock Text="Sales Tax (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding Tax}" Minimum="0" Maximum="100" FormatString="N2"/>
                                     </StackPanel>
                                 </Grid>
                                 <!-- Row 2: Discount and Price -->
@@ -261,10 +250,10 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
-                                    <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="90"/>
+                                    <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="70"/>
                                     <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}'}" Width="110"/>
-                                    <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="TAX (%)" Binding="{Binding Tax, StringFormat='{}{0:N2}'}" Width="90"/>
                                     <DataGridTextColumn Header="LINE TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
                                         <DataGridTemplateColumn.CellTemplate>

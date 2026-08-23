@@ -87,6 +87,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [ObservableProperty] private string _packageType = "Box";
     [ObservableProperty] private int _unitsPerPackage = 1;
     [ObservableProperty] private decimal _purchasePrice;
+    [ObservableProperty] private decimal _packMRP;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
     [ObservableProperty] private decimal _extraDiscount;
@@ -106,6 +107,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
     public decimal EffectiveRate => Math.Round(PurchasePrice * 0.85m, 2);
+    public decimal UnitMRP => UnitsPerPackage > 0 ? Math.Round(PackMRP / UnitsPerPackage, 2, MidpointRounding.AwayFromZero) : 0;
     public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
     public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
@@ -194,6 +196,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             UnitsPerPackage = UnitsPerPackage,
             Quantity = TotalUnitsToStock,
             PurchasePrice = PurchasePrice,
+            PackMRP = PackMRP,
             Discount = Discount,
             Tax = Tax,
             ExtraDiscount = ExtraDiscount,
@@ -213,6 +216,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         PackageType = "Box";
         UnitsPerPackage = 1;
         PurchasePrice = 0;
+        PackMRP = 0;
         Discount = 0;
         Tax = 0;
         ExtraDiscount = 0;
@@ -297,6 +301,16 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     }
 
     [RelayCommand]
+    private async Task SaveAndCheckAsync()
+    {
+        await SaveAsync();
+        if (Mode == FormMode.View && InvoiceState == InvoiceState.Draft && _currentPurchaseId > 0)
+        {
+            CheckInvoice();
+        }
+    }
+
+    [RelayCommand]
     private void Cancel()
     {
         Mode = FormMode.View;
@@ -360,6 +374,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         if (value != null)
         {
             PurchasePrice = value.PurchasePrice;
+            PackMRP = value.SellingPrice;
             UnitsPerPackage = Math.Max(1, value.TabletsPerBox);
             Tax = 0;
         }
@@ -367,8 +382,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     partial void OnQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
     partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
-    partial void OnUnitsPerPackageChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
+    partial void OnUnitsPerPackageChanged(int value) 
+    {
+        OnPropertyChanged(nameof(TotalUnitsToStock));
+        OnPropertyChanged(nameof(UnitMRP));
+    }
     partial void OnPurchasePriceChanged(decimal value) => OnPropertyChanged(nameof(EffectiveRate));
+    partial void OnPackMRPChanged(decimal value) => OnPropertyChanged(nameof(UnitMRP));
     [RelayCommand] private void QuickAddSupplier() => RequestAddSupplier?.Invoke();
     [RelayCommand] private void QuickAddProduct() => RequestAddProduct?.Invoke();
 

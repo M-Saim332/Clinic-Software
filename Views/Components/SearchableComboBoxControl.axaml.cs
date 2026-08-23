@@ -69,6 +69,12 @@ public partial class SearchableComboBoxControl : UserControl
         RefreshOptions(SearchBox.Text);
         OptionsPopup.IsOpen = true;
     }
+    
+    private void OnSearchBoxPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        RefreshOptions(SearchBox.Text);
+        OptionsPopup.IsOpen = true;
+    }
 
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {

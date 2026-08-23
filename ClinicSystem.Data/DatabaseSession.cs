@@ -53,6 +53,18 @@ public class DatabaseSession
             }
 
             VerifyRequiredSchema(conn);
+            
+            // Add PackMRP column to PurchaseItems if it doesn't exist
+            try
+            {
+                int packMRPExists = conn.ExecuteScalar<int>("SELECT CASE WHEN COL_LENGTH('PurchaseItems', 'PackMRP') IS NULL THEN 0 ELSE 1 END");
+                if (packMRPExists == 0)
+                {
+                    conn.Execute("ALTER TABLE PurchaseItems ADD PackMRP DECIMAL(18,2) NOT NULL DEFAULT 0");
+                }
+            }
+            catch { }
+
             _schemaChecked = true;
 
             // Ensure the recovery administrator exists without changing an existing password.

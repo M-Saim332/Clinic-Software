@@ -3,20 +3,27 @@
              x:Class="ClinicSystem.UI.Views.Components.SearchableComboBoxControl"
              x:Name="SearchRoot" x:CompileBindings="False">
   <StackPanel Spacing="4">
-    <TextBox x:Name="SearchBox" TextChanged="OnSearchTextChanged" GotFocus="OnSearchBoxGotFocus"/>
+    <TextBox x:Name="SearchBox" TextChanged="OnSearchTextChanged" GotFocus="OnSearchBoxGotFocus" PointerPressed="OnSearchBoxPointerPressed"/>
     <Popup x:Name="OptionsPopup" PlacementTarget="{Binding #SearchBox}" Placement="Bottom" IsLightDismissEnabled="True">
       <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="7"
               Background="{DynamicResource BrushCardBackground}" MaxHeight="220" MinWidth="280" BoxShadow="0 6 18 0 #30000000">
-        <ListBox x:Name="OptionsList" SelectionChanged="OnSelectionChanged">
-          <ListBox.ItemTemplate>
-            <DataTemplate>
-              <Grid ColumnDefinitions="*,Auto" Margin="6,4">
-                <TextBlock Text="{Binding Label}"/>
-                <TextBlock Grid.Column="1" Text="{Binding Detail}" Foreground="{DynamicResource BrushInk500}" FontSize="11" Margin="12,0,0,0"/>
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <Panel>
+            <ListBox x:Name="OptionsList" SelectionChanged="OnSelectionChanged" IsVisible="{Binding $self.ItemCount}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,Auto" Margin="6,4">
+                    <TextBlock Text="{Binding Label}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Detail}" Foreground="{DynamicResource BrushInk500}" FontSize="11" Margin="12,0,0,0"/>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            
+            <StackPanel IsVisible="{Binding !#OptionsList.ItemCount}" Spacing="8" Margin="16,20" HorizontalAlignment="Center">
+                <TextBlock Text="No matches found" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center" FontWeight="SemiBold"/>
+                <TextBlock Text="Please use the 'Add' button below" FontSize="11" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Panel>
       </Border>
     </Popup>
   </StackPanel>
