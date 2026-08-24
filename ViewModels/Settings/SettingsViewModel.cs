@@ -38,6 +38,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     [ObservableProperty] private bool _isChangePasswordVisible;
+    [ObservableProperty] private int _selectedCategoryIndex = 0;
 
     [RelayCommand]
     private void OpenChangePassword()

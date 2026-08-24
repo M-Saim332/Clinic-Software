@@ -23,59 +23,69 @@
     <Grid Grid.Column="1" RowDefinitions="60,Auto,*,Auto">
 
       <!-- Top bar -->
-      <Border Grid.Row="0" Background="{DynamicResource ThemeTopBarBackgroundBrush}"
-              BorderThickness="0" Padding="24,0">
+      <Border Grid.Row="0" Background="{DynamicResource ThemeContentBackgroundBrush}"
+              BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="24,0">
         <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-          <!-- Left: Clinic name chip and Page Title -->
+          <!-- Left: Page Title -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                  <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18" Foreground="{DynamicResource ThemeTopBarForegroundBrush}"/>
-                  <TextBlock Text="{Binding ClinicName}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTopBarForegroundBrush}" VerticalAlignment="Center"/>
-              </StackPanel>
-              
-              <TextBlock Text="{Binding PageTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource ThemeTopBarForegroundBrush}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Middle: Global Search Bar -->
-          <TextBox Grid.Column="1" Width="400" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="{Binding SearchPlaceholder}" Background="{DynamicResource BrushCardBackground}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}">
+          <TextBox Grid.Column="1" Width="360" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="Search patients, appointments, etc..." Background="{DynamicResource ThemeInputBackgroundBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}">
               <TextBox.InnerLeftContent>
-                  <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Foreground="{DynamicResource BrushInk400}" Margin="12,0,8,0"/>
+                  <materialIcons:MaterialIcon Kind="Magnify" Width="18" Height="18" Foreground="{DynamicResource ThemeSubtleForegroundBrush}" Margin="12,0,8,0"/>
               </TextBox.InnerLeftContent>
           </TextBox>
 
-          <!-- Right: User Avatar, Name, Role and Options -->
-          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center" HorizontalAlignment="Right">
-            <TextBlock Text="{Binding TodayDate}" Foreground="{DynamicResource ThemeTopBarForegroundBrush}" FontSize="13" VerticalAlignment="Center"/>
+          <!-- Right: Notification Bell & User Profile -->
+          <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center" HorizontalAlignment="Right">
             
-            <Border Width="1" Background="{DynamicResource ThemePrimaryLightBrush}" Height="20" VerticalAlignment="Center" Opacity="0.4"/>
+            <!-- Notification Bell -->
+            <Button Background="Transparent" BorderThickness="0" Padding="8" CornerRadius="8">
+                <Grid>
+                    <materialIcons:MaterialIcon Kind="BellOutline" Width="20" Height="20" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                    <!-- Notification Badge (Mocked for now) -->
+                    <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource BrushRose}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,2,0"/>
+                </Grid>
+            </Button>
             
+            <Border Width="1" Background="{DynamicResource BrushLine}" Height="24" VerticalAlignment="Center"/>
+            
+            <!-- User Profile Dropdown -->
             <Button Background="Transparent" BorderThickness="0" Padding="8,4" CornerRadius="8">
                 <Button.Flyout>
                     <MenuFlyout>
-                        <MenuItem Header="Change Password" Command="{Binding OpenChangePasswordDialogCommand}">
+                        <MenuItem Header="Profile" Command="{Binding ShowProfileCommand}">
                             <MenuItem.Icon>
-                                <materialIcons:MaterialIcon Kind="AccountCog" Width="14" Height="14"/>
+                                <materialIcons:MaterialIcon Kind="AccountCircle" Width="14" Height="14"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Settings" Command="{Binding ShowSettingsCommand}">
+                            <MenuItem.Icon>
+                                <materialIcons:MaterialIcon Kind="Cog" Width="14" Height="14"/>
                             </MenuItem.Icon>
                         </MenuItem>
                         <Separator />
                         <MenuItem Header="Logout" Command="{Binding LogoutCommand}" Foreground="{DynamicResource BrushRose}">
                             <MenuItem.Icon>
-                                <PathIcon Data="{StaticResource IconLogout}" Width="14" Height="14" Foreground="{DynamicResource BrushRose}"/>
+                                <materialIcons:MaterialIcon Kind="Logout" Width="14" Height="14" Foreground="{DynamicResource BrushRose}"/>
                             </MenuItem.Icon>
                         </MenuItem>
                     </MenuFlyout>
                 </Button.Flyout>
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushBlue50}">
-                        <materialIcons:MaterialIcon Kind="AccountCog" Width="16" Height="16" Foreground="{DynamicResource ThemePrimaryBrush}"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource BrushPrimaryBlue50}">
+                        <TextBlock Text="{Binding CurrentUserName, StringFormat={}{0:1}}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource ThemePrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="0">
-                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTopBarForegroundBrush}"/>
-                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource ThemeTopBarForegroundBrush}" Opacity="0.8"/>
+                    <StackPanel VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Text="{Binding CurrentUserName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+                        <TextBlock Text="{Binding CurrentUserRole}" FontSize="11" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
                     </StackPanel>
+                    <materialIcons:MaterialIcon Kind="ChevronDown" Width="16" Height="16" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
                 </StackPanel>
             </Button>
-            <Border Width="8" Height="8" CornerRadius="4" Background="#10B981" VerticalAlignment="Center"
+            <Border Width="8" Height="8" CornerRadius="4" Background="{DynamicResource BrushEmerald}" VerticalAlignment="Center"
                     ToolTip.Tip="Database connected"/>
           </StackPanel>
         </Grid>

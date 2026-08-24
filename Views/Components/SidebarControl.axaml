@@ -7,147 +7,313 @@
              mc:Ignorable="d" d:DesignWidth="224" d:DesignHeight="780"
              x:Class="ClinicSystem.UI.Views.Components.SidebarControl"
              x:DataType="vm:MainWindowViewModel"
-             Width="224"
+             Width="240"
              Background="{DynamicResource ThemeSidebarBackgroundBrush}">
+
+    <UserControl.Styles>
+
+        <!-- ── Segmented Switcher ────────────────────────────────────── -->
+        <Style Selector="Button.segmentedBtn">
+            <Setter Property="Background"         Value="Transparent"/>
+            <Setter Property="Foreground"         Value="#475569"/>
+            <Setter Property="BorderThickness"    Value="0"/>
+            <Setter Property="Padding"            Value="0,9"/>
+            <Setter Property="CornerRadius"       Value="7"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment"  Value="Stretch"/>
+            <Setter Property="Cursor"             Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.18"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.segmentedBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background"             Value="#EFF6FF"/>
+            <Setter Property="TextElement.Foreground" Value="#1D4ED8"/>
+        </Style>
+
+        <!-- Clinic active pill -->
+        <Style Selector="Button.segmentedBtn.clinicActive">
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn.clinicActive /template/ ContentPresenter">
+            <Setter Property="Background"             Value="{DynamicResource ThemePrimaryBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+            <Setter Property="BoxShadow"              Value="0 2 8 0 #3004A3F8"/>
+        </Style>
+
+        <!-- Pharma active pill -->
+        <Style Selector="Button.segmentedBtn.pharmaActive">
+            <Setter Property="Background" Value="{DynamicResource BrushEmerald500}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn.pharmaActive /template/ ContentPresenter">
+            <Setter Property="Background"             Value="{DynamicResource BrushEmerald500}"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+            <Setter Property="BoxShadow"              Value="0 2 8 0 #3010B981"/>
+        </Style>
+
+        <!-- ── Nav Buttons ──────────────────────────────────────────── -->
+        <Style Selector="Button.navbtn">
+            <Setter Property="Background"         Value="Transparent"/>
+            <Setter Property="Foreground"         Value="{DynamicResource ThemeSidebarForegroundBrush}"/>
+            <Setter Property="BorderThickness"    Value="0"/>
+            <Setter Property="CornerRadius"       Value="8"/>
+            <Setter Property="Padding"            Value="12,9"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize"           Value="13.5"/>
+            <Setter Property="FontWeight"         Value="Medium"/>
+            <Setter Property="Cursor"             Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background"             Value="{DynamicResource ThemeSidebarHoverBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeSidebarActiveForegroundBrush}"/>
+        </Style>
+        <Style Selector="Button.navbtn.active">
+            <Setter Property="Background" Value="{DynamicResource ThemeSidebarActiveBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource ThemeSidebarActiveForegroundBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.navbtn.active /template/ ContentPresenter">
+            <Setter Property="Background"             Value="{DynamicResource ThemeSidebarActiveBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeSidebarActiveForegroundBrush}"/>
+        </Style>
+
+        <!-- Icon color inherits from button foreground -->
+        <Style Selector="Button.navbtn materialIcons|MaterialIcon">
+            <Setter Property="Opacity" Value="0.75"/>
+        </Style>
+        <Style Selector="Button.navbtn.active materialIcons|MaterialIcon">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+
+    </UserControl.Styles>
+
     <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,1,0">
         <Grid RowDefinitions="Auto,*,Auto">
-            <!-- Logo / Brand -->
-            <Border Grid.Row="0" Padding="20,18" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
-                <StackPanel Spacing="12">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                    <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushBlue50}">
-                        <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="18" Height="18"
-                                  Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel VerticalAlignment="Center" Spacing="1">
-                        <TextBlock Text="MediCompare" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontLexend}"/>
-                        <TextBlock Text="{Binding CurrentSystemMode}" FontSize="11" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" FontFamily="{DynamicResource FontInter}"/>
+
+            <!-- ── Logo / Brand ─────────────────────────────────────── -->
+            <Border Grid.Row="0" Padding="18,16,18,14"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1">
+                <StackPanel Spacing="14">
+
+                    <!-- Logo row -->
+                    <StackPanel Orientation="Horizontal" Spacing="11" VerticalAlignment="Center">
+                        <!-- Gradient icon badge -->
+                        <Border Width="38" Height="38" CornerRadius="10"
+                                Background="{DynamicResource ThemePrimaryBrush}">
+                            <materialIcons:MaterialIcon Kind="MedicalBag" Width="20" Height="20"
+                                      Foreground="White"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="1">
+                            <TextBlock Text="MediCompare" FontSize="15.5" FontWeight="Bold"
+                                       Foreground="{DynamicResource ThemeSidebarForegroundBrush}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                            <TextBlock Text="Management System" FontSize="10.5"
+                                       Foreground="{DynamicResource ThemeSidebarSubtleForegroundBrush}"
+                                       FontFamily="{DynamicResource FontLexend}"/>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-                <Grid ColumnDefinitions="*,*" IsVisible="{Binding CanSwitchSystemMode}">
-                    <Button Grid.Column="0" Content="Clinical" Command="{Binding SwitchToClinicalCommand}" Padding="6" FontSize="11"/>
-                    <Button Grid.Column="1" Content="Pharma" Command="{Binding SwitchToPharmaCommand}" Padding="6" FontSize="11"/>
-                </Grid>
+
+                    <!-- ── Segmented Switcher ── -->
+                    <Border IsVisible="{Binding CanSwitchSystemMode}"
+                            Background="{DynamicResource ThemeSidebarSwitcherBgBrush}"
+                            CornerRadius="9" Padding="3"
+                            BorderBrush="{DynamicResource BrushLine}" BorderThickness="1">
+                        <Grid ColumnDefinitions="*,*">
+
+                            <!-- Clinic -->
+                            <Button Grid.Column="0"
+                                    Command="{Binding SwitchToClinicalCommand}"
+                                    Classes="segmentedBtn"
+                                    Classes.clinicActive="{Binding IsClinicalMode}">
+                                <StackPanel Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="Stethoscope" Width="15" Height="15"/>
+                                    <TextBlock Text="Clinic" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Pharma -->
+                            <Button Grid.Column="1"
+                                    Command="{Binding SwitchToPharmaCommand}"
+                                    Classes="segmentedBtn"
+                                    Classes.pharmaActive="{Binding IsPharmaMode}">
+                                <StackPanel Orientation="Horizontal" Spacing="7" HorizontalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="Pill" Width="15" Height="15"/>
+                                    <TextBlock Text="Pharma" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Navigation -->
+            <!-- ── Navigation ───────────────────────────────────────── -->
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="4" Margin="12,16,12,48" VerticalAlignment="Top">
+                <StackPanel Spacing="2" Margin="10,14,10,40" VerticalAlignment="Top">
 
-                    <!-- MAIN/DASHBOARD -->
-                    <Button Command="{Binding ShowDashboardCommand}" Classes="navbtn" Classes.active="{Binding IsDashboardActive}" IsVisible="{Binding CanAccessDashboard}">
+                    <!-- MAIN -->
+                    <Button Command="{Binding ShowDashboardCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsDashboardActive}"
+                            IsVisible="{Binding CanAccessDashboard}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="ViewDashboard" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ViewDashboardOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- MANAGEMENT SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasManagementAccess}"/>
-                    <TextBlock Text="MANAGEMENT" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,4,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasManagementAccess}"/>
+                    <!-- MANAGEMENT section label -->
+                    <TextBlock IsVisible="{Binding HasManagementAccess}"
+                               Text="MANAGEMENT"
+                               FontSize="10" FontWeight="Bold" LetterSpacing="1.8"
+                               Foreground="{DynamicResource ThemeSidebarSubtleForegroundBrush}"
+                               Margin="12,16,0,6"
+                               FontFamily="{DynamicResource FontLexend}"
+                               Opacity="0.7"/>
 
-                    <Button Command="{Binding ShowAppointmentsCommand}" Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}" IsVisible="{Binding CanAccessAppointments}">
+                    <Button Command="{Binding ShowAppointmentsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsAppointmentsActive}"
+                            IsVisible="{Binding CanAccessAppointments}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="CalendarCheck" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="CalendarMonth" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Appointments" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowPatientsCommand}" Classes="navbtn" Classes.active="{Binding IsPatientsActive}" IsVisible="{Binding CanAccessPatients}">
+                    <Button Command="{Binding ShowPatientsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsPatientsActive}"
+                            IsVisible="{Binding CanAccessPatients}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="AccountMultiple" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="AccountHeartOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Patients" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowProductsCommand}" Classes="navbtn" Classes.active="{Binding IsProductsActive}" IsVisible="{Binding CanAccessProducts}">
+                    <Button Command="{Binding ShowProductsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsProductsActive}"
+                            IsVisible="{Binding CanAccessProducts}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Pill" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="PillMultiple" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding ProductNavigationLabel}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowCompaniesCommand}" Classes="navbtn" Classes.active="{Binding IsCompaniesActive}" IsVisible="{Binding CanAccessCompanies}">
+                    <Button Command="{Binding ShowCompaniesCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsCompaniesActive}"
+                            IsVisible="{Binding CanAccessCompanies}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Domain" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="OfficeBuildingOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Companies" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowSuppliersCommand}" Classes="navbtn" Classes.active="{Binding IsSuppliersActive}" IsVisible="{Binding CanAccessSuppliers}">
+                    <Button Command="{Binding ShowSuppliersCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsSuppliersActive}"
+                            IsVisible="{Binding CanAccessSuppliers}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Truck" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="TruckDeliveryOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Suppliers" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- TRANSACTIONS SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasTransactionsAccess}"/>
-                    <TextBlock Text="TRANSACTIONS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasTransactionsAccess}"/>
+                    <!-- TRANSACTIONS section label -->
+                    <TextBlock IsVisible="{Binding HasTransactionsAccess}"
+                               Text="TRANSACTIONS"
+                               FontSize="10" FontWeight="Bold" LetterSpacing="1.8"
+                               Foreground="{DynamicResource ThemeSidebarSubtleForegroundBrush}"
+                               Margin="12,16,0,6"
+                               FontFamily="{DynamicResource FontLexend}"
+                               Opacity="0.7"/>
 
-                    <Button Command="{Binding ShowPurchasesCommand}" Classes="navbtn" Classes.active="{Binding IsPurchasesActive}" IsVisible="{Binding CanAccessPurchases}">
+                    <Button Command="{Binding ShowPurchasesCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsPurchasesActive}"
+                            IsVisible="{Binding CanAccessPurchases}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Cart" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="CartOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Purchases" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowSalesCommand}" Classes="navbtn" Classes.active="{Binding IsSalesActive}" IsVisible="{Binding CanAccessSales}">
+                    <Button Command="{Binding ShowSalesCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsSalesActive}"
+                            IsVisible="{Binding CanAccessSales}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Receipt" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ReceiptOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Sales &amp; Billing" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowReturnsCommand}" Classes="navbtn" Classes.active="{Binding IsReturnsActive}" IsVisible="{Binding CanAccessReturns}">
+                    <Button Command="{Binding ShowReturnsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsReturnsActive}"
+                            IsVisible="{Binding CanAccessReturns}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ArrowULeftTop" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Returns" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <!-- ANALYSIS SECTION -->
-                    <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,12" IsVisible="{Binding HasAnalysisAccess}"/>
-                    <TextBlock Text="ANALYSIS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasAnalysisAccess}"/>
+                    <!-- ANALYSIS section label -->
+                    <TextBlock IsVisible="{Binding HasAnalysisAccess}"
+                               Text="ANALYSIS"
+                               FontSize="10" FontWeight="Bold" LetterSpacing="1.8"
+                               Foreground="{DynamicResource ThemeSidebarSubtleForegroundBrush}"
+                               Margin="12,16,0,6"
+                               FontFamily="{DynamicResource FontLexend}"
+                               Opacity="0.7"/>
 
-                    <Button Command="{Binding ShowInventoryCommand}" Classes="navbtn" Classes.active="{Binding IsInventoryActive}" IsVisible="{Binding CanAccessInventory}">
+                    <Button Command="{Binding ShowInventoryCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsInventoryActive}"
+                            IsVisible="{Binding CanAccessInventory}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="Store" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="PackageVariantClosed" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Inventory" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ShowReportsCommand}" Classes="navbtn" Classes.active="{Binding IsReportsActive}" IsVisible="{Binding CanAccessReports}">
+                    <Button Command="{Binding ShowReportsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsReportsActive}"
+                            IsVisible="{Binding CanAccessReports}">
                         <StackPanel Orientation="Horizontal" Spacing="12">
-                            <materialIcons:MaterialIcon Kind="ChartBar" Width="16" Height="16" VerticalAlignment="Center"/>
+                            <materialIcons:MaterialIcon Kind="ChartLineVariant" Width="17" Height="17" VerticalAlignment="Center"/>
                             <TextBlock Text="Reports" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
                 </StackPanel>
             </ScrollViewer>
-            
-            <!-- Fixed Bottom Section -->
-            <StackPanel Grid.Row="2" Spacing="4" Margin="12,0,12,24">
-                <Border Height="1" Background="{DynamicResource BrushLine}" Margin="8,0,8,12" IsVisible="{Binding HasUserSettingsAccess}"/>
-                <TextBlock Text="SETTINGS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource ThemeSidebarForegroundBrush}" Margin="8,0,0,8" LetterSpacing="1.5" FontFamily="{DynamicResource FontLexend}" IsVisible="{Binding HasUserSettingsAccess}"/>
-                
 
-                <Button Command="{Binding ShowSettingsCommand}" Classes="navbtn" Classes.active="{Binding IsSettingsActive}" IsVisible="{Binding CanAccessSettings}">
+            <!-- ── Fixed Bottom: Settings / Profile ─────────────────── -->
+            <StackPanel Grid.Row="2" Spacing="2" Margin="10,0,10,16">
+                <Border Height="1" Background="{DynamicResource BrushLine}" Margin="6,0,6,10"
+                        IsVisible="{Binding HasUserSettingsAccess}"/>
+
+                <Button Command="{Binding ShowSettingsCommand}"
+                        Classes="navbtn" Classes.active="{Binding IsSettingsActive}"
+                        IsVisible="{Binding CanAccessSettings}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <materialIcons:MaterialIcon Kind="Cog" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="CogOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                         <TextBlock Text="Settings" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
-
-                <Button Command="{Binding ShowProfileCommand}" Classes="navbtn" Classes.active="{Binding IsProfileActive}">
+                <Button Command="{Binding ShowProfileCommand}"
+                        Classes="navbtn" Classes.active="{Binding IsProfileActive}">
                     <StackPanel Orientation="Horizontal" Spacing="12">
-                        <materialIcons:MaterialIcon Kind="AccountCircle" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <materialIcons:MaterialIcon Kind="AccountCircleOutline" Width="17" Height="17" VerticalAlignment="Center"/>
                         <TextBlock Text="Profile" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
+
         </Grid>
     </Border>
 </UserControl>

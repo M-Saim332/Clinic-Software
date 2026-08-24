@@ -159,6 +159,7 @@ public partial class App : Application
         services.AddSingleton<InventoryViewModel>();
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ClinicalDashboardViewModel>();
+        services.AddSingleton<ClinicalReportsViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();

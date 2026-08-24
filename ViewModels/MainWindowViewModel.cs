@@ -42,6 +42,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly VisitHistoryViewModel     _visitHistoryVM;
     private readonly UserRegistryViewModel     _userVM;
     private readonly ReportsViewModel          _reportsVM;
+    private readonly ClinicalReportsViewModel  _clinicalReportsVM;
     private readonly CompanyRegistryViewModel  _companyVM;
     private readonly SupplierRegistryViewModel _supplierVM;
     private readonly SearchViewModel            _searchVM;
@@ -69,6 +70,7 @@ public partial class MainWindowViewModel : ViewModelBase
         VisitHistoryViewModel     visitHistoryVM,
         UserRegistryViewModel     userVM,
         ReportsViewModel          reportsVM,
+        ClinicalReportsViewModel  clinicalReportsVM,
         CompanyRegistryViewModel  companyVM,
         SupplierRegistryViewModel supplierVM,
         SearchViewModel           searchVM,
@@ -91,6 +93,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _visitHistoryVM = visitHistoryVM;
         _userVM         = userVM;
         _reportsVM      = reportsVM;
+        _clinicalReportsVM = clinicalReportsVM;
         _companyVM      = companyVM;
         _supplierVM     = supplierVM;
         _searchVM       = searchVM;
@@ -314,7 +317,7 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool CanAccessPurchases    => IsPharmaMode && HasPharmaAccess("Purchases");
     public bool CanAccessSales        => IsPharmaMode && HasPharmaAccess("Sales");
     public bool CanAccessInventory    => IsPharmaMode && HasPharmaAccess("Inventory");
-    public bool CanAccessReports      => IsPharmaMode && HasPharmaAccess("Reports");
+    public bool CanAccessReports      => (IsClinicalMode && (CurrentUser?.IsDoctor ?? false)) || (IsPharmaMode && HasPharmaAccess("Reports"));
     public bool CanAccessReturns      => IsPharmaMode && HasPharmaAccess("Returns");
     public bool CanAccessUsers        => IsPharmaMode && (CurrentUser?.IsAdmin ?? false);
     public bool CanAccessSettings     => IsPharmaMode && HasPharmaAccess("Settings");
@@ -402,7 +405,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
-    [RelayCommand] private void ShowReports()      { NavigateTo(_reportsVM,      "Reports"); }
+    [RelayCommand] private void ShowReports()      
+    { 
+        if (IsClinicalMode) { NavigateTo(_clinicalReportsVM, "Reports"); _ = _clinicalReportsVM.InitializeAsync(); }
+        else { NavigateTo(_reportsVM, "Reports"); }
+    }
     [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); _ = _settingsVM.InitializeAsync(); }
     [RelayCommand] private void ShowProfile()
     {

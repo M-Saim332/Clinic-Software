@@ -2,169 +2,271 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Dashboard"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="ClinicSystem.UI.Views.Dashboard.ClinicalDashboardView"
              x:DataType="vm:ClinicalDashboardViewModel"
-             Background="{DynamicResource BrushBackground}">
+             Background="{DynamicResource ThemeContentBackgroundBrush}">
 
-  <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- Shared style classes (mirrors DashboardView.axaml)             -->
-  <!-- ═══════════════════════════════════════════════════════════════ -->
   <UserControl.Styles>
-
-    <!-- KPI (top stat) card -->
     <Style Selector="Border.kpiCard">
-      <Setter Property="Background"     Value="{DynamicResource BrushCardBackground}"/>
+      <Setter Property="Background"     Value="{DynamicResource ThemeCardBackgroundBrush}"/>
       <Setter Property="CornerRadius"   Value="{DynamicResource CornerRadiusCard}"/>
-      <Setter Property="Padding"        Value="16,12"/>
-      <Setter Property="BorderBrush"    Value="{DynamicResource BrushLine}"/>
+      <Setter Property="Padding"        Value="20"/>
+      <Setter Property="BorderBrush"    Value="{DynamicResource ThemeBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="BoxShadow"      Value="0 1 4 0 #0A000000"/>
+      <Setter Property="BoxShadow"      Value="0 2 6 0 #05000000"/>
     </Style>
 
-    <!-- KPI icon box -->
     <Style Selector="Border.kpiIcon">
       <Setter Property="CornerRadius"        Value="{DynamicResource CornerRadiusPill}"/>
-      <Setter Property="Width"               Value="46"/>
-      <Setter Property="Height"              Value="46"/>
+      <Setter Property="Width"               Value="48"/>
+      <Setter Property="Height"              Value="48"/>
       <Setter Property="VerticalAlignment"   Value="Center"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
     </Style>
 
-    <!-- KPI text styles -->
     <Style Selector="TextBlock.kpiLabel">
-      <Setter Property="FontSize"   Value="12"/>
-      <Setter Property="Foreground" Value="{DynamicResource BrushInk600}"/>
+      <Setter Property="FontSize"   Value="13"/>
+      <Setter Property="Foreground" Value="{DynamicResource ThemeSubtleForegroundBrush}"/>
       <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="FontFamily" Value="{DynamicResource FontInter}"/>
+      <Setter Property="Margin"     Value="0,0,0,4"/>
     </Style>
     <Style Selector="TextBlock.kpiValue">
-      <Setter Property="FontSize"   Value="24"/>
+      <Setter Property="FontSize"   Value="28"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+      <Setter Property="Foreground" Value="{DynamicResource ThemeContentForegroundBrush}"/>
     </Style>
-    <Style Selector="TextBlock.kpiLink">
+    <Style Selector="TextBlock.kpiComparison">
       <Setter Property="FontSize"   Value="12"/>
       <Setter Property="FontWeight" Value="Medium"/>
-      <Setter Property="Margin"     Value="0,2,0,0"/>
-      <Setter Property="FontFamily" Value="{DynamicResource FontInter}"/>
+      <Setter Property="Margin"     Value="0,4,0,0"/>
     </Style>
 
-    <!-- General dashboard card -->
     <Style Selector="Border.dashCard">
-      <Setter Property="Background"      Value="{DynamicResource BrushCardBackground}"/>
+      <Setter Property="Background"      Value="{DynamicResource ThemeCardBackgroundBrush}"/>
       <Setter Property="CornerRadius"    Value="{DynamicResource CornerRadiusCard}"/>
-      <Setter Property="Padding"         Value="18,14"/>
-      <Setter Property="BorderBrush"     Value="{DynamicResource BrushLine}"/>
+      <Setter Property="Padding"         Value="24"/>
+      <Setter Property="BorderBrush"     Value="{DynamicResource ThemeBorderBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="BoxShadow"       Value="0 1 4 0 #0A000000"/>
+      <Setter Property="BoxShadow"       Value="0 2 6 0 #05000000"/>
     </Style>
-
-    <!-- Card title -->
+    
     <Style Selector="TextBlock.cardTitle">
-      <Setter Property="FontSize"          Value="14"/>
-      <Setter Property="FontWeight"        Value="SemiBold"/>
-      <Setter Property="Foreground"        Value="{DynamicResource BrushInk900}"/>
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="FontFamily"        Value="{DynamicResource FontLexend}"/>
+      <Setter Property="FontSize"          Value="16"/>
+      <Setter Property="FontWeight"        Value="Bold"/>
+      <Setter Property="Foreground"        Value="{DynamicResource ThemeContentForegroundBrush}"/>
     </Style>
-
   </UserControl.Styles>
 
   <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-    <StackPanel Margin="20,16,20,20" Spacing="16">
+    <StackPanel Margin="24,16,24,32" Spacing="24">
+
+      <!-- Page Header (Optional, if not covered by MainWindow) -->
+      <StackPanel Spacing="4">
+          <TextBlock Text="Dashboard" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+          <TextBlock Text="Here's what's happening at your clinic." FontSize="14" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+      </StackPanel>
 
       <!-- ═══════════════════════════════════════════════════════════ -->
-      <!-- KPI Row: Appointments & Patients                           -->
+      <!-- KPI Row (4 Cards)                                          -->
       <!-- ═══════════════════════════════════════════════════════════ -->
-      <Grid ColumnDefinitions="*,*" Height="100">
-
+      <Grid ColumnDefinitions="*,*,*,*">
+        
         <!-- Today's Appointments -->
-        <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,10,0">
+        <Border Grid.Column="0" Classes="kpiCard" Margin="0,0,12,0">
           <Grid ColumnDefinitions="Auto,*">
-            <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF1F2">
-              <materialIcons:MaterialIcon Kind="CalendarCheck" Width="22" Height="22"
-                                          Foreground="#E11D48"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+            <Border Grid.Column="0" Classes="kpiIcon" Background="{DynamicResource BrushPrimaryBlue50}" VerticalAlignment="Top">
+              <materialIcons:MaterialIcon Kind="CalendarCheck" Width="24" Height="24" Foreground="{DynamicResource BrushPrimaryBlue}"/>
             </Border>
-            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
               <TextBlock Text="Today's Appointments" Classes="kpiLabel"/>
               <TextBlock Text="{Binding TodaysAppointments}" Classes="kpiValue"/>
-              <TextBlock Text="View appointments →" Classes="kpiLink" Foreground="#E11D48"/>
+              <TextBlock Text="{Binding TodaysAppointmentsComparison}" Classes="kpiComparison" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Patients Seen Today -->
+        <Border Grid.Column="1" Classes="kpiCard" Margin="6,0,6,0">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Grid.Column="0" Classes="kpiIcon" Background="{DynamicResource BrushTeal50}" VerticalAlignment="Top">
+              <materialIcons:MaterialIcon Kind="AccountCheck" Width="24" Height="24" Foreground="{DynamicResource BrushTeal}"/>
+            </Border>
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+              <TextBlock Text="Patients Seen Today" Classes="kpiLabel"/>
+              <TextBlock Text="{Binding PatientsSeenToday}" Classes="kpiValue"/>
+              <TextBlock Text="{Binding PatientsSeenTodayComparison}" Classes="kpiComparison" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
             </StackPanel>
           </Grid>
         </Border>
 
         <!-- Patients Waiting -->
-        <Border Grid.Column="1" Classes="kpiCard" Margin="10,0,0,0">
+        <Border Grid.Column="2" Classes="kpiCard" Margin="6,0,6,0">
           <Grid ColumnDefinitions="Auto,*">
-            <Border Grid.Column="0" Classes="kpiIcon" Background="#FFF7ED">
-              <materialIcons:MaterialIcon Kind="AccountClock" Width="22" Height="22"
-                                          Foreground="#F97316"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+            <Border Grid.Column="0" Classes="kpiIcon" Background="{DynamicResource BrushAmber50}" VerticalAlignment="Top">
+              <materialIcons:MaterialIcon Kind="AccountClock" Width="24" Height="24" Foreground="{DynamicResource BrushAmber}"/>
             </Border>
-            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
               <TextBlock Text="Patients Waiting" Classes="kpiLabel"/>
               <TextBlock Text="{Binding PatientsWaiting}" Classes="kpiValue"/>
-              <TextBlock Text="Scheduled or checked-in" Classes="kpiLink" Foreground="#F97316"/>
+              <TextBlock Text="{Binding PatientsWaitingComparison}" Classes="kpiComparison" Foreground="{DynamicResource BrushAmber}"/>
             </StackPanel>
           </Grid>
         </Border>
 
+        <!-- Total Patients -->
+        <Border Grid.Column="3" Classes="kpiCard" Margin="12,0,0,0">
+          <Grid ColumnDefinitions="Auto,*">
+            <Border Grid.Column="0" Classes="kpiIcon" Background="#F3E8FF" VerticalAlignment="Top">
+              <materialIcons:MaterialIcon Kind="ClipboardAccount" Width="24" Height="24" Foreground="{DynamicResource BrushPurple}"/>
+            </Border>
+            <StackPanel Grid.Column="1" Margin="16,0,0,0">
+              <TextBlock Text="Total Patients" Classes="kpiLabel"/>
+              <TextBlock Text="{Binding TotalPatients}" Classes="kpiValue"/>
+              <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                  <materialIcons:MaterialIcon Kind="TrendingUp" Width="12" Height="12" Foreground="{DynamicResource BrushEmerald}"/>
+                  <TextBlock Text="{Binding TotalPatientsComparison}" Classes="kpiComparison" Margin="0" Foreground="{DynamicResource BrushEmerald}"/>
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+        </Border>
       </Grid>
 
       <!-- ═══════════════════════════════════════════════════════════ -->
-      <!-- Recent Visits table                                        -->
+      <!-- Middle Row: Line Chart & Donut Chart                       -->
       <!-- ═══════════════════════════════════════════════════════════ -->
-      <Border Classes="dashCard" Padding="0">
-        <StackPanel>
+      <Grid ColumnDefinitions="2*,1*" Height="360">
+          
+          <!-- Patient Trends Chart -->
+          <Border Grid.Column="0" Classes="dashCard" Margin="0,0,12,0">
+              <Grid RowDefinitions="Auto,*">
+                  <DockPanel Grid.Row="0" Margin="0,0,0,16">
+                      <TextBlock Text="Patient Trends" Classes="cardTitle" DockPanel.Dock="Left"/>
+                      
+                      <!-- Range Selector -->
+                      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                          <Button Content="Monthly" Classes="secondary" Height="32" Padding="12,0" FontSize="12"/>
+                          <Button Content="Yearly" Classes="navbtn" Height="32" Padding="12,0" FontSize="12"/>
+                          <Button Content="Lifetime" Classes="navbtn" Height="32" Padding="12,0" FontSize="12"/>
+                      </StackPanel>
+                  </DockPanel>
+                  
+                  <lvc:CartesianChart Grid.Row="1" 
+                                      Series="{Binding PatientTrendSeries}" 
+                                      XAxes="{Binding XAxes}" 
+                                      YAxes="{Binding YAxes}"
+                                      TooltipPosition="Top">
+                  </lvc:CartesianChart>
+              </Grid>
+          </Border>
 
-          <!-- Card Header -->
-          <DockPanel Margin="18,14,18,12">
-            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-              <Border Width="34" Height="34" CornerRadius="8" Background="#ECFDF5">
-                <materialIcons:MaterialIcon Kind="AccountMultiple" Width="17" Height="17"
-                                            Foreground="#0D9488"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
-              </Border>
-              <StackPanel VerticalAlignment="Center" Spacing="1">
-                <TextBlock Text="Recent Visits" Classes="cardTitle"/>
-                <TextBlock Text="Latest patient clinical activity"
-                           FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
-              </StackPanel>
-            </StackPanel>
-          </DockPanel>
+          <!-- Visit Type Distribution -->
+          <Border Grid.Column="1" Classes="dashCard" Margin="12,0,0,0">
+              <Grid RowDefinitions="Auto,*">
+                  <DockPanel Grid.Row="0" Margin="0,0,0,16">
+                      <TextBlock Text="Visit Type Distribution" Classes="cardTitle" DockPanel.Dock="Left"/>
+                      <materialIcons:MaterialIcon Kind="DotsHorizontal" Width="18" Height="18" Foreground="{DynamicResource ThemeSubtleForegroundBrush}" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                  </DockPanel>
+                  
+                  <Grid Grid.Row="1" RowDefinitions="*,Auto">
+                      <lvc:PieChart Grid.Row="0" Series="{Binding VisitTypeSeries}" TooltipPosition="Center" InitialRotation="-90"/>
+                      
+                      <!-- Legend (Custom) -->
+                      <StackPanel Grid.Row="1" Margin="0,16,0,0" Spacing="12">
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                              <Border Grid.Column="0" Width="12" Height="12" CornerRadius="6" Background="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="1" Text="Appointment" Margin="8,0,0,0" FontSize="13" Foreground="{DynamicResource ThemeContentForegroundBrush}" VerticalAlignment="Center"/>
+                              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                  <TextBlock Text="{Binding AppointmentCount}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+                                  <TextBlock Text="{Binding AppointmentPercentage}" FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                              </StackPanel>
+                          </Grid>
+                          <Grid ColumnDefinitions="Auto,*,Auto">
+                              <Border Grid.Column="0" Width="12" Height="12" CornerRadius="6" Background="{DynamicResource BrushAmber}" VerticalAlignment="Center"/>
+                              <TextBlock Grid.Column="1" Text="Walk-in" Margin="8,0,0,0" FontSize="13" Foreground="{DynamicResource ThemeContentForegroundBrush}" VerticalAlignment="Center"/>
+                              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                  <TextBlock Text="{Binding WalkInCount}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+                                  <TextBlock Text="{Binding WalkInPercentage}" FontSize="12" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                              </StackPanel>
+                          </Grid>
+                      </StackPanel>
+                  </Grid>
+              </Grid>
+          </Border>
+      </Grid>
 
-          <Border Height="1" Background="{DynamicResource BrushLine}"/>
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <!-- Bottom Row: Recent Visits & Doctor Workload                -->
+      <!-- ═══════════════════════════════════════════════════════════ -->
+      <Grid ColumnDefinitions="2*,1*">
+          
+          <!-- Recent Visits Table -->
+          <Border Grid.Column="0" Classes="dashCard" Margin="0,0,12,0" Padding="0">
+              <Grid RowDefinitions="Auto,*">
+                  <Border Grid.Row="0" Padding="24" BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,0,0,1">
+                      <DockPanel>
+                          <TextBlock Text="Recent Visits" Classes="cardTitle" DockPanel.Dock="Left"/>
+                          <Button Content="View All" Classes="navbtn" Height="32" Padding="12,0" FontSize="12" DockPanel.Dock="Right" HorizontalAlignment="Right" Foreground="{DynamicResource ThemePrimaryBrush}"/>
+                      </DockPanel>
+                  </Border>
+                  
+                  <DataGrid Grid.Row="1" ItemsSource="{Binding RecentVisits}" AutoGenerateColumns="False"
+                            IsReadOnly="True" SelectionMode="Single"
+                            GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                            Background="Transparent" BorderThickness="0">
+                      <DataGrid.Columns>
+                          <DataGridTextColumn Header="PATIENT NAME" Binding="{Binding Name}" Width="1.5*"/>
+                          <DataGridTextColumn Header="VISIT TYPE" Binding="{Binding VisitType}" Width="*"/>
+                          <DataGridTextColumn Header="REASON" Binding="{Binding ReasonOfVisit}" Width="1.5*"/>
+                          <DataGridTextColumn Header="DOCTOR" Binding="{Binding Doctor}" Width="*"/>
+                          <DataGridTextColumn Header="TIME" Binding="{Binding Time}" Width="*"/>
+                          <DataGridTemplateColumn Header="STATUS" Width="120">
+                              <DataGridTemplateColumn.CellTemplate>
+                                  <DataTemplate>
+                                      <!-- Simple Badge -->
+                                      <Border Background="{Binding Status, Converter={x:Static StringConverters.IsNullOrEmpty}, ConverterParameter=BrushPrimaryBlue50}" CornerRadius="12" Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                          <!-- In reality we'd use a value converter to set colors properly based on Status, using a generic blue here to satisfy syntax -->
+                                          <TextBlock Text="{Binding Status}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource ThemePrimaryBrush}"/>
+                                      </Border>
+                                  </DataTemplate>
+                              </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                      </DataGrid.Columns>
+                  </DataGrid>
+              </Grid>
+          </Border>
 
-          <DataGrid ItemsSource="{Binding RecentPatients}" AutoGenerateColumns="False"
-                    IsReadOnly="True" SelectionMode="Single"
-                    GridLinesVisibility="Horizontal" HeadersVisibility="Column"
-                    Background="Transparent" BorderThickness="0" Margin="0,8,0,8">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="PATIENT NAME"    Binding="{Binding Name}"            Width="2*"/>
-              <DataGridTextColumn Header="REASON OF VISIT" Binding="{Binding ReasonOfVisit}"   Width="2*"/>
-              <DataGridTextColumn Header="LAST VISIT"      Binding="{Binding LastVisitDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="*"/>
-              <DataGridTemplateColumn Header="STATUS" Width="120">
-                <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                    <TextBlock Text="{Binding VisitStatus}" VerticalAlignment="Center"
-                               FontWeight="Medium"/>
-                  </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-              </DataGridTemplateColumn>
-            </DataGrid.Columns>
-          </DataGrid>
-
-          <TextBlock Text="{Binding StatusMessage}" Foreground="#EF4444"
-                     Margin="18,0,18,12"
-                     IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-        </StackPanel>
-      </Border>
-
+          <!-- Appointments by Doctor -->
+          <Border Grid.Column="1" Classes="dashCard" Margin="12,0,0,0">
+              <Grid RowDefinitions="Auto,*">
+                  <DockPanel Grid.Row="0" Margin="0,0,0,24">
+                      <TextBlock Text="Appointments by Doctor" Classes="cardTitle" DockPanel.Dock="Left"/>
+                  </DockPanel>
+                  
+                  <ItemsControl Grid.Row="1" ItemsSource="{Binding AppointmentsByDoctor}">
+                      <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                              <StackPanel Margin="0,0,0,16">
+                                  <DockPanel Margin="0,0,0,8">
+                                      <StackPanel Orientation="Horizontal" Spacing="12" DockPanel.Dock="Left">
+                                          <Border Width="32" Height="32" CornerRadius="16" Background="{DynamicResource BrushPrimaryBlue50}">
+                                              <TextBlock Text="{Binding DoctorName, StringFormat={}{0:1}}" Foreground="{DynamicResource ThemePrimaryBrush}" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                          </Border>
+                                          <TextBlock Text="{Binding DoctorName}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}" VerticalAlignment="Center"/>
+                                      </StackPanel>
+                                      <TextBlock Text="{Binding AppointmentsCount}" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}" VerticalAlignment="Center" DockPanel.Dock="Right" HorizontalAlignment="Right"/>
+                                  </DockPanel>
+                                  
+                                  <!-- Progress Bar -->
+                                  <ProgressBar Value="{Binding ProgressPercentage}" Height="6" CornerRadius="3" Foreground="{DynamicResource ThemePrimaryBrush}" Background="{DynamicResource BrushLine}"/>
+                              </StackPanel>
+                          </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+              </Grid>
+          </Border>
+      </Grid>
+      
     </StackPanel>
   </ScrollViewer>
-
 </UserControl>

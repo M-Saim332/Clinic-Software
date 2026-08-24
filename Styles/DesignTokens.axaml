@@ -10,14 +10,16 @@
   <Color x:Key="ColorTeal50">#F0FDFA</Color>
   <Color x:Key="ColorRose">#E11D48</Color>
   <Color x:Key="ColorRose50">#FFF1F2</Color>
-  <Color x:Key="ColorAmber">#B45309</Color>
+  <Color x:Key="ColorAmber">#F59E0B</Color>
   <Color x:Key="ColorAmber50">#FFFBEB</Color>
+  <Color x:Key="ColorEmerald">#10B981</Color>
+  <Color x:Key="ColorPurple">#8B5CF6</Color>
   <Color x:Key="ColorInk900">#0F172A</Color>
   <Color x:Key="ColorInk800">#1E293B</Color>
-  <Color x:Key="ColorInk600">#5B6472</Color>
-  <Color x:Key="ColorInk400">#98A2B3</Color>
-  <Color x:Key="ColorLine">#EAECF0</Color>
-  <Color x:Key="ColorBackground">#F9FAFB</Color>
+  <Color x:Key="ColorInk600">#475569</Color>
+  <Color x:Key="ColorInk400">#94A3B8</Color>
+  <Color x:Key="ColorLine">#E2E8F0</Color>
+  <Color x:Key="ColorBackground">#F8FAFC</Color>
   <Color x:Key="ColorCardBackground">#FFFFFF</Color>
   <Color x:Key="ColorPrimaryBlue50">#EFF6FF</Color>
   <Color x:Key="ColorRose100">#FFE4E6</Color>
@@ -31,6 +33,8 @@
   <SolidColorBrush x:Key="BrushRose50"         Color="{StaticResource ColorRose50}"/>
   <SolidColorBrush x:Key="BrushAmber"          Color="{StaticResource ColorAmber}"/>
   <SolidColorBrush x:Key="BrushAmber50"        Color="{StaticResource ColorAmber50}"/>
+  <SolidColorBrush x:Key="BrushEmerald"        Color="{StaticResource ColorEmerald}"/>
+  <SolidColorBrush x:Key="BrushPurple"         Color="{StaticResource ColorPurple}"/>
   <SolidColorBrush x:Key="BrushInk900"         Color="{StaticResource ColorInk900}"/>
   <SolidColorBrush x:Key="BrushInk600"         Color="{StaticResource ColorInk600}"/>
   <SolidColorBrush x:Key="BrushInk400"         Color="{StaticResource ColorInk400}"/>
@@ -44,19 +48,24 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        SIDEBAR  — set by ThemeService.ApplyTheme() at runtime
   ═══════════════════════════════════════════════════════════════════════ -->
-  <Color x:Key="ThemeSidebarBackgroundColor">#1E293B</Color>
-  <Color x:Key="ThemeSidebarForegroundColor">#94A3B8</Color>
-  <Color x:Key="ThemeSidebarHoverBackgroundColor">#334155</Color>
-  <Color x:Key="ThemeSidebarHoverForegroundColor">#F8FAFC</Color>
-  <Color x:Key="ThemeSidebarActiveBackgroundColor">#334155</Color>
-  <Color x:Key="ThemeSidebarActiveForegroundColor">#818CF8</Color>
+  <!-- Sidebar — light theme -->
+  <Color x:Key="ThemeSidebarBackgroundColor">#FFFFFF</Color>
+  <Color x:Key="ThemeSidebarForegroundColor">#475569</Color>
+  <Color x:Key="ThemeSidebarHoverBackgroundColor">#EFF6FF</Color>
+  <Color x:Key="ThemeSidebarHoverForegroundColor">#1E40AF</Color>
+  <Color x:Key="ThemeSidebarActiveBackgroundColor">#DBEAFE</Color>
+  <Color x:Key="ThemeSidebarActiveForegroundColor">#1D4ED8</Color>
 
-  <SolidColorBrush x:Key="ThemeSidebarBackgroundBrush"       Color="{DynamicResource ThemeSidebarBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarForegroundBrush"       Color="{DynamicResource ThemeSidebarForegroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarHoverBackgroundBrush"  Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarHoverForegroundBrush"  Color="{DynamicResource ThemeSidebarHoverForegroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarActiveBackgroundBrush" Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
-  <SolidColorBrush x:Key="ThemeSidebarActiveForegroundBrush" Color="{DynamicResource ThemeSidebarActiveForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarBackgroundBrush"         Color="{DynamicResource ThemeSidebarBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarForegroundBrush"         Color="{DynamicResource ThemeSidebarForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarSubtleForegroundBrush"   Color="#94A3B8"/>
+  <SolidColorBrush x:Key="ThemeSidebarSwitcherBgBrush"         Color="#F1F5F9"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverBrush"              Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverBackgroundBrush"    Color="{DynamicResource ThemeSidebarHoverBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarHoverForegroundBrush"    Color="{DynamicResource ThemeSidebarHoverForegroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveBrush"             Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveBackgroundBrush"   Color="{DynamicResource ThemeSidebarActiveBackgroundColor}"/>
+  <SolidColorBrush x:Key="ThemeSidebarActiveForegroundBrush"   Color="{DynamicResource ThemeSidebarActiveForegroundColor}"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        PRIMARY ACCENT  — set by ThemeService.ApplyTheme() at runtime

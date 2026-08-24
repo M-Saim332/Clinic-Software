@@ -52,8 +52,29 @@
                 <Button Command="{Binding OpenChangePasswordCommand}" Classes="btn-primary" Content="Change My Password" HorizontalAlignment="Left"/>
             </StackPanel>
         </Border>
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="28,24" IsVisible="{Binding IsAdmin}">
-            <StackPanel Spacing="20" MaxWidth="940" HorizontalAlignment="Left">
+        <TabControl Grid.Row="1" TabStripPlacement="Left" Margin="0,24" IsVisible="{Binding IsAdmin}" SelectedIndex="{Binding SelectedCategoryIndex}" Padding="0">
+            <TabControl.Styles>
+                <Style Selector="TabItem">
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Margin" Value="0,0,0,8"/>
+                    <Setter Property="Padding" Value="16,10"/>
+                    <Setter Property="CornerRadius" Value="8"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ThemeSubtleForegroundBrush}"/>
+                    <Setter Property="MinHeight" Value="40"/>
+                </Style>
+                <Style Selector="TabItem:selected">
+                    <Setter Property="Background" Value="{DynamicResource ThemePrimaryLightBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ThemePrimaryBrush}"/>
+                </Style>
+                <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+                    <Setter Property="IsVisible" Value="False"/>
+                </Style>
+            </TabControl.Styles>
+
+            <TabItem Header="General">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── GENERAL SETTINGS ─────────────────────────────────── -->
                 <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
@@ -90,6 +111,13 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Billing">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── BILLING SETTINGS ──────────────────────────────────── -->
                 <Border Background="{DynamicResource ThemeCardBackgroundBrush}" IsVisible="False"
@@ -110,6 +138,13 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Inventory">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── INVENTORY SETTINGS ────────────────────────────────── -->
                 <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
@@ -126,6 +161,13 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="System">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── SYSTEM SETTINGS ───────────────────────────────────── -->
                 <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
@@ -156,6 +198,13 @@
                         </Grid>
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Appearance">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ══════════════════════════════════════════════════════════
                      APPEARANCE &amp; THEME  (Admin only)
@@ -455,6 +504,13 @@
 
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Database">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── DATABASE &amp; MAINTENANCE ────────────────────────── -->
                 <Border Background="{DynamicResource ThemeCardBackgroundBrush}"
@@ -564,6 +620,13 @@
 
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Security">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
 
                 <!-- ── ADMIN SECURITY ─────────────────────────────────────── -->
                 <Border IsVisible="{Binding IsAdmin}"
@@ -597,7 +660,13 @@
                         </DockPanel>
                     </StackPanel>
                 </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
 
+            <TabItem Header="Users">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
+                    <StackPanel Spacing="24" MaxWidth="900" HorizontalAlignment="Left">
 
                 <!-- ── USER MANAGEMENT (Admin only) ──────────────────────── -->
                 <Border IsVisible="{Binding IsAdmin}"
@@ -609,6 +678,8 @@
 
             </StackPanel>
         </ScrollViewer>
+            </TabItem>
+        </TabControl>
 
         <!-- ── Status Bar ─────────────────────────────────────────────────── -->
         <Border Grid.Row="2"

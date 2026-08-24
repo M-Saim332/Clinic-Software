@@ -1,0 +1,206 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="ClinicSystem.UI.Views.Reports.ClinicalReportsView"
+             x:DataType="vm:ClinicalReportsViewModel"
+             Background="{DynamicResource ThemeContentBackgroundBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="Border.reportCard">
+      <Setter Property="Background"      Value="{DynamicResource ThemeCardBackgroundBrush}"/>
+      <Setter Property="CornerRadius"    Value="{DynamicResource CornerRadiusCard}"/>
+      <Setter Property="Padding"         Value="24"/>
+      <Setter Property="BorderBrush"     Value="{DynamicResource ThemeBorderBrush}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BoxShadow"       Value="0 2 6 0 #05000000"/>
+    </Style>
+    
+    <Style Selector="TextBlock.cardTitle">
+      <Setter Property="FontSize"          Value="16"/>
+      <Setter Property="FontWeight"        Value="Bold"/>
+      <Setter Property="Foreground"        Value="{DynamicResource ThemeContentForegroundBrush}"/>
+    </Style>
+    
+    <Style Selector="TextBlock.statLabel">
+      <Setter Property="FontSize"   Value="13"/>
+      <Setter Property="Foreground" Value="{DynamicResource ThemeSubtleForegroundBrush}"/>
+      <Setter Property="FontWeight" Value="Medium"/>
+    </Style>
+    <Style Selector="TextBlock.statValue">
+      <Setter Property="FontSize"   Value="24"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="{DynamicResource ThemeContentForegroundBrush}"/>
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="24,16,24,32" Spacing="24">
+
+      <!-- Header -->
+      <DockPanel>
+          <StackPanel DockPanel.Dock="Left" Spacing="4">
+              <TextBlock Text="Reports" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource ThemeContentForegroundBrush}"/>
+              <TextBlock Text="Analyze clinic performance, patient activity and operational trends." FontSize="14" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+          </StackPanel>
+          
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
+              <ComboBox SelectedIndex="{Binding SelectedDateFilterIndex}" Width="160">
+                  <ComboBoxItem>Today</ComboBoxItem>
+                  <ComboBoxItem>This Week</ComboBoxItem>
+                  <ComboBoxItem>This Month</ComboBoxItem>
+                  <ComboBoxItem>This Year</ComboBoxItem>
+                  <ComboBoxItem>All Time</ComboBoxItem>
+              </ComboBox>
+              <Button Content="Export Report" Classes="primary">
+                  <Button.ContentTemplate>
+                      <DataTemplate>
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                              <materialIcons:MaterialIcon Kind="Download" Width="16" Height="16"/>
+                              <TextBlock Text="Export Report" VerticalAlignment="Center"/>
+                          </StackPanel>
+                      </DataTemplate>
+                  </Button.ContentTemplate>
+              </Button>
+          </StackPanel>
+      </DockPanel>
+
+      <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" Margin="0,8,0,0">
+          
+          <!-- Patient Analytics -->
+          <Border Grid.Row="0" Grid.Column="0" Classes="reportCard" Margin="0,0,12,24">
+              <StackPanel>
+                  <TextBlock Text="Patient Analytics" Classes="cardTitle" Margin="0,0,0,16"/>
+                  
+                  <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,24">
+                      <StackPanel Grid.Column="0">
+                          <TextBlock Text="Total Visits" Classes="statLabel"/>
+                          <TextBlock Text="{Binding TotalVisits}" Classes="statValue"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1">
+                          <TextBlock Text="New Patients" Classes="statLabel"/>
+                          <TextBlock Text="{Binding NewPatients}" Classes="statValue"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="2">
+                          <TextBlock Text="Growth" Classes="statLabel"/>
+                          <TextBlock Text="{Binding PatientGrowthRate}" Classes="statValue" Foreground="{DynamicResource BrushEmerald}"/>
+                      </StackPanel>
+                  </Grid>
+                  
+                  <Border Height="120">
+                      <lvc:CartesianChart Series="{Binding PatientVisitsSeries}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" TooltipPosition="Top"/>
+                  </Border>
+              </StackPanel>
+          </Border>
+
+          <!-- Appointment Analytics -->
+          <Border Grid.Row="0" Grid.Column="1" Classes="reportCard" Margin="12,0,0,24">
+              <StackPanel>
+                  <TextBlock Text="Appointment Analytics" Classes="cardTitle" Margin="0,0,0,16"/>
+                  
+                  <Grid ColumnDefinitions="*,*,*" Margin="0,0,0,24">
+                      <StackPanel Grid.Column="0">
+                          <TextBlock Text="Completed" Classes="statLabel"/>
+                          <TextBlock Text="{Binding CompletedAppointments}" Classes="statValue"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="1">
+                          <TextBlock Text="Cancelled" Classes="statLabel"/>
+                          <TextBlock Text="{Binding CancelledAppointments}" Classes="statValue"/>
+                      </StackPanel>
+                      <StackPanel Grid.Column="2">
+                          <TextBlock Text="Completion Rate" Classes="statLabel"/>
+                          <TextBlock Text="{Binding CompletionRate}" Classes="statValue"/>
+                      </StackPanel>
+                  </Grid>
+                  
+                  <Border Height="120">
+                      <lvc:CartesianChart Series="{Binding AppointmentTrendsSeries}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}" TooltipPosition="Top"/>
+                  </Border>
+              </StackPanel>
+          </Border>
+
+          <!-- Visit Type Analysis -->
+          <Border Grid.Row="1" Grid.Column="0" Classes="reportCard" Margin="0,0,12,24">
+              <StackPanel>
+                  <TextBlock Text="Visit Type Analysis" Classes="cardTitle" Margin="0,0,0,16"/>
+                  
+                  <Grid ColumnDefinitions="*,Auto">
+                      <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="16">
+                          <StackPanel>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <Border Width="12" Height="12" CornerRadius="6" Background="{DynamicResource BrushAmber}" VerticalAlignment="Center"/>
+                                  <TextBlock Text="Walk-in Visits" Classes="statLabel" VerticalAlignment="Center"/>
+                              </StackPanel>
+                              <StackPanel Orientation="Horizontal" Spacing="8" Margin="20,4,0,0">
+                                  <TextBlock Text="{Binding WalkInVisits}" Classes="statValue"/>
+                                  <TextBlock Text="{Binding WalkInPercentage}" Foreground="{DynamicResource ThemeSubtleForegroundBrush}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                              </StackPanel>
+                          </StackPanel>
+                          <StackPanel>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                  <Border Width="12" Height="12" CornerRadius="6" Background="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center"/>
+                                  <TextBlock Text="Appointment Visits" Classes="statLabel" VerticalAlignment="Center"/>
+                              </StackPanel>
+                              <StackPanel Orientation="Horizontal" Spacing="8" Margin="20,4,0,0">
+                                  <TextBlock Text="{Binding AppointmentVisits}" Classes="statValue"/>
+                                  <TextBlock Text="{Binding AppointmentPercentage}" Foreground="{DynamicResource ThemeSubtleForegroundBrush}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                              </StackPanel>
+                          </StackPanel>
+                      </StackPanel>
+                      
+                      <Border Grid.Column="1" Width="160" Height="160">
+                          <lvc:PieChart Series="{Binding VisitTypeSeries}" InitialRotation="-90"/>
+                      </Border>
+                  </Grid>
+              </StackPanel>
+          </Border>
+          
+          <!-- Visit Reasons -->
+          <Border Grid.Row="1" Grid.Column="1" Classes="reportCard" Margin="12,0,0,24">
+              <Grid RowDefinitions="Auto,*">
+                  <TextBlock Grid.Row="0" Text="Common Visit Reasons" Classes="cardTitle" Margin="0,0,0,16"/>
+                  <lvc:CartesianChart Grid.Row="1" Height="180"
+                                      Series="{Binding VisitReasonSeries}" 
+                                      XAxes="{Binding ReasonXAxes}" 
+                                      YAxes="{Binding ReasonYAxes}"
+                                      TooltipPosition="Top">
+                  </lvc:CartesianChart>
+              </Grid>
+          </Border>
+
+          <!-- Doctor Performance / Workload -->
+          <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Classes="reportCard" Padding="0">
+              <Grid RowDefinitions="Auto,*">
+                  <Border Grid.Row="0" Padding="24" BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="0,0,0,1">
+                      <TextBlock Text="Doctor Performance &amp; Workload" Classes="cardTitle"/>
+                  </Border>
+                  
+                  <DataGrid Grid.Row="1" ItemsSource="{Binding DoctorPerformances}" AutoGenerateColumns="False"
+                            IsReadOnly="True" SelectionMode="Single"
+                            GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                            Background="Transparent" BorderThickness="0">
+                      <DataGrid.Columns>
+                          <DataGridTextColumn Header="DOCTOR" Binding="{Binding DoctorName}" Width="1.5*"/>
+                          <DataGridTextColumn Header="TOTAL HANDLED" Binding="{Binding TotalHandled}" Width="*"/>
+                          <DataGridTextColumn Header="COMPLETED" Binding="{Binding Completed}" Width="*"/>
+                          <DataGridTextColumn Header="AVG PER DAY" Binding="{Binding AveragePerDay}" Width="*"/>
+                          <DataGridTemplateColumn Header="CLINIC %" Width="*">
+                              <DataGridTemplateColumn.CellTemplate>
+                                  <DataTemplate>
+                                      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                          <TextBlock Text="{Binding Percentage, StringFormat={}{0}%}" Width="40"/>
+                                          <ProgressBar Value="{Binding Percentage}" Height="6" CornerRadius="3" Foreground="{DynamicResource BrushPrimaryBlue}" Background="{DynamicResource BrushLine}" Width="100"/>
+                                      </StackPanel>
+                                  </DataTemplate>
+                              </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                      </DataGrid.Columns>
+                  </DataGrid>
+              </Grid>
+          </Border>
+          
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

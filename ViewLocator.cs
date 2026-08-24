@@ -52,6 +52,7 @@ public class ViewLocator : IDataTemplate
             VisitHistoryViewModel      => new VisitHistoryView      { DataContext = param },
             UserRegistryViewModel      => new UserRegistryView      { DataContext = param },
             ReportsViewModel           => new ReportsView           { DataContext = param },
+            ClinicalReportsViewModel   => new ClinicalReportsView   { DataContext = param },
             DashboardViewModel         => new DashboardView         { DataContext = param },
             ClinicalDashboardViewModel => new ClinicalDashboardView { DataContext = param },
             CompanyRegistryViewModel   => new CompanyRegistryView   { DataContext = param },
