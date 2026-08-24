@@ -3,12 +3,18 @@
              x:Class="ClinicSystem.UI.Views.Components.SearchableComboBoxControl"
              x:Name="SearchRoot" x:CompileBindings="False">
   <StackPanel Spacing="4">
-    <TextBox x:Name="SearchBox" TextChanged="OnSearchTextChanged" GotFocus="OnSearchBoxGotFocus" PointerPressed="OnSearchBoxPointerPressed"/>
+    <TextBox x:Name="SearchBox"
+             TextChanged="OnSearchTextChanged"
+             GotFocus="OnSearchBoxGotFocus"
+             LostFocus="OnSearchBoxLostFocus"
+             PointerPressed="OnSearchBoxPointerPressed"
+             KeyDown="OnSearchBoxKeyDown"/>
     <Popup x:Name="OptionsPopup" PlacementTarget="{Binding #SearchBox}" Placement="Bottom" IsLightDismissEnabled="True">
       <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="7"
               Background="{DynamicResource BrushCardBackground}" MaxHeight="220" MinWidth="280" BoxShadow="0 6 18 0 #30000000">
         <Panel>
-            <ListBox x:Name="OptionsList" SelectionChanged="OnSelectionChanged" IsVisible="{Binding $self.ItemCount}">
+            <ListBox x:Name="OptionsList" SelectionChanged="OnSelectionChanged" LostFocus="OnOptionsListLostFocus"
+                     IsVisible="{Binding $self.ItemCount}">
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Grid ColumnDefinitions="*,Auto" Margin="6,4">

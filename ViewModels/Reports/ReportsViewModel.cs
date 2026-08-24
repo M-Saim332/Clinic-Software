@@ -311,11 +311,11 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("ProductStock");
             ws.Cell(1, 1).Value = "Product"; ws.Cell(1, 2).Value = "Stock"; ws.Cell(1, 3).Value = "Min Stock";
-            ws.Cell(1, 4).Value = "Status"; ws.Cell(1, 5).Value = "Expiry"; ws.Cell(1, 6).Value = "Price"; ws.Cell(1, 7).Value = "Manufacturer";
+            ws.Cell(1, 4).Value = "Status"; ws.Cell(1, 5).Value = "Expiry"; ws.Cell(1, 6).Value = "MRP"; ws.Cell(1, 7).Value = "Manufacturer";
             ws.Row(1).Style.Font.Bold = true;
             int row = 2;
             foreach (var p in ProductStockList)
-            { ws.Cell(row, 1).Value = p.Name; ws.Cell(row, 2).Value = p.Stock; ws.Cell(row, 3).Value = p.MinStock; ws.Cell(row, 4).Value = p.StockStatus; ws.Cell(row, 5).Value = p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""; ws.Cell(row, 6).Value = (double)p.SellingPrice; ws.Cell(row, 7).Value = p.Manufacturer ?? ""; row++; }
+            { ws.Cell(row, 1).Value = p.Name; ws.Cell(row, 2).Value = p.Stock; ws.Cell(row, 3).Value = p.MinStock; ws.Cell(row, 4).Value = p.StockStatus; ws.Cell(row, 5).Value = p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""; ws.Cell(row, 6).Value = (double)p.MRP; ws.Cell(row, 7).Value = p.Manufacturer ?? ""; row++; }
             ws.Columns().AdjustToContents();
             using var stream = new MemoryStream();
             wb.SaveAs(stream); stream.Position = 0;

@@ -100,8 +100,8 @@ public class PurchaseRepository
             item.PackageQuantity = item.PackageQuantity > 0 ? item.PackageQuantity : item.Quantity;
             item.Quantity = item.PackageQuantity + Math.Max(0, item.BonusQuantity);
             conn.Execute(@"INSERT INTO PurchaseItems
-                (PurchaseID,ProductID,BatchNumber,ExpiryDate,Quantity,BonusQuantity,PackageQuantity,PurchasePrice,PackMRP,Discount,Tax,ExtraDiscount,ATax)
-                VALUES (@PurchaseID,@ProductID,@BatchNumber,@ExpiryDate,@Quantity,@BonusQuantity,@PackageQuantity,@PurchasePrice,@PackMRP,@Discount,@Tax,@ExtraDiscount,@ATax)", item, tx);
+                (PurchaseID,ProductID,BatchNumber,ExpiryDate,Quantity,BonusQuantity,PackageQuantity,PurchasePrice,PackMRP,Discount,Tax,ExtraDiscount,ATax,CompanySalesTax)
+                VALUES (@PurchaseID,@ProductID,@BatchNumber,@ExpiryDate,@Quantity,@BonusQuantity,@PackageQuantity,@PurchasePrice,@PackMRP,@Discount,@Tax,@ExtraDiscount,@ATax,@CompanySalesTax)", item, tx);
         }
     }
 
@@ -116,19 +116,15 @@ public class PurchaseRepository
         if (items.Count == 0) throw new InvalidOperationException("A purchase must contain at least one item.");
         foreach (var item in items)
         {
-            var piecesPerUnit = Math.Max(1, conn.ExecuteScalar<int>("SELECT ISNULL(NULLIF(UnitsPerPackage,0),1) FROM PurchaseItems WHERE PurchaseItemID = (SELECT MAX(PurchaseItemID) FROM PurchaseItems WHERE PurchaseID=@purchaseId AND ProductID=@ProductID)", new { purchaseId, item.ProductID }, tx));
-            // fallback to stored PiecesPerUnit in item
-            if (item.UnitsPerPackage > 0) piecesPerUnit = item.UnitsPerPackage;
-            var stockQuantity = (item.PackageQuantity + item.BonusQuantity) * Math.Max(1, piecesPerUnit);
-            // Update stock, cost price, Pack MRP, and PiecesPerUnit so clinic price menu reflects latest batch
+            var stockQuantity = item.PackageQuantity + item.BonusQuantity;
+            // Update stock and MRP so the doctor drug picker and pharma product registry reflect the latest invoice.
             conn.Execute(@"UPDATE Products SET 
                 Stock=Stock+@Quantity,
-                PurchasePrice=@EffectiveRate,
+                PurchasePrice=@PackMRP,
                 SellingPrice=@PackMRP,
-                PiecesPerUnit=@PiecesPerUnit,
                 LastStockUpdateDate=CAST(GETDATE() AS DATE) 
                 WHERE ProductID=@ProductID AND IsActive=1",
-                new { Quantity=stockQuantity, EffectiveRate=item.EffectiveRate, PackMRP=item.PackMRP, PiecesPerUnit=piecesPerUnit, item.ProductID }, tx);
+                new { Quantity=stockQuantity, PackMRP=item.PackMRP, item.ProductID }, tx);
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
         tx.Commit();

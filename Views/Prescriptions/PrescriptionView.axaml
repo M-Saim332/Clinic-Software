@@ -307,6 +307,8 @@
                                                 <StackPanel Orientation="Horizontal" Spacing="10">
                                                     <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}"
                                                                FontSize="11" Foreground="#6B7280"/>
+                                                    <TextBlock Text="{Binding MRP, StringFormat='MRP: Rs. {0:N2}'}"
+                                                               FontSize="11" Foreground="#6B7280"/>
                                                     <TextBlock Text="{Binding Category, FallbackValue=''}"
                                                                FontSize="11" Foreground="#9CA3AF"/>
                                                 </StackPanel>

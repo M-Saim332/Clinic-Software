@@ -28,7 +28,7 @@
                             <TextBlock Text="Product Registry" FontSize="20" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk900}"
                                        FontFamily="{DynamicResource FontLexend}"/>
-                            <TextBlock Text="Track products, stocks, expiry dates, and pricing"
+                            <TextBlock Text="Track products, companies, expiry dates, and MRP"
                                        FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
                         </StackPanel>
                     </StackPanel>
@@ -93,10 +93,9 @@
                                     <DataGridTextColumn Header="P.CODE" Binding="{Binding PCode}" Width="75"/>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
-                                    <DataGridTextColumn Header="UNITS / PACK" Binding="{Binding PiecesPerUnit}" Width="120"/>
-                                    <DataGridTextColumn Header="UNIT MRP" Binding="{Binding PricePerTablet, StringFormat='Rs. {0:N2}'}" Width="120"/>
-                                    <DataGridTextColumn Header="PACK MRP" Binding="{Binding SellingPrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="120"/>
+                                    <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
+                                    <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -146,8 +145,7 @@
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="110"/>
-                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -189,8 +187,7 @@
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
-                                    <DataGridTextColumn Header="STOCK (Unsold)" Binding="{Binding Stock}" Width="140"/>
-                                    <DataGridTextColumn Header="PURCHASE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -354,7 +351,7 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
                             <!-- Name -->
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
@@ -372,35 +369,19 @@
                                 <TextBlock Text="Packing (box)" Classes="label"/>
                                 <TextBox Text="{Binding Category}" PlaceholderText="e.g. Box, strip, bottle"/>
                             </StackPanel>
-                            <!-- Batch Number -->
                             <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Batch Number" Classes="label"/>
-                                <TextBox Text="{Binding BatchNumber}" PlaceholderText="e.g. B-9988"/>
-                            </StackPanel>
-                            
-                            <!-- Current Stock -->
-                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Current Stock (pieces)" Classes="label"/>
-                                <TextBox Text="{Binding Stock}" PlaceholderText="0" IsReadOnly="True"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="Pieces Per Unit" Classes="label"/>
                                 <TextBox Text="{Binding TabletsPerBox}" PlaceholderText="1"/>
                             </StackPanel>
 
-                            <!-- Purchase Price -->
-                            <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="Purchase Price (Rs.)" Classes="label"/>
+                            <!-- MRP -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="MRP (Rs.)" Classes="label"/>
                                 <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
-                            <!-- Selling Price -->
-                            <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Selling Price (Rs.)" Classes="label"/>
-                                <TextBox Text="{Binding SellingPrice}" PlaceholderText="0.00"/>
-                            </StackPanel>
                             
-                            <Border Grid.ColumnSpan="2" Grid.Row="4" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
-                                <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Price per unit: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                            <Border Grid.ColumnSpan="2" Grid.Row="3" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
+                                <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='MRP per unit: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                             </Border>
                         </Grid>
                     </StackPanel>

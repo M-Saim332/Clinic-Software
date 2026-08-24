@@ -1,6 +1,7 @@
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
@@ -34,6 +35,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
 {
     private readonly AppointmentRepository _appointmentRepo;
     private readonly PatientRepository _patientRepo;
+    private List<Appointment> _appointmentTrendSource = new();
 
     // KPIs
     [ObservableProperty] private int _todaysAppointments;
@@ -49,6 +51,16 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
     [ObservableProperty] private string _totalPatientsComparison = "+0 this month";
 
     // Charts
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMonthlyTrendSelected))]
+    [NotifyPropertyChangedFor(nameof(IsYearlyTrendSelected))]
+    [NotifyPropertyChangedFor(nameof(IsLifetimeTrendSelected))]
+    private string _selectedPatientTrendRange = "Monthly";
+
+    public bool IsMonthlyTrendSelected => SelectedPatientTrendRange == "Monthly";
+    public bool IsYearlyTrendSelected => SelectedPatientTrendRange == "Yearly";
+    public bool IsLifetimeTrendSelected => SelectedPatientTrendRange == "Lifetime";
+
     [ObservableProperty] private ISeries[] _patientTrendSeries = Array.Empty<ISeries>();
     [ObservableProperty] private Axis[] _xAxes = Array.Empty<Axis>();
     [ObservableProperty] private Axis[] _yAxes = Array.Empty<Axis>();
@@ -80,6 +92,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             
             var appointmentList = appointments.ToList();
             var patientList = patients.ToList();
+            _appointmentTrendSource = appointmentList;
 
             var today = DateTime.Today;
             var yesterday = today.AddDays(-1);
@@ -99,29 +112,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             var patientsThisMonth = patientList.Count(p => p.LastVisitDate >= new DateTime(today.Year, today.Month, 1));
             TotalPatientsComparison = $"+{patientsThisMonth} this month";
 
-            // Setup Patient Trends Line Chart from the last 15 days of appointments.
-            var trendStart = today.AddDays(-14);
-            var trendDays = Enumerable.Range(0, 15).Select(i => trendStart.AddDays(i)).ToArray();
-            var appointmentsByDay = appointmentList
-                .Where(a => a.AppointmentDate.Date >= trendStart && a.AppointmentDate.Date <= today)
-                .GroupBy(a => a.AppointmentDate.Date)
-                .ToDictionary(g => g.Key, g => (double)g.Count());
-            var trendValues = trendDays.Select(d => appointmentsByDay.TryGetValue(d, out var count) ? count : 0).ToArray();
-            PatientTrendSeries = new ISeries[]
-            {
-                new LineSeries<double>
-                {
-                    Values = trendValues,
-                    Fill = new SolidColorPaint(new SKColor(37, 99, 235, 40)), // Blue with alpha
-                    Stroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 3 },
-                    GeometrySize = 8,
-                    GeometryStroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 2 },
-                    GeometryFill = new SolidColorPaint(SKColors.White)
-                }
-            };
-            
-            XAxes = new Axis[] { new Axis { Labels = trendDays.Select(d => d.ToString("dd")).ToArray() } };
-            YAxes = new Axis[] { new Axis { MinLimit = 0 } };
+            BuildPatientTrendChart();
 
             // Setup Visit Type Donut Chart
             WalkInCount = appointmentList.Count(a => a.AppointmentDate.Date == today && a.ReasonOfVisit != null && a.ReasonOfVisit.ToLower().Contains("walk"));
@@ -175,4 +166,117 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             StatusMessage = $"Clinical dashboard could not be loaded: {ex.Message}"; 
         }
     }
+
+    [RelayCommand]
+    private void SetPatientTrendRange(string range)
+    {
+        if (string.IsNullOrWhiteSpace(range) || SelectedPatientTrendRange == range) return;
+
+        SelectedPatientTrendRange = range;
+        BuildPatientTrendChart();
+    }
+
+    private void BuildPatientTrendChart()
+    {
+        var today = DateTime.Today;
+        var appointments = _appointmentTrendSource;
+
+        var points = SelectedPatientTrendRange switch
+        {
+            "Yearly" => BuildMonthlyPoints(
+                new DateTime(today.Year, 1, 1),
+                new DateTime(today.Year, 12, 1),
+                appointments),
+            "Lifetime" => BuildLifetimePoints(appointments, today),
+            _ => BuildDailyPoints(new DateTime(today.Year, today.Month, 1), today, appointments)
+        };
+
+        PatientTrendSeries = new ISeries[]
+        {
+            new LineSeries<double>
+            {
+                Values = points.Select(p => p.Value).ToArray(),
+                Fill = new SolidColorPaint(new SKColor(37, 99, 235, 40)),
+                Stroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 3 },
+                GeometrySize = 8,
+                GeometryStroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 2 },
+                GeometryFill = new SolidColorPaint(SKColors.White),
+                LineSmoothness = 0.45
+            }
+        };
+
+        XAxes = new Axis[]
+        {
+            new Axis
+            {
+                Labels = points.Select(p => p.Label).ToArray(),
+                LabelsRotation = points.Count > 12 ? 35 : 0
+            }
+        };
+        YAxes = new Axis[] { new Axis { MinLimit = 0 } };
+    }
+
+    private static List<TrendPoint> BuildDailyPoints(DateTime startDate, DateTime endDate, IReadOnlyCollection<Appointment> appointments)
+    {
+        var appointmentsByDay = appointments
+            .Where(a => a.AppointmentDate.Date >= startDate.Date && a.AppointmentDate.Date <= endDate.Date)
+            .GroupBy(a => a.AppointmentDate.Date)
+            .ToDictionary(g => g.Key, g => (double)g.Count());
+
+        var dayCount = Math.Max(1, (endDate.Date - startDate.Date).Days + 1);
+        return Enumerable.Range(0, dayCount)
+            .Select(i => startDate.AddDays(i))
+            .Select(d => new TrendPoint(d.ToString("dd MMM"), appointmentsByDay.TryGetValue(d.Date, out var count) ? count : 0))
+            .ToList();
+    }
+
+    private static List<TrendPoint> BuildMonthlyPoints(DateTime startMonth, DateTime endMonth, IReadOnlyCollection<Appointment> appointments)
+    {
+        var start = new DateTime(startMonth.Year, startMonth.Month, 1);
+        var end = new DateTime(endMonth.Year, endMonth.Month, 1);
+        var appointmentsByMonth = appointments
+            .Where(a => a.AppointmentDate.Date >= start.Date && a.AppointmentDate.Date <= end.AddMonths(1).AddDays(-1).Date)
+            .GroupBy(a => new DateTime(a.AppointmentDate.Year, a.AppointmentDate.Month, 1))
+            .ToDictionary(g => g.Key, g => (double)g.Count());
+
+        var monthCount = Math.Max(1, ((end.Year - start.Year) * 12) + end.Month - start.Month + 1);
+        return Enumerable.Range(0, monthCount)
+            .Select(i => start.AddMonths(i))
+            .Select(m => new TrendPoint(m.ToString("MMM"), appointmentsByMonth.TryGetValue(m, out var count) ? count : 0))
+            .ToList();
+    }
+
+    private static List<TrendPoint> BuildLifetimePoints(IReadOnlyCollection<Appointment> appointments, DateTime today)
+    {
+        var firstAppointment = appointments
+            .Select(a => (DateTime?)a.AppointmentDate.Date)
+            .OrderBy(d => d)
+            .FirstOrDefault();
+
+        if (firstAppointment == null)
+            return BuildMonthlyPoints(new DateTime(today.Year, 1, 1), new DateTime(today.Year, today.Month, 1), appointments);
+
+        var firstMonth = new DateTime(firstAppointment.Value.Year, firstAppointment.Value.Month, 1);
+        var currentMonth = new DateTime(today.Year, today.Month, 1);
+        var totalMonths = ((currentMonth.Year - firstMonth.Year) * 12) + currentMonth.Month - firstMonth.Month + 1;
+
+        if (totalMonths <= 24)
+        {
+            var monthly = BuildMonthlyPoints(firstMonth, currentMonth, appointments);
+            return monthly.Select((p, i) =>
+            {
+                var month = firstMonth.AddMonths(i);
+                return p with { Label = month.ToString("MMM yyyy") };
+            }).ToList();
+        }
+
+        var appointmentsByYear = appointments
+            .GroupBy(a => a.AppointmentDate.Year)
+            .ToDictionary(g => g.Key, g => (double)g.Count());
+        return Enumerable.Range(firstMonth.Year, today.Year - firstMonth.Year + 1)
+            .Select(year => new TrendPoint(year.ToString(), appointmentsByYear.TryGetValue(year, out var count) ? count : 0))
+            .ToList();
+    }
+
+    private readonly record struct TrendPoint(string Label, double Value);
 }

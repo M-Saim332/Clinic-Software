@@ -58,7 +58,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             var term = SearchTerm.ToLower().Replace(" ", "");
-            list = list.Where(m => m.Name.ToLower().Contains(term) || (m.BatchNumber?.ToLower().Contains(term) ?? false));
+            list = list.Where(m => m.Name.ToLower().Contains(term));
         }
 
         AllStock = new ObservableCollection<Product>(list.OrderBy(m => m.Name));

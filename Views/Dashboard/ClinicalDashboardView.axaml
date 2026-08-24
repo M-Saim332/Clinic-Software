@@ -145,9 +145,15 @@
                       
                       <!-- Range Selector -->
                       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-                          <Button Content="Monthly" Classes="secondary" Height="32" Padding="12,0" FontSize="12"/>
-                          <Button Content="Yearly" Classes="navbtn" Height="32" Padding="12,0" FontSize="12"/>
-                          <Button Content="Lifetime" Classes="navbtn" Height="32" Padding="12,0" FontSize="12"/>
+                          <Button Content="Monthly" Classes="navbtn" Classes.active="{Binding IsMonthlyTrendSelected}"
+                                  Command="{Binding SetPatientTrendRangeCommand}" CommandParameter="Monthly"
+                                  Height="32" Padding="12,0" FontSize="12"/>
+                          <Button Content="Yearly" Classes="navbtn" Classes.active="{Binding IsYearlyTrendSelected}"
+                                  Command="{Binding SetPatientTrendRangeCommand}" CommandParameter="Yearly"
+                                  Height="32" Padding="12,0" FontSize="12"/>
+                          <Button Content="Lifetime" Classes="navbtn" Classes.active="{Binding IsLifetimeTrendSelected}"
+                                  Command="{Binding SetPatientTrendRangeCommand}" CommandParameter="Lifetime"
+                                  Height="32" Padding="12,0" FontSize="12"/>
                       </StackPanel>
                   </DockPanel>
                   

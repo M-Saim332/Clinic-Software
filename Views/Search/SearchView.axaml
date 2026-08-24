@@ -93,7 +93,6 @@
                                 <DataGridTextColumn Header="ID" Binding="{Binding ProductID}" Width="70"/>
                                 <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
                                 <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*"/>
-                                <DataGridTextColumn Header="BATCH NO." Binding="{Binding BatchNumber}" Width="120"/>
                                 <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
                                 <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
                             </DataGrid.Columns>

@@ -35,7 +35,7 @@ public class ProductRepository
     public decimal GetTotalStockValue()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM((SellingPrice / NULLIF(PiecesPerUnit, 0)) * Stock), 0) FROM Products WHERE IsActive = 1");
+        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM((PurchasePrice / NULLIF(PiecesPerUnit, 0)) * Stock), 0) FROM Products WHERE IsActive = 1");
     }
 
     public Product? GetById(int id)

@@ -152,12 +152,14 @@
                                 <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                     <TextBlock Text="Supplier (Optional)" Classes="label"/>
                                     <comp:SearchableComboBoxControl ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
+                                              Text="{Binding SupplierSearchText}"
+                                              AllowCustomText="True"
                                               IsEnabled="{Binding SaveCancelEnabled}" DisplayMemberPath="Name" DetailMemberPath="SCode" Placeholder="Search supplier..."/>
                                     <Button Command="{Binding QuickAddSupplierCommand}" Content="Add Supplier" Classes="btn-secondary" HorizontalAlignment="Left" IsVisible="{Binding SaveCancelEnabled}"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0" IsVisible="{Binding SelectedSupplier, Converter={x:Static ObjectConverters.IsNull}}">
+                                <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                     <TextBlock Text="Supplier Name" Classes="label"/>
-                                    <TextBox Text="{Binding SupplierName}" IsEnabled="{Binding SaveCancelEnabled}" PlaceholderText="If no supplier selected"/>
+                                    <TextBox Text="{Binding SupplierName}" IsEnabled="{Binding SaveCancelEnabled}" PlaceholderText="Type supplier if not listed"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -184,7 +186,7 @@
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
                                         <TextBlock Text="Product *" Classes="label"/>
                                         <comp:SearchableComboBoxControl ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
-                                            DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search product..."/>
+                                            DisplayMemberPath="Name" DetailMemberPath="PurchasePrice" Placeholder="Search product..."/>
                                         <Button Command="{Binding QuickAddProductCommand}" Content="Add Product" Classes="btn-secondary" HorizontalAlignment="Left"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Bottom">
@@ -218,39 +220,43 @@
                                         <NumericUpDown Value="{Binding BonusQuantity}" Minimum="0" FormatString="N0"/>
                                     </StackPanel>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,*,*">
-                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Cost Price (Input Rate)" Classes="label"/>
-                                        <NumericUpDown Value="{Binding PurchasePrice}" FormatString="N2" Minimum="0"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,8,0">
-                                        <TextBlock Text="Pack MRP (Retail Price on Pack)" Classes="label"/>
-                                        <NumericUpDown Value="{Binding PackMRP}" FormatString="N2" Minimum="0"/>
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Units Per Pack" Classes="label"/>
-                                        <NumericUpDown Value="{Binding UnitsPerPackage}" Minimum="1" FormatString="N0"/>
-                                    </StackPanel>
-                                </Grid>
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Extra Discount (%)" Classes="label"/>
-                                        <NumericUpDown Value="{Binding ExtraDiscount}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                        <TextBlock Text="T.P" Classes="label"/>
+                                        <NumericUpDown Value="{Binding PurchasePrice}" FormatString="N2" Minimum="0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Additional Tax (%)" Classes="label"/>
+                                        <TextBlock Text="MRP" Classes="label"/>
+                                        <NumericUpDown Value="{Binding PackMRP}" FormatString="N2" Minimum="0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
+                                        <TextBlock Text="Discount (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding ExtraDiscount}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,8,0">
+                                        <TextBlock Text="Advance Tax (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding ATax}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
+                                        <TextBlock Text="Company Sales Tax (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding CompanySalesTax}" Minimum="0" Maximum="100" FormatString="N2"/>
                                     </StackPanel>
                                 </Grid>
                                 <Border Background="{DynamicResource BrushTeal50}" CornerRadius="8" Padding="12">
-                                    <Grid ColumnDefinitions="*,*">
+                                    <Grid ColumnDefinitions="*,*,*">
                                         <StackPanel Grid.Column="0" Spacing="2">
-                                            <TextBlock Text="Cost Price (after 15% discount)" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
-                                            <TextBlock Text="{Binding EffectiveRate, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTeal}"/>
+                                            <TextBlock Text="Sub Total" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
+                                            <TextBlock Text="{Binding LineSubTotalPreview, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushTeal}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="2">
-                                            <TextBlock Text="Unit MRP (Selling Price / Piece)" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
-                                            <TextBlock Text="{Binding UnitMRP, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                            <TextBlock Text="Tax Total" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
+                                            <TextBlock Text="{Binding LineTaxTotalPreview, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushAmber}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="2">
+                                            <TextBlock Text="Net Total" FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
+                                            <TextBlock Text="{Binding LineNetTotalPreview, StringFormat='Rs. {0:N2}'}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -277,14 +283,15 @@
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="110"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
-                                    <DataGridTextColumn Header="QTY / PACKAGING" Binding="{Binding PackageQuantity}" Width="110"/>
+                                    <DataGridTextColumn Header="QTY" Binding="{Binding PackageQuantity}" Width="80"/>
                                     <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="70"/>
-                                    <DataGridTextColumn Header="RATE (COST)" Binding="{Binding EffectiveRate, StringFormat='Rs. {0:N2}'}" Width="110"/>
-                                    <DataGridTextColumn Header="PACK MRP" Binding="{Binding PackMRP, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTextColumn Header="UNIT MRP" Binding="{Binding UnitMRP, StringFormat='Rs. {0:N2}'}" Width="100"/>
-                                    <DataGridTextColumn Header="EXTRA DISC (%)" Binding="{Binding ExtraDiscount}" Width="110"/>
-                                    <DataGridTextColumn Header="A.TAX (%)" Binding="{Binding ATax}" Width="100"/>
-                                    <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                                    <DataGridTextColumn Header="T.P" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="MRP" Binding="{Binding PackMRP, StringFormat='Rs. {0:N2}'}" Width="100"/>
+                                    <DataGridTextColumn Header="DISC (%)" Binding="{Binding ExtraDiscount}" Width="90"/>
+                                    <DataGridTextColumn Header="SUB TOTAL" Binding="{Binding SubTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                                    <DataGridTextColumn Header="ADV. TAX (%)" Binding="{Binding ATax}" Width="100"/>
+                                    <DataGridTextColumn Header="C.S.TAX (%)" Binding="{Binding CompanySalesTax}" Width="100"/>
+                                    <DataGridTextColumn Header="NET TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:PurchaseViewModel)DataContext).SaveCancelEnabled}">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>

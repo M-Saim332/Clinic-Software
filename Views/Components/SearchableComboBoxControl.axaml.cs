@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reflection;
@@ -19,6 +21,8 @@ public partial class SearchableComboBoxControl : UserControl
         AvaloniaProperty.Register<SearchableComboBoxControl, string>(nameof(DetailMemberPath), string.Empty);
     public static readonly StyledProperty<string> PlaceholderProperty =
         AvaloniaProperty.Register<SearchableComboBoxControl, string>(nameof(Placeholder), "Search and select...");
+    public static readonly StyledProperty<bool> AllowCustomTextProperty =
+        AvaloniaProperty.Register<SearchableComboBoxControl, bool>(nameof(AllowCustomText));
 
     public static readonly StyledProperty<string> TextProperty =
         AvaloniaProperty.Register<SearchableComboBoxControl, string>(nameof(Text), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
@@ -32,6 +36,7 @@ public partial class SearchableComboBoxControl : UserControl
     public string DisplayMemberPath { get => GetValue(DisplayMemberPathProperty); set => SetValue(DisplayMemberPathProperty, value); }
     public string DetailMemberPath { get => GetValue(DetailMemberPathProperty); set => SetValue(DetailMemberPathProperty, value); }
     public string Placeholder { get => GetValue(PlaceholderProperty); set => SetValue(PlaceholderProperty, value); }
+    public bool AllowCustomText { get => GetValue(AllowCustomTextProperty); set => SetValue(AllowCustomTextProperty, value); }
 
     static SearchableComboBoxControl()
     {
@@ -61,16 +66,51 @@ public partial class SearchableComboBoxControl : UserControl
         if (_synchronizing) return;
         Text = SearchBox.Text;
         RefreshOptions(SearchBox.Text);
-        OptionsPopup.IsOpen = true;
     }
 
     private void OnSearchBoxGotFocus(object? sender, RoutedEventArgs e)
     {
         RefreshOptions(SearchBox.Text);
-        OptionsPopup.IsOpen = true;
     }
     
-    private void OnSearchBoxPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void OnSearchBoxLostFocus(object? sender, RoutedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!SearchBox.IsKeyboardFocusWithin && !OptionsList.IsKeyboardFocusWithin)
+                OptionsPopup.IsOpen = false;
+        });
+    }
+
+    private void OnOptionsListLostFocus(object? sender, RoutedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!SearchBox.IsKeyboardFocusWithin && !OptionsList.IsKeyboardFocusWithin)
+                OptionsPopup.IsOpen = false;
+        });
+    }
+
+    private void OnSearchBoxPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        OpenOptions();
+    }
+
+    private void OnSearchBoxKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter or Key.Space)
+        {
+            OpenOptions();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape)
+        {
+            OptionsPopup.IsOpen = false;
+            e.Handled = true;
+        }
+    }
+
+    private void OpenOptions()
     {
         RefreshOptions(SearchBox.Text);
         OptionsPopup.IsOpen = true;
@@ -110,9 +150,16 @@ public partial class SearchableComboBoxControl : UserControl
         OptionsList.SelectedItem = _options.FirstOrDefault(o => ReferenceEquals(o.Value, SelectedItem) || Equals(o.Value, SelectedItem));
         if (updateText) 
         {
-            var newText = OptionsList.SelectedItem is SearchableOption option ? option.Label : string.Empty;
-            SearchBox.Text = newText;
-            Text = newText;
+            if (OptionsList.SelectedItem is SearchableOption option)
+            {
+                SearchBox.Text = option.Label;
+                Text = option.Label;
+            }
+            else if (!AllowCustomText)
+            {
+                SearchBox.Text = string.Empty;
+                Text = string.Empty;
+            }
         }
         _synchronizing = false;
     }

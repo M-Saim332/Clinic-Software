@@ -104,7 +104,7 @@ public class DatabaseSession
             ("Products", "Packing"), ("Products", "PiecesPerUnit"), ("Products", "LastStockUpdateDate"),
             ("Appointments", "CNIC"), ("Patients", "PatientContext"), ("Patients", "ReasonOfVisit"),
             ("Purchases", "IsPosted"), ("Purchases", "PostedAt"), ("Purchases", "ATax"), ("PurchaseItems", "ExtraDiscount"),
-            ("PurchaseItems", "ATax"), ("Sales", "SalesTax"), ("Sales", "PostedAt"),
+            ("PurchaseItems", "ATax"), ("PurchaseItems", "CompanySalesTax"), ("Sales", "SalesTax"), ("Sales", "PostedAt"),
             ("Returns", "IsPosted"), ("Returns", "PostedAt")
         ];
         var missingColumns = columns.Where(item => conn.ExecuteScalar<int>(

@@ -102,11 +102,11 @@
                                   Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="CURRENT STOCK" Binding="{Binding Stock}" Width="140"/>
+                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="140"/>
                                 <DataGridTextColumn Header="MINIMUM LEVEL" Binding="{Binding MinStock}" Width="140"/>
                                 <DataGridTextColumn Header="STATUS" Binding="{Binding StockStatus}" Width="130"/>
                                 <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
-                                <DataGridTextColumn Header="PRICE" Binding="{Binding Price, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                 <DataGridTextColumn Header="MANUFACTURER" Binding="{Binding Manufacturer}" Width="*"/>
                             </DataGrid.Columns>
                         </DataGrid>

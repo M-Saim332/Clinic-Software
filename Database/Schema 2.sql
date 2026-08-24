@@ -251,7 +251,10 @@ BEGIN
         UnitsPerPackage INT NOT NULL DEFAULT 1,
         PurchasePrice  DECIMAL(10,2),
         Discount       DECIMAL(10,2) DEFAULT 0,
-        Tax            DECIMAL(5,2) DEFAULT 0
+        Tax            DECIMAL(5,2) DEFAULT 0,
+        ExtraDiscount  DECIMAL(5,2) NOT NULL DEFAULT 0,
+        ATax           DECIMAL(5,2) NOT NULL DEFAULT 0,
+        CompanySalesTax DECIMAL(5,2) NOT NULL DEFAULT 0
     );
 END
 ELSE
@@ -260,6 +263,9 @@ BEGIN
     IF COL_LENGTH('PurchaseItems', 'PackageType') IS NULL ALTER TABLE PurchaseItems ADD PackageType NVARCHAR(30) NOT NULL DEFAULT 'Box';
     IF COL_LENGTH('PurchaseItems', 'PackageQuantity') IS NULL ALTER TABLE PurchaseItems ADD PackageQuantity INT NOT NULL DEFAULT 0;
     IF COL_LENGTH('PurchaseItems', 'UnitsPerPackage') IS NULL ALTER TABLE PurchaseItems ADD UnitsPerPackage INT NOT NULL DEFAULT 1;
+    IF COL_LENGTH('PurchaseItems', 'ExtraDiscount') IS NULL ALTER TABLE PurchaseItems ADD ExtraDiscount DECIMAL(5,2) NOT NULL CONSTRAINT DF_PurchaseItems_ExtraDiscount DEFAULT 0;
+    IF COL_LENGTH('PurchaseItems', 'ATax') IS NULL ALTER TABLE PurchaseItems ADD ATax DECIMAL(5,2) NOT NULL CONSTRAINT DF_PurchaseItems_ATax DEFAULT 0;
+    IF COL_LENGTH('PurchaseItems', 'CompanySalesTax') IS NULL ALTER TABLE PurchaseItems ADD CompanySalesTax DECIMAL(5,2) NOT NULL CONSTRAINT DF_PurchaseItems_CompanySalesTax DEFAULT 0;
 END
 GO
 

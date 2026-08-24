@@ -72,6 +72,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     // Header Fields
     [ObservableProperty] private string _invoiceNumber = string.Empty;
     [ObservableProperty] private Supplier? _selectedSupplier;
+    [ObservableProperty] private string _supplierSearchText = string.Empty;
     [ObservableProperty] private string _supplierName = string.Empty;
     [ObservableProperty] private DateTimeOffset _purchaseDate = DateTimeOffset.Now;
 
@@ -85,13 +86,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [ObservableProperty] private int _quantity = 1;
     [ObservableProperty] private int _bonusQuantity;
     [ObservableProperty] private string _packageType = "Box";
-    [ObservableProperty] private int _unitsPerPackage = 1;
     [ObservableProperty] private decimal _purchasePrice;
     [ObservableProperty] private decimal _packMRP;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
     [ObservableProperty] private decimal _extraDiscount;
     [ObservableProperty] private decimal _aTax;
+    [ObservableProperty] private decimal _companySalesTax;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsDraftInvoice))]
     [NotifyPropertyChangedFor(nameof(IsCheckingInvoice))]
@@ -102,12 +103,16 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private int _currentPurchaseId;
 
     public List<string> PackageTypes { get; } = new() { "Box", "Carton", "Pack", "Bottle", "Piece" };
-    public int TotalUnitsToStock => (Quantity + BonusQuantity) * Math.Max(1, UnitsPerPackage);
+    public int TotalUnitsToStock => Quantity + BonusQuantity;
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
-    public decimal EffectiveRate => Math.Round(PurchasePrice * 0.85m, 2);
-    public decimal UnitMRP => UnitsPerPackage > 0 ? Math.Round(PackMRP / UnitsPerPackage, 2, MidpointRounding.AwayFromZero) : 0;
+    public decimal EffectiveRate => PurchasePrice;
+    public decimal LineSubTotalPreview => Math.Max(0, (Quantity * PurchasePrice) - ((Quantity * PurchasePrice) * (ExtraDiscount / 100m)));
+    public decimal LineAdvanceTaxPreview => LineSubTotalPreview * (ATax / 100m);
+    public decimal LineCompanySalesTaxPreview => LineSubTotalPreview * (CompanySalesTax / 100m);
+    public decimal LineTaxTotalPreview => LineAdvanceTaxPreview + LineCompanySalesTaxPreview;
+    public decimal LineNetTotalPreview => LineSubTotalPreview + LineAdvanceTaxPreview + LineCompanySalesTaxPreview;
     public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
     public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
@@ -151,6 +156,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             InvoiceNumber = SelectedPurchase.InvoiceNumber;
             SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == SelectedPurchase.SupplierID);
             SupplierName = SelectedPurchase.SupplierName ?? string.Empty;
+            SupplierSearchText = SelectedSupplier?.Name ?? SupplierName;
             PurchaseDate = new DateTimeOffset(SelectedPurchase.PurchaseDate);
             
             var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
@@ -178,12 +184,12 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
         if (!ExpiryDate.HasValue) { StatusMessage = "Expiry date is required."; return; }
-        if (BonusQuantity < 0 || UnitsPerPackage <= 0) { StatusMessage = "Bonus and units-per-package values are invalid."; return; }
+        if (BonusQuantity < 0) { StatusMessage = "Bonus quantity is invalid."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(ExtraDiscount)) { StatusMessage = "Extra discount must be between 0% and 100%."; return; }
-        if (ATax < 0 || ATax > 100) { StatusMessage = "Additional tax must be between 0% and 100%."; return; }
+        if (ATax < 0 || ATax > 100) { StatusMessage = "Advance tax must be between 0% and 100%."; return; }
+        if (CompanySalesTax < 0 || CompanySalesTax > 100) { StatusMessage = "Company sales tax must be between 0% and 100%."; return; }
 
-        // Compute line total using percentage-based discount and tax
         var item = new PurchaseItem
         {
             ProductID = SelectedProduct.ProductID,
@@ -193,16 +199,15 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             PackageQuantity = Quantity,
             BonusQuantity = BonusQuantity,
             PackageType = PackageType,
-            UnitsPerPackage = UnitsPerPackage,
             Quantity = TotalUnitsToStock,
             PurchasePrice = PurchasePrice,
             PackMRP = PackMRP,
             Discount = Discount,
             Tax = Tax,
             ExtraDiscount = ExtraDiscount,
-            ATax = ATax
+            ATax = ATax,
+            CompanySalesTax = CompanySalesTax
         };
-        // Align stored TotalAmount with the same % formula
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
@@ -214,13 +219,14 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         Quantity = 1;
         BonusQuantity = 0;
         PackageType = "Box";
-        UnitsPerPackage = 1;
         PurchasePrice = 0;
         PackMRP = 0;
         Discount = 0;
         Tax = 0;
         ExtraDiscount = 0;
         ATax = 0;
+        CompanySalesTax = 0;
+        NotifyLinePreviewTotals();
         StatusMessage = string.Empty;
     }
 
@@ -351,12 +357,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     {
         InvoiceNumber = string.Empty;
         SelectedSupplier = null;
+        SupplierSearchText = string.Empty;
         SupplierName = string.Empty;
         PurchaseDate = DateTimeOffset.Now;
         Quantity = 1;
         BonusQuantity = 0;
         PackageType = "Box";
-        UnitsPerPackage = 1;
+        CompanySalesTax = 0;
         LineItems.Clear();
         OnPropertyChanged(nameof(GrandTotal));
     }
@@ -374,21 +381,43 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         if (value != null)
         {
             PurchasePrice = value.PurchasePrice;
-            PackMRP = value.SellingPrice;
-            UnitsPerPackage = Math.Max(1, value.TabletsPerBox);
+            PackMRP = value.PurchasePrice;
             Tax = 0;
+            NotifyLinePreviewTotals();
         }
     }
 
-    partial void OnQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
-    partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
-    partial void OnUnitsPerPackageChanged(int value) 
+    partial void OnSelectedSupplierChanged(Supplier? value)
     {
-        OnPropertyChanged(nameof(TotalUnitsToStock));
-        OnPropertyChanged(nameof(UnitMRP));
+        if (value == null) return;
+        SupplierName = string.Empty;
+        SupplierSearchText = value.Name;
     }
-    partial void OnPurchasePriceChanged(decimal value) => OnPropertyChanged(nameof(EffectiveRate));
-    partial void OnPackMRPChanged(decimal value) => OnPropertyChanged(nameof(UnitMRP));
+
+    partial void OnSupplierSearchTextChanged(string value)
+    {
+        if (SelectedSupplier != null && !string.Equals(SelectedSupplier.Name, value, StringComparison.OrdinalIgnoreCase))
+            SelectedSupplier = null;
+        if (SelectedSupplier == null)
+            SupplierName = value?.Trim() ?? string.Empty;
+    }
+
+    partial void OnQuantityChanged(int value) { OnPropertyChanged(nameof(TotalUnitsToStock)); NotifyLinePreviewTotals(); }
+    partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
+    partial void OnPurchasePriceChanged(decimal value) { OnPropertyChanged(nameof(EffectiveRate)); NotifyLinePreviewTotals(); }
+    partial void OnPackMRPChanged(decimal value) => NotifyLinePreviewTotals();
+    partial void OnExtraDiscountChanged(decimal value) => NotifyLinePreviewTotals();
+    partial void OnATaxChanged(decimal value) => NotifyLinePreviewTotals();
+    partial void OnCompanySalesTaxChanged(decimal value) => NotifyLinePreviewTotals();
+
+    private void NotifyLinePreviewTotals()
+    {
+        OnPropertyChanged(nameof(LineSubTotalPreview));
+        OnPropertyChanged(nameof(LineAdvanceTaxPreview));
+        OnPropertyChanged(nameof(LineCompanySalesTaxPreview));
+        OnPropertyChanged(nameof(LineTaxTotalPreview));
+        OnPropertyChanged(nameof(LineNetTotalPreview));
+    }
     [RelayCommand] private void QuickAddSupplier() => RequestAddSupplier?.Invoke();
     [RelayCommand] private void QuickAddProduct() => RequestAddProduct?.Invoke();
 

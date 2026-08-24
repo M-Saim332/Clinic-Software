@@ -64,19 +64,14 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private string _category = string.Empty;
     [ObservableProperty] private string _rack = string.Empty;
     [ObservableProperty] private string _companyName = string.Empty;
-    [ObservableProperty] private string _batchNumber = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private string _purchasePrice = "0.00";
-    [ObservableProperty] private string _sellingPrice = "0.00";
     [ObservableProperty] private string _tabletsPerBox = "1";
-    [ObservableProperty] private string _stock = "0";
     [ObservableProperty] private string _minimumStockLevel = "10";
 
-    private int CurrentStock => int.TryParse(Stock, out var value) ? value : 0;
     private decimal CurrentPurchasePrice => decimal.TryParse(PurchasePrice, out var value) ? value : 0;
-    private decimal CurrentSellingPrice => decimal.TryParse(SellingPrice, out var value) ? value : 0;
     private int CurrentTabletsPerBox => int.TryParse(TabletsPerBox, out var value) && value > 0 ? value : 1;
-    public string PricePerTabletDisplay => FormatMoney(CurrentSellingPrice / CurrentTabletsPerBox);
+    public string PricePerTabletDisplay => FormatMoney(CurrentPurchasePrice / CurrentTabletsPerBox);
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     // ── Delete confirmation state ──────────────────────────────────────
@@ -209,9 +204,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     {
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
         if (SelectedCompany == null) { StatusMessage = "Select a company before adding a product."; return; }
-        if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid purchase price."; return; }
-        if (!decimal.TryParse(SellingPrice, out var sell) || sell < 0) { StatusMessage = "Enter a valid selling price."; return; }
-        if (!int.TryParse(Stock, out var stock) || stock < 0) { StatusMessage = "Enter valid stock."; return; }
+        if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid MRP."; return; }
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
         if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Pieces per unit must be at least 1."; return; }
 
@@ -345,8 +338,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         }
 
         decimal unitPrice = ReturnType == "Patient Return"
-            ? ReturnTargetProduct.SellingPrice   // refund patient at selling price
-            : ReturnTargetProduct.PurchasePrice; // seller refunds at purchase price
+                    ? ReturnTargetProduct.PurchasePrice  // refund patient at MRP
+                    : ReturnTargetProduct.PurchasePrice; // seller refunds at purchase price
 
         decimal refundAmount = unitPrice * ReturnQuantity;
 
@@ -410,8 +403,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
                     (m.GenericName?.ToLower().Contains(t) ?? false) ||
                     (m.CompanyName?.ToLower().Contains(t) ?? false) ||
                     m.PCode.ToString().Contains(t) ||
-                    (m.CompanyID.HasValue && Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID)?.CCode.ToString().Contains(t) == true) ||
-                    (m.BatchNumber?.ToLower().Contains(t) ?? false)));
+                    (m.CompanyID.HasValue && Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID)?.CCode.ToString().Contains(t) == true)));
         }
     }
 
@@ -423,12 +415,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Type = string.Empty;
         Category = string.Empty;
         Rack = string.Empty;
-        BatchNumber = string.Empty;
         ExpiryDate = null;
         PurchasePrice = "0.00";
-        SellingPrice = "0.00";
         TabletsPerBox = "1";
-        Stock = "0";
         MinimumStockLevel = "10";
         SelectedCompany = null;
         CompanyName = string.Empty;
@@ -443,12 +432,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Type = m.Type ?? string.Empty;
         Category = m.Category ?? string.Empty;
         Rack = m.Rack ?? string.Empty;
-        BatchNumber = m.BatchNumber ?? string.Empty;
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
         PurchasePrice = m.PurchasePrice.ToString("F2");
-        SellingPrice = m.SellingPrice.ToString("F2");
         TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
-        Stock = m.Stock.ToString();
         MinimumStockLevel = m.MinimumStockLevel.ToString();
         SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID);
         CompanyName = m.CompanyName ?? string.Empty;
@@ -463,12 +449,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Type = string.IsNullOrWhiteSpace(Type) ? null : Type.Trim(),
         Category = string.IsNullOrWhiteSpace(Category) ? null : Category.Trim(),
         Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
-        BatchNumber = string.IsNullOrWhiteSpace(BatchNumber) ? null : BatchNumber.Trim(),
         ExpiryDate = ExpiryDate?.Date,
         PurchasePrice = decimal.TryParse(PurchasePrice, out var bp) ? bp : 0,
-        SellingPrice = decimal.TryParse(SellingPrice, out var sp) ? sp : 0,
+        SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
-        Stock = int.TryParse(Stock, out var s) ? s : 0,
+        Stock = SelectedProduct?.Stock ?? 0,
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
         CompanyID = SelectedCompany?.CompanyID,
         CompanyName = SelectedCompany != null ? SelectedCompany.Name : (string.IsNullOrWhiteSpace(CompanyName) ? null : CompanyName.Trim())
@@ -480,16 +465,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         OnPropertyChanged(nameof(SaveCancelEnabled));
     }
 
-    partial void OnStockChanged(string value) => NotifyCalculatedTotals();
-    partial void OnPurchasePriceChanged(string value)
-    {
-        if (decimal.TryParse(value, out var purchasePrice) && purchasePrice >= 0)
-        {
-            SellingPrice = Math.Round(purchasePrice * 1.15m, 2, MidpointRounding.AwayFromZero).ToString("F2");
-        }
-        NotifyCalculatedTotals();
-    }
-    partial void OnSellingPriceChanged(string value) => NotifyCalculatedTotals();
+    partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
     partial void OnSelectedCompanyChanged(Company? value)
     {

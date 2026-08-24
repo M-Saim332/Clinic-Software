@@ -261,7 +261,7 @@
                                 <Grid ColumnDefinitions="3*,1.2*,2*,Auto" ColumnSpacing="8">
                                     <StackPanel Grid.Column="0" Spacing="4">
                                         <comp:SearchableComboBoxControl Text="{Binding DrugSearch}" ItemsSource="{Binding FilteredDrugs}" SelectedItem="{Binding SelectedDrug}"
-                                            DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search drug..."/>
+                                            DisplayMemberPath="Name" DetailMemberPath="MRP" Placeholder="Search drug..."/>
                                     </StackPanel>
                                     <NumericUpDown Grid.Column="1" Value="{Binding DrugQuantity}" Minimum="1" MinWidth="60" VerticalAlignment="Bottom"/>
                                     <TextBox Grid.Column="2" Text="{Binding Dosage}" PlaceholderText="Dosage / directions" VerticalAlignment="Bottom"/>
