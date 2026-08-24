@@ -29,11 +29,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditDraft))]
     [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsViewingInvoiceDocument))]
     private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditDraft))]
     [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
+    [NotifyPropertyChangedFor(nameof(IsViewingInvoiceDocument))]
     private bool _showForm;
     
     [ObservableProperty] private ObservableCollection<Purchase> _purchases = new();
@@ -107,6 +109,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
+    public decimal DocumentSubTotal => LineItems.Sum(x => x.SubTotal);
+    public decimal DocumentTaxTotal => LineItems.Sum(x => x.TaxableOverhead);
+    public decimal DocumentDiscountTotal => LineItems.Sum(x => x.DiscountedValue + x.ExtraDiscountedValue);
+    public decimal DocumentAdjustmentsTotal => DocumentTaxTotal - DocumentDiscountTotal;
     public decimal EffectiveRate => PurchasePrice;
     public decimal LineSubTotalPreview => Math.Max(0, (Quantity * PurchasePrice) - ((Quantity * PurchasePrice) * (ExtraDiscount / 100m)));
     public decimal LineAdvanceTaxPreview => LineSubTotalPreview * (ATax / 100m);
@@ -121,6 +127,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
+    public bool IsViewingInvoiceDocument => ShowForm && Mode == FormMode.View;
+    public string DocumentStatus => IsPostedInvoice ? "POSTED" : IsCheckingInvoice ? "CHECKING" : "DRAFT";
+    public string SupplierDisplayName => SelectedSupplier?.Name ?? SupplierName ?? "Walk-in / Unlisted Supplier";
 
     [RelayCommand]
     private async Task NewAsync()
@@ -166,6 +175,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             InvoiceState = purchaseWithItems?.IsPosted == true ? InvoiceState.Posted : InvoiceState.Draft;
             
             OnPropertyChanged(nameof(GrandTotal));
+            NotifyDocumentTotals();
             
             Mode = FormMode.View;
             ShowForm = true;
@@ -211,6 +221,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
+        NotifyDocumentTotals();
         
         // Reset inputs
         SelectedProduct = null;
@@ -237,6 +248,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         {
             LineItems.Remove(item);
             OnPropertyChanged(nameof(GrandTotal));
+            NotifyDocumentTotals();
         }
     }
 
@@ -366,6 +378,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         CompanySalesTax = 0;
         LineItems.Clear();
         OnPropertyChanged(nameof(GrandTotal));
+        NotifyDocumentTotals();
     }
 
     private void NotifyButtonStates()
@@ -374,6 +387,17 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         OnPropertyChanged(nameof(SaveCancelEnabled));
         OnPropertyChanged(nameof(CanEditDraft));
         OnPropertyChanged(nameof(CanCheckInvoice));
+        OnPropertyChanged(nameof(IsViewingInvoiceDocument));
+        OnPropertyChanged(nameof(DocumentStatus));
+    }
+
+    private void NotifyDocumentTotals()
+    {
+        OnPropertyChanged(nameof(DocumentSubTotal));
+        OnPropertyChanged(nameof(DocumentTaxTotal));
+        OnPropertyChanged(nameof(DocumentDiscountTotal));
+        OnPropertyChanged(nameof(DocumentAdjustmentsTotal));
+        OnPropertyChanged(nameof(GrandTotal));
     }
 
     partial void OnSelectedProductChanged(Product? value)
@@ -392,6 +416,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         if (value == null) return;
         SupplierName = string.Empty;
         SupplierSearchText = value.Name;
+        OnPropertyChanged(nameof(SupplierDisplayName));
     }
 
     partial void OnSupplierSearchTextChanged(string value)
@@ -400,6 +425,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             SelectedSupplier = null;
         if (SelectedSupplier == null)
             SupplierName = value?.Trim() ?? string.Empty;
+        OnPropertyChanged(nameof(SupplierDisplayName));
     }
 
     partial void OnQuantityChanged(int value) { OnPropertyChanged(nameof(TotalUnitsToStock)); NotifyLinePreviewTotals(); }
@@ -439,6 +465,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         if (_currentPurchaseId == 0 && SelectedPurchase?.PurchaseID > 0) _currentPurchaseId = SelectedPurchase.PurchaseID;
         if (_currentPurchaseId == 0) { StatusMessage = "Save the draft before checking it."; return; }
         InvoiceState = InvoiceState.Checking;
+        OnPropertyChanged(nameof(DocumentStatus));
         StatusMessage = "Invoice checked. Review it, then post.";
     }
 
@@ -452,6 +479,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         {
             await Task.Run(() => _repo.PostPurchase(id));
             InvoiceState = InvoiceState.Posted;
+            OnPropertyChanged(nameof(DocumentStatus));
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             StatusMessage = "Purchase posted. Stock and product rates were updated.";
             await InitializeAsync();
@@ -471,6 +499,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     {
         if (IsPostedInvoice) return;
         InvoiceState = InvoiceState.Draft;
+        OnPropertyChanged(nameof(DocumentStatus));
         if (_currentPurchaseId > 0) Mode = FormMode.Edit;
         NotifyButtonStates();
         StatusMessage = "Invoice returned to draft editing.";
@@ -482,5 +511,17 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         Mode = FormMode.Edit;
         NotifyButtonStates();
         StatusMessage = "Editing draft invoice.";
+    }
+
+    [RelayCommand]
+    private void PrintPurchaseDocument()
+    {
+        StatusMessage = "Purchase invoice is ready for print/export from the document preview.";
+    }
+
+    [RelayCommand]
+    private void EmailPurchaseDocument()
+    {
+        StatusMessage = "Email document action is available from the invoice preview.";
     }
 }

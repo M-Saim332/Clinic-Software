@@ -27,7 +27,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         _returnRepo = returnRepo;
     }
 
-    [ObservableProperty] private FormMode _mode = FormMode.View;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanEditInitialStock))]
+    private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
@@ -42,6 +44,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     public bool CanManageProducts => CurrentUser?.IsAdmin == true || CurrentUser?.UserRole != ClinicSystem.Core.Enums.UserRole.Doctor;
     public bool MutationEnabled => Mode == FormMode.View && CanManageProducts;
     public bool SaveCancelEnabled => Mode != FormMode.View;
+    public bool CanEditInitialStock => Mode == FormMode.Add;
+    public string ProductCodeDisplay => PCode > 0 ? $"Product Code: {PCode}" : "Product Code: generating...";
 
     // ── Tab selection ──────────────────────────────────────────────────
     [ObservableProperty] private int _selectedTab = 0; // 0=All, 1=Expired, 2=Unsold
@@ -58,7 +62,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
 
     // Fields
     [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private int _pCode;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProductCodeDisplay))]
+    private int _pCode;
     [ObservableProperty] private string _genericName = string.Empty;
     [ObservableProperty] private string _type = string.Empty;
     [ObservableProperty] private string _category = string.Empty;
@@ -67,11 +73,14 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private string _purchasePrice = "0.00";
     [ObservableProperty] private string _tabletsPerBox = "1";
+    [ObservableProperty] private string _initialQuantityPacks = "0";
     [ObservableProperty] private string _minimumStockLevel = "10";
 
     private decimal CurrentPurchasePrice => decimal.TryParse(PurchasePrice, out var value) ? value : 0;
     private int CurrentTabletsPerBox => int.TryParse(TabletsPerBox, out var value) && value > 0 ? value : 1;
+    private int CurrentInitialQuantityPacks => int.TryParse(InitialQuantityPacks, out var value) && value > 0 ? value : 0;
     public string PricePerTabletDisplay => FormatMoney(CurrentPurchasePrice / CurrentTabletsPerBox);
+    public string InitialStockPiecesDisplay => $"{CurrentInitialQuantityPacks * CurrentTabletsPerBox} pieces";
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     // ── Delete confirmation state ──────────────────────────────────────
@@ -106,6 +115,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         StatusMessage = "Enter new product details.";
         var comps = await Task.Run(() => _companyRepo.GetAll());
         Companies = new ObservableCollection<Company>(comps);
+        RefreshNextProductCode();
     }
 
     // ── Row-level commands (match Patients pattern) ────────────────────
@@ -207,6 +217,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid MRP."; return; }
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
         if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Pieces per unit must be at least 1."; return; }
+        if (!int.TryParse(InitialQuantityPacks, out var initialPacks) || initialPacks < 0) { StatusMessage = "Initial quantity packs must be zero or greater."; return; }
 
         var m = BuildProduct();
         try
@@ -258,7 +269,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     {
         if (Mode != FormMode.Add) return;
         await SaveAsync();
-        if (Mode == FormMode.View) NewCommand.Execute(null);
+        if (Mode == FormMode.View) await NewAsync();
     }
 
     public async Task PreselectCompanyAsync(int companyId)
@@ -338,8 +349,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         }
 
         decimal unitPrice = ReturnType == "Patient Return"
-                    ? ReturnTargetProduct.PurchasePrice  // refund patient at MRP
-                    : ReturnTargetProduct.PurchasePrice; // seller refunds at purchase price
+                    ? ReturnTargetProduct.PricePerTablet
+                    : ReturnTargetProduct.PricePerTablet;
 
         decimal refundAmount = unitPrice * ReturnQuantity;
 
@@ -409,7 +420,6 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
 
     private void ClearFields()
     {
-        PCode = 0;
         Name = string.Empty;
         GenericName = string.Empty;
         Type = string.Empty;
@@ -418,6 +428,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         ExpiryDate = null;
         PurchasePrice = "0.00";
         TabletsPerBox = "1";
+        InitialQuantityPacks = "0";
         MinimumStockLevel = "10";
         SelectedCompany = null;
         CompanyName = string.Empty;
@@ -435,6 +446,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
         PurchasePrice = m.PurchasePrice.ToString("F2");
         TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
+        InitialQuantityPacks = m.PiecesPerUnit > 0 ? (m.Stock / m.PiecesPerUnit).ToString() : "0";
         MinimumStockLevel = m.MinimumStockLevel.ToString();
         SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID);
         CompanyName = m.CompanyName ?? string.Empty;
@@ -453,8 +465,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         PurchasePrice = decimal.TryParse(PurchasePrice, out var bp) ? bp : 0,
         SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
-        Stock = SelectedProduct?.Stock ?? 0,
+        Stock = SelectedProduct?.Stock ?? CalculateInitialStockPieces(),
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
+        LastStockUpdateDate = SelectedProduct?.LastStockUpdateDate ?? DateTime.Today,
         CompanyID = SelectedCompany?.CompanyID,
         CompanyName = SelectedCompany != null ? SelectedCompany.Name : (string.IsNullOrWhiteSpace(CompanyName) ? null : CompanyName.Trim())
     };
@@ -467,15 +480,33 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
 
     partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
     partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
+    partial void OnInitialQuantityPacksChanged(string value) => NotifyCalculatedTotals();
     partial void OnSelectedCompanyChanged(Company? value)
     {
         CompanyName=value?.Name ?? string.Empty;
-        PCode=value==null ? 0 : _repo.GetNextPCode(value.CompanyID);
+        RefreshNextProductCode();
     }
 
     private void NotifyCalculatedTotals()
     {
         OnPropertyChanged(nameof(PricePerTabletDisplay));
+        OnPropertyChanged(nameof(InitialStockPiecesDisplay));
+    }
+
+    private int CalculateInitialStockPieces()
+    {
+        var piecesPerUnit = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1;
+        var packs = int.TryParse(InitialQuantityPacks, out var qty) ? Math.Max(0, qty) : 0;
+        return packs * piecesPerUnit;
+    }
+
+    private void RefreshNextProductCode()
+    {
+        if (Mode != FormMode.Add) return;
+
+        PCode = SelectedCompany?.CompanyID is int companyId
+            ? _repo.GetNextPCode(companyId)
+            : _repo.GetNextPCode();
     }
 
     private static string FormatMoney(decimal value) => $"Rs. {value:N2}";

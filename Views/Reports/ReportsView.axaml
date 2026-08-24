@@ -102,7 +102,7 @@
                                   Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="140"/>
+                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                 <DataGridTextColumn Header="MINIMUM LEVEL" Binding="{Binding MinStock}" Width="140"/>
                                 <DataGridTextColumn Header="STATUS" Binding="{Binding StockStatus}" Width="130"/>
                                 <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
@@ -129,7 +129,7 @@
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="190"/>
                                     <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
                                 </DataGrid.Columns>
                             </DataGrid>
@@ -148,7 +148,7 @@
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding Stock}" Width="90"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="190"/>
                                     <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinStock}" Width="160"/>
                                 </DataGrid.Columns>
                             </DataGrid>

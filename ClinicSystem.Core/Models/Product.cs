@@ -31,6 +31,11 @@ public class Product
     public decimal PricePerTablet => PiecesPerUnit > 0
         ? Math.Round(PurchasePrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
         : 0;
+    public int FullPacksInStock => PiecesPerUnit > 0 ? Stock / PiecesPerUnit : 0;
+    public int LoosePiecesInStock => PiecesPerUnit > 0 ? Stock % PiecesPerUnit : Stock;
+    public string StockBreakdown => PiecesPerUnit > 1
+        ? $"{Stock} pieces ({FullPacksInStock} pack{(FullPacksInStock == 1 ? string.Empty : "s")} + {LoosePiecesInStock} piece{(LoosePiecesInStock == 1 ? string.Empty : "s")})"
+        : $"{Stock} pieces";
 
     // Alias properties used by XAML bindings in Reports view
     public int MinStock => MinimumStockLevel;

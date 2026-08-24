@@ -111,7 +111,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
     public string AvailableStockDisplay => SelectedProduct == null
         ? string.Empty
-        : $"Available stock: {SelectedProduct.Stock} pieces";
+        : $"Available stock: {SelectedProduct.StockBreakdown}";
 
     public decimal Subtotal => LineItems.Sum(x => x.LineNetTotal);
     public decimal GrandTotal => Subtotal + (Subtotal * SalesTax / 100m);
@@ -149,31 +149,13 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     private async Task ViewDetailsAsync()
     {
         if (SelectedSale == null) { StatusMessage = "Select a sale first."; return; }
-        
-        try
-        {
-            InvoiceNumber = SelectedSale.InvoiceNumber;
-            SaleDate = new DateTimeOffset(SelectedSale.SaleDate);
-            PaymentMethod = SelectedSale.PaymentMethod ?? "Cash";
-            
-            var saleWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedSale.SaleID));
-            var items = saleWithItems?.Items ?? new List<SaleItem>();
-            PatientName = saleWithItems?.PatientName ?? SelectedSale.PatientName ?? string.Empty;
-            LineItems = new ObservableCollection<SaleItem>(items);
-            SalesTax = saleWithItems?.SalesTax ?? 0;
-            InvoiceState = saleWithItems?.IsPosted == true ? InvoiceState.Posted : InvoiceState.Draft;
-            
-            OnPropertyChanged(nameof(GrandTotal));
-            
-            Mode = FormMode.View; 
-            ShowForm = true;
-            NotifyButtonStates();
-            StatusMessage = $"Viewing details for {InvoiceNumber}";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error loading sale details: {ex.Message}";
-        }
+
+        InvoiceVM.LoadInvoice(SelectedSale);
+        ShowForm = false;
+        ShowInvoicePrint = true;
+        StatusMessage = $"Opening invoice {SelectedSale.InvoiceNumber}";
+        LogActivity("Invoice Viewed", $"Invoice #{SelectedSale.InvoiceNumber} opened for document view", "Sales");
+        await Task.CompletedTask;
     }
 
     [RelayCommand]

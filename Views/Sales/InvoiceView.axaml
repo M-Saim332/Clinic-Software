@@ -2,114 +2,119 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Sales"
-             xmlns:models="using:ClinicSystem.Core.Models"
              x:Class="ClinicSystem.UI.Views.Sales.InvoiceView"
              x:DataType="vm:InvoiceViewModel" x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
 
     <ScrollViewer>
-        <StackPanel Margin="28,24" Spacing="24">
-            <!-- Header Toolbar -->
+        <StackPanel Margin="28,24" Spacing="18">
             <Border Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="10" Padding="20,14">
+                    CornerRadius="8" Padding="16">
                 <DockPanel>
-                    <Button  Command="{Binding GoBackCommand}"
-                            Classes="btn-secondary" DockPanel.Dock="Left">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-        <TextBlock Text="Back" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                    <Button Command="{Binding GoBackCommand}" Classes="btn-secondary" DockPanel.Dock="Left">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+                            <TextBlock Text="Back to List"/>
+                        </StackPanel>
+                    </Button>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
                         <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center"/>
-                        <Button  Command="{Binding PrintCommand}"
-                                Classes="btn-primary">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Printer" Width="18" Height="18"/>
-        <TextBlock Text="Print Invoice" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                        <Button Command="{Binding PrintCommand}" Classes="btn-primary">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="Printer" Width="18" Height="18"/>
+                                <TextBlock Text="Print / Export PDF"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding EmailDocumentCommand}" Classes="btn-secondary">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="Send" Width="18" Height="18"/>
+                                <TextBlock Text="Email Document"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </DockPanel>
             </Border>
 
-            <!-- Printable Invoice Paper -->
-            <Border Background="White" Width="800" HorizontalAlignment="Center"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                    CornerRadius="0" Padding="40,50"
-                    BoxShadow="0 4 12 0 #10000000">
-                <StackPanel Spacing="32">
-                    
-                    <!-- Top: Clinic Brand & Invoice Info -->
+            <Border Width="800" MinHeight="1120" HorizontalAlignment="Center"
+                    Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
+                    CornerRadius="0" Padding="40,48" BoxShadow="0 8 24 0 #18000000">
+                <StackPanel Spacing="28">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Spacing="4">
-                            <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
-                                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource BrushBlue50}">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Width="48" Height="48" CornerRadius="8" Background="#EFF6FF">
                                     <materialIcons:MaterialIcon Kind="HospitalBuilding" Width="24" Height="24"
-                                              Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                        Foreground="#2563EB" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <StackPanel VerticalAlignment="Center" Spacing="1">
-                                    <TextBlock Text="{Binding ClinicName}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
-                                    <TextBlock Text="{Binding ClinicAddress}" FontSize="13" Foreground="{DynamicResource BrushInk500}"/>
-                                    <TextBlock Text="{Binding ClinicPhone}" FontSize="12" Foreground="{DynamicResource BrushInk400}"
+                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding ClinicName}" FontSize="22" FontWeight="Bold" Foreground="#111827"/>
+                                    <TextBlock Text="{Binding ClinicAddress}" FontSize="12" Foreground="#6B7280"/>
+                                    <TextBlock Text="{Binding ClinicPhone}" FontSize="12" Foreground="#6B7280"
                                                IsVisible="{Binding ClinicPhone, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
-                        
                         <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
-                            <TextBlock Text="INVOICE" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource BrushInk200}" HorizontalAlignment="Right" LetterSpacing="2"/>
-                            <TextBlock Text="{Binding SaleData.InvoiceNumber, StringFormat='No. {0}'}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}" HorizontalAlignment="Right"/>
-                            <TextBlock Text="{Binding SaleData.SaleDate, StringFormat='Date: {0:MMM dd, yyyy}'}" FontSize="13" Foreground="{DynamicResource BrushInk600}" HorizontalAlignment="Right"/>
-                            <TextBlock Text="{Binding SaleData.PaymentMethod, StringFormat='Payment: {0}'}" FontSize="13" Foreground="{DynamicResource BrushInk600}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="SALES INVOICE" FontSize="24" FontWeight="Bold" Foreground="#111827" HorizontalAlignment="Right"/>
+                            <TextBlock Text="{Binding SaleData.InvoiceNumber, StringFormat='Invoice No: {0}'}" FontSize="13" Foreground="#374151" HorizontalAlignment="Right"/>
+                            <TextBlock Text="{Binding SaleData.SaleDate, StringFormat='Date: {0:dd MMM yyyy}'}" FontSize="13" Foreground="#374151" HorizontalAlignment="Right"/>
+                            <Border Background="#ECFDF5" CornerRadius="4" Padding="8,3" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding DocumentStatus}" FontSize="11" FontWeight="Bold" Foreground="#047857"/>
+                            </Border>
+                            <TextBlock Text="{Binding SaleData.ReceptionistName, StringFormat='Processed by: {0}'}" FontSize="12" Foreground="#6B7280" HorizontalAlignment="Right"/>
                         </StackPanel>
                     </Grid>
-                    
-                    <!-- Patient Info -->
-                    <Border Background="#F9FAFB" CornerRadius="8" Padding="20">
+
+                    <Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="18">
                         <Grid ColumnDefinitions="*,*">
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock Text="BILL TO:" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
-                                <TextBlock Text="{Binding SaleData.PatientName}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
-                                <TextBlock Text="{Binding SaleData.ReceptionistName, StringFormat='Processed by: {0}'}" FontSize="12" Foreground="{DynamicResource BrushInk500}"/>
+                            <StackPanel Grid.Column="0" Spacing="5">
+                                <TextBlock Text="BILLED TO" FontSize="10" FontWeight="Bold" Foreground="#6B7280"/>
+                                <TextBlock Text="{Binding SaleData.PatientName}" FontSize="16" FontWeight="SemiBold" Foreground="#111827"/>
+                                <TextBlock Text="{Binding SaleData.PaymentMethod, StringFormat='Payment method: {0}'}" FontSize="12" Foreground="#6B7280"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
-                                <TextBlock Text="AMOUNT DUE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Right"/>
-                                <TextBlock Text="{Binding SaleData.GrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Right"/>
+                            <StackPanel Grid.Column="1" Spacing="5" HorizontalAlignment="Right">
+                                <TextBlock Text="INVOICE META INFORMATION" FontSize="10" FontWeight="Bold" Foreground="#6B7280" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding SaleData.InvoiceNumber}" FontSize="14" FontWeight="SemiBold" Foreground="#111827" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding LineItems.Count, StringFormat='Line items: {0}'}" FontSize="12" Foreground="#6B7280" HorizontalAlignment="Right"/>
                             </StackPanel>
                         </Grid>
                     </Border>
-                    
-                    <!-- Line Items -->
+
                     <DataGrid ItemsSource="{Binding LineItems}"
                               AutoGenerateColumns="False" IsReadOnly="True"
-                              SelectionMode="Single" Background="White" BorderThickness="0,1,0,1"
-                              BorderBrush="{DynamicResource BrushLine}"
-                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F3F4F6">
+                              Background="White" BorderBrush="#E5E7EB" BorderThickness="0,1"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEF2F7">
                         <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding SaleItemID}" Width="48"/>
                             <DataGridTextColumn Header="ITEM DESCRIPTION" Binding="{Binding ProductName}" Width="*"/>
-                            <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="Auto" MinWidth="60"/>
-                            <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="Auto" MinWidth="70"/>
-                            <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="90"/>
-                            <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{}{0:N2}%'}" Width="Auto" MinWidth="110"/>
-                            <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="110"/>
+                            <DataGridTextColumn Header="BATCH / EXPIRY" Binding="{Binding BatchExpiryDisplay}" Width="110"/>
+                            <DataGridTextColumn Header="QTY / PIECES" Binding="{Binding Quantity}" Width="100"/>
+                            <DataGridTextColumn Header="UNIT RATE / T.P / MRP" Binding="{Binding RateDisplay}" Width="150"/>
+                            <DataGridTextColumn Header="TAX / DISCOUNT" Binding="{Binding TaxDiscountDisplay}" Width="120"/>
+                            <DataGridTextColumn Header="TOTAL AMOUNT" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    
-                    <!-- Totals -->
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
-                        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                            <TextBlock Text="Thank you for your visit!" FontSize="14" FontStyle="Italic" Foreground="{DynamicResource BrushInk500}"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="12" Width="260">
+
+                    <Grid ColumnDefinitions="*,300">
+                        <TextBlock Grid.Column="0" Text="Thank you for your visit. Please keep this invoice for returns and audit reference."
+                                   Foreground="#6B7280" FontSize="12" VerticalAlignment="Bottom" TextWrapping="Wrap"/>
+                        <StackPanel Grid.Column="1" Spacing="10">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="GRAND TOTAL:" Foreground="{DynamicResource BrushInk900}" FontSize="16" FontWeight="Bold"/>
-                                <TextBlock Grid.Column="1" Text="{Binding SaleData.GrandTotal, StringFormat='Rs. {0:N2}'}" Foreground="{DynamicResource BrushPrimaryBlue}" FontSize="18" FontWeight="Bold"/>
+                                <TextBlock Text="Sub Total" Foreground="#374151"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DocumentSubTotal, StringFormat='Rs. {0:N2}'}" Foreground="#111827"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Taxes &amp; Discounts" Foreground="#374151"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DocumentAdjustmentsTotal, StringFormat='Rs. {0:N2}'}" Foreground="#111827"/>
+                            </Grid>
+                            <Separator Background="#D1D5DB"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Grand Total" FontSize="16" FontWeight="Bold" Foreground="#111827"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DocumentGrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="Bold" Foreground="#2563EB"/>
                             </Grid>
                         </StackPanel>
                     </Grid>
-                    
                 </StackPanel>
             </Border>
         </StackPanel>

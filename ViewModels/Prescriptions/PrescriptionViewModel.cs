@@ -82,6 +82,16 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _dosageToAdd = string.Empty;
 
     [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private bool _showPrescriptionPreview;
+
+    public string PrescriptionNumberDisplay => CurrentAppointmentID.HasValue
+        ? $"APT-{CurrentAppointmentID}"
+        : "New Prescription";
+    public string PreviewPatientName => SelectedPatient?.Name ?? "No patient selected";
+    public string PreviewPatientMeta => SelectedPatient == null
+        ? string.Empty
+        : $"Age: {SelectedPatient.Age}   Gender: {SelectedPatient.Gender ?? "-"}   Phone: {SelectedPatient.Phone ?? SelectedPatient.Contact ?? "-"}";
+    public string PreviewDoctorName => CurrentUser?.FullName ?? CurrentUser?.DisplayName ?? "Doctor";
 
     // ── Commands ──────────────────────────────────────────────────────────
     [RelayCommand] private void PickPatient() { ShowPatientList = true; FilterPatients(); }
@@ -90,6 +100,17 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     // Inventory modal commands
     [RelayCommand] private void OpenInventoryModal() { InventorySearch = string.Empty; FilterInventory(); ShowInventoryModal = true; }
     [RelayCommand] private void CloseInventoryModal() => ShowInventoryModal = false;
+
+    [RelayCommand]
+    private void PreviewPrescription()
+    {
+        if (SelectedPatient == null) { StatusIsError = true; StatusMessage = "Select a patient."; return; }
+        if (!Items.Any()) { StatusIsError = true; StatusMessage = "Add at least one medicine."; return; }
+        StatusIsError = false;
+        ShowPrescriptionPreview = true;
+    }
+
+    [RelayCommand] private void ClosePrescriptionPreview() => ShowPrescriptionPreview = false;
 
     [RelayCommand]
     private void AddFromInventory(Product? product)
@@ -112,6 +133,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     {
         if (p == null) return;
         SelectedPatient = p; ShowPatientList = false;
+        NotifyPreviewMetadata();
     }
 
     [RelayCommand]
@@ -221,6 +243,13 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         }
     }
 
+    [RelayCommand]
+    private void EmailPrescription()
+    {
+        StatusIsError = false;
+        StatusMessage = "Email prescription action is available from the document preview.";
+    }
+
     private Prescription BuildPrescription() => new()
     {
         PatientID = SelectedPatient!.PatientID,
@@ -248,10 +277,20 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         CurrentAppointmentID = null;
         OnPropertyChanged(nameof(HasAppointmentContext));
         OnPropertyChanged(nameof(AppointmentContextLabel));
+        NotifyPreviewMetadata();
         _ = InitializeAsync();
     }
 
+    private void NotifyPreviewMetadata()
+    {
+        OnPropertyChanged(nameof(PrescriptionNumberDisplay));
+        OnPropertyChanged(nameof(PreviewPatientName));
+        OnPropertyChanged(nameof(PreviewPatientMeta));
+        OnPropertyChanged(nameof(PreviewDoctorName));
+    }
+
     partial void OnPatientSearchChanged(string value) => FilterPatients();
+    partial void OnSelectedPatientChanged(Patient? value) => NotifyPreviewMetadata();
 
     public async Task InitializeAsync()
     {
@@ -308,4 +347,8 @@ public partial class PrescriptionItemRow : ObservableObject
     [ObservableProperty] private int _quantity;
     [ObservableProperty] private string _dosage = string.Empty;
     public int AvailableStock { get; set; }
+    public string BatchExpiryDisplay => "N/A";
+    public string RateDisplay => "Pharma billing";
+    public string TaxDiscountDisplay => "N/A";
+    public string TotalDisplay => "Pending sale";
 }

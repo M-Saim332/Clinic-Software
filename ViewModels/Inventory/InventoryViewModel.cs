@@ -138,7 +138,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         if (p == null) return;
         ReturnTargetProduct = p;
         SupplierReturnQuantity = p.Stock > 0 ? p.Stock : 0;
-        SupplierCreditAmount = p.PurchasePrice * SupplierReturnQuantity;
+        SupplierCreditAmount = p.PricePerTablet * SupplierReturnQuantity;
         SupplierReturnNotes = "Expired Return";
         IsSupplierReturnModalOpen = true;
     }
@@ -147,7 +147,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
     {
         if (ReturnTargetProduct != null)
         {
-            SupplierCreditAmount = value * ReturnTargetProduct.PurchasePrice;
+            SupplierCreditAmount = value * ReturnTargetProduct.PricePerTablet;
         }
     }
 

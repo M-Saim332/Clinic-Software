@@ -255,6 +255,15 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Command="{Binding ShowSettingsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsSettingsActive}"
+                            IsVisible="{Binding CanAccessSettings}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <materialIcons:MaterialIcon Kind="CogOutline" Width="17" Height="17" VerticalAlignment="Center"/>
+                            <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                     <!-- TRANSACTIONS section label -->
                     <TextBlock IsVisible="{Binding HasTransactionsAccess}"
                                Text="TRANSACTIONS"
@@ -321,19 +330,10 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- ── Fixed Bottom: Settings / Profile ─────────────────── -->
+            <!-- ── Fixed Bottom: Profile ─────────────────── -->
             <StackPanel Grid.Row="2" Spacing="2" Margin="10,0,10,16">
                 <Border Height="1" Background="{DynamicResource BrushLine}" Margin="6,0,6,10"
                         IsVisible="{Binding HasUserSettingsAccess}"/>
-
-                <Button Command="{Binding ShowSettingsCommand}"
-                        Classes="navbtn" Classes.active="{Binding IsSettingsActive}"
-                        IsVisible="{Binding CanAccessSettings}">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <materialIcons:MaterialIcon Kind="CogOutline" Width="17" Height="17" VerticalAlignment="Center"/>
-                        <TextBlock Text="Settings" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
 
                 <Button Command="{Binding ShowProfileCommand}"
                         Classes="navbtn" Classes.active="{Binding IsProfileActive}">

@@ -107,6 +107,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             Cnic = value.CNIC ?? string.Empty;
             Gender = value.Gender ?? string.Empty;
             Age = value.Age;
+            PatientLookupMessage = $"Selected existing patient: {value.Name}. Clinical history will stay linked.";
             _ = LoadExistingPatientHistoryAsync(value.PatientID);
         }
         else if (Mode == FormMode.Add)
@@ -116,38 +117,9 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             Cnic = string.Empty;
             Gender = string.Empty;
             Age = null;
+            PatientLookupMessage = string.Empty;
             ExistingPatientHistory = new ObservableCollection<AppointmentHistoryRow>();
         }
-    }
-
-    partial void OnCnicChanged(string value)
-    {
-        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Count(char.IsDigit) < 13) return;
-        _ = LookupExistingPatientAsync();
-    }
-
-    partial void OnPatientPhoneChanged(string value)
-    {
-        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Count(char.IsDigit) < 11) return;
-        _ = LookupExistingPatientAsync();
-    }
-
-    partial void OnPatientNameChanged(string value)
-    {
-        if (SelectedPatient != null || string.IsNullOrWhiteSpace(value) || value.Trim().Length < 3) return;
-        _ = LookupExistingPatientAsync();
-    }
-
-    private async Task LookupExistingPatientAsync()
-    {
-        var patient = await Task.Run(() => _repo.GetPatientByNamePhoneOrCNIC(PatientName, PatientPhone, Cnic));
-        if (patient == null) 
-        { 
-            PatientLookupMessage = "No existing clinical patient found."; 
-            return; 
-        }
-        SelectedPatient = Patients.FirstOrDefault(p => p.PatientID == patient.PatientID) ?? patient;
-        PatientLookupMessage = $"Existing patient found: {patient.Name}. Clinical history will stay linked.";
     }
 
     private async Task LoadExistingPatientHistoryAsync(int patientId)

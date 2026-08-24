@@ -30,6 +30,12 @@ public partial class InvoiceViewModel : ViewModelBase
     [ObservableProperty] private string _clinicAddress = string.Empty;
     [ObservableProperty] private string _clinicPhone   = string.Empty;
 
+    public decimal DocumentSubTotal => LineItems.Sum(x => x.GrossLineAmount);
+    public decimal DocumentAdjustmentsTotal =>
+        LineItems.Sum(x => x.TaxableOverhead - x.DiscountedValue) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
+    public decimal DocumentGrandTotal => SaleData?.GrandTotal ?? LineItems.Sum(x => x.LineNetTotal);
+    public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
+
     public void LoadInvoice(Sale sale)
     {
         SaleData = sale;
@@ -63,8 +69,20 @@ public partial class InvoiceViewModel : ViewModelBase
                 SaleData = null;
                 SaleData = saleWithItems;
                 LineItems = new ObservableCollection<SaleItem>(saleWithItems.Items);
+                NotifyDocumentTotals();
             });
         }
+    }
+
+    partial void OnSaleDataChanged(Sale? value) => NotifyDocumentTotals();
+    partial void OnLineItemsChanged(ObservableCollection<SaleItem> value) => NotifyDocumentTotals();
+
+    private void NotifyDocumentTotals()
+    {
+        OnPropertyChanged(nameof(DocumentSubTotal));
+        OnPropertyChanged(nameof(DocumentAdjustmentsTotal));
+        OnPropertyChanged(nameof(DocumentGrandTotal));
+        OnPropertyChanged(nameof(DocumentStatus));
     }
 
     [RelayCommand]
@@ -78,5 +96,11 @@ public partial class InvoiceViewModel : ViewModelBase
     {
         RequestPrint?.Invoke();
         StatusMessage = "Sent to printer!";
+    }
+
+    [RelayCommand]
+    private void EmailDocument()
+    {
+        StatusMessage = "Email document action is available from the invoice preview.";
     }
 }

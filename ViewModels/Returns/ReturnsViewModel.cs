@@ -70,8 +70,8 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     public string ProcessedBy => CurrentUser?.DisplayName ?? "Unknown";
     public int StockQuantity => SelectedProduct == null ? 0 : Quantity;
     public decimal RefundAmount => SelectedProduct == null ? 0 : Quantity * (IsPatientReturn
-        ? SelectedProduct.PurchasePrice
-        : SelectedProduct.PurchasePrice);
+        ? SelectedProduct.PricePerTablet
+        : SelectedProduct.PricePerTablet);
 
     public async Task InitializeAsync()
     {

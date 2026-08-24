@@ -209,7 +209,7 @@
                                 <!-- Row 1: Qty and Tax -->
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Qty" Classes="label"/>
+                                        <TextBlock Text="Quantity (Pieces/Tablets)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
@@ -224,7 +224,7 @@
                                         <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Price" Classes="label"/>
+                                        <TextBlock Text="Piece Price" Classes="label"/>
                                         <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0" IsReadOnly="True"/>
                                     </StackPanel>
                                 </Grid>

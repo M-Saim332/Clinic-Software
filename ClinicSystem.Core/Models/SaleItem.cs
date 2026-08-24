@@ -22,4 +22,7 @@ public class SaleItem
     public decimal DiscountedValue => GrossLineAmount * (Discount / 100);
     public decimal TaxableOverhead => (GrossLineAmount - DiscountedValue) * (Tax / 100);
     public decimal LineNetTotal => (GrossLineAmount - DiscountedValue) + TaxableOverhead;
+    public string BatchExpiryDisplay => "N/A";
+    public string RateDisplay => $"Rs. {ProductPrice:N2} / {UnitTypeSold}";
+    public string TaxDiscountDisplay => $"Tax {Tax:N2}% / Disc {Discount:N2}%";
 }

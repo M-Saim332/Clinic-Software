@@ -361,7 +361,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     public bool CanAccessReports      => (IsClinicalMode && HasClinicalAccess("Reports")) || (IsPharmaMode && HasPharmaAccess("Reports"));
     public bool CanAccessReturns      => IsPharmaMode && HasPharmaAccess("Returns");
     public bool CanAccessUsers        => IsPharmaMode && (CurrentUser?.IsAdmin ?? false);
-    public bool CanAccessSettings     => IsPharmaMode && HasPharmaAccess("Settings");
+    public bool CanAccessSettings     => IsClinicalMode && HasClinicalAccess("Settings");
 
     private bool HasPharmaAccess(string module)
     {
@@ -377,10 +377,10 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     }
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
-    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
+    public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessSettings;
     public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
-    public bool HasUserSettingsAccess => CanAccessUsers || CanAccessSettings;
+    public bool HasUserSettingsAccess => CanAccessUsers;
 
     // ── Active nav flags (for sidebar highlight) ───────────────────────────
     [ObservableProperty] private bool _isDashboardActive;
@@ -621,7 +621,13 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         if (IsClinicalMode) { NavigateTo(_clinicalReportsVM, "Reports"); _ = _clinicalReportsVM.InitializeAsync(); }
         else { NavigateTo(_reportsVM, "Reports"); }
     }
-    [RelayCommand] private void ShowSettings()     { NavigateTo(_settingsVM,     "Settings"); _ = _settingsVM.InitializeAsync(); }
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        if (!IsClinicalMode) CurrentSystemMode = "Clinical";
+        NavigateTo(_settingsVM, "Settings");
+        _ = _settingsVM.InitializeAsync();
+    }
     [RelayCommand] private void ShowProfile()
     {
         _profileVM.LoadFromCurrentUser();

@@ -111,7 +111,7 @@
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
+                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                         <DataGridTextColumn Header="UPDATE DATE" Binding="{Binding LastStockUpdateDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -127,7 +127,7 @@
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="140"/>
+                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                         <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinimumStockLevel}" Width="160"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -143,7 +143,7 @@
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="140"/>
+                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                         <DataGridTextColumn Header="MINIMUM REQUIRED" Binding="{Binding MinimumStockLevel}" Width="160"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -159,7 +159,7 @@
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
+                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -175,7 +175,7 @@
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
-                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
+                                        <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                         <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
                                         <DataGridTemplateColumn Header="ACTIONS" Width="160">
                                             <DataGridTemplateColumn.CellTemplate>

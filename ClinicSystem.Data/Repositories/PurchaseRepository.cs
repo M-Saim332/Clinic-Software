@@ -116,7 +116,10 @@ public class PurchaseRepository
         if (items.Count == 0) throw new InvalidOperationException("A purchase must contain at least one item.");
         foreach (var item in items)
         {
-            var stockQuantity = item.PackageQuantity + item.BonusQuantity;
+            var piecesPerUnit = conn.ExecuteScalar<int>(
+                "SELECT CASE WHEN ISNULL(PiecesPerUnit, 0) <= 0 THEN 1 ELSE PiecesPerUnit END FROM Products WHERE ProductID=@ProductID",
+                new { item.ProductID }, tx);
+            var stockQuantity = (item.PackageQuantity + item.BonusQuantity) * piecesPerUnit;
             // Update stock and MRP so the doctor drug picker and pharma product registry reflect the latest invoice.
             conn.Execute(@"UPDATE Products SET 
                 Stock=Stock+@Quantity,

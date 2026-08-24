@@ -341,8 +341,6 @@
                             <TextBlock Text="1. SELECT COMPANY FIRST" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                             <comp:SearchableComboBoxControl ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
                                 DisplayMemberPath="Name" DetailMemberPath="CCode" Placeholder="Search company by CCode or name..."/>
-                            <Button Command="{Binding QuickAddCompanyCommand}" Content="Company not found? Add Company"
-                                    Classes="btn-secondary" HorizontalAlignment="Left"/>
                         </StackPanel>
                     </Border>
                     <!-- SECTION 1: Quick Entry -->
@@ -356,7 +354,16 @@
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
                                 <TextBox Text="{Binding Name}" PlaceholderText="e.g. Amoxicillin 500mg"/>
-                                <TextBlock Text="{Binding PCode, StringFormat='Product Code: {0}'}" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                <Border Background="{DynamicResource BrushBlue50}" BorderBrush="{DynamicResource BrushLine}"
+                                        BorderThickness="1" CornerRadius="8" Padding="10,7" HorizontalAlignment="Left">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <materialIcons:MaterialIcon Kind="AlertCircle" Width="14" Height="14"
+                                                                    Foreground="{DynamicResource BrushPrimaryBlue}"
+                                                                    VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ProductCodeDisplay}" FontWeight="Bold"
+                                                   Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                             <!-- Type -->
                             <StackPanel Grid.Column="1" Grid.Row="0" Spacing="6" Margin="12,0,0,12">
@@ -379,9 +386,16 @@
                                 <TextBlock Text="MRP (Rs.)" Classes="label"/>
                                 <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
+                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Initial Quantity (Packs)" Classes="label"/>
+                                <TextBox Text="{Binding InitialQuantityPacks}" PlaceholderText="0" IsEnabled="{Binding CanEditInitialStock}"/>
+                            </StackPanel>
                             
                             <Border Grid.ColumnSpan="2" Grid.Row="3" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
-                                <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='MRP per unit: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="18">
+                                    <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Piece price: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                    <TextBlock Text="{Binding InitialStockPiecesDisplay, StringFormat='Initial stock: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk700}"/>
+                                </StackPanel>
                             </Border>
                         </Grid>
                     </StackPanel>

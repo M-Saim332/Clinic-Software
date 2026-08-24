@@ -94,7 +94,7 @@
                                 <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*"/>
                                 <DataGridTextColumn Header="GENERIC NAME" Binding="{Binding GenericName}" Width="*"/>
                                 <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
-                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding Stock}" Width="120"/>
+                                <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>
