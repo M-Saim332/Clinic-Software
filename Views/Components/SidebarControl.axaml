@@ -15,7 +15,7 @@
         <!-- ── Segmented Switcher ────────────────────────────────────── -->
         <Style Selector="Button.segmentedBtn">
             <Setter Property="Background"         Value="Transparent"/>
-            <Setter Property="Foreground"         Value="#475569"/>
+            <Setter Property="Foreground"         Value="#4B5563"/>
             <Setter Property="BorderThickness"    Value="0"/>
             <Setter Property="Padding"            Value="0,9"/>
             <Setter Property="CornerRadius"       Value="7"/>
@@ -32,6 +32,15 @@
             <Setter Property="Background"             Value="#EFF6FF"/>
             <Setter Property="TextElement.Foreground" Value="#1D4ED8"/>
         </Style>
+        <Style Selector="Button.segmentedBtn materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="#475569"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn:pointerover materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="#1D4ED8"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="#1D4ED8"/>
+        </Style>
 
         <!-- Clinic active pill -->
         <Style Selector="Button.segmentedBtn.clinicActive">
@@ -43,16 +52,28 @@
             <Setter Property="TextElement.Foreground" Value="White"/>
             <Setter Property="BoxShadow"              Value="0 2 8 0 #3004A3F8"/>
         </Style>
+        <Style Selector="Button.segmentedBtn.clinicActive materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn.clinicActive TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
 
         <!-- Pharma active pill -->
         <Style Selector="Button.segmentedBtn.pharmaActive">
-            <Setter Property="Background" Value="{DynamicResource BrushEmerald500}"/>
+            <Setter Property="Background" Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
         <Style Selector="Button.segmentedBtn.pharmaActive /template/ ContentPresenter">
-            <Setter Property="Background"             Value="{DynamicResource BrushEmerald500}"/>
+            <Setter Property="Background"             Value="{DynamicResource ThemePrimaryBrush}"/>
             <Setter Property="TextElement.Foreground" Value="White"/>
-            <Setter Property="BoxShadow"              Value="0 2 8 0 #3010B981"/>
+            <Setter Property="BoxShadow"              Value="0 2 8 0 #3004A3F8"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn.pharmaActive materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.segmentedBtn.pharmaActive TextBlock">
+            <Setter Property="Foreground" Value="White"/>
         </Style>
 
         <!-- ── Nav Buttons ──────────────────────────────────────────── -->
@@ -74,8 +95,17 @@
             </Setter>
         </Style>
         <Style Selector="Button.navbtn:pointerover /template/ ContentPresenter">
-            <Setter Property="Background"             Value="{DynamicResource ThemeSidebarHoverBrush}"/>
-            <Setter Property="TextElement.Foreground" Value="{DynamicResource ThemeSidebarActiveForegroundBrush}"/>
+            <Setter Property="Background"             Value="{DynamicResource ThemePrimaryBrush}"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.navbtn:pointerover TextBlock">
+            <Setter Property="Foreground" Value="White"/>
         </Style>
         <Style Selector="Button.navbtn.active">
             <Setter Property="Background" Value="{DynamicResource ThemeSidebarActiveBrush}"/>

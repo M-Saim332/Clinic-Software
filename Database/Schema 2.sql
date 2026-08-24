@@ -143,7 +143,7 @@ BEGIN
         UserID       INT IDENTITY(1,1) PRIMARY KEY,
         Username     VARCHAR(100) NOT NULL UNIQUE,
         PasswordHash VARCHAR(255) NOT NULL,
-        Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist', 'Admin', 'Pharmacist')),
+        Role         VARCHAR(20)  NOT NULL CHECK (Role IN ('Doctor', 'Receptionist', 'Admin', 'Pharmacist', 'Assistant')),
         FullName     VARCHAR(150) NULL,
         IsActive     BIT DEFAULT 1,
         Permissions  VARCHAR(1000) NULL,

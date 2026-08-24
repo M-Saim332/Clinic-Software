@@ -4,6 +4,8 @@ using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
 using ClinicSystem.UI.Services;
+using ClinicSystem.UI.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ClinicSystem.UI.ViewModels.Prescriptions;
 
@@ -199,6 +201,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
             StatusIsError = false;
             StatusMessage = $"{SelectedPatient.Name} was sent to the pharmacist. Reception has also been notified.";
             LogActivity("Sent to Pharmacist", $"Prescription sent for {SelectedPatient.Name}", "Prescriptions");
+            WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
             Items.Clear();
         }
         catch (Exception ex) { StatusIsError = true; StatusMessage = $"Unable to send: {ex.Message}"; }

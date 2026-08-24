@@ -18,6 +18,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     IRecipient<InventoryChangedMessage>,
     IRecipient<RefundIssuedMessage>,
     IRecipient<RefundCompletedMessage>,
+    IRecipient<PrescriptionHandoffChangedMessage>,
     IRecipient<ActivityLogMessage>
 {
     private readonly PatientRepository    _patientRepo;
@@ -373,6 +374,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
 
     public void Receive(RefundIssuedMessage message)   => _ = LoadPendingRefundsAsync();
     public void Receive(RefundCompletedMessage message) => _ = LoadPendingRefundsAsync();
+    public void Receive(PrescriptionHandoffChangedMessage message) => _ = LoadPrescriptionNotificationsAsync();
 
     public void Receive(ActivityLogMessage message)
     {
@@ -460,6 +462,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
         SelectedHandoff.WorkflowStatus = "Printed";
         OnPropertyChanged(nameof(CanDispenseSelected));
         PrescriptionStatusMessage = "Prescription checked and exported for printing.";
+        WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
         await LoadPrescriptionNotificationsAsync();
     }
 
@@ -478,6 +481,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
         ShowHandoffDetails = false;
         PrescriptionStatusMessage = $"Medicines marked as given to {patientName}.";
         LogActivity("Medicines Given", $"Prescription dispensed to {patientName}", "Prescriptions");
+        WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
         await LoadPrescriptionNotificationsAsync();
     }
 }

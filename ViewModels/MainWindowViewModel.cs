@@ -21,17 +21,31 @@ using ClinicSystem.UI.ViewModels.Returns;
 using ClinicSystem.Data;
 using Dapper;
 using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using ClinicSystem.Core.Models;
+using ClinicSystem.Data.Repositories;
+using ClinicSystem.UI.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 
 namespace ClinicSystem.UI.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public class AppNotification
+{
+    public string Key { get; init; } = string.Empty;
+    public string Title { get; init; } = string.Empty;
+    public string Message { get; init; } = string.Empty;
+    public string TimeText { get; init; } = string.Empty;
+    public string AccentBrushKey { get; init; } = "BrushPrimaryBlue";
+    public bool IsUnread { get; init; }
+}
+
+public partial class MainWindowViewModel : ViewModelBase, IRecipient<PrescriptionHandoffChangedMessage>
 {
     // ── Injected ViewModels ────────────────────────────────────────────────
     private readonly DashboardViewModel        _dashboardVM;
@@ -55,6 +69,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ProfileViewModel          _profileVM;
     private readonly ReturnsViewModel          _returnsVM;
     private readonly DatabaseSession           _dbSession;
+    private readonly PrescriptionRepository    _prescriptionRepo;
+    private readonly HashSet<string>           _readNotificationKeys = new();
     private Action<Company>? _pendingCompanyReturn;
     private Action<Supplier>? _pendingSupplierReturn;
     private Action<Product>? _pendingProductReturn;
@@ -83,7 +99,8 @@ public partial class MainWindowViewModel : ViewModelBase
         ProfileViewModel          profileVM,
         ReturnsViewModel          returnsVM,
         ChangePasswordViewModel   changePasswordVM,
-        DatabaseSession           dbSession)
+        DatabaseSession           dbSession,
+        PrescriptionRepository     prescriptionRepo)
     {
         _dashboardVM    = dashboardVM;
         _clinicalDashboardVM = clinicalDashboardVM;
@@ -106,6 +123,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _profileVM      = profileVM;
         _returnsVM      = returnsVM;
         _dbSession      = dbSession;
+        _prescriptionRepo = prescriptionRepo;
+
+        WeakReferenceMessenger.Default.RegisterAll(this);
 
         ChangePasswordVM = changePasswordVM;
         ChangePasswordVM.CloseRequested += () => ShowChangePassword = false;
@@ -158,7 +178,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _supplierVM.SupplierSaved += supplier => { var callback=_pendingSupplierReturn; _pendingSupplierReturn=null; callback?.Invoke(supplier); };
         _productVM.ProductSaved += product => { var callback=_pendingProductReturn; _pendingProductReturn=null; callback?.Invoke(product); };
 
-        CurrentSystemMode = CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Doctor ? "Clinical" : "Pharma";
+        CurrentSystemMode = ShouldStartInClinicalMode ? "Clinical" : "Pharma";
 
         // Start on the role's dashboard.
         if (CanAccessDashboard) NavigateTo(CurrentSystemMode == "Clinical" ? _clinicalDashboardVM : _dashboardVM, "Dashboard");
@@ -188,6 +208,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 await _settingsVM.InitializeAsync();
                 await _dashboardVM.InitializeAsync();
                 await _clinicalDashboardVM.InitializeAsync();
+                await LoadNotificationsAsync();
                 
                 // Load Clinic Name for the top bar
                 var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>("SELECT SettingValue FROM Settings WHERE SettingKey = 'ClinicName'") ?? "Care & Cure Clinic");
@@ -260,6 +281,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await inventoryVM.InitializeAsync();
         }
+
+        await LoadNotificationsAsync();
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -309,21 +332,49 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // Module Access properties for UI binding
     public bool CanAccessDashboard    => true;
-    public bool CanAccessPatients     => IsClinicalMode && (CurrentUser?.IsDoctor ?? false);
-    public bool CanAccessAppointments => IsClinicalMode && (CurrentUser?.IsDoctor ?? false);
-    public bool CanAccessProducts     => IsClinicalMode ? (CurrentUser?.IsDoctor ?? false) : HasPharmaAccess("Products");
+    private bool HasClinicalAccess(string module)
+    {
+        var user = CurrentUser;
+        if (user?.IsAdmin == true || user?.IsDoctor == true) return true;
+        if (user is null) return false;
+
+        var roleCanUseClinicalModules =
+            user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist
+                or ClinicSystem.Core.Enums.UserRole.Pharmacist
+                or ClinicSystem.Core.Enums.UserRole.Assistant;
+        return roleCanUseClinicalModules && user.HasAccess(module);
+    }
+    private bool ShouldStartInClinicalMode =>
+        CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Doctor ||
+        CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Assistant ||
+        CurrentUser?.HasAccess("Patients") == true ||
+        CurrentUser?.HasAccess("Appointments") == true;
+
+    public bool CanAccessPatients     => IsClinicalMode && HasClinicalAccess("Patients");
+    public bool CanAccessAppointments => IsClinicalMode && HasClinicalAccess("Appointments");
+    public bool CanAccessProducts     => IsClinicalMode ? HasClinicalAccess("Products") : HasPharmaAccess("Products");
     public bool CanAccessCompanies    => IsPharmaMode && HasPharmaAccess("Companies");
     public bool CanAccessSuppliers    => IsPharmaMode && HasPharmaAccess("Suppliers");
     public bool CanAccessPurchases    => IsPharmaMode && HasPharmaAccess("Purchases");
     public bool CanAccessSales        => IsPharmaMode && HasPharmaAccess("Sales");
     public bool CanAccessInventory    => IsPharmaMode && HasPharmaAccess("Inventory");
-    public bool CanAccessReports      => (IsClinicalMode && (CurrentUser?.IsDoctor ?? false)) || (IsPharmaMode && HasPharmaAccess("Reports"));
+    public bool CanAccessReports      => (IsClinicalMode && HasClinicalAccess("Reports")) || (IsPharmaMode && HasPharmaAccess("Reports"));
     public bool CanAccessReturns      => IsPharmaMode && HasPharmaAccess("Returns");
     public bool CanAccessUsers        => IsPharmaMode && (CurrentUser?.IsAdmin ?? false);
     public bool CanAccessSettings     => IsPharmaMode && HasPharmaAccess("Settings");
 
-    private bool HasPharmaAccess(string module) => CurrentUser?.IsAdmin == true ||
-        ((CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Receptionist || CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Pharmacist) && CurrentUser.HasAccess(module));
+    private bool HasPharmaAccess(string module)
+    {
+        var user = CurrentUser;
+        if (user?.IsAdmin == true) return true;
+        if (user is null) return false;
+
+        var roleCanUsePharmaModules =
+            user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist
+                or ClinicSystem.Core.Enums.UserRole.Pharmacist
+                or ClinicSystem.Core.Enums.UserRole.Assistant;
+        return roleCanUsePharmaModules && user.HasAccess(module);
+    }
 
     // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers;
@@ -350,8 +401,168 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private bool _showChangePassword;
     [ObservableProperty] private bool _showLogoutConfirm;
+    [ObservableProperty] private ObservableCollection<AppNotification> _notifications = new();
+    [ObservableProperty] private AppNotification? _selectedNotification;
+    [ObservableProperty] private int _unreadNotificationCount;
+
+    public bool HasNotifications => Notifications.Count > 0;
+    public bool HasUnreadNotifications => UnreadNotificationCount > 0;
+    public bool CanSeeWorkflowNotifications => CurrentUser?.IsAdmin == true ||
+        CurrentUser?.IsPharmacist == true ||
+        CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Receptionist;
 
     private bool _visitHistoryLoaded;
+
+    partial void OnSelectedNotificationChanged(AppNotification? value)
+    {
+        if (value == null) return;
+        MarkNotificationRead(value.Key);
+    }
+
+    public async void Receive(PrescriptionHandoffChangedMessage message) => await LoadNotificationsAsync();
+
+    private async Task LoadNotificationsAsync()
+    {
+        if (!CanSeeWorkflowNotifications)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Notifications = new ObservableCollection<AppNotification>();
+                UnreadNotificationCount = 0;
+                OnPropertyChanged(nameof(HasNotifications));
+                OnPropertyChanged(nameof(HasUnreadNotifications));
+            });
+            return;
+        }
+
+        try
+        {
+            var handoffs = await Task.Run(() => _prescriptionRepo.GetPharmacyHandoffs(includeDispensed: true).ToList());
+            var items = handoffs
+                .Where(ShouldShowWorkflowNotification)
+                .Select(ToNotification)
+                .OrderByDescending(n => n.IsUnread)
+                .ThenByDescending(n => ParseNotificationTime(n.TimeText))
+                .ToList();
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Notifications = new ObservableCollection<AppNotification>(items);
+                UnreadNotificationCount = items.Count(n => n.IsUnread);
+                OnPropertyChanged(nameof(HasNotifications));
+                OnPropertyChanged(nameof(HasUnreadNotifications));
+            });
+        }
+        catch (Exception ex)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                Notifications = new ObservableCollection<AppNotification>
+                {
+                    new()
+                    {
+                        Key = "notifications-load-error",
+                        Title = "Notifications unavailable",
+                        Message = ex.Message,
+                        TimeText = DateTime.Now.ToString("h:mm tt"),
+                        AccentBrushKey = "BrushRose",
+                        IsUnread = true
+                    }
+                };
+                UnreadNotificationCount = 1;
+                OnPropertyChanged(nameof(HasNotifications));
+                OnPropertyChanged(nameof(HasUnreadNotifications));
+            });
+        }
+    }
+
+    private bool ShouldShowWorkflowNotification(Prescription prescription)
+    {
+        if (CurrentUser?.IsAdmin == true) return true;
+        if (CurrentUser?.IsPharmacist == true)
+            return prescription.WorkflowStatus is "SentToPharmacy" or "Printed";
+        if (CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Receptionist)
+            return prescription.WorkflowStatus is "SentToPharmacy" or "Printed" or "Dispensed";
+        return false;
+    }
+
+    private AppNotification ToNotification(Prescription prescription)
+    {
+        var patient = string.IsNullOrWhiteSpace(prescription.PatientName) ? "Patient" : prescription.PatientName;
+        var status = prescription.WorkflowStatus;
+        var key = $"prescription:{prescription.PrescriptionID}:{status}";
+        var title = status switch
+        {
+            "SentToPharmacy" => "New pharmacy handoff",
+            "Printed" => "Prescription ready to dispense",
+            "Dispensed" => "Medicines dispensed",
+            _ => "Prescription update"
+        };
+        var message = status switch
+        {
+            "SentToPharmacy" => $"{patient} was sent by {prescription.DoctorName ?? "doctor"} for pharmacy review.",
+            "Printed" => $"{patient}'s prescription has been checked and printed.",
+            "Dispensed" => $"{patient}'s medicines have been given.",
+            _ => $"{patient}'s prescription status changed to {prescription.WorkflowStatusLabel}."
+        };
+        var time = prescription.DispensedAt ?? prescription.PrintedAt ?? prescription.SentToPharmacyAt ?? prescription.CreatedAt;
+
+        return new AppNotification
+        {
+            Key = key,
+            Title = title,
+            Message = message,
+            TimeText = time == default ? string.Empty : time.ToString("dd MMM, h:mm tt"),
+            AccentBrushKey = status switch
+            {
+                "Printed" => "BrushAmber",
+                "Dispensed" => "BrushEmerald",
+                _ => "BrushPrimaryBlue"
+            },
+            IsUnread = !_readNotificationKeys.Contains(key)
+        };
+    }
+
+    private static DateTime ParseNotificationTime(string value) =>
+        DateTime.TryParse(value, out var parsed) ? parsed : DateTime.MinValue;
+
+    private void MarkNotificationRead(string key)
+    {
+        if (!_readNotificationKeys.Add(key)) return;
+        Notifications = new ObservableCollection<AppNotification>(
+            Notifications.Select(n => n.Key == key ? new AppNotification
+            {
+                Key = n.Key,
+                Title = n.Title,
+                Message = n.Message,
+                TimeText = n.TimeText,
+                AccentBrushKey = n.AccentBrushKey,
+                IsUnread = false
+            } : n));
+        UnreadNotificationCount = Notifications.Count(n => n.IsUnread);
+        OnPropertyChanged(nameof(HasNotifications));
+        OnPropertyChanged(nameof(HasUnreadNotifications));
+    }
+
+    [RelayCommand]
+    private void MarkAllNotificationsRead()
+    {
+        foreach (var notification in Notifications)
+            _readNotificationKeys.Add(notification.Key);
+
+        Notifications = new ObservableCollection<AppNotification>(
+            Notifications.Select(n => new AppNotification
+            {
+                Key = n.Key,
+                Title = n.Title,
+                Message = n.Message,
+                TimeText = n.TimeText,
+                AccentBrushKey = n.AccentBrushKey,
+                IsUnread = false
+            }));
+        UnreadNotificationCount = 0;
+        OnPropertyChanged(nameof(HasUnreadNotifications));
+    }
 
     // ── Navigation helper ──────────────────────────────────────────────────
     private void NavigateTo(ViewModelBase vm, string title)

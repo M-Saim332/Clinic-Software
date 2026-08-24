@@ -108,35 +108,54 @@ public partial class ClinicalReportsViewModel : ViewModelBase
             case 4: startDate = DateTime.MinValue; break;
         }
 
-        var filteredAppointments = appointmentsList.Where(a => a.AppointmentDate >= startDate && a.AppointmentDate <= endDate).ToList();
-        var totalDays = (endDate - startDate).Days;
+        var effectiveStartDate = startDate == DateTime.MinValue
+            ? appointmentsList.Select(a => (DateTime?)a.AppointmentDate.Date)
+                .Concat(patientsList.Select(p => p.LastVisitDate?.Date))
+                .Where(d => d.HasValue)
+                .Min() ?? today
+            : startDate;
+
+        var filteredAppointments = appointmentsList.Where(a => a.AppointmentDate.Date >= effectiveStartDate.Date && a.AppointmentDate.Date <= endDate.Date).ToList();
+        var totalDays = (endDate.Date - effectiveStartDate.Date).Days + 1;
         if (totalDays <= 0) totalDays = 1;
 
         // 1. Patient Analytics
         TotalVisits = filteredAppointments.Count(a => a.Status == "Completed");
-        NewPatients = patientsList.Count(p => p.LastVisitDate >= startDate && p.LastVisitDate <= endDate);
+        NewPatients = patientsList.Count(p => p.LastVisitDate?.Date >= effectiveStartDate.Date && p.LastVisitDate?.Date <= endDate.Date);
         ReturningPatients = TotalVisits > NewPatients ? TotalVisits - NewPatients : 0;
         AveragePatientsPerDay = Math.Round((double)TotalVisits / totalDays, 1);
-        PatientGrowthRate = "+12%"; // Mock logic for growth
+        var previousStartDate = effectiveStartDate.AddDays(-totalDays);
+        var previousEndDate = effectiveStartDate.AddDays(-1);
+        var previousVisits = appointmentsList.Count(a =>
+            a.Status == "Completed" &&
+            a.AppointmentDate.Date >= previousStartDate.Date &&
+            a.AppointmentDate.Date <= previousEndDate.Date);
+        PatientGrowthRate = previousVisits == 0
+            ? (TotalVisits > 0 ? "+100%" : "0%")
+            : $"{(TotalVisits >= previousVisits ? "+" : "")}{Math.Round(((double)TotalVisits - previousVisits) / previousVisits * 100)}%";
 
-        var mockTrend = new double[] { 5, 8, 12, 10, 15, 20, 18, 25 };
+        var trendDays = BuildTrendDays(effectiveStartDate.Date, endDate.Date);
+        var visitsByDay = filteredAppointments
+            .Where(a => a.Status == "Completed")
+            .GroupBy(a => a.AppointmentDate.Date)
+            .ToDictionary(g => g.Key, g => (double)g.Count());
+        var trendValues = trendDays.Select(d => visitsByDay.TryGetValue(d, out var count) ? count : 0).ToArray();
         PatientVisitsSeries = new ISeries[]
         {
             new LineSeries<double>
             {
-                Values = mockTrend,
+                Values = trendValues,
                 Fill = new SolidColorPaint(new SKColor(37, 99, 235, 40)),
                 Stroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 3 },
                 GeometrySize = 0,
                 LineSmoothness = 0.5
             }
         };
-        XAxes = new Axis[] { new Axis { IsVisible = false } };
+        XAxes = new Axis[] { new Axis { Labels = trendDays.Select(d => d.ToString("dd MMM")).ToArray(), IsVisible = false } };
         YAxes = new Axis[] { new Axis { MinLimit = 0, IsVisible = false } };
 
         // 2. Visit Type Analysis
         WalkInVisits = filteredAppointments.Count(a => a.ReasonOfVisit != null && a.ReasonOfVisit.ToLower().Contains("walk"));
-        if (WalkInVisits == 0 && filteredAppointments.Count > 0) WalkInVisits = filteredAppointments.Count / 4;
         AppointmentVisits = filteredAppointments.Count - WalkInVisits;
         
         int totalAppts = filteredAppointments.Count;
@@ -194,14 +213,6 @@ public partial class ClinicalReportsViewModel : ViewModelBase
                                                .Take(5)
                                                .ToList();
         
-        if (reasonGroups.Count == 0)
-        {
-            reasonGroups.Add(new { Reason = "General Checkup", Count = 45 });
-            reasonGroups.Add(new { Reason = "Fever", Count = 30 });
-            reasonGroups.Add(new { Reason = "Follow-up", Count = 20 });
-            reasonGroups.Add(new { Reason = "Consultation", Count = 15 });
-        }
-
         VisitReasons = new ObservableCollection<VisitReasonRow>(reasonGroups.Select(g => new VisitReasonRow { Reason = g.Reason, Count = g.Count }));
 
         VisitReasonSeries = new ISeries[]
@@ -215,5 +226,13 @@ public partial class ClinicalReportsViewModel : ViewModelBase
         };
         ReasonYAxes = new Axis[] { new Axis { Labels = reasonGroups.Select(g => g.Reason).ToArray(), LabelsPaint = new SolidColorPaint(new SKColor(15, 23, 42)) } };
         ReasonXAxes = new Axis[] { new Axis { MinLimit = 0 } };
+    }
+
+    private static DateTime[] BuildTrendDays(DateTime startDate, DateTime endDate)
+    {
+        var dayCount = Math.Max(1, (endDate - startDate).Days + 1);
+        var maxPoints = Math.Min(dayCount, 30);
+        var chartStart = endDate.AddDays(-(maxPoints - 1));
+        return Enumerable.Range(0, maxPoints).Select(i => chartStart.AddDays(i)).ToArray();
     }
 }

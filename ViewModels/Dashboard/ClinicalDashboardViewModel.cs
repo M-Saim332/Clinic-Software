@@ -17,7 +17,7 @@ public class DoctorWorkloadItem
 {
     public string DoctorName { get; set; } = string.Empty;
     public int AppointmentsCount { get; set; }
-    public double ProgressPercentage => AppointmentsCount > 0 ? Math.Min(100, AppointmentsCount * 5) : 0; // Mock percentage based on count
+    public double ProgressPercentage { get; set; }
 }
 
 public class RecentVisitItem
@@ -99,9 +99,14 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             var patientsThisMonth = patientList.Count(p => p.LastVisitDate >= new DateTime(today.Year, today.Month, 1));
             TotalPatientsComparison = $"+{patientsThisMonth} this month";
 
-            // Setup Patient Trends Line Chart (Mocking Monthly Data for visualization)
-            // Real app would group by days in the current month
-            var trendValues = new double[] { 12, 19, 15, 25, 22, 30, 28, 35, 42, 38, 45, 50, 48, 55, 60 };
+            // Setup Patient Trends Line Chart from the last 15 days of appointments.
+            var trendStart = today.AddDays(-14);
+            var trendDays = Enumerable.Range(0, 15).Select(i => trendStart.AddDays(i)).ToArray();
+            var appointmentsByDay = appointmentList
+                .Where(a => a.AppointmentDate.Date >= trendStart && a.AppointmentDate.Date <= today)
+                .GroupBy(a => a.AppointmentDate.Date)
+                .ToDictionary(g => g.Key, g => (double)g.Count());
+            var trendValues = trendDays.Select(d => appointmentsByDay.TryGetValue(d, out var count) ? count : 0).ToArray();
             PatientTrendSeries = new ISeries[]
             {
                 new LineSeries<double>
@@ -115,13 +120,11 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
                 }
             };
             
-            XAxes = new Axis[] { new Axis { Labels = new[] { "1", "3", "5", "7", "9", "11", "13", "15", "17", "19", "21", "23", "25", "27", "29" } } };
+            XAxes = new Axis[] { new Axis { Labels = trendDays.Select(d => d.ToString("dd")).ToArray() } };
             YAxes = new Axis[] { new Axis { MinLimit = 0 } };
 
             // Setup Visit Type Donut Chart
-            // In a real app we'd differentiate walk-ins by a field. We mock based on reason or appointment time.
             WalkInCount = appointmentList.Count(a => a.AppointmentDate.Date == today && a.ReasonOfVisit != null && a.ReasonOfVisit.ToLower().Contains("walk"));
-            if (WalkInCount == 0) WalkInCount = TodaysAppointments / 3; // Mock realistic ratio if no real data
             AppointmentCount = TodaysAppointments - WalkInCount;
             if (AppointmentCount < 0) AppointmentCount = 0;
 
@@ -139,11 +142,19 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             };
 
             // Setup Appointments by Doctor
-            var drGroups = appointmentList.Where(a => a.AppointmentDate.Date == today)
+            var drCounts = appointmentList.Where(a => a.AppointmentDate.Date == today)
                                           .GroupBy(a => a.DoctorName ?? "Dr. Unknown")
-                                          .Select(g => new DoctorWorkloadItem { DoctorName = g.Key, AppointmentsCount = g.Count() })
+                                          .Select(g => new { DoctorName = g.Key, AppointmentsCount = g.Count() })
                                           .OrderByDescending(d => d.AppointmentsCount)
-                                          .Take(5);
+                                          .Take(5)
+                                          .ToList();
+            var maxDoctorCount = drCounts.Count == 0 ? 0 : drCounts.Max(d => d.AppointmentsCount);
+            var drGroups = drCounts.Select(d => new DoctorWorkloadItem
+            {
+                DoctorName = d.DoctorName,
+                AppointmentsCount = d.AppointmentsCount,
+                ProgressPercentage = maxDoctorCount > 0 ? Math.Round((double)d.AppointmentsCount / maxDoctorCount * 100, 1) : 0
+            });
             AppointmentsByDoctor = new ObservableCollection<DoctorWorkloadItem>(drGroups);
 
             // Setup Recent Visits

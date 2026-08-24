@@ -10,6 +10,8 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ClinicSystem.UI.ViewModels.Prescriptions;
 using ClinicSystem.UI.Services;
+using ClinicSystem.UI.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ClinicSystem.UI.ViewModels.Patients;
 
@@ -186,6 +188,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
             await LoadClinicalDetailAsync(SelectedPatient.PatientID);
             StatusMessage = "Patient sent to the pharmacist. Reception has also been notified.";
             LogActivity("Patient Sent to Pharmacist", $"Prescription for {SelectedPatient.Name} is ready for pharmacy review", "Prescriptions");
+            WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
         }
         catch (Exception ex) { StatusMessage = $"Unable to post visit: {ex.Message}"; }
     }
