@@ -361,7 +361,6 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     {
         if (value != null)
         {
-            // Use the per-unit price (PackMRP / PiecesPerUnit) for POS dispensing
             ProductPrice = value.PricePerTablet > 0 ? value.PricePerTablet : value.PurchasePrice;
         }
         OnPropertyChanged(nameof(AvailableStockDisplay));

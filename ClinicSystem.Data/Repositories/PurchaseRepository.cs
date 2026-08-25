@@ -99,9 +99,12 @@ public class PurchaseRepository
             item.PurchaseID = purchaseId;
             item.PackageQuantity = item.PackageQuantity > 0 ? item.PackageQuantity : item.Quantity;
             item.Quantity = item.PackageQuantity + Math.Max(0, item.BonusQuantity);
+            item.UnitsPerPackage = conn.ExecuteScalar<int>(
+                "SELECT CASE WHEN ISNULL(PiecesPerUnit, 0) <= 0 THEN 1 ELSE PiecesPerUnit END FROM Products WHERE ProductID=@ProductID",
+                new { item.ProductID }, tx);
             conn.Execute(@"INSERT INTO PurchaseItems
-                (PurchaseID,ProductID,BatchNumber,ExpiryDate,Quantity,BonusQuantity,PackageQuantity,PurchasePrice,PackMRP,Discount,Tax,ExtraDiscount,ATax,CompanySalesTax)
-                VALUES (@PurchaseID,@ProductID,@BatchNumber,@ExpiryDate,@Quantity,@BonusQuantity,@PackageQuantity,@PurchasePrice,@PackMRP,@Discount,@Tax,@ExtraDiscount,@ATax,@CompanySalesTax)", item, tx);
+                (PurchaseID,ProductID,BatchNumber,ExpiryDate,Quantity,BonusQuantity,PackageQuantity,UnitsPerPackage,PurchasePrice,PackMRP,Discount,Tax,ExtraDiscount,ATax,CompanySalesTax)
+                VALUES (@PurchaseID,@ProductID,@BatchNumber,@ExpiryDate,@Quantity,@BonusQuantity,@PackageQuantity,@UnitsPerPackage,@PurchasePrice,@PackMRP,@Discount,@Tax,@ExtraDiscount,@ATax,@CompanySalesTax)", item, tx);
         }
     }
 
@@ -120,14 +123,14 @@ public class PurchaseRepository
                 "SELECT CASE WHEN ISNULL(PiecesPerUnit, 0) <= 0 THEN 1 ELSE PiecesPerUnit END FROM Products WHERE ProductID=@ProductID",
                 new { item.ProductID }, tx);
             var stockQuantity = (item.PackageQuantity + item.BonusQuantity) * piecesPerUnit;
-            // Update stock and MRP so the doctor drug picker and pharma product registry reflect the latest invoice.
+            var effectiveCostPerPiece = item.EffectiveCostPerPiece;
             conn.Execute(@"UPDATE Products SET 
                 Stock=Stock+@Quantity,
-                PurchasePrice=@PackMRP,
+                PurchasePrice=@EffectiveCostPerPiece,
                 SellingPrice=@PackMRP,
                 LastStockUpdateDate=CAST(GETDATE() AS DATE) 
                 WHERE ProductID=@ProductID AND IsActive=1",
-                new { Quantity=stockQuantity, PackMRP=item.PackMRP, item.ProductID }, tx);
+                new { Quantity=stockQuantity, EffectiveCostPerPiece=effectiveCostPerPiece, PackMRP=item.PackMRP, item.ProductID }, tx);
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
         tx.Commit();

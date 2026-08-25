@@ -57,6 +57,10 @@
             <!-- Data Panel -->
             <Grid Grid.Row="2" Margin="28,12,28,24">
                 <comp:DataTableShellControl Title="All Companies" RecordCount="{Binding Companies.Count}">
+                    <comp:DataTableShellControl.HeaderActions>
+                        <comp:ExportToolbarControl ReportName="Companies_List" ItemsSource="{Binding Companies}"
+                            Columns="C.Code:CCode|Company Name:Name:2|Phone:Phone|Email:Email|Address:Address:2"/>
+                    </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel/>
                     </comp:DataTableShellControl.FilterToolbar>

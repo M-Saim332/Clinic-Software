@@ -110,6 +110,10 @@
         <!-- TAB 2: Return History -->
         <TabItem Header="📜 Return History" FontSize="14" FontWeight="Medium">
             <comp:DataTableShellControl Title="Return History" RecordCount="{Binding Returns.Count}" Margin="0,12,0,0">
+                <comp:DataTableShellControl.HeaderActions>
+                    <comp:ExportToolbarControl ReportName="Returns_History" ItemsSource="{Binding Returns}"
+                        Columns="Return No:ReturnNo|Date:CreatedAt|Type:ReturnType|Medicines:ProductSummary:2|Pieces:Quantity|Patient / Supplier:CounterpartyName:2|Amount:RefundAmount|By:CreatedByName"/>
+                </comp:DataTableShellControl.HeaderActions>
                 <comp:DataTableShellControl.FilterToolbar>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Command="{Binding GenerateReturnInvoiceCommand}" Classes="btn-secondary" Content="Export Selected Invoice"/>

@@ -68,6 +68,10 @@
                 <!-- TAB 0: WAITING PATIENTS -->
                 <TabItem Header="Waiting Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Waiting Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Clinic_Waiting_Patients" ItemsSource="{Binding FilteredPatients}"
+                                Columns="Name:Name:2|Age:Age|Phone:Phone|Appointment Time:AppointmentTimeDisplay|Reason of Visit:ReasonOfVisit:2"/>
+                        </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalScrollBarVisibility="Auto">
@@ -106,6 +110,10 @@
                 <!-- TAB 1: VISITED TODAY -->
                 <TabItem Header="Visited Today" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Visited Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Clinic_Visited_Today" ItemsSource="{Binding FilteredPatients}"
+                                Columns="Name:Name:2|Age:Age|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Last Visit:LastVisitDate"/>
+                        </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -134,6 +142,10 @@
                 <!-- TAB 2: ALL PATIENTS -->
                 <TabItem Header="All Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="All Patients" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Clinic_All_Patients" ItemsSource="{Binding FilteredPatients}"
+                                Columns="Patient ID:PatientID|Name:Name:2|Age:Age|Gender:Gender|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Status:VisitStatus|Last Visit:LastVisitDate"/>
+                        </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding FilteredPatients}" SelectedItem="{Binding SelectedPatient}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -249,43 +261,73 @@
                                 <TextBox Text="{Binding ReasonOfVisit}" AcceptsReturn="True" Height="80" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10" IsReadOnly="{Binding IsReadOnly}" HorizontalAlignment="Stretch"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Grid.Row="4" Spacing="6" Margin="12,0,0,16">
-                                <TextBlock Text="Drug Selection &amp; Visit History" Classes="label"/>
-                                <TextBlock Text="Use the patient visit action to select in-stock drugs. Existing prescriptions and visits remain linked to this patient." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk500}"/>
+                                <TextBlock Text="Consultation" Classes="label"/>
+                                <TextBlock Text="Select medicines from the pharma catalog and review linked visit history below." TextWrapping="Wrap" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
                             
                         </Grid>
 
-                        <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="16" IsVisible="{Binding ShowEditButton}">
-                            <StackPanel Spacing="12">
-                                <TextBlock Text="DRUG SELECTION" FontWeight="Bold"/>
-                                <Grid ColumnDefinitions="3*,1.2*,2*,Auto" ColumnSpacing="8">
+                        <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="18" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Spacing="14">
+                                <TextBlock Text="DRUG SELECTION" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+                                <Grid ColumnDefinitions="3*,1.2*,2*" ColumnSpacing="8">
                                     <StackPanel Grid.Column="0" Spacing="4">
                                         <comp:SearchableComboBoxControl Text="{Binding DrugSearch}" ItemsSource="{Binding FilteredDrugs}" SelectedItem="{Binding SelectedDrug}"
-                                            DisplayMemberPath="Name" DetailMemberPath="MRP" Placeholder="Search drug..."/>
+                                            DisplayMemberPath="Name" DetailMemberPath="ProductCodeDisplay" Placeholder="Search by drug name or product code..."/>
                                     </StackPanel>
                                     <NumericUpDown Grid.Column="1" Value="{Binding DrugQuantity}" Minimum="1" MinWidth="60" VerticalAlignment="Bottom"/>
                                     <TextBox Grid.Column="2" Text="{Binding Dosage}" PlaceholderText="Dosage / directions" VerticalAlignment="Bottom"/>
-                                    <Button Grid.Column="3" Command="{Binding AddDrugCommand}" Content="Add" Classes="btn-secondary" VerticalAlignment="Bottom"/>
                                 </Grid>
-                                <DataGrid ItemsSource="{Binding SelectedDrugs}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="150">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="DRUG" Binding="{Binding ProductName}" Width="*"/>
-                                        <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="70"/>
-                                        <DataGridTextColumn Header="DOSAGE" Binding="{Binding Dosage}" Width="*"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
+                                <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <StackPanel Spacing="10">
+                                        <TextBlock Text="Prescribed Medicines" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk800}"/>
+                                        <ItemsControl ItemsSource="{Binding SelectedDrugs}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="prescvm:PrescriptionItemRow">
+                                                    <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                                                        <Grid ColumnDefinitions="*,Auto,Auto">
+                                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                                <TextBlock Text="{Binding ProductName}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}"/>
+                                                                <TextBlock Text="{Binding Dosage}" Foreground="{DynamicResource BrushInk600}" FontSize="12"/>
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Quantity, StringFormat='Qty {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center" Margin="12,0"/>
+                                                            <Button Grid.Column="2"
+                                                                    Command="{Binding #Root.((vm:PatientRegistryViewModel)DataContext).RemoveDrugCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="btn-ghost" Padding="8,0" Height="28" VerticalAlignment="Center">
+                                                                <materialIcons:MaterialIcon Kind="Close" Width="14" Height="14"/>
+                                                            </Button>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="10" Padding="16" IsVisible="{Binding ShowEditButton}">
-                            <StackPanel Spacing="10">
-                                <TextBlock Text="VISIT HISTORY" FontWeight="Bold"/>
+                        <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushPrimaryBlue}" BorderThickness="1.5" CornerRadius="10" Padding="20" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Spacing="14">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource BrushBlue50}" Margin="0,0,10,0">
+                                        <materialIcons:MaterialIcon Kind="History" Width="18" Height="18" Foreground="{DynamicResource BrushPrimaryBlue}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="VISIT HISTORY" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource BrushInk900}" VerticalAlignment="Center"/>
+                                </Grid>
                                 <ItemsControl ItemsSource="{Binding VisitHistory}">
                                     <ItemsControl.ItemTemplate><DataTemplate x:DataType="models:Prescription">
-                                        <Border BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="0,8">
-                                            <StackPanel Spacing="3"><TextBlock Text="{Binding VisitDate, StringFormat='{}{0:dd MMM yyyy hh:mm tt}'}" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding Notes}" Foreground="{DynamicResource BrushInk500}"/>
-                                                <ItemsControl ItemsSource="{Binding Items}"><ItemsControl.ItemTemplate><DataTemplate x:DataType="models:PrescriptionItem"><TextBlock Text="{Binding ProductName, StringFormat='• {0}'}"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                                        <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                                            <StackPanel Spacing="10">
+                                                <TextBlock Text="{Binding VisitDateDisplay}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource BrushInk900}"/>
+                                                <Grid ColumnDefinitions="190,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Primary Diagnosis / Reason" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
+                                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PrimaryReasonDisplay}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk900}"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Prescribed Medicines" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MedicinesSummary}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk900}"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Doctor / Attending Notes" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk600}"/>
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DoctorNotesDisplay}" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk900}"/>
+                                                </Grid>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate></ItemsControl.ItemTemplate>
@@ -300,35 +342,34 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
-                <Grid ColumnDefinitions="*,Auto">
+                <Grid ColumnDefinitions="Auto,*,Auto">
                     <!-- Status message takes remaining space and wraps if necessary -->
-                    <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
-                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap" Margin="0,0,16,0"/>
-                    <!-- Buttons locked to the right -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <Button  Command="{Binding CancelCommand}" Classes="btn-secondary">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-        <TextBlock Text="Back" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                        <Button  Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
-        <TextBlock Text="Edit Patient" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                    <Button Grid.Column="0" Command="{Binding CancelCommand}" Classes="btn-secondary">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+                            <TextBlock Text="Back" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap" Margin="16,0"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                         <Button Command="{Binding AddAnotherCommand}" Classes="btn-ghost" IsVisible="{Binding ShowSaveButton}" Content="Save &amp; Add Another"/>
-                        <Button  Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
-        <TextBlock Text="Save Patient" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-secondary" IsVisible="{Binding ShowEditButton}">
-                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/><TextBlock Text="Print Patient Prescription"/></StackPanel>
+                        <Button Command="{Binding SaveCommand}" Classes="btn-primary" IsVisible="{Binding ShowSaveButton}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+                                <TextBlock Text="Save Patient" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
-                        <Button Command="{Binding PostAndSyncCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}" Background="#0D9488">
+                        <Button Command="{Binding EditSpecificCommand}" CommandParameter="{Binding SelectedPatient}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
+                                <TextBlock Text="Edit Patient" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}">
+                            <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/><TextBlock Text="Print Prescription"/></StackPanel>
+                        </Button>
+                        <Button Command="{Binding PostAndSyncCommand}" Classes="btn-primary" IsVisible="{Binding ShowEditButton}">
                             <StackPanel Orientation="Horizontal" Spacing="8"><materialIcons:MaterialIcon Kind="Send" Width="16" Height="16"/><TextBlock Text="Send to Pharmacist"/></StackPanel>
                         </Button>
                     </StackPanel>

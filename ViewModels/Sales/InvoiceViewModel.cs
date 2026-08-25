@@ -31,10 +31,18 @@ public partial class InvoiceViewModel : ViewModelBase
     [ObservableProperty] private string _clinicPhone   = string.Empty;
 
     public decimal DocumentSubTotal => LineItems.Sum(x => x.GrossLineAmount);
+    public int DocumentTotalItems => LineItems.Count;
+    public int DocumentTotalQuantity => LineItems.Sum(x => x.Quantity);
+    public decimal DocumentGrossAmount => LineItems.Sum(x => x.GrossLineAmount);
+    public decimal DocumentDiscountAmount => LineItems.Sum(x => x.DiscountAmount);
+    public decimal DocumentAdvanceWHTax => LineItems.Sum(x => x.AdvTaxAmount);
+    public decimal DocumentTaxAmount => LineItems.Sum(x => x.TaxAmount) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
+    public decimal DocumentCNValue => 0;
     public decimal DocumentAdjustmentsTotal =>
         LineItems.Sum(x => x.Tax - x.Discount) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
     public decimal DocumentGrandTotal => SaleData?.GrandTotal ?? LineItems.Sum(x => x.LineNetTotal);
     public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
+    public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
 
     public void LoadInvoice(Sale sale)
     {
@@ -80,6 +88,13 @@ public partial class InvoiceViewModel : ViewModelBase
     private void NotifyDocumentTotals()
     {
         OnPropertyChanged(nameof(DocumentSubTotal));
+        OnPropertyChanged(nameof(DocumentTotalItems));
+        OnPropertyChanged(nameof(DocumentTotalQuantity));
+        OnPropertyChanged(nameof(DocumentGrossAmount));
+        OnPropertyChanged(nameof(DocumentDiscountAmount));
+        OnPropertyChanged(nameof(DocumentAdvanceWHTax));
+        OnPropertyChanged(nameof(DocumentTaxAmount));
+        OnPropertyChanged(nameof(DocumentCNValue));
         OnPropertyChanged(nameof(DocumentAdjustmentsTotal));
         OnPropertyChanged(nameof(DocumentGrandTotal));
         OnPropertyChanged(nameof(DocumentStatus));

@@ -28,15 +28,31 @@ public class PurchaseItem
     public decimal EffectiveRate => PurchasePrice;
     public decimal UnitMRP => PackMRP;
     public decimal GrossLineAmount => PackageQuantity * PurchasePrice;
-    public decimal DiscountedValue => GrossLineAmount * (Discount / 100m);
+    public decimal DiscountedValue => 0;
     public decimal ExtraDiscountedValue => GrossLineAmount * (ExtraDiscount / 100m);
-    public decimal SubTotal => Math.Max(0, GrossLineAmount - DiscountedValue - ExtraDiscountedValue);
+    public decimal SubTotal => Math.Max(0, GrossLineAmount - ExtraDiscountedValue);
     public decimal AdvanceTaxAmount => SubTotal * (ATax / 100m);
     public decimal CompanySalesTaxAmount => SubTotal * (CompanySalesTax / 100m);
     public decimal TaxableOverhead => AdvanceTaxAmount + CompanySalesTaxAmount;
     public decimal LineNetTotal => SubTotal + TaxableOverhead;
+    public decimal EffectiveCostPerPiece
+    {
+        get
+        {
+            var pieces = Math.Max(1, UnitsPerPackage);
+            var totalPieces = (PackageQuantity * pieces) + (Math.Max(0, BonusQuantity) * pieces);
+            return totalPieces > 0 ? Math.Round(LineNetTotal / totalPieces, 4, MidpointRounding.AwayFromZero) : 0;
+        }
+    }
     public string BatchExpiryDisplay =>
         $"{(string.IsNullOrWhiteSpace(BatchNumber) ? "N/A" : BatchNumber)} / {(ExpiryDate.HasValue ? ExpiryDate.Value.ToString("dd MMM yyyy") : "N/A")}";
-    public string RateMrpDisplay => $"T.P Rs. {PurchasePrice:N2} / MRP Rs. {PackMRP:N2}";
+    public string RateMrpDisplay => $"Rate Rs. {PurchasePrice:N2} / MRP Rs. {PackMRP:N2}";
     public string TaxDiscountDisplay => $"Tax {ATax + CompanySalesTax:N2}% / Disc {Discount + ExtraDiscount:N2}%";
+    public string ItemCodeDisplay => ProductID > 0 ? ProductID.ToString() : "-";
+    public string ExpiryDateDisplay => ExpiryDate?.ToString("dd MMM yyyy") ?? "-";
+    public decimal DiscountPercent => Discount + ExtraDiscount;
+    public decimal DiscountAmount => DiscountedValue + ExtraDiscountedValue;
+    public decimal AdvTaxAmount => AdvanceTaxAmount;
+    public decimal TaxAmount => CompanySalesTaxAmount;
+    public decimal NetAmount => LineNetTotal;
 }

@@ -147,24 +147,8 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private void AddDrug()
     {
-        if (SelectedDrug != null)
-        {
-            if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
-            SelectedDrugs.Add(new PrescriptionItemRow { ProductID=SelectedDrug.ProductID, ProductName=SelectedDrug.Name,
-                Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=SelectedDrug.Stock });
-            SelectedDrug=null; DrugQuantity=1; Dosage=string.Empty; DrugSearch=string.Empty;
-        }
-        else if (!string.IsNullOrWhiteSpace(DrugSearch))
-        {
-            if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
-            SelectedDrugs.Add(new PrescriptionItemRow { ProductID=0, ProductName=DrugSearch,
-                Quantity=DrugQuantity, Dosage=Dosage, AvailableStock=0 });
-            DrugSearch=string.Empty; DrugQuantity=1; Dosage=string.Empty;
-        }
-        else
-        {
-            StatusMessage = "Select an in-stock drug or type a custom drug name.";
-        }
+        if (SelectedDrug == null) { StatusMessage = "Select a drug from the pharma catalog."; return; }
+        AddSelectedDrugFromCatalog(SelectedDrug);
     }
 
     [RelayCommand] private void RemoveDrug(PrescriptionItemRow? row) { if (row != null) SelectedDrugs.Remove(row); }
@@ -176,7 +160,7 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
         if (SelectedDrugs.Count == 0) { StatusMessage = "Select at least one drug."; return; }
         var prescription = new Prescription {
             PatientID=SelectedPatient.PatientID, DoctorID=CurrentUser?.UserID ?? 0, VisitDate=DateTime.Now,
-            Diagnosis=null, Notes=ReasonOfVisit,
+            Diagnosis=ReasonOfVisit, Notes=ReasonOfVisit,
             Items=SelectedDrugs.Select(d => new PrescriptionItem { ProductID=d.ProductID, Quantity=d.Quantity, Dosage=d.Dosage }).ToList()
         };
         try
@@ -370,6 +354,11 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
 
     partial void OnSearchTermChanged(string value) => FilterPatients();
     partial void OnDrugSearchChanged(string value) => FilterDrugList();
+    partial void OnSelectedDrugChanged(Product? value)
+    {
+        if (value != null)
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => AddSelectedDrugFromCatalog(value));
+    }
 
     // ── Helpers ────────────────────────────────────────────────────────────
     public async Task InitializeAsync()
@@ -421,7 +410,36 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     {
         var q=DrugSearch.Trim();
         FilteredDrugs = new ObservableCollection<Product>(string.IsNullOrWhiteSpace(q) ? AvailableDrugs : AvailableDrugs.Where(d =>
-            d.Name.Contains(q,StringComparison.OrdinalIgnoreCase) || (d.GenericName?.Contains(q,StringComparison.OrdinalIgnoreCase) ?? false)));
+            d.Name.Contains(q,StringComparison.OrdinalIgnoreCase)
+            || d.PCode.ToString().Contains(q,StringComparison.OrdinalIgnoreCase)
+            || d.ProductID.ToString().Contains(q,StringComparison.OrdinalIgnoreCase)
+            || (d.GenericName?.Contains(q,StringComparison.OrdinalIgnoreCase) ?? false)));
+    }
+
+    private void AddSelectedDrugFromCatalog(Product drug)
+    {
+        if (DrugQuantity <= 0) { StatusMessage = "Drug quantity must be greater than zero."; return; }
+        var existing = SelectedDrugs.FirstOrDefault(d => d.ProductID == drug.ProductID && string.Equals(d.Dosage, Dosage, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            existing.Quantity += DrugQuantity;
+        }
+        else
+        {
+            SelectedDrugs.Add(new PrescriptionItemRow
+            {
+                ProductID = drug.ProductID,
+                ProductName = drug.Name,
+                Quantity = DrugQuantity,
+                Dosage = Dosage,
+                AvailableStock = drug.Stock
+            });
+        }
+        SelectedDrug = null;
+        DrugSearch = string.Empty;
+        DrugQuantity = 1;
+        Dosage = string.Empty;
+        StatusMessage = string.Empty;
     }
 
 

@@ -446,7 +446,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Category = m.Category ?? string.Empty;
         Rack = m.Rack ?? string.Empty;
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
-        PurchasePrice = m.PurchasePrice.ToString("F2");
+        PurchasePrice = m.MRP.ToString("F2");
         TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
         InitialQuantityPacks = m.PiecesPerUnit > 0 ? (m.Stock / m.PiecesPerUnit).ToString() : "0";
         MinimumStockLevel = m.MinimumStockLevel.ToString();
@@ -464,7 +464,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Category = string.IsNullOrWhiteSpace(Category) ? null : Category.Trim(),
         Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
         ExpiryDate = ExpiryDate?.Date,
-        PurchasePrice = decimal.TryParse(PurchasePrice, out var bp) ? bp : 0,
+        PurchasePrice = SelectedProduct?.PurchasePrice ?? 0,
         SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
         Stock = SelectedProduct?.Stock ?? CalculateInitialStockPieces(),

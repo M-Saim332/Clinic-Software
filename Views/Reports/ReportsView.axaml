@@ -34,24 +34,16 @@
             <!-- Tab 1: Patient List -->
             <TabItem Header="Patient List">
                 <comp:DataTableShellControl Title="Patients Database Summary" RecordCount="{Binding PatientList.Count}">
+                    <comp:DataTableShellControl.HeaderActions>
+                        <comp:ExportToolbarControl ReportName="Patient_List" ItemsSource="{Binding PatientList}"
+                            Columns="ID:PatientID|Name:Name:2|Age:Age|Gender:Gender|Contact:Contact|Address:Address:2"/>
+                    </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{Binding LoadPatientListCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding ExportPatientListToPdfCommand}" Classes="btn-secondary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding ExportPatientListToExcelCommand}" Classes="btn-secondary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -75,24 +67,16 @@
             <!-- Tab 2: Product Stock -->
             <TabItem Header="Product Stock">
                 <comp:DataTableShellControl Title="Stock Level Listing" RecordCount="{Binding ProductStockList.Count}">
+                    <comp:DataTableShellControl.HeaderActions>
+                        <comp:ExportToolbarControl ReportName="Product_Stock" ItemsSource="{Binding ProductStockList}"
+                            Columns="Product Name:Name:2|Stock Level:StockBreakdown|Minimum Level:MinStock|Status:StockStatus|Expiry:ExpiryDate|MRP:MRP|Manufacturer:Manufacturer:2"/>
+                    </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button Command="{Binding LoadProductStockCommand}" Classes="btn-secondary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <materialIcons:MaterialIcon Kind="Clock" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
                                     <TextBlock Text="Refresh Data" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding ExportProductStockToPdfCommand}" Classes="btn-secondary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Export PDF" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Button>
-                            <Button Command="{Binding ExportProductStockToExcelCommand}" Classes="btn-secondary">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Export Excel" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </StackPanel>
@@ -122,9 +106,13 @@
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                             CornerRadius="{DynamicResource CornerRadiusCard}" Margin="0,0,12,0" Padding="16">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="EXPIRED PRODUCTS (DO NOT SELL)" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushRose}" LetterSpacing="1.5"
-                                       FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                                <TextBlock Text="EXPIRED PRODUCTS (DO NOT SELL)" FontSize="11" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushRose}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+                                <comp:ExportToolbarControl Grid.Column="1" ReportName="Expired_Products" ItemsSource="{Binding ExpiredProducts}"
+                                    Columns="Name:Name:2|Stock:StockBreakdown|Expiry Date:ExpiryDate"/>
+                            </Grid>
                             <DataGrid ItemsSource="{Binding ExpiredProducts}" AutoGenerateColumns="False" IsReadOnly="True"
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -141,9 +129,13 @@
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                             CornerRadius="{DynamicResource CornerRadiusCard}" Margin="12,0,0,0" Padding="16">
                         <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="LOW STOCK ALERTS (REORDER SOON)" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource BrushAmber}" LetterSpacing="1.5"
-                                       FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,12"/>
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                                <TextBlock Text="LOW STOCK ALERTS (REORDER SOON)" FontSize="11" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushAmber}" LetterSpacing="1.5"
+                                           FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+                                <comp:ExportToolbarControl Grid.Column="1" ReportName="Low_Stock_Alerts" ItemsSource="{Binding LowStockProducts}"
+                                    Columns="Name:Name:2|Stock:StockBreakdown|Minimum Required:MinStock"/>
+                            </Grid>
                             <DataGrid ItemsSource="{Binding LowStockProducts}" AutoGenerateColumns="False" IsReadOnly="True"
                                       Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
@@ -160,6 +152,10 @@
             <!-- Tab 4: Visit History -->
             <TabItem Header="Visit History">
                 <comp:DataTableShellControl Title="Patient Visits" RecordCount="{Binding AllVisits.Count}">
+                    <comp:DataTableShellControl.HeaderActions>
+                        <comp:ExportToolbarControl ReportName="Visit_History" ItemsSource="{Binding AllVisits}"
+                            Columns="Date:VisitDate|Patient:PatientName:2|Doctor:DoctorName|Lab Tests:LabTests:2"/>
+                    </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <Button Command="{Binding LoadAllVisitsCommand}" Classes="btn-secondary" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -207,12 +203,8 @@
                                 <TextBlock Text="Download Monthly PDF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding ExportFinancialsToExcelCommand}" Classes="btn-secondary">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="ChartBar" Width="14" Height="14" Foreground="{DynamicResource BrushInk600}" VerticalAlignment="Center"/>
-                                <TextBlock Text="Export to Excel" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                        <comp:ExportToolbarControl ReportName="Financials" ItemsSource="{Binding FinancialSummaryRows}"
+                            Columns="Metric:Metric:2|Value:Value"/>
                     </WrapPanel>
 
                     <!-- Financial Summary cards in full-page swap layout style -->
@@ -232,7 +224,10 @@
                 <DockPanel Margin="0,12"><StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
                     <DatePicker SelectedDate="{Binding StartDate}"/><DatePicker SelectedDate="{Binding EndDate}"/>
                     <comp:SearchableComboBoxControl ItemsSource="{Binding ReceptionistNames}" SelectedItem="{Binding SelectedReceptionist}" DisplayMemberPath="" Placeholder="Search receptionist..." IsVisible="{Binding CanFilterByUser}" Width="220"/>
-                    <Button Command="{Binding LoadPharmaReportsCommand}" Content="Apply Filters" Classes="btn-secondary"/></StackPanel>
+                    <Button Command="{Binding LoadPharmaReportsCommand}" Content="Apply Filters" Classes="btn-secondary"/>
+                    <comp:ExportToolbarControl ReportName="Sale_Invoice_Summary" ItemsSource="{Binding SaleInvoiceSummary}"
+                        Columns="Invoice No:InvoiceNumber|Date:SaleDate|Patient:PatientName:2|Receptionist:ReceptionistName|Total:GrandTotal"/>
+                    </StackPanel>
                     <DataGrid ItemsSource="{Binding SaleInvoiceSummary}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
                         <DataGridTextColumn Header="INVOICE NO" Binding="{Binding InvoiceNumber}" Width="150"/><DataGridTextColumn Header="DATE" Binding="{Binding SaleDate, StringFormat='{}{0:dd MMM yyyy}'}" Width="130"/>
                         <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientName}" Width="*"/><DataGridTextColumn Header="RECEPTIONIST" Binding="{Binding ReceptionistName}" Width="180"/>
@@ -240,14 +235,18 @@
                 </DockPanel>
             </TabItem>
             <TabItem Header="Best Selling Products">
-                <DockPanel Margin="0,12"><Button DockPanel.Dock="Top" Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                <DockPanel Margin="0,12"><StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12"><Button Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary"/>
+                    <comp:ExportToolbarControl ReportName="Best_Selling_Products" ItemsSource="{Binding BestSellingProducts}"
+                        Columns="Product:ProductName:2|Pieces Sold:PiecesSold|Revenue:Revenue"/></StackPanel>
                     <DataGrid ItemsSource="{Binding BestSellingProducts}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/><DataGridTextColumn Header="PIECES SOLD" Binding="{Binding PiecesSold}" Width="150"/>
                         <DataGridTextColumn Header="REVENUE" Binding="{Binding Revenue, StringFormat='Rs. {0:N2}'}" Width="170"/></DataGrid.Columns></DataGrid>
                 </DockPanel>
             </TabItem>
             <TabItem Header="Company-wise Sale">
-                <DockPanel Margin="0,12"><Button DockPanel.Dock="Top" Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary" HorizontalAlignment="Left" Margin="0,0,0,12"/>
+                <DockPanel Margin="0,12"><StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12"><Button Command="{Binding LoadPharmaReportsCommand}" Content="Refresh" Classes="btn-secondary"/>
+                    <comp:ExportToolbarControl ReportName="Company_wise_Sale" ItemsSource="{Binding CompanyWiseSales}"
+                        Columns="Company:CompanyName:2|Pieces:PiecesSold|Sales:Revenue|Cost:Cost|Profit:Profit"/></StackPanel>
                     <DataGrid ItemsSource="{Binding CompanyWiseSales}" AutoGenerateColumns="False" IsReadOnly="True"><DataGrid.Columns>
                         <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="*"/><DataGridTextColumn Header="PIECES" Binding="{Binding PiecesSold}" Width="110"/>
                         <DataGridTextColumn Header="SALES" Binding="{Binding Revenue, StringFormat='Rs. {0:N2}'}" Width="150"/><DataGridTextColumn Header="COST" Binding="{Binding Cost, StringFormat='Rs. {0:N2}'}" Width="150"/>
@@ -255,12 +254,16 @@
                 </DockPanel>
             </TabItem>
             <TabItem Header="P&amp;L Summary">
-                <WrapPanel Margin="0,20">
+                <DockPanel Margin="0,20">
+                    <comp:ExportToolbarControl DockPanel.Dock="Top" HorizontalAlignment="Right" ReportName="P_and_L_Summary" ItemsSource="{Binding ProfitLossSummaryRows}"
+                        Columns="Metric:Metric:2|Value:Value"/>
+                <WrapPanel>
                     <comp:SummaryCardControl Title="Revenue" Value="{Binding TotalRevenue, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushTeal}" Width="280" Margin="0,0,16,16"/>
                     <comp:SummaryCardControl Title="Purchases" Value="{Binding TotalExpenses, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushRose}" Width="280" Margin="0,0,16,16"/>
                     <comp:SummaryCardControl Title="Returns" Value="{Binding TotalReturns, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushAmber}" Width="280" Margin="0,0,16,16"/>
                     <comp:SummaryCardControl Title="Net Profit / Loss" Value="{Binding NetProfit, StringFormat='Rs. {0:N2}'}" BorderColor="{DynamicResource BrushPrimaryBlue}" Width="300"/>
                 </WrapPanel>
+                </DockPanel>
             </TabItem>
         </TabControl>
 

@@ -65,6 +65,10 @@
             <!-- Data Panel -->
             <Grid Grid.Row="2" Margin="28,12,28,24">
                 <comp:DataTableShellControl Title="Billing History" RecordCount="{Binding Sales.Count}">
+                    <comp:DataTableShellControl.HeaderActions>
+                        <comp:ExportToolbarControl ReportName="Sales_Billing_History" ItemsSource="{Binding Sales}"
+                            Columns="Invoice No:InvoiceNumber|Date:SaleDate|Patient:PatientName:2|Receptionist:ReceptionistName|Method:PaymentMethod|Net Grand Total (Final):GrandTotal"/>
+                    </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button  Command="{Binding ViewDetailsCommand}"
@@ -180,7 +184,7 @@
                                 <TextBlock DockPanel.Dock="Left" Text="ADD PRODUCT" FontSize="11" FontWeight="Bold"
                                            Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                            FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding GrandTotal, StringFormat='Grand Total: Rs. {0:N2}'}"
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding GrandTotal, StringFormat='Net Grand Total (Final): Rs. {0:N2}'}"
                                            FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}" 
                                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </DockPanel>
@@ -248,10 +252,10 @@
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
                                     <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="70"/>
-                                    <DataGridTextColumn Header="PRICE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                    <DataGridTextColumn Header="RATE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                     <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. {0:N2}'}" Width="90"/>
-                                    <DataGridTextColumn Header="LINE TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTextColumn Header="NET AMOUNT" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -274,27 +278,31 @@
             <!-- Footer -->
             <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
-                <DockPanel>
-                    <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
-                               VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
-                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button  Command="{Binding CancelCommand}" Classes="btn-secondary">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-        <TextBlock Text="Back" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Button Grid.Column="0" Command="{Binding CancelCommand}" Classes="btn-secondary">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+                            <TextBlock Text="Back" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Button Command="{Binding EditInvoiceCommand}" Classes="btn-ghost" IsVisible="{Binding IsCheckingInvoice}" Content="Edit Draft"/>
-                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-ghost" IsVisible="{Binding IsDraftInvoice}" Content="Check Invoice"/>
-                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
-                        <Button  Command="{Binding PostSaleCommand}" Classes="btn-primary" IsVisible="{Binding IsCheckingInvoice}">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Send" Width="18" Height="18"/>
-        <TextBlock Text="Post Invoice" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
+                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-ghost" IsVisible="{Binding IsDraftInvoice}" Content="Review Sale Invoice"/>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
+                                   VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap"/>
                     </StackPanel>
-                </DockPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
+                        <Button Command="{Binding PostSaleCommand}" Classes="btn-primary" IsVisible="{Binding IsCheckingInvoice}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="Send" Width="18" Height="18"/>
+                                <TextBlock Text="Post Sales Invoice" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Border>
         </Grid>
         

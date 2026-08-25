@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
-             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:comp="using:ClinicSystem.UI.Views.Components"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="ClinicSystem.UI.Views.Reports.ClinicalReportsView"
              x:DataType="vm:ClinicalReportsViewModel"
@@ -53,16 +53,10 @@
                   <ComboBoxItem>This Year</ComboBoxItem>
                   <ComboBoxItem>All Time</ComboBoxItem>
               </ComboBox>
-              <Button Content="Export Report" Classes="primary">
-                  <Button.ContentTemplate>
-                      <DataTemplate>
-                          <StackPanel Orientation="Horizontal" Spacing="8">
-                              <materialIcons:MaterialIcon Kind="Download" Width="16" Height="16"/>
-                              <TextBlock Text="Export Report" VerticalAlignment="Center"/>
-                          </StackPanel>
-                      </DataTemplate>
-                  </Button.ContentTemplate>
-              </Button>
+              <comp:ExportToolbarControl ReportName="Clinic_Report"
+                                         ItemsSource="{Binding ClinicReportSummaryRows}"
+                                         FilterSummary="{Binding ClinicReportFilterSummary}"
+                                         Columns="Metric:Metric:2|Value:Value:2"/>
           </StackPanel>
       </DockPanel>
 

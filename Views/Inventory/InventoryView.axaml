@@ -106,6 +106,10 @@
                     <!-- All Stock -->
                     <TabItem Header="All Stock">
                         <comp:DataTableShellControl Title="Full Stock Listing" RecordCount="{Binding AllStock.Count}">
+                            <comp:DataTableShellControl.HeaderActions>
+                                <comp:ExportToolbarControl ReportName="Inventory_All_Stock" ItemsSource="{Binding AllStock}"
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Update Date:LastStockUpdateDate"/>
+                            </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding AllStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -122,6 +126,10 @@
                     <!-- Low Stock -->
                     <TabItem Header="Low Stock">
                         <comp:DataTableShellControl Title="Low Stock Alert" RecordCount="{Binding LowStock.Count}">
+                            <comp:DataTableShellControl.HeaderActions>
+                                <comp:ExportToolbarControl ReportName="Inventory_Low_Stock" ItemsSource="{Binding LowStock}"
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Minimum Required:MinimumStockLevel"/>
+                            </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding LowStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -138,6 +146,10 @@
                     <!-- Out of Stock -->
                     <TabItem Header="Out of Stock">
                         <comp:DataTableShellControl Title="Out of Stock Alert" RecordCount="{Binding OutOfStock.Count}">
+                            <comp:DataTableShellControl.HeaderActions>
+                                <comp:ExportToolbarControl ReportName="Inventory_Out_of_Stock" ItemsSource="{Binding OutOfStock}"
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Minimum Required:MinimumStockLevel"/>
+                            </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding OutOfStock}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -154,6 +166,10 @@
                     <!-- Near Expiry -->
                     <TabItem Header="Near Expiry">
                         <comp:DataTableShellControl Title="Expiring Within 30 Days" RecordCount="{Binding NearExpiry.Count}">
+                            <comp:DataTableShellControl.HeaderActions>
+                                <comp:ExportToolbarControl ReportName="Inventory_Near_Expiry" ItemsSource="{Binding NearExpiry}"
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Expiry Date:ExpiryDate"/>
+                            </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding NearExpiry}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
@@ -170,6 +186,10 @@
                     <!-- Expired -->
                     <TabItem Header="Expired">
                         <comp:DataTableShellControl Title="Expired Batches (Do Not Sell)" RecordCount="{Binding Expired.Count}">
+                            <comp:DataTableShellControl.HeaderActions>
+                                <comp:ExportToolbarControl ReportName="Inventory_Expired" ItemsSource="{Binding Expired}"
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Expiry Date:ExpiryDate"/>
+                            </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding Expired}" AutoGenerateColumns="False" IsReadOnly="True"
                                           Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">

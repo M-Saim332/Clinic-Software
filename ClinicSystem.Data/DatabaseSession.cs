@@ -52,9 +52,7 @@ public class DatabaseSession
                     ExecuteSqlScript(conn, Path.Combine("Migrations", Path.GetFileName(file)));
             }
 
-            VerifyRequiredSchema(conn);
-            
-            // Add PackMRP column to PurchaseItems if it doesn't exist
+            // Patch purchase item columns before strict verification so existing installs can upgrade in place.
             try
             {
                 int packMRPExists = conn.ExecuteScalar<int>("SELECT CASE WHEN COL_LENGTH('PurchaseItems', 'PackMRP') IS NULL THEN 0 ELSE 1 END");
@@ -62,8 +60,16 @@ public class DatabaseSession
                 {
                     conn.Execute("ALTER TABLE PurchaseItems ADD PackMRP DECIMAL(18,2) NOT NULL DEFAULT 0");
                 }
+
+                int unitsPerPackageExists = conn.ExecuteScalar<int>("SELECT CASE WHEN COL_LENGTH('PurchaseItems', 'UnitsPerPackage') IS NULL THEN 0 ELSE 1 END");
+                if (unitsPerPackageExists == 0)
+                {
+                    conn.Execute("ALTER TABLE PurchaseItems ADD UnitsPerPackage INT NOT NULL DEFAULT 1");
+                }
             }
             catch { }
+
+            VerifyRequiredSchema(conn);
 
             _schemaChecked = true;
 
@@ -98,7 +104,7 @@ public class DatabaseSession
             ("Products", "Packing"), ("Products", "PiecesPerUnit"), ("Products", "LastStockUpdateDate"),
             ("Appointments", "CNIC"), ("Patients", "PatientContext"), ("Patients", "ReasonOfVisit"),
             ("Purchases", "IsPosted"), ("Purchases", "PostedAt"), ("Purchases", "ATax"), ("PurchaseItems", "ExtraDiscount"),
-            ("PurchaseItems", "ATax"), ("PurchaseItems", "CompanySalesTax"), ("Sales", "SalesTax"), ("Sales", "PostedAt"),
+            ("PurchaseItems", "ATax"), ("PurchaseItems", "CompanySalesTax"), ("PurchaseItems", "PackMRP"), ("PurchaseItems", "UnitsPerPackage"), ("Sales", "SalesTax"), ("Sales", "PostedAt"),
             ("Returns", "IsPosted"), ("Returns", "PostedAt")
         ];
         var missingColumns = columns.Where(item => conn.ExecuteScalar<int>(

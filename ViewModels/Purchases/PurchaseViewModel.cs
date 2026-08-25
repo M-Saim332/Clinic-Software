@@ -18,6 +18,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private readonly PurchaseRepository _repo;
     private readonly SupplierRepository _supplierRepo;
     private readonly ProductRepository _productRepo;
+    private const decimal DefaultExtraDiscountPercent = 15m;
 
     public PurchaseViewModel(PurchaseRepository repo, SupplierRepository supplierRepo, ProductRepository productRepo)
     {
@@ -88,11 +89,11 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [ObservableProperty] private int _quantity = 1;
     [ObservableProperty] private int _bonusQuantity;
     [ObservableProperty] private string _packageType = "Box";
-    [ObservableProperty] private decimal _purchasePrice;
+    [ObservableProperty] private decimal? _purchasePrice;
     [ObservableProperty] private decimal _packMRP;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
-    [ObservableProperty] private decimal _extraDiscount;
+    [ObservableProperty] private decimal _extraDiscount = DefaultExtraDiscountPercent;
     [ObservableProperty] private decimal _aTax;
     [ObservableProperty] private decimal _companySalesTax;
     [ObservableProperty]
@@ -113,8 +114,20 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     public decimal DocumentTaxTotal => LineItems.Sum(x => x.TaxableOverhead);
     public decimal DocumentDiscountTotal => LineItems.Sum(x => x.DiscountedValue + x.ExtraDiscountedValue);
     public decimal DocumentAdjustmentsTotal => DocumentTaxTotal - DocumentDiscountTotal;
-    public decimal EffectiveRate => PurchasePrice;
-    public decimal LineSubTotalPreview => Math.Max(0, (Quantity * PurchasePrice) - ((Quantity * PurchasePrice) * (ExtraDiscount / 100m)));
+    public int DocumentTotalItems => LineItems.Count;
+    public int DocumentTotalQuantity => LineItems.Sum(x => x.PackageQuantity);
+    public decimal DocumentGrossAmount => LineItems.Sum(x => x.GrossLineAmount);
+    public decimal DocumentDiscountAmount => LineItems.Sum(x => x.DiscountAmount);
+    public decimal DocumentAdvanceWHTax => LineItems.Sum(x => x.AdvTaxAmount);
+    public decimal DocumentTaxAmount => LineItems.Sum(x => x.TaxAmount);
+    public decimal DocumentCNValue => 0;
+    public decimal DocumentNetTotal => GrandTotal;
+    public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
+    private decimal RateInput => PurchasePrice ?? 0m;
+    public decimal EffectiveRate => RateInput;
+    public decimal LineGrossAmountPreview => Quantity * RateInput;
+    public decimal LineDiscountAmountPreview => LineGrossAmountPreview * (ExtraDiscount / 100m);
+    public decimal LineSubTotalPreview => Math.Max(0, LineGrossAmountPreview - LineDiscountAmountPreview);
     public decimal LineAdvanceTaxPreview => LineSubTotalPreview * (ATax / 100m);
     public decimal LineCompanySalesTaxPreview => LineSubTotalPreview * (CompanySalesTax / 100m);
     public decimal LineTaxTotalPreview => LineAdvanceTaxPreview + LineCompanySalesTaxPreview;
@@ -193,6 +206,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
+        if (!PurchasePrice.HasValue || PurchasePrice.Value <= 0) { StatusMessage = "Enter the supplier Rate for this product."; return; }
         if (!ExpiryDate.HasValue) { StatusMessage = "Expiry date is required."; return; }
         if (BonusQuantity < 0) { StatusMessage = "Bonus quantity is invalid."; return; }
         if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
@@ -210,7 +224,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             BonusQuantity = BonusQuantity,
             PackageType = PackageType,
             Quantity = TotalUnitsToStock,
-            PurchasePrice = PurchasePrice,
+            PurchasePrice = PurchasePrice.Value,
             PackMRP = PackMRP,
             Discount = Discount,
             Tax = Tax,
@@ -230,11 +244,11 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         Quantity = 1;
         BonusQuantity = 0;
         PackageType = "Box";
-        PurchasePrice = 0;
+        PurchasePrice = null;
         PackMRP = 0;
         Discount = 0;
         Tax = 0;
-        ExtraDiscount = 0;
+        ExtraDiscount = DefaultExtraDiscountPercent;
         ATax = 0;
         CompanySalesTax = 0;
         NotifyLinePreviewTotals();
@@ -375,6 +389,15 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         Quantity = 1;
         BonusQuantity = 0;
         PackageType = "Box";
+        SelectedProduct = null;
+        BatchNumber = string.Empty;
+        ExpiryDate = null;
+        PurchasePrice = null;
+        PackMRP = 0;
+        Discount = 0;
+        Tax = 0;
+        ExtraDiscount = DefaultExtraDiscountPercent;
+        ATax = 0;
         CompanySalesTax = 0;
         LineItems.Clear();
         OnPropertyChanged(nameof(GrandTotal));
@@ -398,14 +421,23 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         OnPropertyChanged(nameof(DocumentDiscountTotal));
         OnPropertyChanged(nameof(DocumentAdjustmentsTotal));
         OnPropertyChanged(nameof(GrandTotal));
+        OnPropertyChanged(nameof(DocumentTotalItems));
+        OnPropertyChanged(nameof(DocumentTotalQuantity));
+        OnPropertyChanged(nameof(DocumentGrossAmount));
+        OnPropertyChanged(nameof(DocumentDiscountAmount));
+        OnPropertyChanged(nameof(DocumentAdvanceWHTax));
+        OnPropertyChanged(nameof(DocumentTaxAmount));
+        OnPropertyChanged(nameof(DocumentCNValue));
+        OnPropertyChanged(nameof(DocumentNetTotal));
     }
 
     partial void OnSelectedProductChanged(Product? value)
     {
         if (value != null)
         {
-            PurchasePrice = value.PurchasePrice;
-            PackMRP = value.PurchasePrice;
+            PackMRP = value.MRP;
+            PurchasePrice = null;
+            ExtraDiscount = DefaultExtraDiscountPercent;
             Tax = 0;
             NotifyLinePreviewTotals();
         }
@@ -430,7 +462,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     partial void OnQuantityChanged(int value) { OnPropertyChanged(nameof(TotalUnitsToStock)); NotifyLinePreviewTotals(); }
     partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
-    partial void OnPurchasePriceChanged(decimal value) { OnPropertyChanged(nameof(EffectiveRate)); NotifyLinePreviewTotals(); }
+    partial void OnPurchasePriceChanged(decimal? value) { OnPropertyChanged(nameof(EffectiveRate)); NotifyLinePreviewTotals(); }
     partial void OnPackMRPChanged(decimal value) => NotifyLinePreviewTotals();
     partial void OnExtraDiscountChanged(decimal value) => NotifyLinePreviewTotals();
     partial void OnATaxChanged(decimal value) => NotifyLinePreviewTotals();
@@ -439,6 +471,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private void NotifyLinePreviewTotals()
     {
         OnPropertyChanged(nameof(LineSubTotalPreview));
+        OnPropertyChanged(nameof(LineGrossAmountPreview));
+        OnPropertyChanged(nameof(LineDiscountAmountPreview));
         OnPropertyChanged(nameof(LineAdvanceTaxPreview));
         OnPropertyChanged(nameof(LineCompanySalesTaxPreview));
         OnPropertyChanged(nameof(LineTaxTotalPreview));
@@ -472,9 +506,15 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [RelayCommand]
     private async Task PostInvoiceAsync()
     {
-        if (InvoiceState != InvoiceState.Checking) { CheckInvoice(); return; }
+        if (SaveCancelEnabled)
+        {
+            await SaveAsync();
+            if (_currentPurchaseId == 0 || Mode != FormMode.View) return;
+        }
+
         var id = _currentPurchaseId > 0 ? _currentPurchaseId : SelectedPurchase?.PurchaseID ?? 0;
-        if (id == 0) { StatusMessage = "Save and check the invoice first."; return; }
+        if (id == 0) { StatusMessage = "Save the draft before posting stock."; return; }
+        if (InvoiceState == InvoiceState.Posted) { StatusMessage = "Purchase invoice is already posted."; return; }
         try
         {
             await Task.Run(() => _repo.PostPurchase(id));

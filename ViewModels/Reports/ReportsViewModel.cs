@@ -65,6 +65,24 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private ObservableCollection<string> _receptionistNames = new() { "All" };
     [ObservableProperty] private string _selectedReceptionist = "All";
     public bool CanFilterByUser => CurrentUser?.IsAdmin ?? false;
+    public IEnumerable<ReportSummaryRow> FinancialSummaryRows => new[]
+    {
+        new ReportSummaryRow("Medicines Sold (units)", TotalMedicinesSold.ToString()),
+        new ReportSummaryRow("Gross Revenue", TotalRevenue.ToString("N2")),
+        new ReportSummaryRow("Patient Returns", TotalReturns.ToString("N2")),
+        new ReportSummaryRow("Net Revenue", NetRevenue.ToString("N2")),
+        new ReportSummaryRow("Total Expenses (Purchases)", TotalExpenses.ToString("N2")),
+        new ReportSummaryRow("Supplier Return Credits", SupplierCredits.ToString("N2")),
+        new ReportSummaryRow("Gross Profit", GrossProfit.ToString("N2")),
+        new ReportSummaryRow("Net Profit", NetProfit.ToString("N2"))
+    };
+    public IEnumerable<ReportSummaryRow> ProfitLossSummaryRows => new[]
+    {
+        new ReportSummaryRow("Revenue", TotalRevenue.ToString("N2")),
+        new ReportSummaryRow("Purchases", TotalExpenses.ToString("N2")),
+        new ReportSummaryRow("Returns", TotalReturns.ToString("N2")),
+        new ReportSummaryRow("Net Profit / Loss", NetProfit.ToString("N2"))
+    };
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -150,6 +168,7 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             NetRevenue = TotalRevenue - TotalReturns;
             GrossProfit = TotalRevenue - TotalExpenses;
             NetProfit = GrossProfit - TotalReturns + SupplierCredits;
+            NotifySummaryExportRows();
             ReceptionistNames = new ObservableCollection<string>(new[] { "All" }.Concat(names));
             if (!ReceptionistNames.Contains(SelectedReceptionist)) SelectedReceptionist = "All";
             StatusMessage = $"Financials loaded for {StartDate:dd MMM yyyy} – {EndDate:dd MMM yyyy}.";
@@ -183,6 +202,12 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         }
         catch(Exception ex){StatusMessage=$"Failed to load pharma reports: {ex.Message}";}
         finally{IsBusy=false;}
+    }
+
+    private void NotifySummaryExportRows()
+    {
+        OnPropertyChanged(nameof(FinancialSummaryRows));
+        OnPropertyChanged(nameof(ProfitLossSummaryRows));
     }
 
     partial void OnSelectedTabIndexChanged(int value)
@@ -540,3 +565,5 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         }
     }
 }
+
+public sealed record ReportSummaryRow(string Metric, string Value);

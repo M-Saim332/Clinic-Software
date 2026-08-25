@@ -56,10 +56,6 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _clinicPhone   = "+92 300 1234567";
     [ObservableProperty] private string _clinicEmail   = "info@careandcure.com";
 
-    // ── Billing Settings ─────────────────────────────────────────────────────
-    [ObservableProperty] private string  _invoicePrefix  = "INV-";
-    [ObservableProperty] private string  _currency       = "PKR";
-
     // ── Inventory Settings ───────────────────────────────────────────────────
     [ObservableProperty] private int _expiryAlertDays   = 30;
 
@@ -226,9 +222,6 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
                 if (dict.TryGetValue("ClinicPhone",   out val))     ClinicPhone   = val;
                 if (dict.TryGetValue("ClinicEmail",   out val))     ClinicEmail   = val;
 
-                if (dict.TryGetValue("InvoicePrefix",  out val)) InvoicePrefix  = val;
-                if (dict.TryGetValue("Currency", out val)) Currency = val;
-
                 if (dict.TryGetValue("ExpiryAlertDays",   out val) && int.TryParse(val, out var ed)) ExpiryAlertDays   = ed;
 
                 if (dict.TryGetValue("DateFormat", out val)) DateFormat = val;
@@ -280,9 +273,6 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
                 _repo.SetValue("ClinicAddress", ClinicAddress);
                 _repo.SetValue("ClinicPhone",   ClinicPhone);
                 _repo.SetValue("ClinicEmail",   ClinicEmail);
-
-                _repo.SetValue("InvoicePrefix",  InvoicePrefix);
-                _repo.SetValue("Currency",       Currency);
 
                 _repo.SetValue("ExpiryAlertDays",   ExpiryAlertDays.ToString());
 

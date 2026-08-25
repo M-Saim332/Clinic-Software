@@ -23,4 +23,13 @@ public class SaleItem
     public string BatchExpiryDisplay => "N/A";
     public string RateDisplay => $"Rs. {ProductPrice:N2} / {UnitTypeSold}";
     public string TaxDiscountDisplay => $"Tax Rs. {Tax:N2} / Disc Rs. {Discount:N2}";
+    public string ItemCodeDisplay => ProductID > 0 ? ProductID.ToString() : "-";
+    public string BatchNumberDisplay => "-";
+    public string ExpiryDateDisplay => "-";
+    public int BonusQuantity => 0;
+    public decimal DiscountPercent => GrossLineAmount > 0 ? Math.Round((Discount / GrossLineAmount) * 100m, 2) : 0;
+    public decimal DiscountAmount => Discount;
+    public decimal AdvTaxAmount => 0;
+    public decimal TaxAmount => Tax;
+    public decimal NetAmount => LineNetTotal;
 }

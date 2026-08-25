@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ClinicSystem.UI.Views.Components.ExportToolbarControl"
+             x:Name="Root"
+             x:CompileBindings="False">
+    <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Classes="export-csv" Click="OnExportCsvClick">
+            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="Table" Width="16" Height="16"/>
+                <TextBlock Text="Export CSV" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
+        <Button Classes="export-pdf" Click="OnExportPdfClick">
+            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                <materialIcons:MaterialIcon Kind="Download" Width="16" Height="16"/>
+                <TextBlock Text="Save as PDF" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
+    </StackPanel>
+
+    <UserControl.Styles>
+        <Style Selector="Button.export-csv">
+            <Setter Property="Background" Value="{DynamicResource BrushBackground}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushInk900}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushLine}"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Button.export-pdf">
+            <Setter Property="Background" Value="{DynamicResource BrushPrimaryBlue}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusPill}"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button.export-pdf:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="TextElement.Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+</UserControl>

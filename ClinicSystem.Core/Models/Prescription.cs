@@ -42,4 +42,17 @@ public class Prescription
     public bool IsPrintedOrDispensed => WorkflowStatus == "Printed" || WorkflowStatus == "Dispensed";
 
     public string SentTimeDisplay => SentToPharmacyAt?.ToString("dd MMM, h:mm tt") ?? VisitDate.ToString("dd MMM, h:mm tt");
+    public string VisitDateDisplay => VisitDate.ToString("dd MMM yyyy, h:mm tt");
+    public string PrimaryReasonDisplay => !string.IsNullOrWhiteSpace(Diagnosis)
+        ? Diagnosis
+        : !string.IsNullOrWhiteSpace(Notes) ? Notes : "Not recorded";
+    public string DoctorNotesDisplay => !string.IsNullOrWhiteSpace(Notes) ? Notes : "No attending notes recorded.";
+    public string MedicinesSummary => Items.Count == 0
+        ? "No medicines recorded."
+        : string.Join(", ", Items.Select(i =>
+        {
+            var name = string.IsNullOrWhiteSpace(i.ProductName) ? "Medicine" : i.ProductName;
+            var dosage = string.IsNullOrWhiteSpace(i.Dosage) ? string.Empty : $" - {i.Dosage}";
+            return $"{name} x{i.Quantity}{dosage}";
+        }));
 }

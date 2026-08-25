@@ -70,6 +70,10 @@
                 <!-- TAB 0: ALL PRODUCTS -->
                 <TabItem Header="All Products" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Product Inventory" RecordCount="{Binding FilteredProducts.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Products_List" ItemsSource="{Binding FilteredProducts}"
+                                Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Type:Type|Packing:Packing|Stock:StockBreakdown|MRP:MRP"/>
+                        </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.FilterToolbar>
                             <StackPanel Orientation="Horizontal" Spacing="8">
@@ -133,6 +137,10 @@
                 <!-- TAB 1: EXPIRED PRODUCTS -->
                 <TabItem Header="Expired" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Expired Products" RecordCount="{Binding FilteredProducts.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Expired_Products_List" ItemsSource="{Binding FilteredProducts}"
+                                Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Stock:StockBreakdown|Expiry:ExpiryDate|MRP:MRP"/>
+                        </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid x:Name="ExpiredGrid"
                                       ItemsSource="{Binding FilteredProducts}"
@@ -173,6 +181,10 @@
                 <!-- TAB 2: UNSOLD PRODUCTS -->
                 <TabItem Header="Unsold Products" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Unsold Products" RecordCount="{Binding FilteredProducts.Count}" Margin="0,12,0,0">
+                        <comp:DataTableShellControl.HeaderActions>
+                            <comp:ExportToolbarControl ReportName="Unsold_Products_List" ItemsSource="{Binding FilteredProducts}"
+                                Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Stock:StockBreakdown|MRP:MRP"/>
+                        </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.FilterToolbar>
                             <TextBlock Text="These products still have stock and are not expired. You can return them to the seller."
                                        FontSize="11" Foreground="{DynamicResource BrushInk600}" Margin="0,0,0,8"/>
@@ -358,7 +370,7 @@
                                    Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                    FontFamily="{DynamicResource FontLexend}"/>
                         <Separator/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                             <!-- Name -->
                             <StackPanel Grid.Column="0" Grid.Row="0" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Product Name *" Classes="label"/>
@@ -386,13 +398,7 @@
                                 <TextBox Text="{Binding Category}" PlaceholderText="e.g. Box, strip, bottle"/>
                             </StackPanel>
                             
-                            <!-- MRP -->
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="MRP (Rs.)" Classes="label"/>
-                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
-                            </StackPanel>
-
-                            <!-- Packs (Initial Quantity) — BEFORE Pieces Per Pack -->
+                            <!-- Packs (Initial Quantity) -->
                             <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Packs" Classes="label"/>
                                 <TextBox Text="{Binding InitialQuantityPacks}" PlaceholderText="0" IsEnabled="{Binding CanEditInitialStock}"/>
@@ -408,8 +414,14 @@
                                            FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
 
+                            <!-- MRP -->
+                            <StackPanel Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Spacing="6" Margin="0,0,0,12">
+                                <TextBlock Text="MRP (Rs.)" Classes="label"/>
+                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00" MaxWidth="380" HorizontalAlignment="Left"/>
+                            </StackPanel>
+
                             <!-- Live Calculation Preview -->
-                            <Border Grid.ColumnSpan="2" Grid.Row="3" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
+                            <Border Grid.ColumnSpan="2" Grid.Row="4" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
                                 <StackPanel Orientation="Horizontal" Spacing="18">
                                     <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Price / piece: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                     <TextBlock Text="{Binding InitialStockPiecesDisplay, StringFormat='Initial stock: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk700}"/>

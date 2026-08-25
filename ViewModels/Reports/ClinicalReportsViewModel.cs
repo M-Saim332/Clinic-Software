@@ -63,6 +63,8 @@ public partial class ClinicalReportsViewModel : ViewModelBase
     
     // Doctor Performance & Workload
     [ObservableProperty] private ObservableCollection<DoctorPerformanceRow> _doctorPerformances = new();
+    [ObservableProperty] private ObservableCollection<ReportSummaryRow> _clinicReportSummaryRows = new();
+    [ObservableProperty] private string _clinicReportFilterSummary = "This Month";
     
     // Visit Reasons
     [ObservableProperty] private ObservableCollection<VisitReasonRow> _visitReasons = new();
@@ -226,7 +228,45 @@ public partial class ClinicalReportsViewModel : ViewModelBase
         };
         ReasonYAxes = new Axis[] { new Axis { Labels = reasonGroups.Select(g => g.Reason).ToArray(), LabelsPaint = new SolidColorPaint(new SKColor(15, 23, 42)) } };
         ReasonXAxes = new Axis[] { new Axis { MinLimit = 0 } };
+
+        ClinicReportFilterSummary = GetSelectedDateFilterLabel();
+        ClinicReportSummaryRows = new ObservableCollection<ReportSummaryRow>(BuildClinicReportSummaryRows());
     }
+
+    private IEnumerable<ReportSummaryRow> BuildClinicReportSummaryRows()
+    {
+        yield return new ReportSummaryRow("Date Filter", ClinicReportFilterSummary);
+        yield return new ReportSummaryRow("Total Visits", TotalVisits.ToString());
+        yield return new ReportSummaryRow("New Patients", NewPatients.ToString());
+        yield return new ReportSummaryRow("Returning Patients", ReturningPatients.ToString());
+        yield return new ReportSummaryRow("Average Patients Per Day", AveragePatientsPerDay.ToString("0.##"));
+        yield return new ReportSummaryRow("Patient Growth", PatientGrowthRate);
+        yield return new ReportSummaryRow("Total Appointments", TotalAppointments.ToString());
+        yield return new ReportSummaryRow("Completed Appointments", CompletedAppointments.ToString());
+        yield return new ReportSummaryRow("Cancelled Appointments", CancelledAppointments.ToString());
+        yield return new ReportSummaryRow("No Shows", NoShows.ToString());
+        yield return new ReportSummaryRow("Completion Rate", CompletionRate);
+        yield return new ReportSummaryRow("Walk-in Visits", $"{WalkInVisits} ({WalkInPercentage})");
+        yield return new ReportSummaryRow("Appointment Visits", $"{AppointmentVisits} ({AppointmentPercentage})");
+
+        foreach (var reason in VisitReasons)
+            yield return new ReportSummaryRow($"Visit Reason: {reason.Reason}", reason.Count.ToString());
+
+        foreach (var doctor in DoctorPerformances)
+            yield return new ReportSummaryRow(
+                $"Doctor: {doctor.DoctorName}",
+                $"Handled {doctor.TotalHandled}, Completed {doctor.Completed}, Avg/Day {doctor.AveragePerDay:0.##}, Clinic {doctor.Percentage:0.##}%");
+    }
+
+    private string GetSelectedDateFilterLabel() => SelectedDateFilterIndex switch
+    {
+        0 => "Today",
+        1 => "This Week",
+        2 => "This Month",
+        3 => "This Year",
+        4 => "All Time",
+        _ => "Current Filter"
+    };
 
     private static DateTime[] BuildTrendDays(DateTime startDate, DateTime endDate)
     {

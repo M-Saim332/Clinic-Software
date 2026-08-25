@@ -19,7 +19,7 @@ public class Product
     public DateTime? ExpiryDate { get; set; }
     public decimal PurchasePrice { get; set; }
     public decimal SellingPrice { get; set; }
-    public decimal MRP { get => PurchasePrice; set { PurchasePrice = value; SellingPrice = value; } }
+    public decimal MRP { get => SellingPrice; set => SellingPrice = value; }
     public int PiecesPerUnit { get; set; } = 1;
     public int TabletsPerBox { get => PiecesPerUnit; set => PiecesPerUnit = value; }
     public int Stock { get; set; }
@@ -29,17 +29,18 @@ public class Product
     public DateTime? LastStockUpdateDate { get; set; }
 
     public decimal PricePerTablet => PiecesPerUnit > 0
-        ? Math.Round(PurchasePrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
+        ? Math.Round(SellingPrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
         : 0;
     public int FullPacksInStock => PiecesPerUnit > 0 ? Stock / PiecesPerUnit : 0;
     public int LoosePiecesInStock => PiecesPerUnit > 0 ? Stock % PiecesPerUnit : Stock;
     public string StockBreakdown => PiecesPerUnit > 1
         ? $"{Stock} pieces ({FullPacksInStock} pack{(FullPacksInStock == 1 ? string.Empty : "s")} + {LoosePiecesInStock} piece{(LoosePiecesInStock == 1 ? string.Empty : "s")})"
         : $"{Stock} pieces";
+    public string ProductCodeDisplay => PCode > 0 ? $"Code {PCode}" : $"ID {ProductID}";
 
     // Alias properties used by XAML bindings in Reports view
     public int MinStock => MinimumStockLevel;
-    public decimal Price => PurchasePrice;
+    public decimal Price => SellingPrice;
     public string? Manufacturer => CompanyName;
 
     public bool IsExpired => ExpiryDate.HasValue && ExpiryDate.Value.Date < DateTime.Today;

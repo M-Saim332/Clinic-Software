@@ -115,33 +115,6 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Billing">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
-                    <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
-
-                <!-- ── BILLING SETTINGS ──────────────────────────────────── -->
-                <Border Background="{DynamicResource ThemeCardBackgroundBrush}" IsVisible="False"
-                        BorderBrush="{DynamicResource ThemeBorderBrush}" BorderThickness="1"
-                        CornerRadius="{DynamicResource CornerRadiusCard}" Padding="20">
-                    <StackPanel Spacing="16">
-                        <TextBlock Text="BILLING SETTINGS" Classes="sectionLabel"/>
-                        <Separator/>
-                        <Grid ColumnDefinitions="*,*,*" HorizontalAlignment="Stretch">
-                            <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,12,0" IsVisible="False">
-                                <TextBlock Text="Invoice Prefix" Classes="label"/>
-                                <TextBox Text="{Binding InvoicePrefix}" PlaceholderText="e.g. INV-"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2" Spacing="4" Margin="12,0,0,0">
-                                <TextBlock Text="Currency" Classes="label"/>
-                                <TextBox Text="{Binding Currency}" PlaceholderText="e.g. USD, PKR"/>
-                            </StackPanel>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-
             <TabItem Header="Inventory">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32,0,28,0">
                     <StackPanel Spacing="24" MaxWidth="700" HorizontalAlignment="Left">
