@@ -95,6 +95,7 @@
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="120"/>
                                     <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -144,7 +145,9 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
+                                    <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
+                                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
+                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130" Foreground="{DynamicResource BrushRose}"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -341,6 +344,12 @@
                             <TextBlock Text="1. SELECT COMPANY FIRST" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                             <comp:SearchableComboBoxControl ItemsSource="{Binding Companies}" SelectedItem="{Binding SelectedCompany}"
                                 DisplayMemberPath="Name" DetailMemberPath="CCode" Placeholder="Search company by CCode or name..."/>
+                            <Button Command="{Binding QuickAddCompanyCommand}" Classes="btn-ghost" HorizontalAlignment="Left" Padding="8,4" Height="30" FontSize="12">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <materialIcons:MaterialIcon Kind="PlusCircleOutline" Width="14" Height="14" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                    <TextBlock Text="Company not found? Add Company" Foreground="{DynamicResource BrushPrimaryBlue}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </Border>
                     <!-- SECTION 1: Quick Entry -->
@@ -371,29 +380,38 @@
                                 <TextBox Text="{Binding Type}" PlaceholderText="e.g. Tablet, Syrup, Injection"/>
                             </StackPanel>
                             
-                            <!-- Category -->
+                            <!-- Packing (box) -->
                             <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Packing (box)" Classes="label"/>
                                 <TextBox Text="{Binding Category}" PlaceholderText="e.g. Box, strip, bottle"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Pieces Per Unit" Classes="label"/>
-                                <TextBox Text="{Binding TabletsPerBox}" PlaceholderText="1"/>
-                            </StackPanel>
-
+                            
                             <!-- MRP -->
-                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
                                 <TextBlock Text="MRP (Rs.)" Classes="label"/>
                                 <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Text="Initial Quantity (Packs)" Classes="label"/>
+
+                            <!-- Packs (Initial Quantity) — BEFORE Pieces Per Pack -->
+                            <StackPanel Grid.Column="0" Grid.Row="2" Spacing="6" Margin="0,0,12,12">
+                                <TextBlock Text="Packs" Classes="label"/>
                                 <TextBox Text="{Binding InitialQuantityPacks}" PlaceholderText="0" IsEnabled="{Binding CanEditInitialStock}"/>
+                                <TextBlock Text="Number of packs to add to initial stock"
+                                           FontSize="11" Foreground="{DynamicResource BrushInk500}"
+                                           IsVisible="{Binding CanEditInitialStock}"/>
                             </StackPanel>
-                            
+                            <!-- Pieces Per Pack -->
+                            <StackPanel Grid.Column="1" Grid.Row="2" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Pieces Per Pack" Classes="label"/>
+                                <TextBox Text="{Binding TabletsPerBox}" PlaceholderText="1"/>
+                                <TextBlock Text="How many pieces are in one pack"
+                                           FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
+                            </StackPanel>
+
+                            <!-- Live Calculation Preview -->
                             <Border Grid.ColumnSpan="2" Grid.Row="3" Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
                                 <StackPanel Orientation="Horizontal" Spacing="18">
-                                    <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Piece price: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                                    <TextBlock Text="{Binding PricePerTabletDisplay, StringFormat='Price / piece: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                     <TextBlock Text="{Binding InitialStockPiecesDisplay, StringFormat='Initial stock: {0}'}" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk700}"/>
                                 </StackPanel>
                             </Border>
@@ -433,7 +451,7 @@
         <TextBlock Text="Back" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
-                        <Button Command="{Binding AddAnotherCommand}" Classes="btn-secondary" IsVisible="{Binding SaveCancelEnabled}"
+                        <Button Command="{Binding AddAnotherCommand}" Classes="btn-ghost" IsVisible="{Binding SaveCancelEnabled}"
                                 Content="Save &amp; Add Another"/>
                         <Button  Command="{Binding SaveCommand}" Classes="btn-primary">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">

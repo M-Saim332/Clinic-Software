@@ -19,10 +19,8 @@ public class SaleItem
 
     // Derived properties for billing formula layer
     public decimal GrossLineAmount => Quantity * ProductPrice;
-    public decimal DiscountedValue => GrossLineAmount * (Discount / 100);
-    public decimal TaxableOverhead => (GrossLineAmount - DiscountedValue) * (Tax / 100);
-    public decimal LineNetTotal => (GrossLineAmount - DiscountedValue) + TaxableOverhead;
+    public decimal LineNetTotal => GrossLineAmount + Tax - Discount;
     public string BatchExpiryDisplay => "N/A";
     public string RateDisplay => $"Rs. {ProductPrice:N2} / {UnitTypeSold}";
-    public string TaxDiscountDisplay => $"Tax {Tax:N2}% / Disc {Discount:N2}%";
+    public string TaxDiscountDisplay => $"Tax Rs. {Tax:N2} / Disc Rs. {Discount:N2}";
 }

@@ -112,6 +112,12 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     public string AvailableStockDisplay => SelectedProduct == null
         ? string.Empty
         : $"Available stock: {SelectedProduct.StockBreakdown}";
+    
+    public int MaxQuantity => SelectedProduct == null 
+        ? 1 
+        : Math.Max(0, SelectedProduct.Stock - LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity));
+
+    private bool CanAddLineItem() => SelectedProduct != null && Quantity > 0 && Quantity <= MaxQuantity;
 
     public decimal Subtotal => LineItems.Sum(x => x.LineNetTotal);
     public decimal GrandTotal => Subtotal + (Subtotal * SalesTax / 100m);
@@ -168,7 +174,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         LogActivity("Invoice Generated", $"Invoice #{SelectedSale.InvoiceNumber} generated for printing", "Sales");
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanAddLineItem))]
     private void AddLineItem()
     {
         if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
@@ -176,7 +182,6 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         var stockQuantity = Quantity;
         var alreadyAllocated = LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity);
         if (stockQuantity + alreadyAllocated > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock - alreadyAllocated} tablet/unit(s) remain available for this invoice."; return; }
-        if (!ClinicSystem.UI.Helpers.ValidationHelper.ValidateDiscountPercentage(Discount)) { StatusMessage = "Discount must be between 0% and 100%."; return; }
 
         // Compute line total using percentage-based discount and tax
         var item = new SaleItem
@@ -204,6 +209,9 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         ProductPrice = 0;
         SelectedUnitType = "Pieces";
         StatusMessage = string.Empty;
+        
+        OnPropertyChanged(nameof(MaxQuantity));
+        AddLineItemCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand]
@@ -213,6 +221,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         {
             LineItems.Remove(item);
             OnPropertyChanged(nameof(GrandTotal));
+            OnPropertyChanged(nameof(MaxQuantity));
+            AddLineItemCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -355,6 +365,13 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
             ProductPrice = value.PricePerTablet > 0 ? value.PricePerTablet : value.PurchasePrice;
         }
         OnPropertyChanged(nameof(AvailableStockDisplay));
+        OnPropertyChanged(nameof(MaxQuantity));
+        AddLineItemCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnQuantityChanged(int value)
+    {
+        AddLineItemCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSelectedUnitTypeChanged(string value)

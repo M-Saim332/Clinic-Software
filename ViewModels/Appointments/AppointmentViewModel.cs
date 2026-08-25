@@ -300,6 +300,14 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (Mode == FormMode.View) NewCommand.Execute(null);
+    }
+
+    [RelayCommand]
     private void Cancel()
     {
         Mode = FormMode.View;

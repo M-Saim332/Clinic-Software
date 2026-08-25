@@ -76,12 +76,6 @@ public class DatabaseSession
             }
             catch { }
 
-            try
-            {
-                int patientCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Patients");
-                if (patientCount == 0) ExecuteSqlScript(conn, "BulkTestData.sql");
-            }
-            catch { }
         }
     }
 

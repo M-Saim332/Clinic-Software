@@ -53,6 +53,7 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private string _searchTerm = string.Empty;
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private ObservableCollection<ReturnItem> _returnItems = new();
+    [ObservableProperty] private int _selectedTab = 0;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsDraftInvoice))]
     [NotifyPropertyChangedFor(nameof(IsCheckingInvoice))]
@@ -184,8 +185,10 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     }
 
     private void ClearForm() { SelectedProduct = null; SelectedPatient = null; SelectedSupplier = null; SelectedSale = null; Quantity = 1; Reason = string.Empty; Notes = string.Empty; ReturnItems.Clear(); }
+    [RelayCommand] private void Cancel() { ClearForm(); SelectedTab = 1; }
+    [RelayCommand] private async Task ProcessAndAddAnotherAsync() { await ProcessReturnAsync(); if (InvoiceState == InvoiceState.Posted) NewReturn(); }
     [RelayCommand] private void EditInvoice(){if(!IsPostedInvoice) InvoiceState=InvoiceState.Draft;}
-    [RelayCommand] private void NewReturn(){ClearForm();InvoiceState=InvoiceState.Draft;StatusMessage="New return draft.";}
+    [RelayCommand] private void NewReturn(){ClearForm();InvoiceState=InvoiceState.Draft;StatusMessage="New return draft.";SelectedTab=0;}
     partial void OnReturnTypeChanged(string value) { SelectedPatient = null; SelectedSupplier = null; SelectedSale = null; OnPropertyChanged(nameof(IsPatientReturn)); OnPropertyChanged(nameof(IsSupplierReturn)); OnPropertyChanged(nameof(RefundAmount)); }
     partial void OnUnitTypeChanged(string value) { OnPropertyChanged(nameof(StockQuantity)); OnPropertyChanged(nameof(RefundAmount)); }
     partial void OnQuantityChanged(int value) { OnPropertyChanged(nameof(StockQuantity)); OnPropertyChanged(nameof(RefundAmount)); }

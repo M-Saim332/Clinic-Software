@@ -43,6 +43,7 @@ public class Product
     public string? Manufacturer => CompanyName;
 
     public bool IsExpired => ExpiryDate.HasValue && ExpiryDate.Value.Date < DateTime.Today;
-    public bool IsLowStock => Stock <= MinimumStockLevel;
+    public int MinimumStockPieces => MinimumStockLevel * PiecesPerUnit;
+    public bool IsLowStock => Stock <= MinimumStockPieces;
     public string StockStatus => IsExpired ? "EXPIRED" : IsLowStock ? "LOW" : "OK";
 }

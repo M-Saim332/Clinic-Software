@@ -303,6 +303,14 @@ public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (Mode == FormMode.View) NewCommand.Execute(null);
+    }
+
+    [RelayCommand]
     private async Task MarkAsWaitingAsync(Patient p)
     {
         if (p == null) return;

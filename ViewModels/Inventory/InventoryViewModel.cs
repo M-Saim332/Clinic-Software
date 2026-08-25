@@ -108,16 +108,20 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
             return;
         }
 
-        if (SelectedProduct.Stock + AdjustmentQuantity < 0)
+        // Convert pack input → piece delta
+        int piecesPerUnit = SelectedProduct.PiecesPerUnit > 0 ? SelectedProduct.PiecesPerUnit : 1;
+        int deltaPieces = AdjustmentQuantity * piecesPerUnit;
+
+        if (SelectedProduct.Stock + deltaPieces < 0)
         {
-            StatusMessage = "Cannot adjust below zero stock.";
+            StatusMessage = $"Cannot adjust below zero stock. Current stock: {SelectedProduct.StockBreakdown}.";
             return;
         }
 
         try
         {
-            await Task.Run(() => _productRepo.AdjustStock(SelectedProduct.ProductID, AdjustmentQuantity, AdjustmentDate.Date));
-            StatusMessage = $"Stock adjusted for {SelectedProduct.Name} by {AdjustmentQuantity}.";
+            await Task.Run(() => _productRepo.AdjustStock(SelectedProduct.ProductID, deltaPieces, AdjustmentDate.Date));
+            StatusMessage = $"Stock adjusted for {SelectedProduct.Name}: {(AdjustmentQuantity > 0 ? "+" : "")}{AdjustmentQuantity} pack(s) = {(deltaPieces > 0 ? "+" : "")}{deltaPieces} pieces.";
             
             SelectedProduct = null;
             AdjustmentQuantity = 0;

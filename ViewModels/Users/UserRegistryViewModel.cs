@@ -344,6 +344,14 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     }
 
     [RelayCommand]
+    private async Task AddAnotherAsync()
+    {
+        if (Mode != FormMode.Add) return;
+        await SaveAsync();
+        if (IsSuccess) NewCommand.Execute(null);
+    }
+
+    [RelayCommand]
     private async Task ToggleStatusAsync(User? user)
     {
         if (user == null) return;

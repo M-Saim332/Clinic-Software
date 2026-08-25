@@ -80,7 +80,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     private int CurrentTabletsPerBox => int.TryParse(TabletsPerBox, out var value) && value > 0 ? value : 1;
     private int CurrentInitialQuantityPacks => int.TryParse(InitialQuantityPacks, out var value) && value > 0 ? value : 0;
     public string PricePerTabletDisplay => FormatMoney(CurrentPurchasePrice / CurrentTabletsPerBox);
-    public string InitialStockPiecesDisplay => $"{CurrentInitialQuantityPacks * CurrentTabletsPerBox} pieces";
+    public string InitialStockPiecesDisplay => CurrentTabletsPerBox > 1
+        ? $"{CurrentInitialQuantityPacks * CurrentTabletsPerBox} pieces ({CurrentInitialQuantityPacks} packs × {CurrentTabletsPerBox} per pack)"
+        : $"{CurrentInitialQuantityPacks} pieces";
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     // ── Delete confirmation state ──────────────────────────────────────

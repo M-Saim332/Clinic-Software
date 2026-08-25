@@ -437,24 +437,24 @@
         <TextBlock Text="Back" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
-                        <Button  Command="{Binding SaveCommand}" Classes="btn-secondary" IsVisible="{Binding SaveCancelEnabled}">
+                        <Button  Command="{Binding SaveCommand}" Classes="btn-ghost" IsVisible="{Binding SaveCancelEnabled}">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
         <TextBlock Text="Save Draft" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
+                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
+                        <Button Command="{Binding EditDraftCommand}" Classes="btn-ghost" Content="Edit Draft" IsVisible="{Binding CanEditDraft}"/>
+                        <Button Command="{Binding EditCheckedInvoiceCommand}" Classes="btn-ghost" Content="Edit Draft" IsVisible="{Binding IsCheckingInvoice}"/>
+                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-ghost" Content="Check Invoice" IsVisible="{Binding CanCheckInvoice}"/>
+                        <Button Command="{Binding PostAndAddAnotherCommand}" Classes="btn-ghost" Content="Post &amp; Add Another" IsVisible="{Binding IsCheckingInvoice}"/>
                         <Button  Command="{Binding SaveAndCheckCommand}" Classes="btn-primary" IsVisible="{Binding SaveCancelEnabled}">
     <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
         <materialIcons:MaterialIcon Kind="CheckCircleOutline" Width="18" Height="18"/>
         <TextBlock Text="Save &amp; Check Invoice" VerticalAlignment="Center"/>
     </StackPanel>
 </Button>
-                        <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
-                        <Button Command="{Binding EditDraftCommand}" Classes="btn-secondary" Content="Edit Draft" IsVisible="{Binding CanEditDraft}"/>
-                        <Button Command="{Binding EditCheckedInvoiceCommand}" Classes="btn-secondary" Content="Edit Draft" IsVisible="{Binding IsCheckingInvoice}"/>
-                        <Button Command="{Binding CheckInvoiceCommand}" Classes="btn-secondary" Content="Check Invoice" IsVisible="{Binding CanCheckInvoice}"/>
                         <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary" Content="Post Invoice" IsVisible="{Binding IsCheckingInvoice}"/>
-                        <Button Command="{Binding PostAndAddAnotherCommand}" Classes="btn-primary" Content="Post &amp; Add Another" IsVisible="{Binding IsCheckingInvoice}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
