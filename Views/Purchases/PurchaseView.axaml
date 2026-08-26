@@ -150,7 +150,7 @@
                                     <Grid ColumnDefinitions="*,1,*">
 
                                         <!-- Left: Invoice Info -->
-                                        <Grid Grid.Column="0" Padding="20,16"
+                                        <Grid Grid.Column="0" Margin="20,16"
                                               ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
                                             <TextBlock Text="Invoice #" FontWeight="SemiBold" FontSize="12" Foreground="#6B7280"/>
                                             <TextBlock Grid.Column="1" Text="{Binding InvoiceNumber}" FontSize="12" FontWeight="Bold" Foreground="#111827"/>
@@ -166,7 +166,7 @@
                                         <Border Grid.Column="1" Background="#E5E7EB" Width="1"/>
 
                                         <!-- Right: Party Info -->
-                                        <Grid Grid.Column="2" Padding="20,16"
+                                        <Grid Grid.Column="2" Margin="20,16"
                                               ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
                                             <TextBlock Text="Supplier Name" FontWeight="SemiBold" FontSize="12" Foreground="#6B7280"/>
                                             <TextBlock Grid.Column="1" Text="{Binding SupplierDisplayName}" FontSize="12" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap"/>
@@ -364,7 +364,7 @@
                             </Border>
                             <Button Command="{Binding PrintPurchaseDocumentCommand}" Classes="btn-primary">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <materialIcons:MaterialIcon Kind="FilePdf" Width="16" Height="16"/>
+                                    <materialIcons:MaterialIcon Kind="Download" Width="16" Height="16"/>
                                     <TextBlock Text="Save as PDF"/>
                                 </StackPanel>
                             </Button>
