@@ -40,6 +40,7 @@ public partial class InvoiceViewModel : ViewModelBase
     public decimal DocumentCNValue => 0;
     public decimal DocumentAdjustmentsTotal =>
         LineItems.Sum(x => x.Tax - x.Discount) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
+    public bool HasAdjustments => DocumentDiscountAmount > 0 || DocumentTaxAmount > 0;
     public decimal DocumentGrandTotal => SaleData?.GrandTotal ?? LineItems.Sum(x => x.LineNetTotal);
     public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
     public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");

@@ -52,38 +52,32 @@
                         <TextBlock Text="SALE INVOICE" FontSize="18" FontWeight="ExtraBold" LetterSpacing="2" Foreground="#111827" HorizontalAlignment="Center"/>
                     </Border>
 
-                    <!-- 2-Column Header Metadata -->
+                    <!-- Minimal Retail Header Metadata -->
                     <Grid ColumnDefinitions="*,*" Margin="0,8,0,16">
                         <!-- Left Column: Invoice Info -->
-                        <Grid Grid.Column="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                        <Grid Grid.Column="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="8">
                             <TextBlock Text="Invoice #:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
                             <TextBlock Grid.Column="1" Text="{Binding SaleData.InvoiceNumber}" FontSize="12" FontWeight="Bold" Foreground="#111827"/>
                             
-                            <TextBlock Grid.Row="1" Text="Invoice Date:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
+                            <TextBlock Grid.Row="1" Text="Date:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SaleData.SaleDate, StringFormat='{}{0:dd MMM yyyy}'}" FontSize="12" Foreground="#111827"/>
-                            
-                            <TextBlock Grid.Row="2" Text="Reference / Order #:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SaleData.SaleID}" FontSize="12" Foreground="#111827"/>
                         </Grid>
 
                         <!-- Right Column: Party Info -->
-                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" HorizontalAlignment="Right">
-                            <TextBlock Text="Supplier / Customer:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
+                        <Grid Grid.Column="1" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="8" HorizontalAlignment="Right">
+                            <TextBlock Text="Patient Name:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
                             <TextBlock Grid.Column="1" Text="{Binding SaleData.PatientName}" FontSize="12" FontWeight="Bold" Foreground="#111827" TextWrapping="Wrap" MaxWidth="200"/>
                             
-                            <TextBlock Grid.Row="1" Text="Address / Region:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="Pakistan" FontSize="12" Foreground="#111827"/>
-                            
-                            <TextBlock Grid.Row="2" Text="Recorded By:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SaleData.ReceptionistName}" FontSize="12" Foreground="#111827"/>
+                            <TextBlock Grid.Row="1" Text="Payment Method:" FontWeight="SemiBold" FontSize="12" Foreground="#4B5563" Margin="0,0,16,0"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SaleData.PaymentMethod}" FontSize="12" Foreground="#111827"/>
                         </Grid>
                     </Grid>
 
-                    <!-- Line Items Table -->
+                    <!-- Streamlined Retail Line Items Grid -->
                     <DataGrid ItemsSource="{Binding LineItems}" AutoGenerateColumns="False" IsReadOnly="True"
                               Background="White" BorderBrush="#E5E7EB" BorderThickness="1"
                               GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E5E7EB"
-                              HeadersVisibility="Column" FontSize="11" MinHeight="350">
+                              HeadersVisibility="Column" FontSize="12" MinHeight="250">
                         <DataGrid.Styles>
                             <Style Selector="DataGridColumnHeader">
                                 <Setter Property="Background" Value="#F9FAFB"/>
@@ -97,47 +91,80 @@
                             </Style>
                         </DataGrid.Styles>
                         <DataGrid.Columns>
-                            <!-- Flex Width: 35% -->
-                            <DataGridTextColumn Header="Item Description" Binding="{Binding ProductName}" Width="3.5*"/>
-                            <!-- Width: 12% -->
-                            <DataGridTextColumn Header="Batch No." Binding="{Binding BatchNumberDisplay}" Width="1.2*"/>
-                            <!-- Width: 13% -->
-                            <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDateDisplay}" Width="1.3*"/>
-                            <!-- Width: 10% -->
-                            <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="1*"/>
-                            <!-- Width: 15% -->
-                            <DataGridTextColumn Header="Rate" Binding="{Binding ProductPrice, StringFormat='{}{0:N2}'}" Width="1.5*"/>
-                            <!-- Width: 15% -->
-                            <DataGridTextColumn Header="Total Amount" Binding="{Binding NetAmount, StringFormat='{}{0:N2}'}" Width="1.5*"/>
+                            <!-- 1. Sr. (Width: 8%, centered) -->
+                            <DataGridTemplateColumn Header="Sr." Width="0.8*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ItemCodeDisplay}" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            
+                            <!-- 2. Medicine Name (Width: 42%, left-aligned) -->
+                            <DataGridTemplateColumn Header="Medicine Name" Width="4.2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ProductName}" HorizontalAlignment="Left" TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- 3. Qty (Pcs) (Width: 15%, right-aligned) -->
+                            <DataGridTemplateColumn Header="Qty (Pcs)" Width="1.5*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Quantity}" HorizontalAlignment="Right"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- 4. Price / Tablet (Width: 17%, right-aligned) -->
+                            <DataGridTemplateColumn Header="Price / Tablet" Width="1.7*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding ProductPrice, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- 5. Item Total (Width: 18%, right-aligned) -->
+                            <DataGridTemplateColumn Header="Item Total" Width="1.8*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding LineNetTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <!-- Right-Aligned Summary Block -->
-                    <Grid ColumnDefinitions="*,300" Margin="0,16,0,0">
-                        <!-- Left Side: Signatures & Notes -->
-                        <StackPanel Grid.Column="0" Spacing="40" VerticalAlignment="Bottom">
-                            <TextBlock Text="Total Items: {Binding DocumentTotalItems}   Total Qty: {Binding DocumentTotalQuantity}" FontSize="11" FontWeight="SemiBold" Foreground="#4B5563"/>
-                            <TextBlock Text="Received by: ____________________        Checked by: ____________________" FontSize="11" Foreground="#111827"/>
+                    <!-- Simplified Financial Summary -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
+                        <!-- Left Side: Notes -->
+                        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                            <TextBlock Text="Total Items: {Binding DocumentTotalItems}   Total Qty: {Binding DocumentTotalQuantity}" FontSize="12" FontWeight="SemiBold" Foreground="#4B5563"/>
                         </StackPanel>
 
                         <!-- Right Side: Financial Summary -->
-                        <Border Grid.Column="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="4" Padding="16">
-                            <StackPanel Spacing="10">
+                        <StackPanel Grid.Column="1" Spacing="6" HorizontalAlignment="Right">
+                            <!-- Show taxes/discounts only if there are adjustments -->
+                            <StackPanel IsVisible="{Binding HasAdjustments}" Spacing="6" Margin="0,0,0,8">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Sub Total:" FontSize="12" Foreground="#4B5563"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding DocumentSubTotal, StringFormat='Rs. {0:N2}'}" FontSize="12" FontWeight="SemiBold" Foreground="#111827"/>
+                                    <TextBlock Text="Sub Total:" FontSize="13" Foreground="#4B5563" Margin="0,0,24,0" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DocumentSubTotal, StringFormat='Rs. {0:N2}'}" FontSize="13" FontWeight="SemiBold" Foreground="#111827"/>
                                 </Grid>
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Taxes / Discounts:" FontSize="12" Foreground="#4B5563"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding DocumentDiscountAmount, StringFormat='Rs. {0:N2}'}" FontSize="12" FontWeight="SemiBold" Foreground="#EF4444"/>
-                                </Grid>
-                                <Separator Background="#E5E7EB" Margin="0,4"/>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Net Grand Total:" FontSize="16" FontWeight="ExtraBold" Foreground="#111827"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding DocumentGrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="16" FontWeight="ExtraBold" Foreground="#111827"/>
+                                    <TextBlock Text="Taxes / Discounts:" FontSize="13" Foreground="#4B5563" Margin="0,0,24,0" HorizontalAlignment="Right"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DocumentAdjustmentsTotal, StringFormat='Rs. {0:N2}'}" FontSize="13" FontWeight="SemiBold" Foreground="#EF4444"/>
                                 </Grid>
                             </StackPanel>
-                        </Border>
+
+                            <!-- Render a single, bold, high-contrast summary block directly below Item Total -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="TOTAL BILL:" FontSize="18" FontWeight="ExtraBold" Foreground="#111827" Margin="0,0,24,0" HorizontalAlignment="Right"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DocumentGrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="ExtraBold" Foreground="#111827"/>
+                            </Grid>
+                        </StackPanel>
                     </Grid>
 
                     <!-- Footer Warranty -->

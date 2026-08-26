@@ -18,13 +18,15 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private readonly PurchaseRepository _repo;
     private readonly SupplierRepository _supplierRepo;
     private readonly ProductRepository _productRepo;
+    private readonly SettingsRepository _settingsRepo;
     private const decimal DefaultExtraDiscountPercent = 15m;
 
-    public PurchaseViewModel(PurchaseRepository repo, SupplierRepository supplierRepo, ProductRepository productRepo)
+    public PurchaseViewModel(PurchaseRepository repo, SupplierRepository supplierRepo, ProductRepository productRepo, SettingsRepository settingsRepo)
     {
         _repo = repo;
         _supplierRepo = supplierRepo;
         _productRepo = productRepo;
+        _settingsRepo = settingsRepo;
     }
 
     [ObservableProperty]
@@ -105,9 +107,29 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private InvoiceState _invoiceState = InvoiceState.Draft;
     private int _currentPurchaseId;
 
+    // Clinic branding — loaded from Settings
+    [ObservableProperty] private string _clinicName    = "MediCompare Pharmacy";
+    [ObservableProperty] private string _clinicAddress = string.Empty;
+    [ObservableProperty] private string _clinicPhone   = string.Empty;
+
     public List<string> PackageTypes { get; } = new() { "Box", "Carton", "Pack", "Bottle", "Piece" };
     public int TotalUnitsToStock => Quantity + BonusQuantity;
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
+
+    private async System.Threading.Tasks.Task LoadClinicSettingsAsync()
+    {
+        try
+        {
+            var dict = await System.Threading.Tasks.Task.Run(() => _settingsRepo.GetAll());
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (dict.TryGetValue("ClinicName",    out var n)) ClinicName    = n;
+                if (dict.TryGetValue("ClinicAddress", out var a)) ClinicAddress = a;
+                if (dict.TryGetValue("ClinicPhone",   out var p)) ClinicPhone   = p;
+            });
+        }
+        catch { /* silently ignore — use defaults */ }
+    }
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);
     public decimal DocumentSubTotal => LineItems.Sum(x => x.SubTotal);
@@ -189,6 +211,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             
             OnPropertyChanged(nameof(GrandTotal));
             NotifyDocumentTotals();
+            _ = LoadClinicSettingsAsync();
             
             Mode = FormMode.View;
             ShowForm = true;
