@@ -67,7 +67,7 @@
                 <comp:DataTableShellControl Title="Billing History" RecordCount="{Binding Sales.Count}">
                     <comp:DataTableShellControl.HeaderActions>
                         <comp:ExportToolbarControl ReportName="Sales_Billing_History" ItemsSource="{Binding Sales}"
-                            Columns="Invoice No:InvoiceNumber|Date:SaleDate|Patient:PatientName:2|Receptionist:ReceptionistName|Method:PaymentMethod|Net Grand Total (Final):GrandTotal"/>
+                            Columns="Invoice No:InvoiceNumber|Date:SaleDate|Patient:PatientName:2|Receptionist:ReceptionistName|Method:PaymentMethod|Total Bill:GrandTotal"/>
                     </comp:DataTableShellControl.HeaderActions>
                     <comp:DataTableShellControl.FilterToolbar>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
@@ -186,7 +186,7 @@
                                 <TextBlock DockPanel.Dock="Left" Text="ADD PRODUCT" FontSize="11" FontWeight="Bold"
                                            Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                            FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding GrandTotal, StringFormat='Net Grand Total (Final): Rs. {0:N2}'}"
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding GrandTotal, StringFormat='Total Bill: Rs. {0:N2}'}"
                                            FontSize="15" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}" 
                                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             </DockPanel>
@@ -216,8 +216,12 @@
                                 <!-- Row 2: Discount and Price -->
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Discount (Rs)" Classes="label"/>
-                                        <NumericUpDown Value="{Binding Discount}" FormatString="N2" Minimum="0"/>
+                                        <TextBlock Text="Discount (%)" Classes="label"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <NumericUpDown Grid.Column="0" Value="{Binding Discount}" FormatString="N2" Minimum="0" Maximum="100"/>
+                                            <TextBlock Grid.Column="1" Text="%" Foreground="{DynamicResource BrushInk600}" FontWeight="SemiBold"
+                                                       VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                        </Grid>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                         <TextBlock Text="Piece Price" Classes="label"/>
@@ -255,9 +259,9 @@
                                     <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
                                     <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="70"/>
                                     <DataGridTextColumn Header="RATE" Binding="{Binding ProductPrice, StringFormat='Rs. {0:N2}'}" Width="110"/>
-                                    <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='Rs. {0:N2}'}" Width="110"/>
+                                    <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='{0:N2}%'}" Width="120"/>
                                     <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. {0:N2}'}" Width="90"/>
-                                    <DataGridTextColumn Header="NET AMOUNT" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
+                                    <DataGridTextColumn Header="ITEM TOTAL" Binding="{Binding InvoiceItemTotal, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -295,18 +299,12 @@
                                 IsVisible="{Binding IsCheckingInvoice}" Content="Edit Draft"/>
                     </StackPanel>
 
-                    <!-- Center: Helper text / status -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                    <!-- Center: Helper text -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal"
                                 HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock Text="Create new sale invoice."
                                    FontSize="13" Foreground="#64748B"
-                                   IsVisible="{Binding IsDraftInvoice}"
                                    VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding StatusMessage}"
-                                   Foreground="{DynamicResource BrushRose}"
-                                   VerticalAlignment="Center" FontSize="13"
-                                   FontWeight="Medium" TextWrapping="Wrap"
-                                   IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                     </StackPanel>
 
                     <!-- Right: Primary actions -->

@@ -37,6 +37,16 @@ public class Product
         ? $"{Stock} pieces ({FullPacksInStock} pack{(FullPacksInStock == 1 ? string.Empty : "s")} + {LoosePiecesInStock} piece{(LoosePiecesInStock == 1 ? string.Empty : "s")})"
         : $"{Stock} pieces";
     public string ProductCodeDisplay => PCode > 0 ? $"Code {PCode}" : $"ID {ProductID}";
+    public string PrescriptionSearchDetail
+    {
+        get
+        {
+            var generic = string.IsNullOrWhiteSpace(GenericName) ? "Generic N/A" : GenericName;
+            var type = string.IsNullOrWhiteSpace(Type) ? "Type N/A" : Type;
+            var packing = string.IsNullOrWhiteSpace(Packing) ? "Packing N/A" : Packing;
+            return $"{generic} | {type} | {packing} | Stock {Stock}";
+        }
+    }
 
     // Alias properties used by XAML bindings in Reports view
     public int MinStock => MinimumStockLevel;

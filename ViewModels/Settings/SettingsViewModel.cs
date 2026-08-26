@@ -48,11 +48,11 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     }
 
     // ── General Settings ─────────────────────────────────────────────────────
-    [ObservableProperty] private string _clinicName    = "Care & Cure Clinic";
-    [ObservableProperty] private string _pharmacyName = "My Pharmacy";
+    [ObservableProperty] private string _clinicName    = "DR ASIF PHARMA";
+    [ObservableProperty] private string _pharmacyName = "DR ASIF PHARMA";
     [ObservableProperty] private string _receptionistTheme = "System Default";
     public IEnumerable<string> ReceptionistThemeOptions => ThemeService.AllThemes.Select(t => t.Name);
-    [ObservableProperty] private string _clinicAddress = "123 Health Ave, Medical District";
+    [ObservableProperty] private string _clinicAddress = "Pirmahal, Near Imam Bargah";
     [ObservableProperty] private string _clinicPhone   = "+92 300 1234567";
     [ObservableProperty] private string _clinicEmail   = "info@careandcure.com";
 
@@ -271,6 +271,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
                 _repo.SetValue("PharmacyName",  PharmacyName);
                 _repo.SetValue("ReceptionistTheme", ReceptionistTheme);
                 _repo.SetValue("ClinicAddress", ClinicAddress);
+                _repo.SetValue("Address", ClinicAddress);
                 _repo.SetValue("ClinicPhone",   ClinicPhone);
                 _repo.SetValue("ClinicEmail",   ClinicEmail);
 

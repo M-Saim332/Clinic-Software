@@ -135,7 +135,7 @@
                                 <!-- Pharmacy Header Banner -->
                                 <StackPanel Spacing="2" HorizontalAlignment="Center" Margin="0,0,0,8">
                                     <TextBlock Text="{Binding ClinicName}" FontSize="22" FontWeight="ExtraBold" Foreground="#111827" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{Binding ClinicAddress}" FontSize="12" Foreground="#6B7280" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ClinicAddress}" FontSize="13" Foreground="#6B7280" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{Binding ClinicPhone}" FontSize="12" Foreground="#6B7280" HorizontalAlignment="Center"/>
                                 </StackPanel>
 
@@ -206,7 +206,10 @@
                                     </DataGrid.Styles>
                                     <DataGrid.Columns>
                                         <!-- Sr. (min-width: 40px, centered) -->
-                                        <DataGridTemplateColumn Header="Sr." MinWidth="40" Width="45">
+                                        <DataGridTemplateColumn MinWidth="45" Width="45">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Sr." TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding ItemCodeDisplay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -215,7 +218,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Item Description (min-width: 220px, left-aligned) -->
-                                        <DataGridTemplateColumn Header="Item Description" MinWidth="220" Width="*">
+                                        <DataGridTemplateColumn MinWidth="220" Width="*">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Item Description" TextWrapping="NoWrap" HorizontalAlignment="Left"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding ProductName}" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -225,7 +231,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Batch No. (min-width: 90px, centered) -->
-                                        <DataGridTemplateColumn Header="Batch No." MinWidth="90" Width="95">
+                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Batch No." TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding BatchNumber}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -234,7 +243,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Expiry Date (min-width: 90px, centered) -->
-                                        <DataGridTemplateColumn Header="Expiry Date" MinWidth="90" Width="95">
+                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Expiry Date" TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding ExpiryDateDisplay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -243,7 +255,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Qty (min-width: 60px, right-aligned) -->
-                                        <DataGridTemplateColumn Header="Qty" MinWidth="60" Width="65">
+                                        <DataGridTemplateColumn MinWidth="65" Width="65">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Qty" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding PackageQuantity}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -252,7 +267,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Bonus (min-width: 60px, right-aligned) -->
-                                        <DataGridTemplateColumn Header="Bonus" MinWidth="60" Width="65">
+                                        <DataGridTemplateColumn MinWidth="65" Width="65">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Bonus" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding BonusQuantity}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -261,7 +279,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Rate (T.P) (min-width: 90px, right-aligned) -->
-                                        <DataGridTemplateColumn Header="Rate (T.P)" MinWidth="90" Width="95">
+                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Rate (T.P)" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding PurchasePrice, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -270,7 +291,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- MRP (min-width: 90px, right-aligned) -->
-                                        <DataGridTemplateColumn Header="MRP" MinWidth="90" Width="95">
+                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="MRP" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding PackMRP, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
@@ -279,7 +303,10 @@
                                         </DataGridTemplateColumn>
 
                                         <!-- Line Total (min-width: 110px, right-aligned) -->
-                                        <DataGridTemplateColumn Header="Line Total" MinWidth="110" Width="115">
+                                        <DataGridTemplateColumn MinWidth="110" Width="115">
+                                            <DataGridTemplateColumn.Header>
+                                                <TextBlock Text="Line Total" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                            </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding LineNetTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
@@ -354,7 +381,7 @@
                         <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="8">
                             <materialIcons:MaterialIcon Kind="FileDocument" Width="16" Height="16" Foreground="{DynamicResource BrushInk600}"/>
                             <TextBlock Text="{Binding InvoiceNumber, StringFormat='Viewing Invoice {0}'}"
-                                       FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk700}"/>
+                                       FontSize="13" FontWeight="SemiBold" Foreground="#64748B"/>
                         </StackPanel>
 
                         <!-- Right: Status badge + PDF action -->
@@ -570,7 +597,8 @@
             </ScrollViewer>
 
             <!-- Footer -->
-            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
+            <Border Grid.Row="2" IsVisible="{Binding !IsViewingInvoiceDocument}"
+                    Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                     <Button Grid.Column="0" Command="{Binding CancelCommand}" Classes="btn-secondary">
@@ -580,21 +608,19 @@
                         </StackPanel>
                     </Button>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Button Command="{Binding SaveCommand}" Classes="btn-ghost" IsVisible="{Binding SaveCancelEnabled}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
-                                <TextBlock Text="Save Draft" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                        <Button Command="{Binding EditDraftCommand}" Classes="btn-ghost" Content="Edit Draft" IsVisible="{Binding CanEditDraft}"/>
-                        <Button Command="{Binding EditCheckedInvoiceCommand}" Classes="btn-ghost" Content="Edit Draft" IsVisible="{Binding IsCheckingInvoice}"/>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}"
-                                   VerticalAlignment="Center" FontSize="13" FontWeight="Medium" TextWrapping="Wrap"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Create new purchase invoice." Foreground="#64748B"
+                                   VerticalAlignment="Center" FontSize="13" FontWeight="Medium"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
+                        <Button Command="{Binding SaveAndCheckCommand}" Classes="btn-secondary" IsVisible="{Binding !IsPostedInvoice}">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="ClipboardList" Width="18" Height="18"/>
+                                <TextBlock Text="Check Invoice" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary" IsVisible="{Binding !IsPostedInvoice}">
                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <materialIcons:MaterialIcon Kind="Download" Width="18" Height="18"/>

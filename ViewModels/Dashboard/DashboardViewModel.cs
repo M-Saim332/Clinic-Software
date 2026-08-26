@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ClinicSystem.UI.Messages;
 using System.Timers;
 using ClinicSystem.UI.Services;
+using LiveChartsCore.Measure;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
@@ -139,6 +140,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
     // ── Charts Data ────────────────────────────────────────────────────────
     [ObservableProperty] private ISeries[] _profitSeries  = Array.Empty<ISeries>();
     [ObservableProperty] private Axis[]    _xAxes         = Array.Empty<Axis>();
+    [ObservableProperty] private Axis[]    _yAxes         = Array.Empty<Axis>();
     [ObservableProperty] private ISeries[] _revenueSeries = Array.Empty<ISeries>();
 
     // ── Lists ──────────────────────────────────────────────────────────────
@@ -191,27 +193,19 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             // ── Financial calculations ─────────────────────────────────────
             // Today's financials
             decimal todaySalesAmt = await Task.Run(() => _saleRepo.GetTodayRevenue());
-            decimal todayCogsAmt = await Task.Run(() => _saleRepo.GetTodayCostOfGoodsSold());
-            decimal todayRefundAmt = await Task.Run(() => _refundRepo.GetTodayTotalCompleted());
-            decimal todayPatientReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalPatientReturns());
-            decimal todaySupplierReturns = await Task.Run(() => _productReturnRepo.GetTodayTotalSupplierReturns());
-            
-            decimal todayProfitAmt = todaySalesAmt - todayCogsAmt - todayRefundAmt - todayPatientReturns + todaySupplierReturns;
+            decimal todayProfitAmt = await Task.Run(() => _saleRepo.GetTodayNetSalesProfit());
 
             // 30-day chart + totals (from optimized queries)
-            var dailySales = await Task.Run(() => _saleRepo.GetDailyRevenueLast30Days().ToDictionary(x => x.Date, x => x));
-            var dailyCogs = await Task.Run(() => _saleRepo.GetDailyCostOfGoodsSoldLast30Days().ToDictionary(x => x.Date, x => x.Cogs));
-            var dailyPurchases = await Task.Run(() => _purchaseRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
+            var dailyMetrics = await Task.Run(() => _saleRepo.GetDailyDashboardMetricsLast30Days().ToDictionary(x => x.Date.Date, x => x));
             var dailyRefunds = await Task.Run(() => _refundRepo.GetDailyTotalsLast30Days().ToDictionary(x => x.Date, x => x.Total));
             var dailyPatientReturns = await Task.Run(() => _productReturnRepo.GetDailyPatientReturnsLast30Days().ToDictionary(x => (DateTime)x.Date, x => (decimal)x.Total));
-            var dailySupplierReturns = await Task.Run(() => _productReturnRepo.GetDailySupplierReturnsLast30Days().ToDictionary(x => (DateTime)x.Date, x => (decimal)x.Total));
 
             var thirtyDaysAgo = today.AddDays(-29);
             var dateLabels  = new List<string>();
             var revenueData = new List<double>();
             var profitData  = new List<double>();
 
-            double totalRevenue = 0, totalCogs = 0, totalRefunds = 0, totalSupplierCredits = 0;
+            double totalRevenue = 0, totalProfit = 0, totalRefunds = 0;
 
             for (int i = 0; i < 30; i++)
             {
@@ -219,17 +213,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 // Show every 3rd label to avoid clutter
                 dateLabels.Add(i % 3 == 0 ? d.ToString("MMM dd") : "");
 
-                double daySales = 0, dayCogs = 0, dayRefunds = 0;
-
-                if (dailySales.TryGetValue(d, out var saleData))
-                {
-                    daySales = (double)saleData.Revenue;
-                }
-
-                if (dailyCogs.TryGetValue(d, out var cogsTotal))
-                {
-                    dayCogs = (double)cogsTotal;
-                }
+                double daySales = 0, dayProfit = 0, dayRefunds = 0;
 
                 if (dailyRefunds.TryGetValue(d, out var refundTotal))
                 {
@@ -241,25 +225,30 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                     dayRefunds += (double)patientReturns;
                 }
 
-                double daySupplierCredits = 0;
-                if (dailySupplierReturns.TryGetValue(d, out var supplierReturns))
+                if (dailyMetrics.TryGetValue(d, out var metric))
                 {
-                    daySupplierCredits = (double)supplierReturns;
+                    daySales = (double)metric.Revenue;
+                    dayProfit = (double)metric.Profit;
                 }
 
-                // Revenue line = posted product sales.
-                revenueData.Add(daySales);
-                // Profit line = revenue minus cost of goods sold and refunds
-                profitData.Add(Math.Max(0, daySales - dayCogs - dayRefunds + daySupplierCredits));
+                revenueData.Add(double.IsFinite(daySales) ? daySales : 0);
+                profitData.Add(double.IsFinite(dayProfit) ? dayProfit : 0);
 
                 totalRevenue         += daySales;
-                totalCogs            += dayCogs;
+                totalProfit          += dayProfit;
                 totalRefunds         += dayRefunds;
-                totalSupplierCredits += daySupplierCredits;
             }
 
-            // True 30-day profit = revenue - cost of goods sold - refunds + supplier credits
-            double totalProfit = Math.Max(0, totalRevenue - totalCogs - totalRefunds + totalSupplierCredits);
+            static (double Min, double Max) GetAxisLimits(IEnumerable<double> values)
+            {
+                var min = Math.Min(0, values.DefaultIfEmpty(0).Min());
+                var max = Math.Max(0, values.DefaultIfEmpty(0).Max());
+                var padding = Math.Max(1, (max - min) * 0.12);
+                return (Math.Floor(min - padding), Math.Ceiling(max + padding));
+            }
+
+            var revenueLimits = GetAxisLimits(revenueData);
+            var profitLimits = GetAxisLimits(profitData);
 
             // ── Build chart series ─────────────────────────────────────────
             var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
@@ -271,6 +260,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 {
                     Values            = revenueData,
                     Name              = "Revenue",
+                    ScalesYAt         = 0,
                     Stroke            = greenPaint,
                     GeometryFill      = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
                     GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
@@ -281,6 +271,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 {
                     Values            = profitData,
                     Name              = "Profit",
+                    ScalesYAt         = 1,
                     Stroke            = bluePaint,
                     GeometryFill      = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
                     GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
@@ -299,6 +290,28 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                     Padding         = new LiveChartsCore.Drawing.Padding(4)
                 }
             };
+            var yAxes = new Axis[]
+            {
+                new Axis
+                {
+                    MinLimit = revenueLimits.Min,
+                    MaxLimit = revenueLimits.Max,
+                    MinStep = 1,
+                    TextSize = 10,
+                    LabelsPaint = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
+                    Padding = new LiveChartsCore.Drawing.Padding(4)
+                },
+                new Axis
+                {
+                    MinLimit = profitLimits.Min,
+                    MaxLimit = profitLimits.Max,
+                    MinStep = 1,
+                    TextSize = 10,
+                    Position = AxisPosition.End,
+                    LabelsPaint = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
+                    Padding = new LiveChartsCore.Drawing.Padding(4)
+                }
+            };
 
             // Donut/Pie series for revenue overview
             // Calculate real values from live data instead of hardcoded percentages
@@ -314,8 +327,8 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 },
                 new PieSeries<double>
                 {
-                    Values         = new double[] { totalCogs },
-                    Name           = "Purchases",
+                    Values         = new double[] { Math.Max(0, totalRevenue - totalProfit) },
+                    Name           = "Estimated Cost",
                     Fill           = new SolidColorPaint(new SKColor(0xA7, 0x8B, 0xFA)),
                     InnerRadius    = 80
                 },
@@ -336,7 +349,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 TotalPatients          = totalPatients;
 
                 TodayRevenue = $"Rs. {todaySalesAmt:N2}";
-                TodayProfit  = $"Rs. {Math.Max(0, todayProfitAmt):N2}";
+                TodayProfit  = $"Rs. {todayProfitAmt:N2}";
 
                 SummaryTotalRevenue    = $"Rs. {totalRevenue:N2}";
                 SummaryTotalProfit     = $"Rs. {totalProfit:N2}";
@@ -348,6 +361,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
 
                 ProfitSeries  = lineSeries;
                 XAxes         = xAxes;
+                YAxes         = yAxes;
                 RevenueSeries = donutSeries;
             });
 

@@ -210,8 +210,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 await _clinicalDashboardVM.InitializeAsync();
                 await LoadNotificationsAsync();
                 
-                // Load Clinic Name for the top bar
-                var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>("SELECT SettingValue FROM Settings WHERE SettingKey = 'ClinicName'") ?? "Care & Cure Clinic");
+                // Load active business name for the top bar
+                var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>(
+                    "SELECT TOP 1 SettingValue FROM Settings WHERE SettingKey IN ('PharmacyName', 'ClinicName') ORDER BY CASE WHEN SettingKey = 'PharmacyName' THEN 0 ELSE 1 END") ?? "DR ASIF PHARMA");
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => ClinicName = settings);
 
                 // Compute alert warnings safely
@@ -289,7 +290,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;
     [ObservableProperty] private string _statusText   = string.Empty;
     [ObservableProperty] private string _pageTitle    = "Dashboard";
-    [ObservableProperty] private string _clinicName   = "Care & Cure Clinic";
+    [ObservableProperty] private string _clinicName   = "DR ASIF PHARMA";
     [ObservableProperty] private bool   _isLoading;
     [ObservableProperty] private string _alertMessage = string.Empty;
     [ObservableProperty] private bool   _showAlert;

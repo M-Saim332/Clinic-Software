@@ -42,9 +42,9 @@
                 <StackPanel Spacing="16">
                     <!-- Company Header -->
                     <StackPanel Spacing="4" HorizontalAlignment="Center">
-                        <TextBlock Text="Al Mustafa Distribution Pvt Ltd" FontSize="26" FontWeight="Bold" Foreground="#111827" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Main Wholesale Medicine Market, Pakistan" FontSize="13" Foreground="#4B5563" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Phone: 021-0000000, 0300-0000000" FontSize="13" Foreground="#4B5563" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ClinicName}" FontSize="22" FontWeight="Bold" Foreground="#111827" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ClinicAddress}" FontSize="13" Foreground="#4B5563" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding ClinicPhone}" FontSize="13" Foreground="#4B5563" HorizontalAlignment="Center"/>
                     </StackPanel>
 
                     <!-- Document Title -->
@@ -92,7 +92,10 @@
                         </DataGrid.Styles>
                         <DataGrid.Columns>
                             <!-- 1. Sr. (Width: 8%, centered) -->
-                            <DataGridTemplateColumn Header="Sr." Width="0.8*">
+                            <DataGridTemplateColumn Width="0.8*" MinWidth="52">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Sr." TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding ItemCodeDisplay}" HorizontalAlignment="Center"/>
@@ -101,7 +104,10 @@
                             </DataGridTemplateColumn>
                             
                             <!-- 2. Medicine Name (Width: 42%, left-aligned) -->
-                            <DataGridTemplateColumn Header="Medicine Name" Width="4.2*">
+                            <DataGridTemplateColumn Width="4.2*" MinWidth="240">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Medicine Name" TextWrapping="NoWrap" HorizontalAlignment="Left"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding ProductName}" HorizontalAlignment="Left" TextWrapping="Wrap"/>
@@ -110,16 +116,22 @@
                             </DataGridTemplateColumn>
 
                             <!-- 3. Qty (Pcs) (Width: 15%, right-aligned) -->
-                            <DataGridTemplateColumn Header="Qty (Pcs)" Width="1.5*">
+                            <DataGridTemplateColumn Width="1.5*" MinWidth="86">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Qty (Pcs)" TextWrapping="NoWrap" HorizontalAlignment="Center"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Quantity}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="{Binding Quantity}" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
                             <!-- 4. Price / Tablet (Width: 17%, right-aligned) -->
-                            <DataGridTemplateColumn Header="Price / Tablet" Width="1.7*">
+                            <DataGridTemplateColumn Width="1.7*" MinWidth="108">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Price / Tablet" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding ProductPrice, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right"/>
@@ -128,10 +140,13 @@
                             </DataGridTemplateColumn>
 
                             <!-- 5. Item Total (Width: 18%, right-aligned) -->
-                            <DataGridTemplateColumn Header="Item Total" Width="1.8*">
+                            <DataGridTemplateColumn Width="1.8*" MinWidth="108">
+                                <DataGridTemplateColumn.Header>
+                                    <TextBlock Text="Item Total" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
+                                </DataGridTemplateColumn.Header>
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding LineNetTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="{Binding InvoiceItemTotal, StringFormat='{}{0:N2}'}" HorizontalAlignment="Right"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
@@ -142,35 +157,26 @@
                     <Grid ColumnDefinitions="*,Auto" Margin="0,16,0,0">
                         <!-- Left Side: Notes -->
                         <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                            <TextBlock Text="Total Items: {Binding DocumentTotalItems}   Total Qty: {Binding DocumentTotalQuantity}" FontSize="12" FontWeight="SemiBold" Foreground="#4B5563"/>
+                            <StackPanel Orientation="Horizontal" Spacing="18">
+                                <TextBlock Text="{Binding DocumentTotalItems, StringFormat='Total Items: {0}'}" FontSize="12" FontWeight="SemiBold" Foreground="#4B5563"/>
+                                <TextBlock Text="{Binding DocumentTotalQuantity, StringFormat='Total Qty: {0}'}" FontSize="12" FontWeight="SemiBold" Foreground="#4B5563"/>
+                            </StackPanel>
                         </StackPanel>
 
                         <!-- Right Side: Financial Summary -->
-                        <StackPanel Grid.Column="1" Spacing="6" HorizontalAlignment="Right">
-                            <!-- Show taxes/discounts only if there are adjustments -->
-                            <StackPanel IsVisible="{Binding HasAdjustments}" Spacing="6" Margin="0,0,0,8">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Sub Total:" FontSize="13" Foreground="#4B5563" Margin="0,0,24,0" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding DocumentSubTotal, StringFormat='Rs. {0:N2}'}" FontSize="13" FontWeight="SemiBold" Foreground="#111827"/>
-                                </Grid>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Taxes / Discounts:" FontSize="13" Foreground="#4B5563" Margin="0,0,24,0" HorizontalAlignment="Right"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding DocumentAdjustmentsTotal, StringFormat='Rs. {0:N2}'}" FontSize="13" FontWeight="SemiBold" Foreground="#EF4444"/>
-                                </Grid>
-                            </StackPanel>
-
-                            <!-- Render a single, bold, high-contrast summary block directly below Item Total -->
+                        <Border Grid.Column="1" Background="#111827" BorderBrush="#111827" BorderThickness="1"
+                                CornerRadius="3" Padding="20,12" HorizontalAlignment="Right" MinWidth="300">
                             <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="TOTAL BILL:" FontSize="18" FontWeight="ExtraBold" Foreground="#111827" Margin="0,0,24,0" HorizontalAlignment="Right"/>
-                                <TextBlock Grid.Column="1" Text="{Binding DocumentGrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="ExtraBold" Foreground="#111827"/>
+                                <TextBlock Text="TOTAL BILL:" FontSize="18" FontWeight="ExtraBold" Foreground="White" Margin="0,0,24,0" HorizontalAlignment="Right"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DocumentGrandTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="ExtraBold" Foreground="White"/>
                             </Grid>
-                        </StackPanel>
+                        </Border>
                     </Grid>
 
                     <!-- Footer Warranty -->
                     <Border BorderBrush="#E5E7EB" BorderThickness="1" Background="#F9FAFB" CornerRadius="4" Padding="12" Margin="0,24,0,0">
                         <StackPanel Spacing="4">
-                            <TextBlock Text="Being a person resident in Pakistan carrying on business at the address shown above under the name of Al Mustafa Distribution Pvt Ltd do hereby give this warranty that the drugs invoice as sold by us, do not contravene in any way the provisions of section 18 of the Drug Act 1976." TextWrapping="Wrap" FontSize="10" Foreground="#6B7280"/>
+                            <TextBlock Text="Being a person resident in Pakistan carrying on business at the address shown above under the name of DR ASIF PHARMA do hereby give this warranty that the drugs invoice as sold by us, do not contravene in any way the provisions of section 18 of the Drug Act 1976." TextWrapping="Wrap" FontSize="10" Foreground="#6B7280"/>
                             <TextBlock Text="Expiry items must be informed 6 months prior to expiry. Any discrepancy please inform us immediately." TextWrapping="Wrap" FontSize="10" FontWeight="Bold" Foreground="#4B5563"/>
                         </StackPanel>
                     </Border>

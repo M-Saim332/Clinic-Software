@@ -27,3 +27,11 @@ public class CompanySaleRow
     public decimal Cost { get; set; }
     public decimal Profit => Revenue - Cost;
 }
+
+public class DailyDashboardMetricPoint
+{
+    public DateTime Date { get; set; }
+    public string DateText => Date.ToString("yyyy-MM-dd");
+    public decimal Revenue { get; set; }
+    public decimal Profit { get; set; }
+}

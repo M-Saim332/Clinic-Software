@@ -167,7 +167,19 @@ END
 GO
 
 IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingKey = 'PharmacyName')
-    INSERT INTO Settings (SettingKey, SettingValue) VALUES ('PharmacyName', 'My Pharmacy');
+    INSERT INTO Settings (SettingKey, SettingValue) VALUES ('PharmacyName', 'DR ASIF PHARMA');
+IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingKey = 'ClinicName')
+    INSERT INTO Settings (SettingKey, SettingValue) VALUES ('ClinicName', 'DR ASIF PHARMA');
+IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingKey = 'ClinicAddress')
+    INSERT INTO Settings (SettingKey, SettingValue) VALUES ('ClinicAddress', 'Pirmahal, Near Imam Bargah');
+IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingKey = 'Address')
+    INSERT INTO Settings (SettingKey, SettingValue) VALUES ('Address', 'Pirmahal, Near Imam Bargah');
 IF NOT EXISTS (SELECT 1 FROM Settings WHERE SettingKey = 'ReceptionistTheme')
     INSERT INTO Settings (SettingKey, SettingValue) VALUES ('ReceptionistTheme', 'System Default');
+UPDATE Settings SET SettingValue = 'DR ASIF PHARMA'
+WHERE SettingKey IN ('PharmacyName', 'ClinicName')
+  AND SettingValue IN ('My Pharmacy', 'Care & Cure Clinic', 'MediCompare Pharmacy');
+UPDATE Settings SET SettingValue = 'Pirmahal, Near Imam Bargah'
+WHERE SettingKey IN ('Address', 'ClinicAddress')
+  AND SettingValue IN ('123 Health Ave, Medical District', '');
 GO

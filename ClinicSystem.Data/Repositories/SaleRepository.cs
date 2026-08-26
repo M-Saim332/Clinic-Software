@@ -10,6 +10,39 @@ public class SaleRepository
 
     private const string SaleSelect = @"SELECT s.*,COALESCE(u.FullName,s.ReceptionistName) ReceptionistName
         FROM Sales s LEFT JOIN Users u ON s.ReceptionistId=u.UserID";
+    private const string CostApplySql = @"
+            OUTER APPLY (
+                SELECT TOP 1
+                    CASE
+                        WHEN ISNULL(pi.PurchasePrice, 0) > 0 AND ISNULL(pi.UnitsPerPackage, 0) > 0
+                            THEN CAST(pi.PurchasePrice AS DECIMAL(18,6)) / NULLIF(pi.UnitsPerPackage, 0)
+                        ELSE NULL
+                    END AS PurchasePieceCost
+                FROM PurchaseItems pi
+                JOIN Purchases pu ON pu.PurchaseID = pi.PurchaseID
+                WHERE pi.ProductID = si.ProductID AND pu.IsPosted = 1
+                ORDER BY
+                    CASE WHEN pi.ExpiryDate IS NULL OR pi.ExpiryDate >= CAST(GETDATE() AS DATE) THEN 0 ELSE 1 END,
+                    COALESCE(pu.PostedAt, pu.PurchaseDate) DESC,
+                    pi.PurchaseItemID DESC
+            ) pc";
+    private const string PurchasePieceCostSql = @"COALESCE(
+                pc.PurchasePieceCost,
+                CASE
+                    WHEN ISNULL(p.PurchasePrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 1
+                         AND p.PurchasePrice > ISNULL(si.UnitPrice, 0) * 2
+                        THEN CAST(p.PurchasePrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
+                    WHEN ISNULL(p.PurchasePrice, 0) > 0
+                        THEN CAST(p.PurchasePrice AS DECIMAL(18,6))
+                    ELSE NULL
+                END,
+                CASE
+                    WHEN ISNULL(p.SellingPrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 0
+                        THEN (CAST(p.SellingPrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)) * 0.85
+                    WHEN ISNULL(si.UnitPrice, 0) > 0
+                        THEN CAST(si.UnitPrice AS DECIMAL(18,6)) * 0.85
+                    ELSE 0
+                END)";
 
     public IEnumerable<Sale> GetAll()
     {
@@ -48,9 +81,10 @@ public class SaleRepository
         using var conn=_session.CreateConnection();
         return conn.Query<CompanySaleRow>(@"SELECT c.CompanyID,COALESCE(c.Name,'Unassigned') CompanyName,
             SUM(si.StockQuantity) PiecesSold,SUM(si.LineTotal) Revenue,
-            SUM(si.StockQuantity*(p.PurchasePrice/NULLIF(p.PiecesPerUnit,0))) Cost
+            SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")) Cost
             FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
-            LEFT JOIN Companies c ON p.CompanyID=c.CompanyID WHERE s.IsPosted=1 AND s.IsActive=1
+            LEFT JOIN Companies c ON p.CompanyID=c.CompanyID" + CostApplySql + @"
+            WHERE s.IsPosted=1 AND s.IsActive=1
             AND s.SaleDate>=@from AND s.SaleDate<@to AND (@receptionistId IS NULL OR s.ReceptionistId=@receptionistId)
             GROUP BY c.CompanyID,c.Name ORDER BY Revenue DESC",new{from,to,receptionistId});
     }
@@ -67,9 +101,10 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         var row = conn.QuerySingle(@"SELECT ISNULL(SUM(si.StockQuantity),0) UnitsSold,
-            ISNULL(SUM(si.StockQuantity*(p.PurchasePrice/NULLIF(p.PiecesPerUnit,0))),0) CostOfGoods
+            ISNULL(SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")),0) CostOfGoods
             FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
-            LEFT JOIN Users u ON s.ReceptionistId=u.UserID WHERE s.IsPosted=1 AND s.IsActive=1
+            LEFT JOIN Users u ON s.ReceptionistId=u.UserID" + CostApplySql + @"
+            WHERE s.IsPosted=1 AND s.IsActive=1
             AND s.SaleDate>=@fromInclusive AND s.SaleDate<@toExclusive
             AND (@receptionistName IS NULL OR COALESCE(u.FullName,s.ReceptionistName)=@receptionistName)",
             new { fromInclusive, toExclusive, receptionistName });
@@ -99,11 +134,18 @@ public class SaleRepository
     public decimal GetTodayRevenue() => Scalar("SELECT ISNULL(SUM(GrandTotal),0) FROM Sales WHERE IsPosted=1 AND IsActive=1 AND CAST(SaleDate AS DATE)=CAST(GETDATE() AS DATE)");
     public decimal GetTotalRevenue() => Scalar("SELECT ISNULL(SUM(GrandTotal),0) FROM Sales WHERE IsPosted=1 AND IsActive=1");
     public decimal GetTotalRevenueLast30Days() => Scalar("SELECT ISNULL(SUM(GrandTotal),0) FROM Sales WHERE IsPosted=1 AND IsActive=1 AND SaleDate>=DATEADD(day,-29,CAST(GETDATE() AS DATE))");
-    public decimal GetTodayCostOfGoodsSold() => Scalar(@"SELECT ISNULL(SUM(si.StockQuantity*(p.PurchasePrice/NULLIF(p.PiecesPerUnit,0))),0)
+    public decimal GetTodayCostOfGoodsSold() => Scalar(@"SELECT ISNULL(SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")),0)
         FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
+        " + CostApplySql + @"
         WHERE s.IsPosted=1 AND s.IsActive=1 AND CAST(s.SaleDate AS DATE)=CAST(GETDATE() AS DATE)");
-    public decimal GetTotalCostOfGoodsSold() => Scalar(@"SELECT ISNULL(SUM(si.StockQuantity*(p.PurchasePrice/NULLIF(p.PiecesPerUnit,0))),0)
-        FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID WHERE s.IsPosted=1 AND s.IsActive=1");
+    public decimal GetTodayNetSalesProfit() => Scalar(@"SELECT ISNULL(SUM(((si.UnitPrice - (" + PurchasePieceCostSql + @")) * si.StockQuantity) - ISNULL(si.Discount, 0)),0)
+        FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
+        " + CostApplySql + @"
+        WHERE s.IsPosted=1 AND s.IsActive=1 AND CAST(s.SaleDate AS DATE)=CAST(GETDATE() AS DATE)");
+    public decimal GetTotalCostOfGoodsSold() => Scalar(@"SELECT ISNULL(SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")),0)
+        FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
+        " + CostApplySql + @"
+        WHERE s.IsPosted=1 AND s.IsActive=1");
 
     private decimal Scalar(string sql)
     {
@@ -124,11 +166,26 @@ public class SaleRepository
     {
         using var conn = _session.CreateConnection();
         var rows = conn.Query(@"SELECT CAST(s.SaleDate AS DATE) SaleDay,
-            ISNULL(SUM(si.StockQuantity*(p.PurchasePrice/NULLIF(p.PiecesPerUnit,0))),0) Cogs
+            ISNULL(SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")),0) Cogs
             FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
+            " + CostApplySql + @"
             WHERE s.IsPosted=1 AND s.IsActive=1 AND s.SaleDate>=DATEADD(day,-29,CAST(GETDATE() AS DATE))
             GROUP BY CAST(s.SaleDate AS DATE) ORDER BY SaleDay");
         return rows.Select(r => ((DateTime)r.SaleDay, (decimal)r.Cogs)).ToList();
+    }
+
+    public IEnumerable<DailyDashboardMetricPoint> GetDailyDashboardMetricsLast30Days()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<DailyDashboardMetricPoint>(@"SELECT CAST(s.SaleDate AS DATE) [Date],
+            ISNULL(SUM(si.LineTotal),0) Revenue,
+            ISNULL(SUM(((si.UnitPrice - (" + PurchasePieceCostSql + @")) * si.StockQuantity) - ISNULL(si.Discount, 0)),0) Profit
+            FROM Sales s
+            JOIN SaleItems si ON s.SaleID=si.SaleID
+            JOIN Products p ON si.ProductID=p.ProductID
+            " + CostApplySql + @"
+            WHERE s.IsPosted=1 AND s.IsActive=1 AND s.SaleDate>=DATEADD(day,-29,CAST(GETDATE() AS DATE))
+            GROUP BY CAST(s.SaleDate AS DATE) ORDER BY [Date]").ToList();
     }
 
     public Sale? GetByIdWithItems(int id)
@@ -136,8 +193,14 @@ public class SaleRepository
         using var conn = _session.CreateConnection();
         var sale = conn.QuerySingleOrDefault<Sale>($"{SaleSelect} WHERE s.SaleID=@id AND s.IsActive=1", new { id });
         if (sale == null) return null;
-        sale.Items = conn.Query<SaleItem>(@"SELECT si.*,p.Name ProductName FROM SaleItems si
-            JOIN Products p ON si.ProductID=p.ProductID WHERE si.SaleID=@id", new { id }).ToList();
+        sale.Items = conn.Query<SaleItem>(@"SELECT
+                ROW_NUMBER() OVER (ORDER BY si.SaleItemID) SerialNumber,
+                si.*,
+                p.Name ProductName
+            FROM SaleItems si
+            JOIN Products p ON si.ProductID=p.ProductID
+            WHERE si.SaleID=@id
+            ORDER BY si.SaleItemID", new { id }).ToList();
         return sale;
     }
 

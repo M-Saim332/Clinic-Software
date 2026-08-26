@@ -46,8 +46,14 @@ public class PurchaseRepository
             LEFT JOIN Suppliers s ON p.SupplierID=s.SupplierID LEFT JOIN Users u ON p.CreatedBy=u.UserID
             WHERE p.PurchaseID=@id", new { id });
         if (purchase == null) return null;
-        purchase.Items = conn.Query<PurchaseItem>(@"SELECT pi.*,prod.Name ProductName FROM PurchaseItems pi
-            JOIN Products prod ON pi.ProductID=prod.ProductID WHERE pi.PurchaseID=@id", new { id }).ToList();
+        purchase.Items = conn.Query<PurchaseItem>(@"SELECT
+                ROW_NUMBER() OVER (ORDER BY pi.PurchaseItemID) SerialNumber,
+                pi.*,
+                prod.Name ProductName
+            FROM PurchaseItems pi
+            JOIN Products prod ON pi.ProductID=prod.ProductID
+            WHERE pi.PurchaseID=@id
+            ORDER BY pi.PurchaseItemID", new { id }).ToList();
         return purchase;
     }
 

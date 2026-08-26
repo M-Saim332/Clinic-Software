@@ -107,9 +107,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private InvoiceState _invoiceState = InvoiceState.Draft;
     private int _currentPurchaseId;
 
-    // Clinic branding — loaded from Settings
-    [ObservableProperty] private string _clinicName    = "MediCompare Pharmacy";
-    [ObservableProperty] private string _clinicAddress = string.Empty;
+    // Invoice branding is loaded from the active clinic/pharmacy profile.
+    [ObservableProperty] private string _clinicName    = "DR ASIF PHARMA";
+    [ObservableProperty] private string _clinicAddress = "Pirmahal, Near Imam Bargah";
     [ObservableProperty] private string _clinicPhone   = string.Empty;
 
     public List<string> PackageTypes { get; } = new() { "Box", "Carton", "Pack", "Bottle", "Piece" };
@@ -123,12 +123,19 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             var dict = await System.Threading.Tasks.Task.Run(() => _settingsRepo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                if (dict.TryGetValue("ClinicName",    out var n)) ClinicName    = n;
-                if (dict.TryGetValue("ClinicAddress", out var a)) ClinicAddress = a;
+                ClinicName = GetSetting(dict, "PharmacyName", "ClinicName", "DR ASIF PHARMA");
+                ClinicAddress = GetSetting(dict, "Address", "ClinicAddress", "Pirmahal, Near Imam Bargah");
                 if (dict.TryGetValue("ClinicPhone",   out var p)) ClinicPhone   = p;
             });
         }
         catch { /* silently ignore — use defaults */ }
+    }
+
+    private static string GetSetting(IReadOnlyDictionary<string, string> settings, string primaryKey, string legacyKey, string fallback)
+    {
+        if (settings.TryGetValue(primaryKey, out var primary) && !string.IsNullOrWhiteSpace(primary)) return primary;
+        if (settings.TryGetValue(legacyKey, out var legacy) && !string.IsNullOrWhiteSpace(legacy)) return legacy;
+        return fallback;
     }
 
     public decimal GrandTotal => LineItems.Sum(x => x.LineNetTotal);

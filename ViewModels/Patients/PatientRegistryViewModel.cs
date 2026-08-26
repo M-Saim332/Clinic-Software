@@ -2,7 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
+using ClinicSystem.UI.Messages;
+using ClinicSystem.UI.Services;
 using ClinicSystem.UI.ViewModels.Prescriptions;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Patients;
@@ -11,10 +14,14 @@ namespace ClinicSystem.UI.ViewModels.Patients;
 public partial class PatientRegistryViewModel : ViewModelBase
 {
     private readonly PatientRepository _repo;
+    private readonly ProductRepository _productRepo;
+    private readonly PrescriptionRepository _prescriptionRepo;
 
-    public PatientRegistryViewModel(PatientRepository repo)
+    public PatientRegistryViewModel(PatientRepository repo, ProductRepository productRepo, PrescriptionRepository prescriptionRepo)
     {
         _repo = repo;
+        _productRepo = productRepo;
+        _prescriptionRepo = prescriptionRepo;
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -62,7 +69,10 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _discount = "0.00";
     [ObservableProperty] private DateTimeOffset _appointmentDate = DateTimeOffset.Now;
     [ObservableProperty] private TimeSpan _appointmentTime = DateTime.Now.TimeOfDay;
-    [ObservableProperty] private bool _isReadOnly;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSavePatient))]
+    [NotifyPropertyChangedFor(nameof(CanUsePrescriptionActions))]
+    private bool _isReadOnly;
     [ObservableProperty] private int _selectedTab;
 
     public List<string> GenderOptions { get; } = new() { "Male", "Female", "Other" };
@@ -73,6 +83,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
     // ── View-state booleans required by the view ──────────────────────────
     public bool ShowEditButton  => Mode == FormMode.Edit || Mode == FormMode.View;
     public bool ShowSaveButton  => Mode == FormMode.Add  || Mode == FormMode.Edit;
+    public bool CanSavePatient => ShowSaveButton && !IsReadOnly;
+    public bool CanUsePrescriptionActions => Mode == FormMode.Edit && SelectedPatient != null;
 
     [ObservableProperty] private bool _showDeleteAllConfirm;
 
@@ -81,6 +93,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private string _dosage      = string.Empty;
     [ObservableProperty] private int    _drugQuantity = 1;
     [ObservableProperty] private Product? _selectedDrug;
+    [ObservableProperty] private ObservableCollection<Product>       _availableDrugs = new();
     [ObservableProperty] private ObservableCollection<Product>       _filteredDrugs = new();
     [ObservableProperty] private ObservableCollection<PrescriptionItemRow> _selectedDrugs = new();
 
@@ -101,6 +114,31 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     [RelayCommand]
     private void RemoveDrug(PrescriptionItemRow? row) { if (row != null) SelectedDrugs.Remove(row); }
+
+    [RelayCommand]
+    private void AddDrug()
+    {
+        if (SelectedDrug == null) { StatusMessage = "Select a medicine from the product catalog."; return; }
+        if (DrugQuantity <= 0) { StatusMessage = "Enter a valid medicine quantity."; return; }
+        if (DrugQuantity > SelectedDrug.Stock) { StatusMessage = $"Insufficient stock. Available: {SelectedDrug.Stock}."; return; }
+        if (SelectedDrugs.Any(x => x.ProductID == SelectedDrug.ProductID)) { StatusMessage = "Medicine is already added."; return; }
+
+        SelectedDrugs.Add(new PrescriptionItemRow
+        {
+            ProductID = SelectedDrug.ProductID,
+            ProductName = SelectedDrug.Name,
+            Quantity = DrugQuantity,
+            Dosage = Dosage,
+            AvailableStock = SelectedDrug.Stock
+        });
+
+        Prescription = string.Join(Environment.NewLine, SelectedDrugs.Select(x => $"{x.ProductName} x{x.Quantity} {x.Dosage}".Trim()));
+        SelectedDrug = null;
+        DrugSearch = string.Empty;
+        DrugQuantity = 1;
+        Dosage = string.Empty;
+        StatusMessage = string.Empty;
+    }
 
     [RelayCommand]
     private void ViewSpecific(Patient? p) => View(p);
@@ -132,10 +170,33 @@ public partial class PatientRegistryViewModel : ViewModelBase
     private void EditSpecific(Patient? p) => Edit(p);
 
     [RelayCommand]
-    private void PrintClinicalSummary() { StatusMessage = "Print not yet implemented."; }
+    private async Task PrintClinicalSummaryAsync()
+    {
+        var prescription = BuildPrescriptionFromSelectedDrugs();
+        if (prescription == null) return;
+        if (await PrescriptionPrintService.ExportAsync(prescription))
+        {
+            StatusMessage = "Prescription PDF is ready to print.";
+        }
+    }
 
     [RelayCommand]
-    private void PostAndSync() { StatusMessage = "Send to Pharmacist not yet implemented."; }
+    private async Task PostAndSyncAsync()
+    {
+        var prescription = BuildPrescriptionFromSelectedDrugs();
+        if (prescription == null) return;
+
+        try
+        {
+            await Task.Run(() => _prescriptionRepo.Insert(prescription, "SentToPharmacy"));
+            StatusMessage = "Prescription sent to pharmacist.";
+            WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Unable to send prescription: {ex.Message}";
+        }
+    }
 
     [RelayCommand]
     private void CancelDeleteAll() => ShowDeleteAllConfirm = false;
@@ -168,6 +229,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         Mode = FormMode.Edit;
         IsReadOnly = false;
         NotifyButtonStates();
+        _ = LoadVisitHistoryAsync(target.PatientID);
         StatusMessage = "Edit patient details and click Save.";
     }
 
@@ -181,6 +243,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         Mode = FormMode.Edit;
         IsReadOnly = true;
         NotifyButtonStates();
+        _ = LoadVisitHistoryAsync(target.PatientID);
         StatusMessage = "Viewing patient details.";
     }
 
@@ -272,6 +335,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     partial void OnSearchTermChanged(string value) => FilterPatients();
+    partial void OnSelectedPatientChanged(Patient? value) => OnPropertyChanged(nameof(CanUsePrescriptionActions));
 
     // ── Helpers ────────────────────────────────────────────────────────────
     public async Task InitializeAsync()
@@ -279,8 +343,11 @@ public partial class PatientRegistryViewModel : ViewModelBase
         try
         {
             var list = await Task.Run(() => _repo.GetAll());
+            var drugs = await Task.Run(() => _productRepo.GetPrescribable());
             Avalonia.Threading.Dispatcher.UIThread.Post(() => {
                 Patients = new ObservableCollection<Patient>(list);
+                AvailableDrugs = new ObservableCollection<Product>(drugs);
+                FilterDrugs();
                 FilterPatients();
 
                 TotalPatientsCount = Patients.Count;
@@ -303,6 +370,28 @@ public partial class PatientRegistryViewModel : ViewModelBase
                 StatusMessage = $"Error loading patients: {ex.Message}";
             });
         }
+    }
+
+    partial void OnDrugSearchChanged(string value) => FilterDrugs();
+
+    private void FilterDrugs()
+    {
+        var term = DrugSearch?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            FilteredDrugs = new ObservableCollection<Product>(AvailableDrugs);
+            return;
+        }
+
+        FilteredDrugs = new ObservableCollection<Product>(
+            AvailableDrugs.Where(p =>
+                p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (p.GenericName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Type?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Packing?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                p.ProductCodeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.ProductID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                p.PCode.ToString().Contains(term, StringComparison.OrdinalIgnoreCase)));
     }
 
 
@@ -333,6 +422,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         AppointmentDate = DateTimeOffset.Now;
         AppointmentTime = DateTime.Now.TimeOfDay;
         SelectedDrugs.Clear(); VisitHistory.Clear();
+        DrugSearch = string.Empty; SelectedDrug = null; FilterDrugs();
     }
 
     private void FillFields(Patient p)
@@ -347,6 +437,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
         ConsultationFee = p.ConsultationFee.ToString("F2"); Discount = p.Discount.ToString("F2");
         AppointmentDate = p.AppointmentDate.HasValue ? new DateTimeOffset(p.AppointmentDate.Value) : DateTimeOffset.Now;
         AppointmentTime = p.AppointmentTime ?? DateTime.Now.TimeOfDay;
+        DrugSearch = string.Empty;
+        SelectedDrug = null;
+        FilterDrugs();
     }
 
     private Patient BuildPatient() => new()
@@ -362,6 +455,74 @@ public partial class PatientRegistryViewModel : ViewModelBase
         AppointmentTime = AppointmentTime
     };
 
+    private async Task LoadVisitHistoryAsync(int patientId)
+    {
+        try
+        {
+            var history = await Task.Run(() => _prescriptionRepo.GetByPatient(patientId).ToList());
+            foreach (var prescription in history)
+            {
+                var full = await Task.Run(() => _prescriptionRepo.GetByIdWithItems(prescription.PrescriptionID));
+                if (full?.Items != null) prescription.Items = full.Items;
+            }
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                VisitHistory = new ObservableCollection<Prescription>(history));
+        }
+        catch
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => VisitHistory = new ObservableCollection<Prescription>());
+        }
+    }
+
+    private Prescription? BuildPrescriptionFromSelectedDrugs()
+    {
+        if (SelectedDrug != null)
+        {
+            AddDrug();
+            if (SelectedDrug != null) return null;
+        }
+
+        var target = SelectedPatient;
+        if (target == null && Mode == FormMode.Edit) target = BuildPatient();
+        if (target == null || target.PatientID <= 0)
+        {
+            StatusMessage = "Save the patient before printing or sending a prescription.";
+            return null;
+        }
+        if (!SelectedDrugs.Any())
+        {
+            StatusMessage = "Add at least one medicine from the product catalog.";
+            return null;
+        }
+        if (CurrentUser == null)
+        {
+            StatusMessage = "A logged-in doctor is required to create a prescription.";
+            return null;
+        }
+
+        return new Prescription
+        {
+            PatientID = target.PatientID,
+            PatientName = Name,
+            PatientAge = int.TryParse(Age, out var age) ? age : target.Age,
+            PatientGender = Gender,
+            PatientPhone = Phone,
+            DoctorID = CurrentUser.UserID,
+            DoctorName = CurrentUser.FullName,
+            VisitDate = DateTime.Now,
+            Diagnosis = ReasonOfVisit,
+            Notes = Diagnosis,
+            Items = SelectedDrugs.Select(x => new PrescriptionItem
+            {
+                ProductID = x.ProductID,
+                ProductName = x.ProductName,
+                Quantity = x.Quantity,
+                Dosage = x.Dosage
+            }).ToList()
+        };
+    }
+
     private void NotifyButtonStates()
     {
         OnPropertyChanged(nameof(MutationEnabled));
@@ -370,5 +531,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         OnPropertyChanged(nameof(PkEditable));
         OnPropertyChanged(nameof(ShowEditButton));
         OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(CanSavePatient));
+        OnPropertyChanged(nameof(CanUsePrescriptionActions));
     }
 }

@@ -3,6 +3,7 @@ namespace ClinicSystem.Core.Models;
 public class PurchaseItem
 {
     public int PurchaseItemID { get; set; }
+    public int SerialNumber { get; set; }
     public int PurchaseID { get; set; }
     public int ProductID { get; set; }
     public string? BatchNumber { get; set; }
@@ -48,7 +49,7 @@ public class PurchaseItem
         $"{(string.IsNullOrWhiteSpace(BatchNumber) ? "N/A" : BatchNumber)} / {(ExpiryDate.HasValue ? ExpiryDate.Value.ToString("dd MMM yyyy") : "N/A")}";
     public string RateMrpDisplay => $"Rate Rs. {PurchasePrice:N2} / MRP Rs. {PackMRP:N2}";
     public string TaxDiscountDisplay => $"Tax {ATax + CompanySalesTax:N2}% / Disc {Discount + ExtraDiscount:N2}%";
-    public string ItemCodeDisplay => ProductID > 0 ? ProductID.ToString() : "-";
+    public string ItemCodeDisplay => SerialNumber > 0 ? SerialNumber.ToString() : "-";
     public string ExpiryDateDisplay => ExpiryDate?.ToString("dd MMM yyyy") ?? "-";
     public decimal DiscountPercent => Discount + ExtraDiscount;
     public decimal DiscountAmount => DiscountedValue + ExtraDiscountedValue;

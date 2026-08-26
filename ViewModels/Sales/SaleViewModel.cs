@@ -119,8 +119,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     private bool CanAddLineItem() => SelectedProduct != null && Quantity > 0 && Quantity <= MaxQuantity;
 
-    public decimal Subtotal => LineItems.Sum(x => x.LineNetTotal);
-    public decimal GrandTotal => Subtotal + (Subtotal * SalesTax / 100m);
+    public decimal Subtotal => LineItems.Sum(x => x.InvoiceItemTotal);
+    public decimal GrandTotal => Subtotal;
     public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
     public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
@@ -195,8 +195,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
             Tax = Tax,
             ProductPrice = ProductPrice
         };
-        // LineNetTotal is a computed property — store it as LineTotal for the DB
-        item.LineTotal = item.LineNetTotal;
+        item.LineTotal = item.InvoiceItemTotal;
 
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
@@ -370,8 +369,12 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     partial void OnQuantityChanged(int value)
     {
+        OnPropertyChanged(nameof(GrandTotal));
         AddLineItemCommand.NotifyCanExecuteChanged();
     }
+
+    partial void OnDiscountChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
+    partial void OnProductPriceChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
 
     partial void OnSelectedUnitTypeChanged(string value)
     {

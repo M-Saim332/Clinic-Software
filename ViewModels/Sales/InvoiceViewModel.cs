@@ -25,23 +25,23 @@ public partial class InvoiceViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<SaleItem> _lineItems = new();
     [ObservableProperty] private string  _statusMessage = string.Empty;
 
-    // Clinic branding — loaded from Settings
-    [ObservableProperty] private string _clinicName    = "Clinic Management";
-    [ObservableProperty] private string _clinicAddress = string.Empty;
+    // Invoice branding is loaded from the active clinic/pharmacy profile.
+    [ObservableProperty] private string _clinicName    = "DR ASIF PHARMA";
+    [ObservableProperty] private string _clinicAddress = "Pirmahal, Near Imam Bargah";
     [ObservableProperty] private string _clinicPhone   = string.Empty;
 
-    public decimal DocumentSubTotal => LineItems.Sum(x => x.GrossLineAmount);
+    public decimal DocumentSubTotal => DocumentGrandTotal;
     public int DocumentTotalItems => LineItems.Count;
     public int DocumentTotalQuantity => LineItems.Sum(x => x.Quantity);
-    public decimal DocumentGrossAmount => LineItems.Sum(x => x.GrossLineAmount);
+    public decimal DocumentGrossAmount => DocumentGrandTotal;
     public decimal DocumentDiscountAmount => LineItems.Sum(x => x.DiscountAmount);
     public decimal DocumentAdvanceWHTax => LineItems.Sum(x => x.AdvTaxAmount);
-    public decimal DocumentTaxAmount => LineItems.Sum(x => x.TaxAmount) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
+    public decimal DocumentTaxAmount => 0;
     public decimal DocumentCNValue => 0;
     public decimal DocumentAdjustmentsTotal =>
-        LineItems.Sum(x => x.Tax - x.Discount) + (SaleData?.GrandTotal - LineItems.Sum(x => x.LineNetTotal) ?? 0);
-    public bool HasAdjustments => DocumentDiscountAmount > 0 || DocumentTaxAmount > 0;
-    public decimal DocumentGrandTotal => SaleData?.GrandTotal ?? LineItems.Sum(x => x.LineNetTotal);
+        0;
+    public bool HasAdjustments => false;
+    public decimal DocumentGrandTotal => LineItems.Sum(x => x.InvoiceItemTotal);
     public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
     public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
 
@@ -59,12 +59,19 @@ public partial class InvoiceViewModel : ViewModelBase
             var dict = await Task.Run(() => _settingsRepo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                if (dict.TryGetValue("ClinicName",    out var n)) ClinicName    = n;
-                if (dict.TryGetValue("ClinicAddress", out var a)) ClinicAddress = a;
+                ClinicName = GetSetting(dict, "PharmacyName", "ClinicName", "DR ASIF PHARMA");
+                ClinicAddress = GetSetting(dict, "Address", "ClinicAddress", "Pirmahal, Near Imam Bargah");
                 if (dict.TryGetValue("ClinicPhone",   out var p)) ClinicPhone   = p;
             });
         }
         catch { /* silently ignore — use defaults */ }
+    }
+
+    private static string GetSetting(IReadOnlyDictionary<string, string> settings, string primaryKey, string legacyKey, string fallback)
+    {
+        if (settings.TryGetValue(primaryKey, out var primary) && !string.IsNullOrWhiteSpace(primary)) return primary;
+        if (settings.TryGetValue(legacyKey, out var legacy) && !string.IsNullOrWhiteSpace(legacy)) return legacy;
+        return fallback;
     }
 
     private async Task LoadItemsAsync(int saleId)
@@ -77,6 +84,11 @@ public partial class InvoiceViewModel : ViewModelBase
                 // Force UI refresh by nulling first, then re-assigning the fresh complete data
                 SaleData = null;
                 SaleData = saleWithItems;
+                for (var i = 0; i < saleWithItems.Items.Count; i++)
+                {
+                    saleWithItems.Items[i].SerialNumber = i + 1;
+                }
+
                 LineItems = new ObservableCollection<SaleItem>(saleWithItems.Items);
                 NotifyDocumentTotals();
             });
