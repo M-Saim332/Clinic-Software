@@ -165,6 +165,8 @@ public partial class App : Application
         services.AddSingleton<SettingsViewModel>();
         services.AddSingleton<DiscountRefundViewModel>();
         services.AddSingleton<ProfileViewModel>();
+        services.AddSingleton<ProcessReturnViewModel>();
+        services.AddSingleton<ReturnHistoryViewModel>();
         services.AddSingleton<ReturnsViewModel>();
         services.AddTransient<MainWindowViewModel>();
 

@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace ClinicSystem.UI.Views.Returns;
 
-public partial class ReturnsView : UserControl
+public partial class ReturnHistoryView : UserControl
 {
-    public ReturnsView()
+    public ReturnHistoryView()
     {
         InitializeComponent();
     }

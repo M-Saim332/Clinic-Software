@@ -20,6 +20,14 @@ public class Patient
     public string? VisitStatus { get; set; }
     public DateTime? LastVisitDate { get; set; }
 
+    // Clinical / registry fields (populated by PatientRegistryViewModel form; may not be in all DB SELECTs)
+    public string? Diagnosis { get; set; }
+    public string? Prescription { get; set; }
+    public decimal ConsultationFee { get; set; }
+    public decimal Discount { get; set; }
+    public DateTime? AppointmentDate { get; set; }
+    public TimeSpan? AppointmentTime { get; set; }
+
     [Obsolete("Consultation fees are no longer part of the clinical workflow.")]
     public decimal TotalBill => 0;
 

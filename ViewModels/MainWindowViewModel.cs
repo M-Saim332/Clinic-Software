@@ -376,7 +376,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         return roleCanUsePharmaModules && user.HasAccess(module);
     }
 
-    // Sidebar Category Visibilities — new order: Dashboard → Transactions → Management → Analysis
+    // TRANSACTIONS
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessSettings;
     public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
     public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
@@ -570,25 +570,21 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         CurrentPageViewModel = vm;
         PageTitle = title;
         ClearActiveFlags();
-        switch (title)
-        {
-            case "Dashboard":    IsDashboardActive    = true; break;
-            case "Patients":     IsPatientsActive     = true; break;
-            case "Products":    IsProductsActive    = true; break;
-            case "Drugs":       IsProductsActive    = true; break;
-            case "Companies":    IsCompaniesActive    = true; break;
-            case "Suppliers":    IsSuppliersActive    = true; break;
-
-            case "Purchases":    IsPurchasesActive    = true; break;
-            case "Sales & Billing": IsSalesActive     = true; break;
-            case "Returns":      IsReturnsActive   = true; break;
-            case "Inventory":    IsInventoryActive    = true; break;
-            case "Appointments": IsAppointmentsActive = true; break;
-            case "Users":        IsUsersActive        = true; break;
-            case "Reports":      IsReportsActive      = true; break;
-            case "Settings":     IsSettingsActive     = true; break;
-            case "Profile":      IsProfileActive      = true; break;
-        }
+        
+        IsDashboardActive     = vm is DashboardViewModel || vm is ClinicalDashboardViewModel;
+        IsPatientsActive      = vm is PatientRegistryViewModel;
+        IsProductsActive      = vm is ProductRegistryViewModel;
+        IsCompaniesActive     = vm is CompanyRegistryViewModel;
+        IsSuppliersActive     = vm is SupplierRegistryViewModel;
+        IsPurchasesActive     = vm is PurchaseViewModel;
+        IsSalesActive         = vm is SaleViewModel;
+        IsReturnsActive       = vm is ReturnsViewModel;
+        IsInventoryActive     = vm is InventoryViewModel;
+        IsAppointmentsActive  = vm is AppointmentViewModel;
+        IsUsersActive         = vm is UserRegistryViewModel;
+        IsReportsActive       = vm is ReportsViewModel || vm is ClinicalReportsViewModel;
+        IsSettingsActive      = vm is SettingsViewModel;
+        IsProfileActive       = vm is ProfileViewModel;
     }
 
     private void ClearActiveFlags()
@@ -611,9 +607,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     [RelayCommand] private void ShowSuppliers()    { NavigateTo(_supplierVM,     "Suppliers");    _ = _supplierVM.InitializeAsync(); }
  
     [RelayCommand] private void ShowPurchases()    { NavigateTo(_purchaseVM,     "Purchases");    _ = _purchaseVM.InitializeAsync(); }
-    [RelayCommand] private void ShowSales()        { NavigateTo(_saleVM,         "Sales & Billing"); _ = _saleVM.InitializeAsync(); }
-    [RelayCommand] private void ShowReturns()      { NavigateTo(_returnsVM,      "Returns"); _ = _returnsVM.InitializeAsync(); }
-    [RelayCommand] private void ShowInventory()    { NavigateTo(_inventoryVM,    "Inventory");    _ = _inventoryVM.InitializeAsync(); }
+    [RelayCommand] private void ShowSales()    { NavigateTo(_saleVM, "Sales & Billing"); _ = _saleVM.InitializeAsync(); }
+    [RelayCommand] private void ShowReturns()  { NavigateTo(_returnsVM, "Returns"); _ = _returnsVM.InitializeAsync(); }
+    [RelayCommand] private void ShowInventory() { NavigateTo(_inventoryVM, "Inventory"); _ = _inventoryVM.InitializeAsync(); }
     [RelayCommand] private void ShowAppointments() { NavigateTo(_appointmentVM, "Appointments"); _ = _appointmentVM.InitializeAsync(); }
     [RelayCommand] private void ShowUsers()        { NavigateTo(_userVM,         "Users");        _ = _userVM.InitializeAsync(); }
     [RelayCommand] private void ShowReports()      

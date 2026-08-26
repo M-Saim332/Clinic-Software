@@ -1,0 +1,133 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Returns"
+             xmlns:models="using:ClinicSystem.Core.Models"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="ClinicSystem.UI.Views.Returns.ReturnHistoryView"
+             x:DataType="vm:ReturnHistoryViewModel"
+             x:CompileBindings="True"
+             Background="{DynamicResource BrushBackground}">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- ══════════════════════════════════════════════════
+         Header / Toolbar
+    ══════════════════════════════════════════════════ -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource BrushCardBackground}"
+            BorderBrush="{DynamicResource BrushLine}"
+            BorderThickness="0,0,0,1"
+            Padding="28,18">
+      <DockPanel>
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
+            <materialIcons:MaterialIcon Kind="History" Width="20" Height="20"
+                                        Foreground="{DynamicResource BrushPrimaryBlue}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Border>
+          <StackPanel>
+            <TextBlock Text="Return History" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Complete ledger of all processed returns and credits"
+                       FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Global Export Toolbar -->
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right">
+          <TextBox Width="250" Text="{Binding SearchTerm}"
+                   PlaceholderText="Search returns..."
+                   VerticalAlignment="Center" Margin="0,0,16,0">
+            <TextBox.InnerLeftContent>
+              <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Foreground="{DynamicResource BrushInk400}" Margin="6,0,0,0"/>
+            </TextBox.InnerLeftContent>
+          </TextBox>
+          <Button Classes="btn-secondary">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="📊"/>
+              <TextBlock Text="Export CSV"/>
+            </StackPanel>
+          </Button>
+          <Button Command="{Binding GenerateReturnInvoiceCommand}" Classes="btn-secondary">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="📄"/>
+              <TextBlock Text="Save as PDF"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- ══════════════════════════════════════════════════
+         Full-Screen DataGrid Ledger
+    ══════════════════════════════════════════════════ -->
+    <DataGrid Grid.Row="1"
+              ItemsSource="{Binding Returns}"
+              SelectedItem="{Binding SelectedReturn}"
+              AutoGenerateColumns="False"
+              IsReadOnly="True"
+              Background="{DynamicResource BrushCardBackground}"
+              BorderBrush="{DynamicResource BrushLine}"
+              BorderThickness="0,1,0,0"
+              GridLinesVisibility="Horizontal"
+              HorizontalScrollBarVisibility="Auto">
+      <DataGrid.Styles>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Padding" Value="10,12"/>
+          <Setter Property="ContentTemplate">
+            <Setter.Value>
+              <DataTemplate>
+                <TextBlock Text="{Binding}" TextWrapping="NoWrap" TextTrimming="None"/>
+              </DataTemplate>
+            </Setter.Value>
+          </Setter>
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="Padding" Value="10,12"/>
+        </Style>
+      </DataGrid.Styles>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="RETURN NO"         Binding="{Binding ReturnNo}"            Width="Auto" MinWidth="120"/>
+        <DataGridTextColumn Header="DATE &amp; TIME"   Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="Auto" MinWidth="140"/>
+        
+        <DataGridTemplateColumn Header="RETURN TYPE" Width="Auto" MinWidth="120">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="models:ProductReturn">
+              <Border Background="{DynamicResource BrushBlue50}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <TextBlock Text="{Binding ReturnType}" FontSize="11" Foreground="{DynamicResource BrushPrimaryBlue}"/>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTextColumn Header="MEDICINE"          Binding="{Binding ProductSummary}"       Width="*" MinWidth="200"/>
+        <DataGridTextColumn Header="QTY / PIECES"      Binding="{Binding Quantity}"             Width="Auto" MinWidth="100"/>
+        <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}"    Width="*" MinWidth="160"/>
+        
+        <DataGridTemplateColumn Header="REFUND AMOUNT" Width="Auto" MinWidth="120">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="models:ProductReturn">
+              <TextBlock Text="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTextColumn Header="PROCESSED BY"      Binding="{Binding CreatedByName}"        Width="Auto" MinWidth="130"/>
+        
+        <DataGridTemplateColumn Header="ACTIONS" Width="Auto" MinWidth="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="models:ProductReturn">
+              <Button Content="View" Classes="btn-secondary" Padding="8,4" FontSize="11" HorizontalAlignment="Center"/>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <TextBlock Grid.Row="2"
+               Text="{Binding StatusMessage}"
+               VerticalAlignment="Bottom" Margin="28,12"
+               Foreground="{DynamicResource BrushRose}"
+               IsHitTestVisible="False"/>
+
+  </Grid>
+</UserControl>
