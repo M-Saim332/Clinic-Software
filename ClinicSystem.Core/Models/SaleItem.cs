@@ -19,10 +19,10 @@ public class SaleItem
     public decimal UnitPrice { get => ProductPrice; set => ProductPrice = value; }
 
     // Derived properties for billing formula layer
-    public decimal GrossLineAmount => Quantity * ProductPrice;
-    public decimal LineDiscountAmount => GrossLineAmount * (Discount / 100m);
-    public decimal LineNetTotal => Math.Max(0, GrossLineAmount - LineDiscountAmount + Tax);
-    public decimal InvoiceItemTotal => Math.Max(0, GrossLineAmount - LineDiscountAmount);
+    public decimal GrossLineAmount => Math.Round(Quantity * ProductPrice, 2, MidpointRounding.AwayFromZero);
+    public decimal LineDiscountAmount => Math.Round(GrossLineAmount * (Discount / 100m), 2, MidpointRounding.AwayFromZero);
+    public decimal LineNetTotal => Math.Max(0m, Math.Round(GrossLineAmount - LineDiscountAmount + Tax, 2, MidpointRounding.AwayFromZero));
+    public decimal InvoiceItemTotal => Math.Max(0m, Math.Round(GrossLineAmount - LineDiscountAmount, 2, MidpointRounding.AwayFromZero));
     public string BatchExpiryDisplay => "N/A";
     public string RateDisplay => $"Rs. {ProductPrice:N2} / {UnitTypeSold}";
     public string TaxDiscountDisplay => $"Tax Rs. {Tax:N2} / Disc {Discount:N2}%";

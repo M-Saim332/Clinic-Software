@@ -38,10 +38,9 @@ public partial class InvoiceViewModel : ViewModelBase
     public decimal DocumentAdvanceWHTax => LineItems.Sum(x => x.AdvTaxAmount);
     public decimal DocumentTaxAmount => 0;
     public decimal DocumentCNValue => 0;
-    public decimal DocumentAdjustmentsTotal =>
-        0;
+    public decimal DocumentAdjustmentsTotal => 0;
     public bool HasAdjustments => false;
-    public decimal DocumentGrandTotal => LineItems.Sum(x => x.InvoiceItemTotal);
+    public decimal DocumentGrandTotal => Math.Max(0m, LineItems.Sum(x => x.InvoiceItemTotal));
     public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
     public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
 
@@ -124,11 +123,5 @@ public partial class InvoiceViewModel : ViewModelBase
     {
         RequestPrint?.Invoke();
         StatusMessage = "Sent to printer!";
-    }
-
-    [RelayCommand]
-    private void EmailDocument()
-    {
-        StatusMessage = "Email document action is available from the invoice preview.";
     }
 }

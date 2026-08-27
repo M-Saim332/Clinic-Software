@@ -75,13 +75,6 @@
                                 Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Type:Type|Packing:Packing|Stock:StockBreakdown|MRP:MRP"/>
                         </comp:DataTableShellControl.HeaderActions>
 
-                        <comp:DataTableShellControl.FilterToolbar>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <comp:SearchableComboBoxControl Width="330" ItemsSource="{Binding Companies}" SelectedItem="{Binding CompanyFilter}"
-                                    DisplayMemberPath="Name" DetailMemberPath="CCode" Placeholder="Company first: search by CCode or name"/>
-                                <Button Command="{Binding ClearCompanyFilterCommand}" Classes="btn-secondary" Content="All Companies" VerticalAlignment="Top"/>
-                            </StackPanel>
-                        </comp:DataTableShellControl.FilterToolbar>
 
                         <!-- Table -->
                         <comp:DataTableShellControl.TableContent>

@@ -83,8 +83,13 @@ public partial class PatientRegistryViewModel : ViewModelBase
     // ── View-state booleans required by the view ──────────────────────────
     public bool ShowEditButton  => Mode == FormMode.Edit || Mode == FormMode.View;
     public bool ShowSaveButton  => Mode == FormMode.Add  || Mode == FormMode.Edit;
-    public bool CanSavePatient => ShowSaveButton && !IsReadOnly;
-    public bool CanUsePrescriptionActions => Mode == FormMode.Edit && SelectedPatient != null;
+    public bool CanSavePatient  => ShowSaveButton && !IsReadOnly;
+    /// <summary>Drug selection card is shown in both Add and Edit modes.</summary>
+    public bool ShowDrugSelection => Mode == FormMode.Add || Mode == FormMode.Edit;
+    /// <summary>True when at least one drug has been prescribed, enabling Print/Send actions.</summary>
+    public bool HasPrescribedDrugs => SelectedDrugs.Any();
+    /// <summary>Print and Send are available whenever the form is open and at least one drug is selected.</summary>
+    public bool CanUsePrescriptionActions => SaveCancelEnabled && HasPrescribedDrugs;
 
     [ObservableProperty] private bool _showDeleteAllConfirm;
 
@@ -99,6 +104,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     // ── Visit history ─────────────────────────────────────────────────────
     [ObservableProperty] private ObservableCollection<Prescription> _visitHistory = new();
+    /// <summary>Controls visit history panel expansion. Defaults collapsed (false) for new patients.</summary>
+    [ObservableProperty] private bool _isVisitHistoryExpanded;
 
     /// <summary>Fired when the user clicks "Book Appointment" for a patient.</summary>
     public event Action<Patient>? RequestBookAppointment;
@@ -113,7 +120,15 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RemoveDrug(PrescriptionItemRow? row) { if (row != null) SelectedDrugs.Remove(row); }
+    private void RemoveDrug(PrescriptionItemRow? row)
+    {
+        if (row != null)
+        {
+            SelectedDrugs.Remove(row);
+            OnPropertyChanged(nameof(HasPrescribedDrugs));
+            OnPropertyChanged(nameof(CanUsePrescriptionActions));
+        }
+    }
 
     [RelayCommand]
     private void AddDrug()
@@ -129,7 +144,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
             ProductName = SelectedDrug.Name,
             Quantity = DrugQuantity,
             Dosage = Dosage,
-            AvailableStock = SelectedDrug.Stock
+            AvailableStock = SelectedDrug.Stock,
+            UnitPrice = SelectedDrug.PricePerTablet
         });
 
         Prescription = string.Join(Environment.NewLine, SelectedDrugs.Select(x => $"{x.ProductName} x{x.Quantity} {x.Dosage}".Trim()));
@@ -138,7 +154,12 @@ public partial class PatientRegistryViewModel : ViewModelBase
         DrugQuantity = 1;
         Dosage = string.Empty;
         StatusMessage = string.Empty;
+        OnPropertyChanged(nameof(HasPrescribedDrugs));
+        OnPropertyChanged(nameof(CanUsePrescriptionActions));
     }
+
+    [RelayCommand]
+    private void ToggleVisitHistory() => IsVisitHistoryExpanded = !IsVisitHistoryExpanded;
 
     [RelayCommand]
     private void ViewSpecific(Patient? p) => View(p);
@@ -181,16 +202,38 @@ public partial class PatientRegistryViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task PostAndSyncAsync()
+    private async Task SendToPharmacistAsync()
     {
-        var prescription = BuildPrescriptionFromSelectedDrugs();
-        if (prescription == null) return;
+        if (string.IsNullOrWhiteSpace(Name)) { StatusMessage = "Patient name is required before sending to pharmacist."; return; }
+        if (!SelectedDrugs.Any()) { StatusMessage = "Add at least one medicine before sending to pharmacist."; return; }
 
         try
         {
+            // Step 1 — If this is a new patient, persist the record first to obtain PatientID
+            if (Mode == FormMode.Add)
+            {
+                if (!decimal.TryParse(ConsultationFee, out var fee) || fee < 0)
+                    fee = 0;
+                var newPatient = BuildPatient();
+                await Task.Run(() => _repo.Insert(newPatient));
+                // Reload so SelectedPatient is populated with the new ID
+                var savedList = await Task.Run(() => _repo.GetAll());
+                var saved = savedList.FirstOrDefault(p => p.Name == newPatient.Name && p.Phone == newPatient.Phone);
+                if (saved == null) { StatusMessage = "Could not resolve saved patient record. Please try again."; return; }
+                SelectedPatient = saved;
+            }
+
+            // Step 2 — Build and post prescription
+            var prescription = BuildPrescriptionFromSelectedDrugs();
+            if (prescription == null) return;
+
             await Task.Run(() => _prescriptionRepo.Insert(prescription, "SentToPharmacy"));
-            StatusMessage = "Prescription sent to pharmacist.";
             WeakReferenceMessenger.Default.Send(new PrescriptionHandoffChangedMessage());
+
+            StatusMessage = "✅ Prescription sent to Pharma billing queue successfully!";
+            Mode = FormMode.View;
+            NotifyButtonStates();
+            await InitializeAsync();
         }
         catch (Exception ex)
         {
@@ -215,6 +258,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         ClearFields();
         Mode = FormMode.Add;
         IsReadOnly = false;
+        IsVisitHistoryExpanded = false;
         NotifyButtonStates();
         StatusMessage = "Enter new patient details and click Save.";
     }
@@ -228,6 +272,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         FillFields(target);
         Mode = FormMode.Edit;
         IsReadOnly = false;
+        IsVisitHistoryExpanded = true;
         NotifyButtonStates();
         _ = LoadVisitHistoryAsync(target.PatientID);
         StatusMessage = "Edit patient details and click Save.";
@@ -242,6 +287,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
         FillFields(target);
         Mode = FormMode.Edit;
         IsReadOnly = true;
+        IsVisitHistoryExpanded = true;
         NotifyButtonStates();
         _ = LoadVisitHistoryAsync(target.PatientID);
         StatusMessage = "Viewing patient details.";
@@ -423,6 +469,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
         AppointmentTime = DateTime.Now.TimeOfDay;
         SelectedDrugs.Clear(); VisitHistory.Clear();
         DrugSearch = string.Empty; SelectedDrug = null; FilterDrugs();
+        IsVisitHistoryExpanded = false;
+        OnPropertyChanged(nameof(HasPrescribedDrugs));
+        OnPropertyChanged(nameof(CanUsePrescriptionActions));
     }
 
     private void FillFields(Patient p)
@@ -531,6 +580,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
         OnPropertyChanged(nameof(PkEditable));
         OnPropertyChanged(nameof(ShowEditButton));
         OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(ShowDrugSelection));
+        OnPropertyChanged(nameof(HasPrescribedDrugs));
         OnPropertyChanged(nameof(CanSavePatient));
         OnPropertyChanged(nameof(CanUsePrescriptionActions));
     }

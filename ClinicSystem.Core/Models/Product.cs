@@ -30,9 +30,9 @@ public class Product
 
     public decimal PricePerTablet => PiecesPerUnit > 0
         ? Math.Round(SellingPrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
-        : 0;
-    public int FullPacksInStock => PiecesPerUnit > 0 ? Stock / PiecesPerUnit : 0;
-    public int LoosePiecesInStock => PiecesPerUnit > 0 ? Stock % PiecesPerUnit : Stock;
+        : SellingPrice;
+    public int FullPacksInStock => PiecesPerUnit > 0 ? Stock / PiecesPerUnit : Stock;
+    public int LoosePiecesInStock => PiecesPerUnit > 0 ? Stock % PiecesPerUnit : 0;
     public string StockBreakdown => PiecesPerUnit > 1
         ? $"{Stock} pieces ({FullPacksInStock} pack{(FullPacksInStock == 1 ? string.Empty : "s")} + {LoosePiecesInStock} piece{(LoosePiecesInStock == 1 ? string.Empty : "s")})"
         : $"{Stock} pieces";
@@ -41,10 +41,8 @@ public class Product
     {
         get
         {
-            var generic = string.IsNullOrWhiteSpace(GenericName) ? "Generic N/A" : GenericName;
-            var type = string.IsNullOrWhiteSpace(Type) ? "Type N/A" : Type;
-            var packing = string.IsNullOrWhiteSpace(Packing) ? "Packing N/A" : Packing;
-            return $"{generic} | {type} | {packing} | Stock {Stock}";
+            var type = string.IsNullOrWhiteSpace(Type) ? "—" : Type;
+            return $"{Name} — {type} | Price: Rs. {SellingPrice:N2} | Stock: {Stock} Pcs";
         }
     }
 

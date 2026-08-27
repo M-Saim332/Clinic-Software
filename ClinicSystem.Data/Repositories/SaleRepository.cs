@@ -30,15 +30,16 @@ public class SaleRepository
                 pc.PurchasePieceCost,
                 CASE
                     WHEN ISNULL(p.PurchasePrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 1
-                         AND p.PurchasePrice > ISNULL(si.UnitPrice, 0) * 2
                         THEN CAST(p.PurchasePrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
                     WHEN ISNULL(p.PurchasePrice, 0) > 0
                         THEN CAST(p.PurchasePrice AS DECIMAL(18,6))
                     ELSE NULL
                 END,
                 CASE
-                    WHEN ISNULL(p.SellingPrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 0
+                    WHEN ISNULL(p.SellingPrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 1
                         THEN (CAST(p.SellingPrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)) * 0.85
+                    WHEN ISNULL(p.SellingPrice, 0) > 0
+                        THEN CAST(p.SellingPrice AS DECIMAL(18,6)) * 0.85
                     WHEN ISNULL(si.UnitPrice, 0) > 0
                         THEN CAST(si.UnitPrice AS DECIMAL(18,6)) * 0.85
                     ELSE 0
@@ -138,7 +139,7 @@ public class SaleRepository
         FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
         " + CostApplySql + @"
         WHERE s.IsPosted=1 AND s.IsActive=1 AND CAST(s.SaleDate AS DATE)=CAST(GETDATE() AS DATE)");
-    public decimal GetTodayNetSalesProfit() => Scalar(@"SELECT ISNULL(SUM(((si.UnitPrice - (" + PurchasePieceCostSql + @")) * si.StockQuantity) - ISNULL(si.Discount, 0)),0)
+    public decimal GetTodayNetSalesProfit() => Scalar(@"SELECT ISNULL(SUM(si.LineTotal - ((" + PurchasePieceCostSql + @") * si.StockQuantity)),0)
         FROM Sales s JOIN SaleItems si ON s.SaleID=si.SaleID JOIN Products p ON si.ProductID=p.ProductID
         " + CostApplySql + @"
         WHERE s.IsPosted=1 AND s.IsActive=1 AND CAST(s.SaleDate AS DATE)=CAST(GETDATE() AS DATE)");
@@ -179,7 +180,7 @@ public class SaleRepository
         using var conn = _session.CreateConnection();
         return conn.Query<DailyDashboardMetricPoint>(@"SELECT CAST(s.SaleDate AS DATE) [Date],
             ISNULL(SUM(si.LineTotal),0) Revenue,
-            ISNULL(SUM(((si.UnitPrice - (" + PurchasePieceCostSql + @")) * si.StockQuantity) - ISNULL(si.Discount, 0)),0) Profit
+            ISNULL(SUM(si.LineTotal - ((" + PurchasePieceCostSql + @") * si.StockQuantity)),0) Profit
             FROM Sales s
             JOIN SaleItems si ON s.SaleID=si.SaleID
             JOIN Products p ON si.ProductID=p.ProductID

@@ -120,7 +120,26 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-      </DataGrid.Columns>
+    </DataGrid.Columns>
+      
+      <DataGrid.RowDetailsTemplate>
+        <DataTemplate x:DataType="models:ProductReturn">
+          <Border Background="{DynamicResource BrushCardBackground}" Padding="16,12" BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,1">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False" IsReadOnly="True" 
+                      GridLinesVisibility="None" Background="Transparent"
+                      RowBackground="Transparent" BorderThickness="0">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Item Name" Binding="{Binding ProductName}" Width="*" MinWidth="150" />
+                <DataGridTextColumn Header="Item Type" Binding="{Binding ProductType}" Width="Auto" MinWidth="100" />
+                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80" />
+                <DataGridTextColumn Header="Refund Amount" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="120" />
+                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*" MinWidth="150" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </Border>
+        </DataTemplate>
+      </DataGrid.RowDetailsTemplate>
+      
     </DataGrid>
 
     <TextBlock Grid.Row="2"

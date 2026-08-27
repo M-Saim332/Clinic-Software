@@ -129,6 +129,9 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     public bool SaveCancelEnabled => ShowForm && Mode == FormMode.Add;
     public bool IsNewSale => Mode == FormMode.Add && InvoiceState == InvoiceState.Draft;
 
+    [ObservableProperty] private bool _isLoadedFromHandoff;
+    [ObservableProperty] private string _handoffSourceText = string.Empty;
+
     [RelayCommand]
     private async Task NewAsync()
     {
@@ -149,6 +152,49 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         ShowForm = true;
         NotifyButtonStates();
         StatusMessage = "Create new sale invoice.";
+    }
+
+    public async Task LoadFromHandoffAsync(Prescription handoff)
+    {
+        await NewAsync();
+        
+        IsLoadedFromHandoff = true;
+        HandoffSourceText = $"[ 📋 Loaded from Doctor Handoff - Visit #{handoff.VisitDate:yyyyMMdd}-{handoff.PrescriptionID} ]";
+        PatientName = handoff.PatientName ?? string.Empty;
+        
+        LineItems.Clear();
+        foreach (var pItem in handoff.Items)
+        {
+            var match = Products.FirstOrDefault(p => 
+                p.Name.Equals(pItem.ProductName, StringComparison.OrdinalIgnoreCase) ||
+                (p.GenericName != null && p.GenericName.Equals(pItem.ProductName, StringComparison.OrdinalIgnoreCase)));
+                
+            if (match != null)
+            {
+                var price = match.PricePerTablet > 0 ? match.PricePerTablet : match.PurchasePrice;
+                var qty = Math.Min(pItem.Quantity, match.Stock);
+                
+                if (qty > 0)
+                {
+                    var item = new SaleItem
+                    {
+                        ProductID = match.ProductID,
+                        ProductName = match.Name,
+                        Quantity = qty,
+                        UnitTypeSold = "Pieces",
+                        StockQuantity = qty,
+                        Discount = 0,
+                        Tax = 0,
+                        ProductPrice = price
+                    };
+                    item.LineTotal = item.InvoiceItemTotal;
+                    LineItems.Add(item);
+                }
+            }
+        }
+        
+        OnPropertyChanged(nameof(GrandTotal));
+        StatusMessage = "Loaded prescribed items from doctor handoff.";
     }
 
     [RelayCommand]
@@ -334,6 +380,8 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         LineItems.Clear();
         ProductSearchTerm = string.Empty;
         SelectedUnitType = "Pieces";
+        IsLoadedFromHandoff = false;
+        HandoffSourceText = string.Empty;
         OnPropertyChanged(nameof(GrandTotal));
     }
 

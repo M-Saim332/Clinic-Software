@@ -347,8 +347,10 @@ public partial class PrescriptionItemRow : ObservableObject
     [ObservableProperty] private int _quantity;
     [ObservableProperty] private string _dosage = string.Empty;
     public int AvailableStock { get; set; }
+    /// <summary>Per-unit selling price captured from the product catalog at prescription time.</summary>
+    public decimal UnitPrice { get; set; }
     public string BatchExpiryDisplay => "N/A";
-    public string RateDisplay => "Pharma billing";
+    public string RateDisplay => UnitPrice > 0 ? $"Rs. {UnitPrice:N2} / piece" : "Pharma billing";
     public string TaxDiscountDisplay => "N/A";
-    public string TotalDisplay => "Pending sale";
+    public string TotalDisplay => UnitPrice > 0 ? $"Rs. {UnitPrice * Quantity:N2}" : "Pending sale";
 }

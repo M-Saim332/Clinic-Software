@@ -13,7 +13,7 @@ public class ReturnRepository
         using var conn = _session.CreateConnection();
         var returns = conn.Query<ProductReturn>(@"SELECT r.*,u.FullName CreatedByName,pat.Name PatientName,sup.Name SupplierName
             FROM Returns r LEFT JOIN Users u ON r.CreatedBy=u.UserID LEFT JOIN Patients pat ON r.PatientId=pat.PatientID
-            LEFT JOIN Suppliers sup ON r.SupplierId=sup.SupplierID ORDER BY r.CreatedAt DESC").ToList();
+            LEFT JOIN Suppliers sup ON r.SupplierId=sup.SupplierID WHERE r.IsPosted = 1 ORDER BY r.CreatedAt DESC").ToList();
         LoadItems(conn, returns);
         return returns;
     }

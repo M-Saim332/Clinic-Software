@@ -43,6 +43,7 @@ public class AppNotification
     public string TimeText { get; init; } = string.Empty;
     public string AccentBrushKey { get; init; } = "BrushPrimaryBlue";
     public bool IsUnread { get; init; }
+    public object? Payload { get; init; }
 }
 
 public partial class MainWindowViewModel : ViewModelBase, IRecipient<PrescriptionHandoffChangedMessage>
@@ -418,6 +419,12 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     {
         if (value == null) return;
         MarkNotificationRead(value.Key);
+        
+        if (value.Title == "New pharmacy handoff" && value.Payload is Prescription prescription)
+        {
+            ShowSalesCommand.Execute(null);
+            _ = _saleVM.LoadFromHandoffAsync(prescription);
+        }
     }
 
     public async void Receive(PrescriptionHandoffChangedMessage message) => await LoadNotificationsAsync();
@@ -520,7 +527,8 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 "Dispensed" => "BrushEmerald",
                 _ => "BrushPrimaryBlue"
             },
-            IsUnread = !_readNotificationKeys.Contains(key)
+            IsUnread = !_readNotificationKeys.Contains(key),
+            Payload = prescription
         };
     }
 
@@ -538,7 +546,8 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 Message = n.Message,
                 TimeText = n.TimeText,
                 AccentBrushKey = n.AccentBrushKey,
-                IsUnread = false
+                IsUnread = false,
+                Payload = n.Payload
             } : n));
         UnreadNotificationCount = Notifications.Count(n => n.IsUnread);
         OnPropertyChanged(nameof(HasNotifications));
@@ -559,7 +568,8 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 Message = n.Message,
                 TimeText = n.TimeText,
                 AccentBrushKey = n.AccentBrushKey,
-                IsUnread = false
+                IsUnread = false,
+                Payload = n.Payload
             }));
         UnreadNotificationCount = 0;
         OnPropertyChanged(nameof(HasUnreadNotifications));
