@@ -29,9 +29,12 @@ public class PurchaseItem
     public decimal EffectiveRate => PurchasePrice;
     public decimal UnitMRP => PackMRP;
     public decimal GrossLineAmount => PackageQuantity * PurchasePrice;
-    public decimal DiscountedValue => 0;
+    // Tier-1 discount: trade/catalogue discount entered per line item
+    public decimal DiscountedValue => GrossLineAmount * (Discount / 100m);
+    // Tier-2 discount: extra/scheme discount (e.g. free goods equivalent, default 15%)
     public decimal ExtraDiscountedValue => GrossLineAmount * (ExtraDiscount / 100m);
-    public decimal SubTotal => Math.Max(0, GrossLineAmount - ExtraDiscountedValue);
+    // SubTotal deducts BOTH discount tiers before taxes are applied
+    public decimal SubTotal => Math.Max(0, GrossLineAmount - DiscountedValue - ExtraDiscountedValue);
     public decimal AdvanceTaxAmount => SubTotal * (ATax / 100m);
     public decimal CompanySalesTaxAmount => SubTotal * (CompanySalesTax / 100m);
     public decimal TaxableOverhead => AdvanceTaxAmount + CompanySalesTaxAmount;

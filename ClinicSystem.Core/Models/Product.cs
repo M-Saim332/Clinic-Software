@@ -19,6 +19,8 @@ public class Product
     public DateTime? ExpiryDate { get; set; }
     public decimal PurchasePrice { get; set; }
     public decimal SellingPrice { get; set; }
+    /// <summary>Gross trade price per pack as entered manually or from latest purchase batch.</summary>
+    public decimal Rate { get; set; }
     public decimal MRP { get => SellingPrice; set => SellingPrice = value; }
     public int PiecesPerUnit { get; set; } = 1;
     public int TabletsPerBox { get => PiecesPerUnit; set => PiecesPerUnit = value; }
@@ -28,9 +30,26 @@ public class Product
     public bool IsActive { get; set; } = true;
     public DateTime? LastStockUpdateDate { get; set; }
 
-    public decimal PricePerTablet => PiecesPerUnit > 0
-        ? Math.Round(SellingPrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
-        : SellingPrice;
+    public decimal PricePerTablet =>
+        PiecesPerUnit > 0
+            ? Math.Round(SellingPrice / PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
+            : SellingPrice;
+
+    /// <summary>
+    /// Estimated landed cost per piece using the stored Rate with a standard 15 % trade discount.
+    /// Used for live margin preview on the product form when no PurchaseItems batch exists.
+    /// Formula: Rate × (1 − 0.15) / PiecesPerUnit
+    /// </summary>
+    public decimal EstimatedLandedCostPerPiece =>
+        PiecesPerUnit > 0 && Rate > 0
+            ? Math.Round((Rate * 0.85m) / PiecesPerUnit, 4, MidpointRounding.AwayFromZero)
+            : PurchasePrice;
+
+    /// <summary>
+    /// Estimated profit margin per piece = (SellingPrice / PiecesPerUnit) − EstimatedLandedCostPerPiece.
+    /// </summary>
+    public decimal EstimatedMarginPerPiece =>
+        PricePerTablet - EstimatedLandedCostPerPiece;
     public int FullPacksInStock => PiecesPerUnit > 0 ? Stock / PiecesPerUnit : Stock;
     public int LoosePiecesInStock => PiecesPerUnit > 0 ? Stock % PiecesPerUnit : 0;
     public string StockBreakdown => PiecesPerUnit > 1

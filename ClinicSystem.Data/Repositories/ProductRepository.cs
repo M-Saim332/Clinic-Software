@@ -9,7 +9,7 @@ public class ProductRepository
     private const string ProductSelect = @"
         SELECT p.ProductID, p.PCode, p.Name, p.GenericName, p.Barcode, p.CompanyID,
                c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
-               p.BatchNumber, p.Type, p.Packing, p.PurchasePrice, p.SellingPrice,
+               p.BatchNumber, p.Type, p.Packing, p.Rate, p.PurchasePrice, p.SellingPrice,
                p.PiecesPerUnit, p.Stock, p.MinimumStockLevel, p.IsReturnable,
                p.IsActive, p.LastStockUpdateDate,
                (SELECT MIN(pi.ExpiryDate) FROM PurchaseItems pi JOIN Purchases pu ON pu.PurchaseID=pi.PurchaseID
@@ -108,9 +108,9 @@ public class ProductRepository
         product.PCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(PCode),0)+1 FROM Products WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
         var id = conn.ExecuteScalar<int>(@"INSERT INTO Products
             (PCode,Name,GenericName,Barcode,CompanyID,CompanyName,SupplierID,SupplierName,BatchNumber,Type,Packing,
-             PurchasePrice,SellingPrice,PiecesPerUnit,Stock,MinimumStockLevel,IsReturnable,IsActive,LastStockUpdateDate)
+             Rate,PurchasePrice,SellingPrice,PiecesPerUnit,Stock,MinimumStockLevel,IsReturnable,IsActive,LastStockUpdateDate)
             VALUES (@PCode,@Name,@GenericName,@Barcode,@CompanyID,@CompanyName,@SupplierID,@SupplierName,@BatchNumber,@Type,@Packing,
-             @PurchasePrice,@SellingPrice,@PiecesPerUnit,@Stock,@MinimumStockLevel,@IsReturnable,1,@LastStockUpdateDate);
+             @Rate,@PurchasePrice,@SellingPrice,@PiecesPerUnit,@Stock,@MinimumStockLevel,@IsReturnable,1,@LastStockUpdateDate);
             SELECT CONVERT(INT,SCOPE_IDENTITY());", product, tx);
         tx.Commit();
         return id;
@@ -121,7 +121,7 @@ public class ProductRepository
         using var conn = _session.CreateConnection();
         conn.Execute(@"UPDATE Products SET Name=@Name,GenericName=@GenericName,Barcode=@Barcode,CompanyID=@CompanyID,
             CompanyName=@CompanyName,SupplierID=@SupplierID,SupplierName=@SupplierName,BatchNumber=@BatchNumber,Type=@Type,
-            Packing=@Packing,PurchasePrice=@PurchasePrice,SellingPrice=@SellingPrice,PiecesPerUnit=@PiecesPerUnit,
+            Packing=@Packing,Rate=@Rate,PurchasePrice=@PurchasePrice,SellingPrice=@SellingPrice,PiecesPerUnit=@PiecesPerUnit,
             IsReturnable=@IsReturnable,MinimumStockLevel=@MinimumStockLevel,LastStockUpdateDate=@LastStockUpdateDate
             WHERE ProductID=@ProductID AND IsActive=1", product);
     }

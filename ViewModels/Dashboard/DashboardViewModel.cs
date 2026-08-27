@@ -239,44 +239,49 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
                 totalRefunds         += dayRefunds;
             }
 
-            static (double Min, double Max) GetAxisLimits(IEnumerable<double> values)
+            // ── Axis limits with asymmetric headroom so Revenue & Profit peaks
+            //    never share the same canvas pixel even when values are proportionally equal.
+            static double AxisMax(IEnumerable<double> values, double headroom)
             {
-                var min = Math.Min(0, values.DefaultIfEmpty(0).Min());
-                var max = Math.Max(0, values.DefaultIfEmpty(0).Max());
-                var padding = Math.Max(1, (max - min) * 0.12);
-                return (Math.Floor(min - padding), Math.Ceiling(max + padding));
+                var max = values.DefaultIfEmpty(0).Max();
+                return max > 0 ? Math.Ceiling(max * headroom) : 100;
             }
 
-            var revenueLimits = GetAxisLimits(revenueData);
-            var profitLimits = GetAxisLimits(profitData);
+            double revenueMax = AxisMax(revenueData, 1.20);  // +20 % headroom
+            double profitMax  = AxisMax(profitData,  1.25);  // +25 % headroom (larger gap prevents overlap)
 
             // ── Build chart series ─────────────────────────────────────────
-            var greenPaint  = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 2.5f };
-            var bluePaint   = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)) { StrokeThickness = 2.5f };
+            // Revenue: heavier stroke + soft area fill — renders first as base layer.
+            var revenuePaint = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)) { StrokeThickness = 3.5f };
+            // Profit: crisp thinner line, NO area fill — floats cleanly on top.
+            var profitPaint  = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)) { StrokeThickness = 2.0f };
 
             var lineSeries = new ISeries[]
             {
+                // Revenue renders FIRST → base layer (area fill visible beneath Profit line)
                 new LineSeries<double>
                 {
-                    Values            = revenueData,
-                    Name              = "Revenue",
-                    ScalesYAt         = 0,
-                    Stroke            = greenPaint,
-                    GeometryFill      = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
-                    GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
-                    GeometrySize      = 8,
-                    Fill              = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81, 30))
+                    Values         = revenueData,
+                    Name           = "Revenue",
+                    ScalesYAt      = 0,
+                    Stroke         = revenuePaint,
+                    GeometryFill   = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
+                    GeometryStroke = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
+                    GeometrySize   = 8,
+                    // Semi-transparent green area fill (alpha 0x38 ≈ 22%) — clearly visible
+                    Fill           = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81, 0x38))
                 },
+                // Profit renders SECOND → top layer, transparent fill so Revenue shows through
                 new LineSeries<double>
                 {
-                    Values            = profitData,
-                    Name              = "Profit",
-                    ScalesYAt         = 1,
-                    Stroke            = bluePaint,
-                    GeometryFill      = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
-                    GeometryStroke    = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
-                    GeometrySize      = 8,
-                    Fill              = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8, 30))
+                    Values         = profitData,
+                    Name           = "Profit",
+                    ScalesYAt      = 1,
+                    Stroke         = profitPaint,
+                    GeometryFill   = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
+                    GeometryStroke = new SolidColorPaint(SKColors.White) { StrokeThickness = 2 },
+                    GeometrySize   = 7,
+                    Fill           = null   // no area fill — crisp line only
                 }
             };
 
@@ -292,24 +297,27 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             };
             var yAxes = new Axis[]
             {
+                // Revenue axis (left) — always starts at 0, +20 % top headroom
                 new Axis
                 {
-                    MinLimit = revenueLimits.Min,
-                    MaxLimit = revenueLimits.Max,
-                    MinStep = 1,
-                    TextSize = 10,
+                    MinLimit    = 0,
+                    MaxLimit    = revenueMax,
+                    MinStep     = 1,
+                    TextSize    = 10,
                     LabelsPaint = new SolidColorPaint(new SKColor(0x10, 0xB9, 0x81)),
-                    Padding = new LiveChartsCore.Drawing.Padding(4)
+                    Padding     = new LiveChartsCore.Drawing.Padding(4)
                 },
+                // Profit axis (right) — always starts at 0, +25 % top headroom
+                // Extra headroom vs Revenue ensures the two peak pixels never coincide.
                 new Axis
                 {
-                    MinLimit = profitLimits.Min,
-                    MaxLimit = profitLimits.Max,
-                    MinStep = 1,
-                    TextSize = 10,
-                    Position = AxisPosition.End,
+                    MinLimit    = 0,
+                    MaxLimit    = profitMax,
+                    MinStep     = 1,
+                    TextSize    = 10,
+                    Position    = AxisPosition.End,
                     LabelsPaint = new SolidColorPaint(new SKColor(0x37, 0x99, 0xF8)),
-                    Padding = new LiveChartsCore.Drawing.Padding(4)
+                    Padding     = new LiveChartsCore.Drawing.Padding(4)
                 }
             };
 

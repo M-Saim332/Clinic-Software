@@ -10,13 +10,24 @@ public class SaleRepository
 
     private const string SaleSelect = @"SELECT s.*,COALESCE(u.FullName,s.ReceptionistName) ReceptionistName
         FROM Sales s LEFT JOIN Users u ON s.ReceptionistId=u.UserID";
+    // ── COGS Tier-1 lookup ────────────────────────────────────────────────────
+    // Reads the most-recent posted PurchaseItems batch and computes the TRUE
+    // landed cost per piece:
+    //   CombinedDiscount% = Discount + ExtraDiscount  (additive)
+    //   CombinedTax%      = ATax + CompanySalesTax    (additive)
+    //   CostPerPc = Rate × (1 − CombinedDiscount/100)
+    //                    × (1 + CombinedTax/100)
+    //                    / UnitsPerPackage
+    // ─────────────────────────────────────────────────────────────────────────
     private const string CostApplySql = @"
             OUTER APPLY (
                 SELECT TOP 1
-                    CASE
-                        WHEN ISNULL(pi.PurchasePrice, 0) > 0 AND ISNULL(pi.UnitsPerPackage, 0) > 0
-                            THEN CAST(pi.PurchasePrice AS DECIMAL(18,6)) / NULLIF(pi.UnitsPerPackage, 0)
-                        ELSE NULL
+                    CASE WHEN ISNULL(pi.UnitsPerPackage, 0) > 0 THEN
+                        (
+                            (pi.PurchasePrice * (1 - (COALESCE(pi.Discount, 0) + COALESCE(pi.ExtraDiscount, 0)) / 100.0))
+                            * (1 + (COALESCE(pi.ATax, 0) + COALESCE(pi.CompanySalesTax, 0)) / 100.0)
+                        ) / pi.UnitsPerPackage
+                    ELSE NULL
                     END AS PurchasePieceCost
                 FROM PurchaseItems pi
                 JOIN Purchases pu ON pu.PurchaseID = pi.PurchaseID
@@ -26,24 +37,45 @@ public class SaleRepository
                     COALESCE(pu.PostedAt, pu.PurchaseDate) DESC,
                     pi.PurchaseItemID DESC
             ) pc";
+
+    // ── COGS cost waterfall ───────────────────────────────────────────────────
+    // Priority order (COALESCE picks the first non-NULL):
+    //
+    //  Tier 1 — Historical Purchase Batch Net Landed Cost
+    //           Source: OUTER APPLY on PurchaseItems (most-recent posted batch).
+    //           Formula already accounts for Discount + ExtraDiscount and
+    //           ATax + CompanySalesTax, divided by UnitsPerPackage.
+    //           This is the most accurate signal and always wins when present.
+    //
+    //  Tier 2 — Explicit Product Rate (Gross Trade Price)
+    //           Sub-case A: p.Rate > 0  →  (Rate × 0.85) / PiecesPerUnit
+    //             Rate is the gross TP from the invoice cover sheet before
+    //             any batch-level discounts; 15% is the standard trade
+    //             discount assumed when no batch data exists.
+    //           Sub-case B: p.PurchasePrice > 0  →  p.PurchasePrice
+    //             Falls back to the legacy per-piece cost written by
+    //             PostPurchase() — still better than the MRP proxy.
+    //
+    //  Tier 3 — 85 % MRP Proxy Guard
+    //           Last resort for products with zero purchase history.
+    //           (SellingPrice / PiecesPerUnit) × 0.85
+    // ─────────────────────────────────────────────────────────────────────────
     private const string PurchasePieceCostSql = @"COALESCE(
+                -- Tier 1: Historical Purchase Batch Net Landed Cost
                 pc.PurchasePieceCost,
+
+                -- Tier 2: Explicit Product Rate (Gross TP minus 15% standard trade discount ÷ PiecesPerUnit)
                 CASE
-                    WHEN ISNULL(p.PurchasePrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 1
-                        THEN CAST(p.PurchasePrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
+                    WHEN ISNULL(p.Rate, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 0
+                        THEN CAST((p.Rate * 0.85) AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
                     WHEN ISNULL(p.PurchasePrice, 0) > 0
                         THEN CAST(p.PurchasePrice AS DECIMAL(18,6))
                     ELSE NULL
                 END,
-                CASE
-                    WHEN ISNULL(p.SellingPrice, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 1
-                        THEN (CAST(p.SellingPrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)) * 0.85
-                    WHEN ISNULL(p.SellingPrice, 0) > 0
-                        THEN CAST(p.SellingPrice AS DECIMAL(18,6)) * 0.85
-                    WHEN ISNULL(si.UnitPrice, 0) > 0
-                        THEN CAST(si.UnitPrice AS DECIMAL(18,6)) * 0.85
-                    ELSE 0
-                END)";
+
+                -- Tier 3: 85 % MRP Proxy Guard
+                (CAST(p.SellingPrice AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)) * 0.85
+            )";
 
     public IEnumerable<Sale> GetAll()
     {

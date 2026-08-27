@@ -71,18 +71,41 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private string _rack = string.Empty;
     [ObservableProperty] private string _companyName = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
+    [ObservableProperty] private string _rate = "0.00";
     [ObservableProperty] private string _purchasePrice = "0.00";
     [ObservableProperty] private string _tabletsPerBox = "1";
     [ObservableProperty] private string _initialQuantityPacks = "0";
     [ObservableProperty] private string _minimumStockLevel = "10";
 
+    private decimal CurrentRate => decimal.TryParse(Rate, out var r) ? r : 0;
     private decimal CurrentPurchasePrice => decimal.TryParse(PurchasePrice, out var value) ? value : 0;
     private int CurrentTabletsPerBox => int.TryParse(TabletsPerBox, out var value) && value > 0 ? value : 1;
     private int CurrentInitialQuantityPacks => int.TryParse(InitialQuantityPacks, out var value) && value > 0 ? value : 0;
+    // Live preview: MRP per piece
     public string PricePerTabletDisplay => FormatMoney(CurrentPurchasePrice / CurrentTabletsPerBox);
+    // Live preview: Estimated landed cost = Rate × 0.85 / PiecesPerUnit
+    public string EstimatedLandedCostDisplay =>
+        CurrentRate > 0
+            ? FormatMoney(Math.Round((CurrentRate * 0.85m) / CurrentTabletsPerBox, 4))
+            : "—";
+    // Live preview: Estimated margin = MRP per piece − Landed cost per piece
+    public string EstimatedMarginDisplay
+    {
+        get
+        {
+            if (CurrentRate <= 0) return "—";
+            var mrpPerPc = CurrentPurchasePrice / CurrentTabletsPerBox;
+            var landedPerPc = Math.Round((CurrentRate * 0.85m) / CurrentTabletsPerBox, 4);
+            var margin = mrpPerPc - landedPerPc;
+            var sign = margin >= 0 ? "+" : string.Empty;
+            return $"{sign}Rs. {margin:N2} / pc";
+        }
+    }
     public string InitialStockPiecesDisplay => CurrentTabletsPerBox > 1
         ? $"{CurrentInitialQuantityPacks * CurrentTabletsPerBox} pieces ({CurrentInitialQuantityPacks} packs × {CurrentTabletsPerBox} per pack)"
         : $"{CurrentInitialQuantityPacks} pieces";
+    /// <summary>True when a Rate has been entered, enabling the COGS/Margin preview panel.</summary>
+    public bool IsRatePreviewVisible => CurrentRate > 0;
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
 
     // ── Delete confirmation state ──────────────────────────────────────
@@ -428,6 +451,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Category = string.Empty;
         Rack = string.Empty;
         ExpiryDate = null;
+        Rate = "0.00";
         PurchasePrice = "0.00";
         TabletsPerBox = "1";
         InitialQuantityPacks = "0";
@@ -446,6 +470,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Category = m.Category ?? string.Empty;
         Rack = m.Rack ?? string.Empty;
         ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
+        Rate = m.Rate.ToString("F2");
         PurchasePrice = m.MRP.ToString("F2");
         TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
         InitialQuantityPacks = m.PiecesPerUnit > 0 ? (m.Stock / m.PiecesPerUnit).ToString() : "0";
@@ -464,6 +489,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Category = string.IsNullOrWhiteSpace(Category) ? null : Category.Trim(),
         Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
         ExpiryDate = ExpiryDate?.Date,
+        Rate = decimal.TryParse(Rate, out var rate) ? rate : 0,
         PurchasePrice = SelectedProduct?.PurchasePrice ?? 0,
         SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
@@ -481,6 +507,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     }
 
     partial void OnPurchasePriceChanged(string value) => NotifyCalculatedTotals();
+    partial void OnRateChanged(string value) => NotifyCalculatedTotals();
     partial void OnTabletsPerBoxChanged(string value) => NotifyCalculatedTotals();
     partial void OnInitialQuantityPacksChanged(string value) => NotifyCalculatedTotals();
     partial void OnSelectedCompanyChanged(Company? value)
@@ -492,6 +519,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     private void NotifyCalculatedTotals()
     {
         OnPropertyChanged(nameof(PricePerTabletDisplay));
+        OnPropertyChanged(nameof(EstimatedLandedCostDisplay));
+        OnPropertyChanged(nameof(EstimatedMarginDisplay));
+        OnPropertyChanged(nameof(IsRatePreviewVisible));
         OnPropertyChanged(nameof(InitialStockPiecesDisplay));
     }
 
