@@ -83,10 +83,10 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     private int CurrentInitialQuantityPacks => int.TryParse(InitialQuantityPacks, out var value) && value > 0 ? value : 0;
     // Live preview: MRP per piece
     public string PricePerTabletDisplay => FormatMoney(CurrentPurchasePrice / CurrentTabletsPerBox);
-    // Live preview: Estimated landed cost = Rate × 0.85 / PiecesPerUnit
+    // Live preview: Estimated landed cost = Rate / PiecesPerUnit
     public string EstimatedLandedCostDisplay =>
         CurrentRate > 0
-            ? FormatMoney(Math.Round((CurrentRate * 0.85m) / CurrentTabletsPerBox, 4))
+            ? FormatMoney(Math.Round(CurrentRate / CurrentTabletsPerBox, 4))
             : "—";
     // Live preview: Estimated margin = MRP per piece − Landed cost per piece
     public string EstimatedMarginDisplay
@@ -95,7 +95,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         {
             if (CurrentRate <= 0) return "—";
             var mrpPerPc = CurrentPurchasePrice / CurrentTabletsPerBox;
-            var landedPerPc = Math.Round((CurrentRate * 0.85m) / CurrentTabletsPerBox, 4);
+            var landedPerPc = Math.Round(CurrentRate / CurrentTabletsPerBox, 4);
             var margin = mrpPerPc - landedPerPc;
             var sign = margin >= 0 ? "+" : string.Empty;
             return $"{sign}Rs. {margin:N2} / pc";

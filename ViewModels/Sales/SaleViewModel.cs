@@ -171,7 +171,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
                 
             if (match != null)
             {
-                var price = match.PricePerTablet > 0 ? match.PricePerTablet : match.PurchasePrice;
+                var price = match.SellingPrice > 0 && match.PiecesPerUnit > 0
+                    ? match.SellingPrice / match.PiecesPerUnit
+                    : (match.Rate > 0 && match.PiecesPerUnit > 0 
+                        ? match.Rate / match.PiecesPerUnit 
+                        : match.PurchasePrice);
                 var qty = Math.Min(pItem.Quantity, match.Stock);
                 
                 if (qty > 0)
@@ -408,7 +412,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     {
         if (value != null)
         {
-            ProductPrice = value.PricePerTablet > 0 ? value.PricePerTablet : value.PurchasePrice;
+            ProductPrice = value.SellingPrice > 0 && value.PiecesPerUnit > 0
+                ? value.SellingPrice / value.PiecesPerUnit
+                : (value.Rate > 0 && value.PiecesPerUnit > 0 
+                    ? value.Rate / value.PiecesPerUnit 
+                    : value.PurchasePrice);
         }
         OnPropertyChanged(nameof(AvailableStockDisplay));
         OnPropertyChanged(nameof(MaxQuantity));
@@ -426,7 +434,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     partial void OnSelectedUnitTypeChanged(string value)
     {
-        if (SelectedProduct != null) ProductPrice = SelectedProduct.PricePerTablet > 0 ? SelectedProduct.PricePerTablet : SelectedProduct.PurchasePrice;
+        if (SelectedProduct != null) ProductPrice = SelectedProduct.SellingPrice > 0 && SelectedProduct.PiecesPerUnit > 0
+            ? SelectedProduct.SellingPrice / SelectedProduct.PiecesPerUnit
+            : (SelectedProduct.Rate > 0 && SelectedProduct.PiecesPerUnit > 0 
+                ? SelectedProduct.Rate / SelectedProduct.PiecesPerUnit 
+                : SelectedProduct.PurchasePrice);
         OnPropertyChanged(nameof(AvailableStockDisplay));
     }
 

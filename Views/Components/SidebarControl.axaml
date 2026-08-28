@@ -145,7 +145,7 @@
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <StackPanel VerticalAlignment="Center" Spacing="1">
-                            <TextBlock Text="MediCompare" FontSize="15.5" FontWeight="Bold"
+                            <TextBlock Text="{Binding DynamicClinicName, FallbackValue='DR ASIF\'S CLINIC'}" FontSize="15.5" FontWeight="Bold"
                                        Foreground="{DynamicResource ThemeSidebarForegroundBrush}"
                                        FontFamily="{DynamicResource FontLexend}"/>
                             <TextBlock Text="Management System" FontSize="10.5"

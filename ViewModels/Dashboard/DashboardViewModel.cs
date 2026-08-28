@@ -248,7 +248,7 @@ public partial class DashboardViewModel : ViewModelBase, ISearchable,
             }
 
             double revenueMax = AxisMax(revenueData, 1.20);  // +20 % headroom
-            double profitMax  = AxisMax(profitData,  1.25);  // +25 % headroom (larger gap prevents overlap)
+            double profitMax  = AxisMax(profitData,  2.20);  // +120 % headroom (forces profit line lower on canvas)
 
             // ── Build chart series ─────────────────────────────────────────
             // Revenue: heavier stroke + soft area fill — renders first as base layer.

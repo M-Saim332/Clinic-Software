@@ -19,7 +19,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private readonly SupplierRepository _supplierRepo;
     private readonly ProductRepository _productRepo;
     private readonly SettingsRepository _settingsRepo;
-    private const decimal DefaultExtraDiscountPercent = 15m;
+    private const decimal DefaultExtraDiscountPercent = 0m;
 
     public PurchaseViewModel(PurchaseRepository repo, SupplierRepository supplierRepo, ProductRepository productRepo, SettingsRepository settingsRepo)
     {

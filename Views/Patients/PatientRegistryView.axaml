@@ -369,64 +369,52 @@
             </ScrollViewer>
 
             <!-- Footer -->
-            <Border Grid.Row="2" Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,1,0,0" Padding="28,16">
-                <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Background="#FAFAFA" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Grid.Row="2" Padding="28,16">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+                    
+                    <!-- Column 0: Helper / Status Text (FAR LEFT) -->
+                    <TextBlock FontSize="12" Foreground="#6B7280" Grid.Column="0" HorizontalAlignment="Left" Margin="0,0,16,0" Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding StatusMessage}"/>
 
-                    <!-- LEFT: Back & Toggle History -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-                        <Button Command="{Binding CancelCommand}" Classes="btn-secondary">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
-                                <TextBlock Text="Back to Patients" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
+                    <!-- Column 1: Back to Patients (RIGHT GROUP) -->
+                    <Button Classes="btn-secondary" Command="{Binding CancelCommand}" Grid.Column="1" Height="38" Margin="0,0,8,0" Padding="14,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="18" Height="18"/>
+                            <TextBlock Text="Back to Patients" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                        <Button Command="{Binding ToggleVisitHistoryCommand}"
-                                Classes="btn-ghost">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="History" Width="16" Height="16"/>
-                                <TextBlock Text="Toggle Visit History" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
+                    <!-- Column 2: Toggle Visit History -->
+                    <Button Classes="btn-secondary" Command="{Binding ToggleVisitHistoryCommand}" Grid.Column="2" Height="38" Margin="0,0,8,0" Padding="14,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="History" Width="16" Height="16"/>
+                            <TextBlock Text="Toggle Visit History" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
-                    <!-- CENTER: Status Message -->
-                    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushInk500}"
-                               HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" Margin="0,0,16,0"
-                               TextWrapping="Wrap"/>
+                    <!-- Column 3: Print Prescription -->
+                    <Button Classes="btn-blue-outline" Command="{Binding PrintClinicalSummaryCommand}" Grid.Column="3" Height="38" IsEnabled="{Binding CanUsePrescriptionActions}" IsVisible="{Binding SaveCancelEnabled}" Margin="0,0,8,0" Padding="14,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/>
+                            <TextBlock Text="Print Prescription"/>
+                        </StackPanel>
+                    </Button>
 
-                    <!-- RIGHT: Action sequence -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <!-- Column 4: Send to Pharmacist -->
+                    <Button Classes="btn-primary" Command="{Binding SendToPharmacistCommand}" Grid.Column="4" Height="38" IsEnabled="{Binding CanUsePrescriptionActions}" IsVisible="{Binding SaveCancelEnabled}" Margin="0,0,8,0" Padding="14,0">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="Send" Width="16" Height="16"/>
+                            <TextBlock Text="Send to Pharmacist"/>
+                        </StackPanel>
+                    </Button>
 
-                        <!-- 1. Print Prescription -->
-                        <Button Command="{Binding PrintClinicalSummaryCommand}" Classes="btn-blue-outline"
-                                IsVisible="{Binding SaveCancelEnabled}" IsEnabled="{Binding CanUsePrescriptionActions}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="Printer" Width="16" Height="16"/>
-                                <TextBlock Text="Print Prescription"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- 2. Send to Pharmacist (primary — auto-saves + posts) -->
-                        <Button Command="{Binding SendToPharmacistCommand}" Classes="btn-primary"
-                                IsVisible="{Binding SaveCancelEnabled}" IsEnabled="{Binding CanUsePrescriptionActions}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="Send" Width="16" Height="16"/>
-                                <TextBlock Text="Send to Pharmacist"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- 3. Save Patient Only (saves record, no pharma handoff) -->
-                        <Button Command="{Binding SaveCommand}" Classes="btn-secondary"
-                                IsVisible="{Binding CanSavePatient}">
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
-                                <TextBlock Text="Save Patient Only" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                    </StackPanel>
+                    <!-- Column 5: Primary Save Patient -->
+                    <Button Classes="btn-primary" Command="{Binding SaveCommand}" Grid.Column="5" Height="38" Padding="16,0" IsVisible="{Binding CanSavePatient}">
+                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="ContentSave" Width="18" Height="18"/>
+                            <TextBlock Text="Save Patient Only" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    
                 </Grid>
             </Border>
         </Grid>

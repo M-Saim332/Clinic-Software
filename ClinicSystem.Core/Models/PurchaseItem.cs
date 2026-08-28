@@ -39,15 +39,12 @@ public class PurchaseItem
     public decimal CompanySalesTaxAmount => SubTotal * (CompanySalesTax / 100m);
     public decimal TaxableOverhead => AdvanceTaxAmount + CompanySalesTaxAmount;
     public decimal LineNetTotal => SubTotal + TaxableOverhead;
-    public decimal EffectiveCostPerPiece
-    {
-        get
-        {
-            var pieces = Math.Max(1, UnitsPerPackage);
-            var totalPieces = (PackageQuantity * pieces) + (Math.Max(0, BonusQuantity) * pieces);
-            return totalPieces > 0 ? Math.Round(LineNetTotal / totalPieces, 4, MidpointRounding.AwayFromZero) : 0;
-        }
-    }
+    public int TotalPieces => (PackageQuantity + Math.Max(0, BonusQuantity)) * Math.Max(1, UnitsPerPackage);
+
+    // Effective cost per piece written to Products.PurchasePrice on post
+    public decimal EffectiveCostPerPiece => TotalPieces > 0 
+        ? Math.Round(LineNetTotal / TotalPieces, 4, MidpointRounding.AwayFromZero) 
+        : 0;
     public string BatchExpiryDisplay =>
         $"{(string.IsNullOrWhiteSpace(BatchNumber) ? "N/A" : BatchNumber)} / {(ExpiryDate.HasValue ? ExpiryDate.Value.ToString("dd MMM yyyy") : "N/A")}";
     public string RateMrpDisplay => $"Rate Rs. {PurchasePrice:N2} / MRP Rs. {PackMRP:N2}";

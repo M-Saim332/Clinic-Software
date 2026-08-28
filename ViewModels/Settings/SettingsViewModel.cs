@@ -11,6 +11,8 @@ using System.Globalization;
 using System.Collections.Generic;
 using System.Linq;
 using ClinicSystem.UI.Services;
+using ClinicSystem.UI.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ClinicSystem.UI.ViewModels.Settings;
 
@@ -286,6 +288,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             StatusMessage = "Settings saved successfully!";
             LogActivity("Settings Updated", "Application settings were updated", "Settings");
             SettingsSaved?.Invoke();
+            WeakReferenceMessenger.Default.Send(new ClinicNameChangedMessage(ClinicName));
         }
         catch (Exception ex) { StatusMessage = $"Failed to save settings: {ex.Message}"; }
         finally { IsBusy = false; }

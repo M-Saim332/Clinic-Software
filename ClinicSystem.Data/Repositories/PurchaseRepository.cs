@@ -130,13 +130,21 @@ public class PurchaseRepository
                 new { item.ProductID }, tx);
             var stockQuantity = (item.PackageQuantity + item.BonusQuantity) * piecesPerUnit;
             var effectiveCostPerPiece = item.EffectiveCostPerPiece;
+            var packPurchasePrice = effectiveCostPerPiece * piecesPerUnit;
             conn.Execute(@"UPDATE Products SET 
                 Stock=Stock+@Quantity,
                 PurchasePrice=@EffectiveCostPerPiece,
-                SellingPrice=@PackMRP,
+                Rate=@PackPurchasePrice,
+                SellingPrice=CASE WHEN @PackMRP > 0 THEN @PackMRP ELSE SellingPrice END,
                 LastStockUpdateDate=CAST(GETDATE() AS DATE) 
                 WHERE ProductID=@ProductID AND IsActive=1",
-                new { Quantity=stockQuantity, EffectiveCostPerPiece=effectiveCostPerPiece, PackMRP=item.PackMRP, item.ProductID }, tx);
+                new { 
+                    Quantity=stockQuantity, 
+                    EffectiveCostPerPiece=effectiveCostPerPiece, 
+                    PackPurchasePrice=packPurchasePrice,
+                    PackMRP=item.PackMRP, 
+                    item.ProductID 
+                }, tx);
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
         tx.Commit();

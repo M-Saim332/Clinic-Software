@@ -408,23 +408,23 @@
                                            FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
 
-                            <!-- MRP (Row 3, left) -->
+                            <!-- Rate (TP) (Row 3, left) -->
                             <StackPanel Grid.Column="0" Grid.Row="3" Spacing="6" Margin="0,0,12,12">
-                                <TextBlock Text="MRP (Rs.) *" Classes="label"/>
-                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
-                                <TextBlock Text="Maximum Retail Price shown to patient"
+                                <TextBlock Classes="label">
+                                    <Run Text="Rate (TP)"/>
+                                    <Run Text=" — Net Purchase Price per Pack" Foreground="{DynamicResource BrushInk500}" FontSize="11"/>
+                                </TextBlock>
+                                <TextBox Text="{Binding Rate}" PlaceholderText="0.00"
+                                         ToolTip.Tip="Final net price paid per pack (after discounts, taxes &amp; bonus)"/>
+                                <TextBlock Text="Final net price paid per pack (after discounts, taxes &amp; bonus)"
                                            FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
 
-                            <!-- Rate / Trade Price (Row 3, right) -->
+                            <!-- MRP (Row 3, right) -->
                             <StackPanel Grid.Column="1" Grid.Row="3" Spacing="6" Margin="12,0,0,12">
-                                <TextBlock Classes="label">
-                                    <Run Text="Rate (TP)"/>
-                                    <Run Text=" — Gross Trade Price" Foreground="{DynamicResource BrushInk500}" FontSize="11"/>
-                                </TextBlock>
-                                <TextBox Text="{Binding Rate}" PlaceholderText="0.00"
-                                         ToolTip.Tip="Gross trade price per pack as printed on the invoice, before any discounts or taxes."/>
-                                <TextBlock Text="Leave 0 if not known (used for COGS estimate)"
+                                <TextBlock Text="MRP (Rs.) *" Classes="label"/>
+                                <TextBox Text="{Binding PurchasePrice}" PlaceholderText="0.00"/>
+                                <TextBlock Text="Maximum Retail Price shown to patient"
                                            FontSize="11" Foreground="{DynamicResource BrushInk500}"/>
                             </StackPanel>
 
@@ -446,7 +446,7 @@
                                                        Foreground="#15803D" LetterSpacing="0.8"/>
                                             <TextBlock Text="{Binding EstimatedLandedCostDisplay}" FontSize="14" FontWeight="Bold"
                                                        Foreground="#15803D"/>
-                                            <TextBlock Text="Rate × 85% ÷ Pieces" FontSize="10" Foreground="#4ADE80"/>
+                                            <TextBlock Text="Rate ÷ Pieces" FontSize="10" Foreground="#4ADE80"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Spacing="2">
                                             <TextBlock Text="EST. MARGIN / PIECE" FontSize="10" FontWeight="Bold"
@@ -457,7 +457,7 @@
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
                                             <TextBlock FontSize="10" Foreground="#15803D" TextWrapping="Wrap"
-                                                       Text="Estimate uses 15% standard trade discount. Actual may vary."/>
+                                                       Text="Calculated using exact Net Purchase Price. Actual may vary."/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

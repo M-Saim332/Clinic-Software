@@ -36,13 +36,13 @@ public class Product
             : SellingPrice;
 
     /// <summary>
-    /// Estimated landed cost per piece using the stored Rate with a standard 15 % trade discount.
+    /// Estimated landed cost per piece using the stored Rate.
     /// Used for live margin preview on the product form when no PurchaseItems batch exists.
-    /// Formula: Rate × (1 − 0.15) / PiecesPerUnit
+    /// Formula: Rate / PiecesPerUnit
     /// </summary>
     public decimal EstimatedLandedCostPerPiece =>
         PiecesPerUnit > 0 && Rate > 0
-            ? Math.Round((Rate * 0.85m) / PiecesPerUnit, 4, MidpointRounding.AwayFromZero)
+            ? Math.Round(Rate / PiecesPerUnit, 4, MidpointRounding.AwayFromZero)
             : PurchasePrice;
 
     /// <summary>

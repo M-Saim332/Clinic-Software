@@ -64,10 +64,10 @@ public class SaleRepository
                 -- Tier 1: Historical Purchase Batch Net Landed Cost
                 pc.PurchasePieceCost,
 
-                -- Tier 2: Explicit Product Rate (Gross TP minus 15% standard trade discount ÷ PiecesPerUnit)
+                -- Tier 2: Explicit Product Rate (Net Purchase Price Per Pack ÷ PiecesPerUnit)
                 CASE
                     WHEN ISNULL(p.Rate, 0) > 0 AND ISNULL(p.PiecesPerUnit, 0) > 0
-                        THEN CAST((p.Rate * 0.85) AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
+                        THEN CAST(p.Rate AS DECIMAL(18,6)) / NULLIF(p.PiecesPerUnit, 0)
                     WHEN ISNULL(p.PurchasePrice, 0) > 0
                         THEN CAST(p.PurchasePrice AS DECIMAL(18,6))
                     ELSE NULL
