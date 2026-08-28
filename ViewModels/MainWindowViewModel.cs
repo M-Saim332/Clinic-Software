@@ -299,7 +299,10 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
 
     public bool IsClinicalMode => CurrentSystemMode == "Clinical";
     public bool IsPharmaMode => CurrentSystemMode == "Pharma";
-    public bool CanSwitchSystemMode => CurrentUser?.IsAdmin ?? false;
+    // Allow switching if admin OR if user has access to modules in BOTH modes
+    public bool CanSwitchSystemMode =>
+        (CurrentUser?.IsAdmin ?? false) ||
+        (HasAnyPharmaAccess() && HasAnyClinicalAccess());
     public string ProductNavigationLabel => IsClinicalMode ? "Drugs" : "Products";
 
     partial void OnCurrentSystemModeChanged(string value)
@@ -349,8 +352,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     private bool ShouldStartInClinicalMode =>
         CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Doctor ||
         CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Assistant ||
-        CurrentUser?.HasAccess("Patients") == true ||
-        CurrentUser?.HasAccess("Appointments") == true;
+        // For mixed-access users: start clinical only if they have clinical access
+        // but have NO pharma access (otherwise start in pharma, or let them switch)
+        (HasAnyClinicalAccess() && !HasAnyPharmaAccess());
 
     public bool CanAccessPatients     => IsClinicalMode && HasClinicalAccess("Patients");
     public bool CanAccessAppointments => IsClinicalMode && HasClinicalAccess("Appointments");
@@ -376,6 +380,30 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 or ClinicSystem.Core.Enums.UserRole.Pharmacist
                 or ClinicSystem.Core.Enums.UserRole.Assistant;
         return roleCanUsePharmaModules && user.HasAccess(module);
+    }
+
+    // Helper: does this user have access to ANY pharma module?
+    private bool HasAnyPharmaAccess()
+    {
+        var user = CurrentUser;
+        if (user?.IsAdmin == true) return true;
+        if (user is null) return false;
+        var roleOk = user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist
+            or ClinicSystem.Core.Enums.UserRole.Pharmacist
+            or ClinicSystem.Core.Enums.UserRole.Assistant;
+        if (!roleOk) return false;
+        return user.HasAccess("Sales") || user.HasAccess("Purchases") || user.HasAccess("Inventory")
+            || user.HasAccess("Products") || user.HasAccess("Companies") || user.HasAccess("Suppliers")
+            || user.HasAccess("Returns") || user.HasAccess("Reports");
+    }
+
+    // Helper: does this user have access to ANY clinical module?
+    private bool HasAnyClinicalAccess()
+    {
+        var user = CurrentUser;
+        if (user?.IsAdmin == true || user?.IsDoctor == true) return true;
+        if (user is null) return false;
+        return user.HasAccess("Patients") || user.HasAccess("Appointments") || user.HasAccess("Settings");
     }
 
     // TRANSACTIONS
