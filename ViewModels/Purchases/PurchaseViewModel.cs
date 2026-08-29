@@ -86,6 +86,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     
     // Line Item Input
     [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private string _productSearchText = string.Empty;
     [ObservableProperty] private string _batchNumber = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private int _quantity = 1;
@@ -155,12 +156,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private decimal RateInput => PurchasePrice ?? 0m;
     public decimal EffectiveRate => RateInput;
     public decimal LineGrossAmountPreview => Quantity * RateInput;
-    public decimal LineDiscountAmountPreview => LineGrossAmountPreview * (ExtraDiscount / 100m);
-    public decimal LineSubTotalPreview => Math.Max(0, LineGrossAmountPreview - LineDiscountAmountPreview);
-    public decimal LineAdvanceTaxPreview => LineSubTotalPreview * (ATax / 100m);
-    public decimal LineCompanySalesTaxPreview => LineSubTotalPreview * (CompanySalesTax / 100m);
+    public decimal LineDiscountAmountPreview => LineGrossAmountPreview * (Discount / 100m);
+    public decimal LineExtraDiscountAmountPreview => LineGrossAmountPreview * (ExtraDiscount / 100m);
+    public decimal LineSubTotalPreview => Math.Max(0, LineGrossAmountPreview - LineDiscountAmountPreview - LineExtraDiscountAmountPreview);
+    public decimal LineAdvanceTaxPreview => LineGrossAmountPreview * (ATax / 100m);
+    public decimal LineCompanySalesTaxPreview => LineGrossAmountPreview * (CompanySalesTax / 100m);
     public decimal LineTaxTotalPreview => LineAdvanceTaxPreview + LineCompanySalesTaxPreview;
-    public decimal LineNetTotalPreview => LineSubTotalPreview + LineAdvanceTaxPreview + LineCompanySalesTaxPreview;
+    public decimal LineNetTotalPreview => LineSubTotalPreview + LineTaxTotalPreview;
     public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
     public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
@@ -234,7 +236,16 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [RelayCommand]
     private void AddLineItem()
     {
-        if (SelectedProduct == null) { StatusMessage = "Select a product."; return; }
+        string newProductName = string.Empty;
+        if (SelectedProduct == null) 
+        { 
+            if (!string.IsNullOrWhiteSpace(ProductSearchText))
+                newProductName = ProductSearchText.Trim();
+            else
+            {
+                StatusMessage = "Select or enter a product name."; return; 
+            }
+        }
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
         if (!PurchasePrice.HasValue || PurchasePrice.Value <= 0) { StatusMessage = "Enter the supplier Rate for this product."; return; }
         if (!ExpiryDate.HasValue) { StatusMessage = "Expiry date is required."; return; }
@@ -246,8 +257,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
         var item = new PurchaseItem
         {
-            ProductID = SelectedProduct.ProductID,
-            ProductName = SelectedProduct.Name,
+            ProductID = SelectedProduct?.ProductID ?? 0,
+            ProductName = SelectedProduct?.Name ?? newProductName,
             BatchNumber = BatchNumber,
             ExpiryDate = ExpiryDate?.DateTime,
             PackageQuantity = Quantity,
@@ -269,6 +280,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         
         // Reset inputs
         SelectedProduct = null;
+        ProductSearchText = string.Empty;
         BatchNumber = string.Empty;
         ExpiryDate = null;
         Quantity = 1;
@@ -316,6 +328,24 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         {
             StatusMessage = "At least one item is required.";
             return;
+        }
+
+        // Auto-provision any inline products
+        foreach (var item in LineItems)
+        {
+            if (item.ProductID == 0)
+            {
+                var newProduct = new Product
+                {
+                    Name = item.ProductName ?? "Unknown Product",
+                    PurchasePrice = item.PurchasePrice,
+                    SellingPrice = item.PackMRP,
+                    Rate = item.PurchasePrice,
+                    Category = "General",
+                    IsActive = true
+                };
+                item.ProductID = await Task.Run(() => _productRepo.Insert(newProduct));
+            }
         }
 
         var p = new Purchase
@@ -420,6 +450,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         BonusQuantity = 0;
         PackageType = "Box";
         SelectedProduct = null;
+        ProductSearchText = string.Empty;
         BatchNumber = string.Empty;
         ExpiryDate = null;
         PurchasePrice = null;
@@ -494,6 +525,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     partial void OnBonusQuantityChanged(int value) => OnPropertyChanged(nameof(TotalUnitsToStock));
     partial void OnPurchasePriceChanged(decimal? value) { OnPropertyChanged(nameof(EffectiveRate)); NotifyLinePreviewTotals(); }
     partial void OnPackMRPChanged(decimal value) => NotifyLinePreviewTotals();
+    partial void OnDiscountChanged(decimal value) => NotifyLinePreviewTotals();
     partial void OnExtraDiscountChanged(decimal value) => NotifyLinePreviewTotals();
     partial void OnATaxChanged(decimal value) => NotifyLinePreviewTotals();
     partial void OnCompanySalesTaxChanged(decimal value) => NotifyLinePreviewTotals();
@@ -503,6 +535,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         OnPropertyChanged(nameof(LineSubTotalPreview));
         OnPropertyChanged(nameof(LineGrossAmountPreview));
         OnPropertyChanged(nameof(LineDiscountAmountPreview));
+        OnPropertyChanged(nameof(LineExtraDiscountAmountPreview));
         OnPropertyChanged(nameof(LineAdvanceTaxPreview));
         OnPropertyChanged(nameof(LineCompanySalesTaxPreview));
         OnPropertyChanged(nameof(LineTaxTotalPreview));

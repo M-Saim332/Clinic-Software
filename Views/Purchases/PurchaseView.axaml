@@ -470,7 +470,8 @@
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,12,0">
                                         <TextBlock Text="Product *" Classes="label"/>
                                         <comp:SearchableComboBoxControl ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
-                                            DisplayMemberPath="Name" DetailMemberPath="PurchasePrice" Placeholder="Search product..."/>
+                                            AllowCustomText="True" Text="{Binding ProductSearchText}"
+                                            DisplayMemberPath="Name" DetailMemberPath="PurchasePrice" Placeholder="Search or type new product..."/>
                                         <Button Command="{Binding QuickAddProductCommand}" Content="Add Product" Classes="btn-secondary" HorizontalAlignment="Left"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Bottom">
@@ -514,16 +515,22 @@
                                         <NumericUpDown Value="{Binding PackMRP}" FormatString="N2" Minimum="0" ToolTip.Tip="Maximum Retail Price printed on box (used for patient billing)."/>
                                     </StackPanel>
                                 </Grid>
-                                <Grid ColumnDefinitions="*,*,*">
-                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,12">
+                                        <TextBlock Text="Discount (%)" Classes="label"/>
+                                        <NumericUpDown Value="{Binding Discount}" Minimum="0" Maximum="100" FormatString="N2"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,12">
                                         <TextBlock Text="Extra Discount (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding ExtraDiscount}" Minimum="0" Maximum="100" FormatString="N2"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,8,0">
+                                </Grid>
+                                <Grid ColumnDefinitions="*,*">
+                                    <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
                                         <TextBlock Text="Advance Tax (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding ATax}" Minimum="0" Maximum="100" FormatString="N2"/>
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="6" Margin="8,0,0,0">
+                                    <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
                                         <TextBlock Text="Company Sales Tax (%)" Classes="label"/>
                                         <NumericUpDown Value="{Binding CompanySalesTax}" Minimum="0" Maximum="100" FormatString="N2"/>
                                     </StackPanel>

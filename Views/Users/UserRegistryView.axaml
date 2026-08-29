@@ -470,45 +470,52 @@
                                                TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <Separator/>
-                                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto">
-                                    <!-- Row 0 -->
+                                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <!-- Row 0: Dashboards -->
                                     <Border Grid.Column="0" Grid.Row="0" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Companies" IsChecked="{Binding AccCompanies}" Classes="perm-chk"/>
+                                        <CheckBox Content="Clinic: Dashboard" IsChecked="{Binding AccDashboard}" Classes="perm-chk"/>
                                     </Border>
-                                    <Border Grid.Column="1" Grid.Row="0" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Suppliers" IsChecked="{Binding AccSuppliers}" Classes="perm-chk"/>
-                                    </Border>
-                                    <Border Grid.Column="2" Grid.Row="0" Classes="perm-box" Margin="0,0,0,8">
-                                        <CheckBox Content="Pharma: Products / Drugs" IsChecked="{Binding AccProducts}" Classes="perm-chk"/>
+                                    <Border Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="2" Classes="perm-box" Margin="0,0,0,8">
+                                        <CheckBox Content="Pharma: Dashboard" IsChecked="{Binding AccPharmaDashboard}" Classes="perm-chk"/>
                                     </Border>
                                     <!-- Row 1 -->
                                     <Border Grid.Column="0" Grid.Row="1" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Purchases" IsChecked="{Binding AccPurchases}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Companies" IsChecked="{Binding AccCompanies}" Classes="perm-chk"/>
                                     </Border>
                                     <Border Grid.Column="1" Grid.Row="1" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Sales &amp; Billing" IsChecked="{Binding AccSales}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Suppliers" IsChecked="{Binding AccSuppliers}" Classes="perm-chk"/>
                                     </Border>
                                     <Border Grid.Column="2" Grid.Row="1" Classes="perm-box" Margin="0,0,0,8">
-                                        <CheckBox Content="Pharma: Returns" IsChecked="{Binding AccReturns}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Products / Drugs" IsChecked="{Binding AccProducts}" Classes="perm-chk"/>
                                     </Border>
                                     <!-- Row 2 -->
                                     <Border Grid.Column="0" Grid.Row="2" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Inventory" IsChecked="{Binding AccInventory}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Purchases" IsChecked="{Binding AccPurchases}" Classes="perm-chk"/>
                                     </Border>
                                     <Border Grid.Column="1" Grid.Row="2" Classes="perm-box" Margin="0,0,8,8">
-                                        <CheckBox Content="Pharma: Reports" IsChecked="{Binding AccReports}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Sales &amp; Billing" IsChecked="{Binding AccSales}" Classes="perm-chk"/>
                                     </Border>
                                     <Border Grid.Column="2" Grid.Row="2" Classes="perm-box" Margin="0,0,0,8">
-                                        <CheckBox Content="Clinic: Drugs" IsChecked="{Binding AccProducts}" Classes="perm-chk"/>
+                                        <CheckBox Content="Pharma: Returns" IsChecked="{Binding AccReturns}" Classes="perm-chk"/>
                                     </Border>
                                     <!-- Row 3 -->
-                                    <Border Grid.Column="0" Grid.Row="3" Classes="perm-box" Margin="0,0,8,0">
+                                    <Border Grid.Column="0" Grid.Row="3" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Pharma: Inventory" IsChecked="{Binding AccInventory}" Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="1" Grid.Row="3" Classes="perm-box" Margin="0,0,8,8">
+                                        <CheckBox Content="Pharma: Reports" IsChecked="{Binding AccReports}" Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="2" Grid.Row="3" Classes="perm-box" Margin="0,0,0,8">
+                                        <CheckBox Content="Clinic: Drugs" IsChecked="{Binding AccProducts}" Classes="perm-chk"/>
+                                    </Border>
+                                    <!-- Row 4 -->
+                                    <Border Grid.Column="0" Grid.Row="4" Classes="perm-box" Margin="0,0,8,0">
                                         <CheckBox Content="Clinic: Patients" IsChecked="{Binding AccPatients}" Classes="perm-chk"/>
                                     </Border>
-                                    <Border Grid.Column="1" Grid.Row="3" Classes="perm-box" Margin="0,0,8,0">
+                                    <Border Grid.Column="1" Grid.Row="4" Classes="perm-box" Margin="0,0,8,0">
                                         <CheckBox Content="Clinic: Appointments" IsChecked="{Binding AccAppointments}" Classes="perm-chk"/>
                                     </Border>
-                                    <Border Grid.Column="2" Grid.Row="3" Classes="perm-box" Margin="0">
+                                    <Border Grid.Column="2" Grid.Row="4" Classes="perm-box" Margin="0">
                                         <CheckBox Content="Clinic: Settings" IsChecked="{Binding AccSettings}" Classes="perm-chk"/>
                                     </Border>
                                 </Grid>

@@ -336,7 +336,12 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     public bool IsAdmin            => CurrentUser?.IsAdmin ?? false;
 
     // Module Access properties for UI binding
-    public bool CanAccessDashboard    => true;
+    // Dashboard access is mode-specific: admin/doctor always have it;
+    // others need the relevant permission granted by the admin.
+    public bool CanAccessDashboard =>
+        CurrentUser?.IsAdmin == true || CurrentUser?.IsDoctor == true ||
+        (IsClinicalMode && (CurrentUser?.HasAccess("Dashboard") ?? false)) ||
+        (IsPharmaMode   && (CurrentUser?.HasAccess("PharmaDashboard") ?? false));
     private bool HasClinicalAccess(string module)
     {
         var user = CurrentUser;

@@ -102,7 +102,6 @@ public class ProductRepository
 
     public int Insert(Product product)
     {
-        if (!product.CompanyID.HasValue) throw new InvalidOperationException("A company must be selected before adding a product.");
         using var conn = _session.CreateConnection();
         using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
         product.PCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(PCode),0)+1 FROM Products WITH (UPDLOCK,HOLDLOCK)", transaction: tx);

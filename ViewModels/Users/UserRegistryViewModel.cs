@@ -144,7 +144,8 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
 
     // ── Module Access ─────────────────────────────────────────────────────────
 
-    [ObservableProperty] private bool _accDashboard;
+    [ObservableProperty] private bool _accDashboard;       // Clinic Dashboard
+    [ObservableProperty] private bool _accPharmaDashboard;  // Pharma Dashboard
     [ObservableProperty] private bool _accPatients;
     [ObservableProperty] private bool _accAppointments;
     [ObservableProperty] private bool _accProducts;
@@ -170,17 +171,17 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         if (Mode != FormMode.Add) return;
 
         // Reset everything
-        AccDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
+        AccDashboard = AccPharmaDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
         AccSuppliers = AccPurchases = AccSales = AccReturns =
         AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
 
         switch (value)
         {
             case "Pharmacist":
-                AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
+                AccPharmaDashboard = AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
                 break;
             case "Receptionist":
-                AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
+                AccPharmaDashboard = AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
                 break;
             case "Doctor":
                 // Full access — module checkboxes hidden
@@ -551,11 +552,11 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         IsActive = true;
         DateOfBirth = null;
         ProfilePictureData = null;
-        AccDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
+        AccDashboard = AccPharmaDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
         AccSuppliers = AccPurchases = AccSales = AccReturns =
         AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
         // Default permissions for Receptionist
-        AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
+        AccPharmaDashboard = AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
         StatusMessage = string.Empty;
     }
 
@@ -578,7 +579,8 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         Password = ConfirmPassword = string.Empty;
 
         var p = u.Permissions ?? "";
-        AccDashboard    = p.Contains("Dashboard");
+        AccDashboard      = p.Contains("Dashboard") && !p.Contains("PharmaDashboard");
+        AccPharmaDashboard = p.Contains("PharmaDashboard");
         AccPatients     = p.Contains("Patients");
         AccAppointments = p.Contains("Appointments");
         AccProducts     = p.Contains("Products");
@@ -597,7 +599,8 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     private string GetPermissionsString()
     {
         var p = new List<string>();
-        if (AccDashboard)    p.Add("Dashboard");
+        if (AccDashboard)      p.Add("Dashboard");
+        if (AccPharmaDashboard) p.Add("PharmaDashboard");
         if (AccPatients)     p.Add("Patients");
         if (AccAppointments) p.Add("Appointments");
         if (AccProducts)     p.Add("Products");

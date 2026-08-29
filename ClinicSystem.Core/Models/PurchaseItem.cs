@@ -35,8 +35,8 @@ public class PurchaseItem
     public decimal ExtraDiscountedValue => GrossLineAmount * (ExtraDiscount / 100m);
     // SubTotal deducts BOTH discount tiers before taxes are applied
     public decimal SubTotal => Math.Max(0, GrossLineAmount - DiscountedValue - ExtraDiscountedValue);
-    public decimal AdvanceTaxAmount => SubTotal * (ATax / 100m);
-    public decimal CompanySalesTaxAmount => SubTotal * (CompanySalesTax / 100m);
+    public decimal AdvanceTaxAmount => GrossLineAmount * (ATax / 100m);
+    public decimal CompanySalesTaxAmount => GrossLineAmount * (CompanySalesTax / 100m);
     public decimal TaxableOverhead => AdvanceTaxAmount + CompanySalesTaxAmount;
     public decimal LineNetTotal => SubTotal + TaxableOverhead;
     public int TotalPieces => (PackageQuantity + Math.Max(0, BonusQuantity)) * Math.Max(1, UnitsPerPackage);

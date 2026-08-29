@@ -299,9 +299,10 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
         try
         {
+            int savedSaleId = 0;
             if (Mode == FormMode.Add)
             {
-                await Task.Run(() => _repo.Insert(s));
+                savedSaleId = await Task.Run(() => _repo.Insert(s));
                 InvoiceState = InvoiceState.Posted;
                 StatusMessage = "Sale posted successfully. Stock updated.";
                 LogActivity("Sale Completed", $"Invoice #{s.InvoiceNumber} posted for {s.PatientName} — Rs. {s.GrandTotal:N2}", "Sales");
@@ -309,7 +310,21 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
             }
             
             await InitializeAsync();
-            await NewAsync();
+            
+            if (savedSaleId > 0)
+            {
+                var postedSale = await Task.Run(() => _repo.GetByIdWithItems(savedSaleId));
+                if (postedSale != null)
+                {
+                    InvoiceVM.LoadInvoice(postedSale);
+                    ShowForm = false;
+                    ShowInvoicePrint = true;
+                }
+            }
+            else
+            {
+                await NewAsync();
+            }
         }
         catch (Exception ex)
         {
