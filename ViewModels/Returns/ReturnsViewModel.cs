@@ -1,6 +1,9 @@
 using ClinicSystem.Data.Repositories;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
+using System.Threading.Tasks;
 
 namespace ClinicSystem.UI.ViewModels.Returns;
 
@@ -30,6 +33,15 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     {
         ProcessReturn = processReturn;
         ReturnHistory = returnHistory;
+
+        WeakReferenceMessenger.Default.Register<ReturnsViewModel, RefundIssuedMessage>(this, (r, m) =>
+        {
+            _ = r.ReturnHistory.InitializeAsync();
+        });
+        WeakReferenceMessenger.Default.Register<ReturnsViewModel, RefundCompletedMessage>(this, (r, m) =>
+        {
+            _ = r.ReturnHistory.InitializeAsync();
+        });
     }
 
     public async Task InitializeAsync()
@@ -38,6 +50,14 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
             ProcessReturn.InitializeAsync(),
             ReturnHistory.InitializeAsync()
         );
+    }
+
+    partial void OnActiveTabChanged(string value)
+    {
+        if (value == "ReturnHistory")
+        {
+            _ = ReturnHistory.InitializeAsync();
+        }
     }
 
     [RelayCommand] private void SwitchToProcessReturn() => ActiveTab = "ProcessReturn";

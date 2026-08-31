@@ -58,14 +58,14 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             var term = SearchTerm.ToLower().Replace(" ", "");
-            list = list.Where(m => m.Name.ToLower().Contains(term));
+            list = list.Where(m => (m.Name?.ToLower().Contains(term) ?? false));
         }
 
         AllStock = new ObservableCollection<Product>(list.OrderBy(m => m.Name));
-        LowStock = new ObservableCollection<Product>(list.Where(m => m.IsLowStock && m.Stock > 0 && !m.IsExpired).OrderBy(m => m.Stock));
-        OutOfStock = new ObservableCollection<Product>(list.Where(m => m.Stock <= 0).OrderBy(m => m.Name));
-        Expired = new ObservableCollection<Product>(list.Where(m => m.IsExpired).OrderBy(m => m.ExpiryDate));
-        NearExpiry = new ObservableCollection<Product>(list.Where(m => m.ExpiryDate.HasValue && !m.IsExpired && m.ExpiryDate.Value.Date <= today.AddDays(30)).OrderBy(m => m.ExpiryDate));
+        LowStock = new ObservableCollection<Product>(list.Where(m => m.IsLowStock && m.TotalStock > 0 && !m.IsExpired).OrderBy(m => m.TotalStock));
+        OutOfStock = new ObservableCollection<Product>(list.Where(m => m.TotalStock <= 0).OrderBy(m => m.Name));
+        Expired = new ObservableCollection<Product>(list.Where(m => m.IsExpired).OrderBy(m => m.EarliestExpiry));
+        NearExpiry = new ObservableCollection<Product>(list.Where(m => m.EarliestExpiry.HasValue && !m.IsExpired && m.EarliestExpiry.Value.Date <= today.AddDays(30)).OrderBy(m => m.EarliestExpiry));
     }
 
     public async Task InitializeAsync()
@@ -112,7 +112,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         int piecesPerUnit = SelectedProduct.PiecesPerUnit > 0 ? SelectedProduct.PiecesPerUnit : 1;
         int deltaPieces = AdjustmentQuantity * piecesPerUnit;
 
-        if (SelectedProduct.Stock + deltaPieces < 0)
+        if (SelectedProduct.TotalStock + deltaPieces < 0)
         {
             StatusMessage = $"Cannot adjust below zero stock. Current stock: {SelectedProduct.StockBreakdown}.";
             return;
@@ -141,7 +141,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
     {
         if (p == null) return;
         ReturnTargetProduct = p;
-        SupplierReturnQuantity = p.Stock > 0 ? p.Stock : 0;
+        SupplierReturnQuantity = p.TotalStock > 0 ? p.TotalStock : 0;
         SupplierCreditAmount = p.PricePerTablet * SupplierReturnQuantity;
         SupplierReturnNotes = "Expired Return";
         IsSupplierReturnModalOpen = true;
@@ -169,9 +169,9 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
             return;
         }
 
-        if (SupplierReturnQuantity > ReturnTargetProduct.Stock)
+        if (SupplierReturnQuantity > ReturnTargetProduct.TotalStock)
         {
-            StatusMessage = $"Cannot return more than current stock ({ReturnTargetProduct.Stock}).";
+            StatusMessage = $"Cannot return more than current stock ({ReturnTargetProduct.TotalStock}).";
             return;
         }
 
@@ -180,7 +180,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
             ReturnNo = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
             ProductId = ReturnTargetProduct.ProductID,
             SupplierId = ReturnTargetProduct.SupplierID,
-            BatchNo = ReturnTargetProduct.BatchNumber ?? string.Empty,
+            BatchNo = ReturnTargetProduct.PCode.ToString(),
             Quantity = SupplierReturnQuantity,
             ReturnType = "Supplier Return",
             Reason = "Expired",
@@ -207,3 +207,4 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         }
     }
 }
+

@@ -25,6 +25,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         _repo = repo;
         _companyRepo = companyRepo;
         _returnRepo = returnRepo;
+
+        WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this, async (r, m) =>
+        {
+            await InitializeAsync();
+        });
     }
 
     [ObservableProperty]
@@ -124,7 +129,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private string _returnReason = "Patient Changed Mind";
     [ObservableProperty] private Product? _returnTargetProduct;
     public string ReturnModalSubtitle => ReturnTargetProduct != null
-        ? $"Product: {ReturnTargetProduct.Name} | Stock: {ReturnTargetProduct.Stock}"
+        ? $"Product: {ReturnTargetProduct.Name} | Stock: {ReturnTargetProduct.TotalStock}"
         : string.Empty;
 
     public List<string> PatientReturnReasons { get; } = new() { "Patient Changed Mind", "Wrong Item", "Damaged", "Expired", "Other" };
@@ -243,6 +248,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
         if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Pieces per unit must be at least 1."; return; }
         if (!int.TryParse(InitialQuantityPacks, out var initialPacks) || initialPacks < 0) { StatusMessage = "Initial quantity packs must be zero or greater."; return; }
+        if (initialPacks > 0 && ExpiryDate == null) { StatusMessage = "Expiry Date is required when adding initial stock."; return; }
 
         var m = BuildProduct();
         try
@@ -252,6 +258,18 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
                 if (Mode == FormMode.Add)
                 {
                     m.ProductID = _repo.Insert(m);
+                    if (initialPacks > 0)
+                    {
+                        var stock = new ProductStock
+                        {
+                            ProductID = m.ProductID,
+                            ExpiryDate = ExpiryDate?.DateTime ?? DateTime.Today.AddYears(1),
+                            QuantityAvailable = CalculateInitialStockPieces(),
+                            PurchasePrice = CurrentRate / CurrentTabletsPerBox,
+                            MRP = CurrentPurchasePrice / CurrentTabletsPerBox
+                        };
+                        _repo.InsertStock(stock);
+                    }
                 }
                 else
                 {
@@ -367,9 +385,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         if (ReturnTargetProduct == null) { StatusMessage = "No product selected."; return; }
         if (ReturnQuantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
 
-        if (ReturnType == "Supplier Return" && ReturnQuantity > ReturnTargetProduct.Stock)
+        if (ReturnType == "Supplier Return" && ReturnQuantity > ReturnTargetProduct.TotalStock)
         {
-            StatusMessage = $"Cannot return more than available stock ({ReturnTargetProduct.Stock}).";
+            StatusMessage = $"Cannot return more than available stock ({ReturnTargetProduct.TotalStock}).";
             return;
         }
 
@@ -383,7 +401,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         {
             ReturnNo    = $"RET-{DateTime.Now:yyyyMMddHHmmss}",
             ProductId   = ReturnTargetProduct.ProductID,
-            BatchNo     = ReturnTargetProduct.BatchNumber ?? string.Empty,
+            BatchNo     = ReturnTargetProduct.PCode.ToString(),
             Quantity    = ReturnQuantity,
             StockQuantity = ReturnQuantity,
             UnitType = "Pieces",
@@ -423,24 +441,30 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         IEnumerable<Product> source = SelectedTab switch
         {
             1 => Products.Where(m => m.IsExpired),
-            2 => Products.Where(m => !m.IsExpired && m.Stock > 0), // unsold = has stock, not expired, no sales reduction (approximate by stock > 0)
+            2 => Products.Where(m => !m.IsExpired && m.TotalStock > 0),
             _ => Products
         };
         if (CompanyFilter != null) source = source.Where(m => m.CompanyID == CompanyFilter.CompanyID);
 
+        IEnumerable<Product> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
-            FilteredProducts = new ObservableCollection<Product>(source);
+        {
+            result = source;
+        }
         else
         {
             var t = SearchTerm.ToLower();
-            FilteredProducts = new ObservableCollection<Product>(
-                source.Where(m =>
-                    m.Name.ToLower().Contains(t) ||
-                    (m.GenericName?.ToLower().Contains(t) ?? false) ||
-                    (m.CompanyName?.ToLower().Contains(t) ?? false) ||
-                    m.PCode.ToString().Contains(t) ||
-                    (m.CompanyID.HasValue && Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID)?.CCode.ToString().Contains(t) == true)));
+            result = source.Where(m =>
+                (m.Name?.ToLower().Contains(t) ?? false) ||
+                (m.GenericName?.ToLower().Contains(t) ?? false) ||
+                (m.CompanyName?.ToLower().Contains(t) ?? false) ||
+                m.PCode.ToString().Contains(t) ||
+                (m.CompanyID.HasValue && Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID)?.CCode.ToString().Contains(t) == true));
         }
+
+        FilteredProducts.Clear();
+        foreach (var item in result)
+            FilteredProducts.Add(item);
     }
 
     private void ClearFields()
@@ -469,11 +493,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Type = m.Type ?? string.Empty;
         Category = m.Category ?? string.Empty;
         Rack = m.Rack ?? string.Empty;
-        ExpiryDate = m.ExpiryDate.HasValue ? new DateTimeOffset(m.ExpiryDate.Value, TimeSpan.Zero) : null;
+        ExpiryDate = m.EarliestExpiry.HasValue ? new DateTimeOffset(m.EarliestExpiry.Value, TimeSpan.Zero) : null;
         Rate = m.Rate.ToString("F2");
         PurchasePrice = m.MRP.ToString("F2");
         TabletsPerBox = Math.Max(1, m.TabletsPerBox).ToString();
-        InitialQuantityPacks = m.PiecesPerUnit > 0 ? (m.Stock / m.PiecesPerUnit).ToString() : "0";
+        InitialQuantityPacks = m.PiecesPerUnit > 0 ? (m.TotalStock / m.PiecesPerUnit).ToString() : "0";
         MinimumStockLevel = m.MinimumStockLevel.ToString();
         SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == m.CompanyID);
         CompanyName = m.CompanyName ?? string.Empty;
@@ -488,12 +512,12 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Type = string.IsNullOrWhiteSpace(Type) ? null : Type.Trim(),
         Category = string.IsNullOrWhiteSpace(Category) ? null : Category.Trim(),
         Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
-        ExpiryDate = ExpiryDate?.Date,
+
         Rate = decimal.TryParse(Rate, out var rate) ? rate : 0,
         PurchasePrice = SelectedProduct?.PurchasePrice ?? 0,
         SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
-        Stock = SelectedProduct?.Stock ?? CalculateInitialStockPieces(),
+
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
         LastStockUpdateDate = SelectedProduct?.LastStockUpdateDate ?? DateTime.Today,
         CompanyID = SelectedCompany?.CompanyID,
@@ -564,7 +588,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
 
                 LowStockCount   = Products.Count(m => m.IsLowStock && !m.IsExpired);
                 ExpiredCount     = Products.Count(m => m.IsExpired);
-                var totalVal     = Products.Sum(m => m.Stock * m.PricePerTablet);
+                var totalVal     = Products.Sum(m => m.TotalStock * m.PricePerTablet);
                 TotalInventoryValue = FormatMoney(totalVal);
             });
         }
@@ -575,3 +599,4 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         }
     }
 }
+

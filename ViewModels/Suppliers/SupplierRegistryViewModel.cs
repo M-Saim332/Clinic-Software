@@ -34,20 +34,25 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
 
     private void FilterSuppliers()
     {
+        IEnumerable<Supplier> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
         {
-            Suppliers = new ObservableCollection<Supplier>(_allSuppliers);
+            result = _allSuppliers;
         }
         else
         {
             var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
-            Suppliers = new ObservableCollection<Supplier>(
-                _allSuppliers.Where(s => s.Name.ToLower().Contains(term)
-                                   || s.SCode.ToString().Contains(term)
-                                   || (s.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
-                                   || (s.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
-                                   || (s.Email?.ToLower().Contains(term) ?? false)));
+            result = _allSuppliers.Where(s =>
+                (s.Name?.ToLower().Contains(term) ?? false)
+                || s.SCode.ToString().Contains(term)
+                || (s.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                || (s.CNIC?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                || (s.Email?.ToLower().Contains(term) ?? false));
         }
+
+        Suppliers.Clear();
+        foreach (var item in result)
+            Suppliers.Add(item);
     }
 
     // Fields for editing/adding

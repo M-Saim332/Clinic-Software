@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
 using System.Collections.ObjectModel;
+using ClinicSystem.UI.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace ClinicSystem.UI.ViewModels.Appointments;
 
@@ -20,6 +22,11 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
         _patientRepo = patientRepo;
         _userRepo = userRepo;
         _prescriptionRepo = prescriptionRepo;
+
+        WeakReferenceMessenger.Default.Register<AppointmentViewModel, AppointmentStatusChangedMessage>(this, (r, m) =>
+        {
+            _ = r.InitializeAsync();
+        });
     }
 
     [ObservableProperty]
@@ -43,20 +50,24 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
 
     private void FilterAppointments()
     {
+        IEnumerable<Appointment> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
         {
-            Appointments = new ObservableCollection<Appointment>(_allAppointments);
+            result = _allAppointments;
         }
         else
         {
             var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
-            Appointments = new ObservableCollection<Appointment>(
-                _allAppointments.Where(a => 
-                    (a.PatientName?.ToLower().Contains(term) ?? false) ||
-                    (a.AppointmentNo?.ToLower().Contains(term) ?? false) ||
-                    (a.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false) ||
-                    (a.Reason?.ToLower().Contains(term) ?? false)));
+            result = _allAppointments.Where(a =>
+                (a.PatientName?.ToLower().Contains(term) ?? false) ||
+                (a.AppointmentNo?.ToLower().Contains(term) ?? false) ||
+                (a.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false) ||
+                (a.Reason?.ToLower().Contains(term) ?? false));
         }
+
+        Appointments.Clear();
+        foreach (var item in result)
+            Appointments.Add(item);
     }
 
     // KPI Summary counts
@@ -331,6 +342,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             await Task.Run(() => _repo.UpdateStatus(a.AppointmentID, "Completed", null));
             StatusMessage = "Appointment completed.";
             LogActivity("Appointment Updated", $"Appointment for {a.PatientName} marked Completed", "Appointments");
+            WeakReferenceMessenger.Default.Send(new AppointmentStatusChangedMessage());
             await InitializeAsync();
 
             if (a.PatientID == null)
@@ -356,6 +368,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             }
             StatusMessage = "Appointment marked missed.";
             LogActivity("Appointment Updated", $"Appointment for {a.PatientName} marked Missed", "Appointments");
+            WeakReferenceMessenger.Default.Send(new AppointmentStatusChangedMessage());
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
@@ -375,6 +388,7 @@ public partial class AppointmentViewModel : ViewModelBase, ISearchable
             }
             StatusMessage = "Appointment cancelled.";
             LogActivity("Appointment Updated", $"Appointment for {a.PatientName} Cancelled", "Appointments");
+            WeakReferenceMessenger.Default.Send(new AppointmentStatusChangedMessage());
             await InitializeAsync();
         }
         catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }

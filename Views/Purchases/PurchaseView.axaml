@@ -230,17 +230,6 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Batch No. (min-width: 90px, centered) -->
-                                        <DataGridTemplateColumn MinWidth="95" Width="95">
-                                            <DataGridTemplateColumn.Header>
-                                                <TextBlock Text="Batch No." TextWrapping="NoWrap" HorizontalAlignment="Center"/>
-                                            </DataGridTemplateColumn.Header>
-                                            <DataGridTemplateColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding BatchNumber}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </DataTemplate>
-                                            </DataGridTemplateColumn.CellTemplate>
-                                        </DataGridTemplateColumn>
 
                                         <!-- Expiry Date (min-width: 90px, centered) -->
                                         <DataGridTemplateColumn MinWidth="95" Width="95">
@@ -572,7 +561,7 @@
                                       GridLinesVisibility="Horizontal">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
-                                    <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="110"/>
+
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
                                     <DataGridTextColumn Header="QTY" Binding="{Binding PackageQuantity}" Width="80"/>
                                     <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="70"/>

@@ -123,7 +123,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
             ProductName = product.Name,
             Quantity = 1,
             Dosage = string.Empty,
-            AvailableStock = product.Stock
+            AvailableStock = product.TotalStock
         });
         StatusMessage = $"{product.Name} added.";
     }
@@ -141,7 +141,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
     {
         if (SelectedProductToAdd == null) { StatusMessage = "Select a product."; return; }
         if (!int.TryParse(QuantityToAdd, out var qty) || qty <= 0) { StatusMessage = "Enter a valid quantity."; return; }
-        if (qty > SelectedProductToAdd.Stock) { StatusMessage = $"Insufficient stock (available: {SelectedProductToAdd.Stock})."; return; }
+        if (qty > SelectedProductToAdd.TotalStock) { StatusMessage = $"Insufficient stock (available: {SelectedProductToAdd.TotalStock})."; return; }
 
         Items.Add(new PrescriptionItemRow
         {
@@ -149,7 +149,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
             ProductName = SelectedProductToAdd.Name,
             Quantity = qty,
             Dosage = DosageToAdd,
-            AvailableStock = SelectedProductToAdd.Stock
+            AvailableStock = SelectedProductToAdd.TotalStock
         });
 
         SelectedProductToAdd = null; QuantityToAdd = "1"; DosageToAdd = string.Empty;
@@ -322,7 +322,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         {
             var t = InventorySearch.ToLower();
             FilteredInventory = new ObservableCollection<Product>(
-                AvailableProducts.Where(p => p.Name.ToLower().Contains(t)));
+                AvailableProducts.Where(p => (p.Name?.ToLower().Contains(t) ?? false)));
         }
     }
 
@@ -334,7 +334,7 @@ public partial class PrescriptionViewModel : ViewModelBase, ISearchable
         {
             var t = PatientSearch.ToLower();
             FilteredPatients = new ObservableCollection<Patient>(
-                Patients.Where(p => p.Name.ToLower().Contains(t) || (p.Contact?.Contains(t) ?? false)));
+                Patients.Where(p => (p.Name?.ToLower().Contains(t) ?? false) || (p.Contact?.Contains(t) ?? false)));
         }
     }
 }
@@ -354,3 +354,4 @@ public partial class PrescriptionItemRow : ObservableObject
     public string TaxDiscountDisplay => "N/A";
     public string TotalDisplay => UnitPrice > 0 ? $"Rs. {UnitPrice * Quantity:N2}" : "Pending sale";
 }
+

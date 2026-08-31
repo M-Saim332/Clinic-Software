@@ -300,9 +300,22 @@ public class SaleRepository
         if (items.Count == 0) throw new InvalidOperationException("A sale must contain at least one item.");
         foreach (var item in items)
         {
-            var updated = conn.Execute(@"UPDATE Products SET Stock=Stock-@StockQuantity,LastStockUpdateDate=CAST(GETDATE() AS DATE)
-                WHERE ProductID=@ProductID AND IsActive=1 AND Stock>=@StockQuantity", item, tx);
-            if (updated != 1) throw new InvalidOperationException($"Insufficient stock for product #{item.ProductID}.");
+            var stocks = conn.Query<ProductStock>("SELECT * FROM ProductStock WHERE ProductID=@ProductID AND QuantityAvailable > 0 ORDER BY ExpiryDate ASC", new { item.ProductID }, tx).ToList();
+            int remaining = item.StockQuantity;
+            
+            foreach (var stock in stocks)
+            {
+                if (remaining <= 0) break;
+                
+                int deduct = Math.Min(stock.QuantityAvailable, remaining);
+                conn.Execute("UPDATE ProductStock SET QuantityAvailable = QuantityAvailable - @Deduct WHERE StockID = @StockID", new { Deduct = deduct, stock.StockID }, tx);
+                remaining -= deduct;
+            }
+            
+            if (remaining > 0) throw new InvalidOperationException($"Insufficient stock for product #{item.ProductID}.");
+            
+            // Delete completely depleted stock records
+            conn.Execute("DELETE FROM ProductStock WHERE ProductID=@ProductID AND QuantityAvailable <= 0", new { item.ProductID }, tx);
         }
         var next = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(SaleID),0) FROM Sales WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
         var invoice = $"SAL-{next:D6}";

@@ -54,18 +54,22 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     private void FilterPurchases()
     {
+        IEnumerable<Purchase> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
         {
-            Purchases = new ObservableCollection<Purchase>(_allPurchases);
+            result = _allPurchases;
         }
         else
         {
             var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
-            Purchases = new ObservableCollection<Purchase>(
-                _allPurchases.Where(p => 
-                    p.InvoiceNumber.ToLower().Contains(term) ||
-                    (p.SupplierName?.ToLower().Contains(term) ?? false)));
+            result = _allPurchases.Where(p =>
+                (p.InvoiceNumber?.ToLower().Contains(term) ?? false) ||
+                (p.SupplierName?.ToLower().Contains(term) ?? false));
         }
+
+        Purchases.Clear();
+        foreach (var item in result)
+            Purchases.Add(item);
     }
 
     // KPI Summary counts
@@ -85,8 +89,16 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [ObservableProperty] private ObservableCollection<PurchaseItem> _lineItems = new();
     
     // Line Item Input
-    [ObservableProperty] private Product? _selectedProduct;
-    [ObservableProperty] private string _productSearchText = string.Empty;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveAndCheckCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PostInvoiceCommand))]
+    private Product? _selectedProduct;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveAndCheckCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PostInvoiceCommand))]
+    private string _productSearchText = string.Empty;
     [ObservableProperty] private string _batchNumber = string.Empty;
     [ObservableProperty] private DateTimeOffset? _expiryDate;
     [ObservableProperty] private int _quantity = 1;
@@ -174,6 +186,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     public bool IsViewingInvoiceDocument => ShowForm && Mode == FormMode.View;
     public string DocumentStatus => IsPostedInvoice ? "POSTED" : IsCheckingInvoice ? "CHECKING" : "DRAFT";
     public string SupplierDisplayName => SelectedSupplier?.Name ?? SupplierName ?? "Walk-in / Unlisted Supplier";
+
+    public bool CanProcessInvoice => LineItems.Count > 0 || SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText);
 
     [RelayCommand]
     private async Task NewAsync()
@@ -277,6 +291,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         LineItems.Add(item);
         OnPropertyChanged(nameof(GrandTotal));
         NotifyDocumentTotals();
+        SaveCommand.NotifyCanExecuteChanged();
+        SaveAndCheckCommand.NotifyCanExecuteChanged();
+        PostInvoiceCommand.NotifyCanExecuteChanged();
+        CheckInvoiceCommand.NotifyCanExecuteChanged();
         
         // Reset inputs
         SelectedProduct = null;
@@ -305,30 +323,36 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             LineItems.Remove(item);
             OnPropertyChanged(nameof(GrandTotal));
             NotifyDocumentTotals();
+            SaveCommand.NotifyCanExecuteChanged();
+            SaveAndCheckCommand.NotifyCanExecuteChanged();
+            PostInvoiceCommand.NotifyCanExecuteChanged();
+            CheckInvoiceCommand.NotifyCanExecuteChanged();
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
     private async Task SaveAsync()
     {
-        if (SelectedSupplier == null && string.IsNullOrWhiteSpace(SupplierName))
+        try
         {
-            StatusMessage = "Supplier (or Supplier Name) is required.";
-            return;
-        }
+            if (SelectedSupplier == null && string.IsNullOrWhiteSpace(SupplierName))
+            {
+                StatusMessage = "Supplier (or Supplier Name) is required.";
+                return;
+            }
 
-        // Auto-add line item if the user forgot to click "+ Add"
-        if (SelectedProduct != null)
-        {
-            AddLineItem();
-            if (!string.IsNullOrEmpty(StatusMessage)) return; // If AddLineItem failed validation, stop saving
-        }
+            // Auto-add line item if the user forgot to click "+ Add"
+            if (SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText))
+            {
+                AddLineItem();
+                if (!string.IsNullOrEmpty(StatusMessage)) return; // If AddLineItem failed validation, stop saving
+            }
 
-        if (!LineItems.Any())
-        {
-            StatusMessage = "At least one item is required.";
-            return;
-        }
+            if (!LineItems.Any())
+            {
+                StatusMessage = "At least one item is required.";
+                return;
+            }
 
         // Auto-provision any inline products
         foreach (var item in LineItems)
@@ -360,8 +384,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             Items = LineItems.ToList()
         };
 
-        try
-        {
+
             if (Mode == FormMode.Add)
             {
                 _currentPurchaseId = await Task.Run(() => _repo.Insert(p));
@@ -392,7 +415,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
     private async Task SaveAndCheckAsync()
     {
         await SaveAsync();
@@ -556,7 +579,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         SelectedProduct = Products.FirstOrDefault(p => p.ProductID == id); PreselectedEntityId = id;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
     private void CheckInvoice()
     {
         if (_currentPurchaseId == 0 && SelectedPurchase?.PurchaseID > 0) _currentPurchaseId = SelectedPurchase.PurchaseID;
@@ -566,7 +589,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         StatusMessage = "Invoice checked. Review it, then post.";
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
     private async Task PostInvoiceAsync()
     {
         if (SaveCancelEnabled)

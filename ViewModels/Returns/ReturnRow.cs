@@ -97,10 +97,10 @@ public partial class ReturnRow : ObservableObject
         get
         {
             if (SelectedProduct == null) return 9999;
-            if (_parent.IsPatientReturn) return SelectedProduct.Stock > 0 ? SelectedProduct.Stock : 9999;
+            if (_parent.IsPatientReturn) return SelectedProduct.TotalStock > 0 ? SelectedProduct.TotalStock : 9999;
             // Supplier: max packs = Stock / PiecesPerUnit
             var ppu = SelectedProduct.PiecesPerUnit < 1 ? 1 : SelectedProduct.PiecesPerUnit;
-            return SelectedProduct.Stock > 0 ? Math.Max(1, SelectedProduct.Stock / ppu) : 9999;
+            return SelectedProduct.TotalStock > 0 ? Math.Max(1, SelectedProduct.TotalStock / ppu) : 9999;
         }
     }
 
@@ -111,8 +111,8 @@ public partial class ReturnRow : ObservableObject
         {
             if (SelectedProduct == null) return string.Empty;
             return _parent.IsPatientReturn
-                ? $"Stock: {SelectedProduct.Stock} pcs | Sell Rs.{SelectedProduct.SellingPrice:N2}"
-                : $"Stock: {SelectedProduct.Stock} pcs ({SelectedProduct.FullPacksInStock} packs) | Buy Rs.{SelectedProduct.PurchasePrice:N2}";
+                ? $"Stock: {SelectedProduct.TotalStock} pcs | Sell Rs.{SelectedProduct.SellingPrice:N2}"
+                : $"Stock: {SelectedProduct.TotalStock} pcs ({SelectedProduct.FullPacksInStock} packs) | Buy Rs.{SelectedProduct.PurchasePrice:N2}";
         }
     }
 
@@ -126,16 +126,17 @@ public partial class ReturnRow : ObservableObject
         {
             if (SelectedProduct == null) return "Select a medicine.";
             if (EnteredQuantity <= 0) return "Quantity must be > 0.";
-            if (_parent.IsPatientReturn && PiecesQuantity > SelectedProduct.Stock)
-                return $"Only {SelectedProduct.Stock} pieces in stock.";
+            if (_parent.IsPatientReturn && PiecesQuantity > SelectedProduct.TotalStock)
+                return $"Only {SelectedProduct.TotalStock} pieces in stock.";
             if (!_parent.IsPatientReturn)
             {
                 var ppu = SelectedProduct.PiecesPerUnit < 1 ? 1 : SelectedProduct.PiecesPerUnit;
-                var maxPacks = SelectedProduct.Stock / ppu;
+                var maxPacks = SelectedProduct.TotalStock / ppu;
                 if (EnteredQuantity > maxPacks)
-                    return $"Only {maxPacks} pack(s) in stock ({SelectedProduct.Stock} pcs).";
+                    return $"Only {maxPacks} pack(s) in stock ({SelectedProduct.TotalStock} pcs).";
             }
             return string.Empty;
         }
     }
 }
+

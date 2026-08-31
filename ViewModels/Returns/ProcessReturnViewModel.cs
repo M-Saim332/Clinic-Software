@@ -192,9 +192,9 @@ public partial class ProcessReturnViewModel : ViewModelBase
             foreach (var item in ReturnItems)
             {
                 var prod = Products.FirstOrDefault(p => p.ProductID == item.ProductId);
-                if (prod != null && item.Quantity > prod.Stock)
+                if (prod != null && item.Quantity > prod.TotalStock)
                 {
-                    StatusMessage = $"{item.ProductName}: return qty ({item.Quantity} pcs) exceeds stock ({prod.Stock} pcs).";
+                    StatusMessage = $"{item.ProductName}: return qty ({item.Quantity} pcs) exceeds stock ({prod.TotalStock} pcs).";
                     return;
                 }
             }
@@ -228,6 +228,7 @@ public partial class ProcessReturnViewModel : ViewModelBase
             InvoiceState = InvoiceState.Posted;
             LogActivity(ReturnType, $"{ret.ReturnNo}: {ret.Items.Count} item(s), Rs. {ret.RefundAmount:N2}", "Returns");
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            WeakReferenceMessenger.Default.Send(new RefundCompletedMessage());
             ClearForm();
             await InitializeAsync();
             StatusMessage = $"Return {ret.ReturnNo} processed. Amount: Rs. {ret.RefundAmount:N2}.";
@@ -271,3 +272,4 @@ public partial class ProcessReturnViewModel : ViewModelBase
         OnPropertyChanged(nameof(RefundAmount));
     }
 }
+

@@ -311,7 +311,7 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
                     table.ColumnsDefinition(cols => { cols.RelativeColumn(3); cols.ConstantColumn(80); cols.ConstantColumn(80); cols.ConstantColumn(90); cols.RelativeColumn(2); });
                     table.Header(h => { h.Cell().Text("Product").SemiBold(); h.Cell().Text("Stock").SemiBold(); h.Cell().Text("Min").SemiBold(); h.Cell().Text("Expiry").SemiBold(); h.Cell().Text("Manufacturer").SemiBold(); h.Cell().ColumnSpan(5).PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Black); });
                     foreach (var p in ProductStockList)
-                    { table.Cell().Text(p.Name); table.Cell().Text($"{p.Stock}"); table.Cell().Text($"{p.MinStock}"); table.Cell().Text(p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""); table.Cell().Text(p.Manufacturer ?? ""); }
+                    { table.Cell().Text(p.Name); table.Cell().Text($"{p.TotalStock}"); table.Cell().Text($"{p.MinStock}"); table.Cell().Text(p.EarliestExpiry.HasValue ? p.EarliestExpiry.Value.ToString("dd MMM yyyy") : ""); table.Cell().Text(p.Manufacturer ?? ""); }
                 });
                 page.Footer().AlignCenter().Text(x => { x.Span("Page "); x.CurrentPageNumber(); x.Span(" of "); x.TotalPages(); });
             })).GeneratePdf(stream);
@@ -340,7 +340,7 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
             ws.Row(1).Style.Font.Bold = true;
             int row = 2;
             foreach (var p in ProductStockList)
-            { ws.Cell(row, 1).Value = p.Name; ws.Cell(row, 2).Value = p.Stock; ws.Cell(row, 3).Value = p.MinStock; ws.Cell(row, 4).Value = p.StockStatus; ws.Cell(row, 5).Value = p.ExpiryDate.HasValue ? p.ExpiryDate.Value.ToString("dd MMM yyyy") : ""; ws.Cell(row, 6).Value = (double)p.MRP; ws.Cell(row, 7).Value = p.Manufacturer ?? ""; row++; }
+            { ws.Cell(row, 1).Value = p.Name; ws.Cell(row, 2).Value = p.TotalStock; ws.Cell(row, 3).Value = p.MinStock; ws.Cell(row, 4).Value = p.StockStatus; ws.Cell(row, 5).Value = p.EarliestExpiry.HasValue ? p.EarliestExpiry.Value.ToString("dd MMM yyyy") : ""; ws.Cell(row, 6).Value = (double)p.MRP; ws.Cell(row, 7).Value = p.Manufacturer ?? ""; row++; }
             ws.Columns().AdjustToContents();
             using var stream = new MemoryStream();
             wb.SaveAs(stream); stream.Position = 0;
@@ -567,3 +567,4 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
 }
 
 public sealed record ReportSummaryRow(string Metric, string Value);
+

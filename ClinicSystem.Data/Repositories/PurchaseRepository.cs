@@ -132,19 +132,29 @@ public class PurchaseRepository
             var effectiveCostPerPiece = item.EffectiveCostPerPiece;
             var packPurchasePrice = effectiveCostPerPiece * piecesPerUnit;
             conn.Execute(@"UPDATE Products SET 
-                Stock=Stock+@Quantity,
                 PurchasePrice=@EffectiveCostPerPiece,
                 Rate=@PackPurchasePrice,
                 SellingPrice=CASE WHEN @PackMRP > 0 THEN @PackMRP ELSE SellingPrice END,
                 LastStockUpdateDate=CAST(GETDATE() AS DATE) 
                 WHERE ProductID=@ProductID AND IsActive=1",
                 new { 
-                    Quantity=stockQuantity, 
                     EffectiveCostPerPiece=effectiveCostPerPiece, 
                     PackPurchasePrice=packPurchasePrice,
                     PackMRP=item.PackMRP, 
                     item.ProductID 
                 }, tx);
+                
+            var stockId = conn.ExecuteScalar<int?>(@"SELECT StockID FROM ProductStock WHERE ProductID=@ProductID AND ExpiryDate=CAST(@ExpiryDate AS DATE)", new { item.ProductID, item.ExpiryDate }, tx);
+            if (stockId.HasValue)
+            {
+                conn.Execute(@"UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Quantity, PurchasePrice = @PackPurchasePrice, MRP = @PackMRP WHERE StockID=@StockID", 
+                    new { Quantity = stockQuantity, PackPurchasePrice = packPurchasePrice, PackMRP = item.PackMRP, StockID = stockId.Value }, tx);
+            }
+            else
+            {
+                conn.Execute(@"INSERT INTO ProductStock (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP) VALUES (@ProductID, CAST(@ExpiryDate AS DATE), @Quantity, @PackPurchasePrice, @PackMRP)", 
+                    new { item.ProductID, item.ExpiryDate, Quantity = stockQuantity, PackPurchasePrice = packPurchasePrice, PackMRP = item.PackMRP }, tx);
+            }
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
         tx.Commit();

@@ -34,19 +34,24 @@ public partial class CompanyRegistryViewModel : ViewModelBase, ISearchable
 
     private void FilterCompanies()
     {
+        IEnumerable<Company> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
         {
-            Companies = new ObservableCollection<Company>(_allCompanies);
+            result = _allCompanies;
         }
         else
         {
             var term = SearchTerm.ToLower().Replace(" ", "");
-            Companies = new ObservableCollection<Company>(
-                _allCompanies.Where(c => c.Name.ToLower().Contains(term)
-                                   || c.CCode.ToString().Contains(term)
-                                   || (c.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
-                                   || (c.Email?.ToLower().Contains(term) ?? false)));
+            result = _allCompanies.Where(c =>
+                (c.Name?.ToLower().Contains(term) ?? false)
+                || c.CCode.ToString().Contains(term)
+                || (c.Phone?.ToLower().Replace(" ", "").Replace("-", "").Contains(term) ?? false)
+                || (c.Email?.ToLower().Contains(term) ?? false));
         }
+
+        Companies.Clear();
+        foreach (var item in result)
+            Companies.Add(item);
     }
     
     partial void OnSelectedCompanyChanged(Company? value)

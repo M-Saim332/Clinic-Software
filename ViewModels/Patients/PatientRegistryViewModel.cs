@@ -22,6 +22,11 @@ public partial class PatientRegistryViewModel : ViewModelBase
         _repo = repo;
         _productRepo = productRepo;
         _prescriptionRepo = prescriptionRepo;
+
+        WeakReferenceMessenger.Default.Register<PatientRegistryViewModel, AppointmentStatusChangedMessage>(this, (r, m) =>
+        {
+            _ = r.InitializeAsync();
+        });
     }
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -135,7 +140,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
     {
         if (SelectedDrug == null) { StatusMessage = "Select a medicine from the product catalog."; return; }
         if (DrugQuantity <= 0) { StatusMessage = "Enter a valid medicine quantity."; return; }
-        if (DrugQuantity > SelectedDrug.Stock) { StatusMessage = $"Insufficient stock. Available: {SelectedDrug.Stock}."; return; }
+        if (DrugQuantity > SelectedDrug.TotalStock) { StatusMessage = $"Insufficient stock. Available: {SelectedDrug.TotalStock}."; return; }
         if (SelectedDrugs.Any(x => x.ProductID == SelectedDrug.ProductID)) { StatusMessage = "Medicine is already added."; return; }
 
         SelectedDrugs.Add(new PrescriptionItemRow
@@ -144,7 +149,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
             ProductName = SelectedDrug.Name,
             Quantity = DrugQuantity,
             Dosage = Dosage,
-            AvailableStock = SelectedDrug.Stock,
+            AvailableStock = SelectedDrug.TotalStock,
             UnitPrice = SelectedDrug.PricePerTablet
         });
 
@@ -168,17 +173,31 @@ public partial class PatientRegistryViewModel : ViewModelBase
     private void DeleteSpecific(Patient? p) => DeleteCommand.Execute(p);
 
     [RelayCommand]
-    private void MarkAsVisited(Patient? p)
+    private async Task MarkAsVisited(Patient? p)
     {
         if (p == null) return;
-        StatusMessage = $"{p.Name} marked as visited.";
+        try
+        {
+            await Task.Run(() => _repo.UpdateVisitStatus(p.PatientID, "Visited", DateTime.Now.Date));
+            StatusMessage = $"{p.Name} marked as visited.";
+            WeakReferenceMessenger.Default.Send(new AppointmentStatusChangedMessage());
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
     }
 
     [RelayCommand]
-    private void MarkAsCancelled(Patient? p)
+    private async Task MarkAsCancelled(Patient? p)
     {
         if (p == null) return;
-        StatusMessage = $"{p.Name} marked as cancelled.";
+        try
+        {
+            await Task.Run(() => _repo.UpdateVisitStatus(p.PatientID, "Cancelled", DateTime.Now.Date));
+            StatusMessage = $"{p.Name} marked as cancelled.";
+            WeakReferenceMessenger.Default.Send(new AppointmentStatusChangedMessage());
+            await InitializeAsync();
+        }
+        catch (Exception ex) { StatusMessage = $"Error: {ex.Message}"; }
     }
 
     [RelayCommand]
@@ -382,6 +401,7 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     partial void OnSearchTermChanged(string value) => FilterPatients();
     partial void OnSelectedPatientChanged(Patient? value) => OnPropertyChanged(nameof(CanUsePrescriptionActions));
+    partial void OnSelectedTabChanged(int value) => FilterPatients();
 
     // ── Helpers ────────────────────────────────────────────────────────────
     public async Task InitializeAsync()
@@ -397,8 +417,8 @@ public partial class PatientRegistryViewModel : ViewModelBase
                 FilterPatients();
 
                 TotalPatientsCount = Patients.Count;
-                ActiveThisMonthCount = Patients.Count(p => p.ConsultationFee > 0);
-                WaitingTodayCount = Math.Max(0, Patients.Count / 10 + 1);
+                ActiveThisMonthCount = Patients.Count(p => p.LastVisitDate?.Month == DateTime.Today.Month && p.LastVisitDate?.Year == DateTime.Today.Year);
+                WaitingTodayCount = Patients.Count(p => p.VisitStatus == "Waiting" || string.IsNullOrEmpty(p.VisitStatus));
                 if (Patients.Count > 0)
                 {
                     var avg = Patients.Average(p => p.ConsultationFee);
@@ -443,17 +463,31 @@ public partial class PatientRegistryViewModel : ViewModelBase
 
     private void FilterPatients()
     {
+        IEnumerable<Patient> source = SelectedTab switch
+        {
+            0 => Patients.Where(p => p.VisitStatus == "Waiting" || string.IsNullOrEmpty(p.VisitStatus)), // Waiting Patients
+            1 => Patients.Where(p => p.VisitStatus == "Visited" && p.LastVisitDate?.Date == DateTime.Today), // Visited Today
+            _ => Patients // All Patients
+        };
+
+        IEnumerable<Patient> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
-            FilteredPatients = new ObservableCollection<Patient>(Patients);
+        {
+            result = source;
+        }
         else
         {
             var term = SearchTerm.ToLower();
-            FilteredPatients = new ObservableCollection<Patient>(
-                Patients.Where(p => p.Name.ToLower().Contains(term)
-                                 || (p.Phone?.ToLower().Contains(term) ?? false)
-                                 || (p.Address?.ToLower().Contains(term) ?? false)
-                                 || (p.Diagnosis?.ToLower().Contains(term) ?? false)));
+            result = source.Where(p =>
+                (p.Name?.ToLower().Contains(term) ?? false)
+                || (p.Phone?.ToLower().Contains(term) ?? false)
+                || (p.Address?.ToLower().Contains(term) ?? false)
+                || (p.Diagnosis?.ToLower().Contains(term) ?? false));
         }
+
+        FilteredPatients.Clear();
+        foreach (var item in result)
+            FilteredPatients.Add(item);
         OnPropertyChanged(nameof(IsListEmpty));
     }
 
@@ -501,7 +535,9 @@ public partial class PatientRegistryViewModel : ViewModelBase
         ConsultationFee = decimal.TryParse(ConsultationFee, out var f) ? f : 0,
         Discount = decimal.TryParse(Discount, out var d) ? d : 0,
         AppointmentDate = AppointmentDate.Date,
-        AppointmentTime = AppointmentTime
+        AppointmentTime = AppointmentTime,
+        VisitStatus = SelectedPatient?.VisitStatus ?? "Waiting",
+        LastVisitDate = SelectedPatient?.LastVisitDate ?? DateTime.Today
     };
 
     private async Task LoadVisitHistoryAsync(int patientId)
@@ -586,3 +622,4 @@ public partial class PatientRegistryViewModel : ViewModelBase
         OnPropertyChanged(nameof(CanUsePrescriptionActions));
     }
 }
+

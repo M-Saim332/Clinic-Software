@@ -39,12 +39,22 @@ public partial class ReturnHistoryViewModel : ViewModelBase, ISearchable
         {
             IsBusy = true;
             var returns = await Task.Run(_returnRepo.GetAll);
-            _allReturns = new ObservableCollection<ProductReturn>(returns);
-            FilterReturns();
-            StatusMessage = $"{Returns.Count} return(s) loaded.";
+            
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                _allReturns = new ObservableCollection<ProductReturn>(returns);
+                FilterReturns();
+                StatusMessage = $"{Returns.Count} return(s) loaded.";
+            });
         }
-        catch (Exception ex) { StatusMessage = $"Failed to load returns: {ex.Message}"; }
-        finally { IsBusy = false; }
+        catch (Exception ex) 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load returns: {ex.Message}");
+        }
+        finally 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBusy = false);
+        }
     }
 
     [RelayCommand]

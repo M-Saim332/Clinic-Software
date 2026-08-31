@@ -247,7 +247,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
 
         _syncTimer = new Avalonia.Threading.DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(5)
+            Interval = TimeSpan.FromSeconds(60)
         };
         _syncTimer.Tick += SyncTimer_Tick;
         _syncTimer.Start();

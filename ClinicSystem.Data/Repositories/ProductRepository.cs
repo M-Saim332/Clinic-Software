@@ -9,21 +9,36 @@ public class ProductRepository
     private const string ProductSelect = @"
         SELECT p.ProductID, p.PCode, p.Name, p.GenericName, p.Barcode, p.CompanyID,
                c.Name AS CompanyName, p.SupplierID, s.Name AS SupplierName,
-               p.BatchNumber, p.Type, p.Packing, p.Rate, p.PurchasePrice, p.SellingPrice,
-               p.PiecesPerUnit, p.Stock, p.MinimumStockLevel, p.IsReturnable,
+               p.Type, p.Packing, p.Rate, p.PurchasePrice, p.SellingPrice,
+               p.PiecesPerUnit, p.MinimumStockLevel, p.IsReturnable,
                p.IsActive, p.LastStockUpdateDate,
-               (SELECT MIN(pi.ExpiryDate) FROM PurchaseItems pi JOIN Purchases pu ON pu.PurchaseID=pi.PurchaseID
-                WHERE pi.ProductID=p.ProductID AND pu.IsPosted=1 AND pi.ExpiryDate>=CAST(GETDATE() AS DATE)) AS ExpiryDate
+               (SELECT ISNULL(SUM(QuantityAvailable), 0) FROM ProductStock ps WHERE ps.ProductID = p.ProductID) AS TotalStock,
+               (SELECT MIN(ExpiryDate) FROM ProductStock ps WHERE ps.ProductID = p.ProductID AND QuantityAvailable > 0) AS EarliestExpiry
         FROM Products p
         LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
         LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID";
 
     public ProductRepository(DatabaseSession session) => _session = session;
 
+    private IEnumerable<Product> PopulateStock(IEnumerable<Product> products)
+    {
+        var list = products.ToList();
+        if (list.Count == 0) return list;
+        using var conn = _session.CreateConnection();
+        var stocks = conn.Query<ProductStock>("SELECT * FROM ProductStock WHERE QuantityAvailable > 0");
+        var lookup = stocks.GroupBy(s => s.ProductID).ToDictionary(g => g.Key, g => g.OrderBy(x => x.ExpiryDate).ToList());
+        foreach (var p in list)
+        {
+            if (lookup.TryGetValue(p.ProductID, out var entries))
+                p.StockEntries = entries;
+        }
+        return list;
+    }
+
     public IEnumerable<Product> GetAll()
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Product>($"{ProductSelect} WHERE p.IsActive = 1 ORDER BY c.CCode, p.PCode, p.Name");
+        return PopulateStock(conn.Query<Product>($"{ProductSelect} WHERE p.IsActive = 1 ORDER BY c.CCode, p.PCode, p.Name"));
     }
 
     public int GetCount()
@@ -35,28 +50,34 @@ public class ProductRepository
     public decimal GetTotalStockValue()
     {
         using var conn = _session.CreateConnection();
-        return conn.ExecuteScalar<decimal>("SELECT ISNULL(SUM(PurchasePrice * Stock), 0) FROM Products WHERE IsActive = 1");
+        return conn.ExecuteScalar<decimal>(@"
+            SELECT ISNULL(SUM(ps.PurchasePrice * ps.QuantityAvailable), 0)
+            FROM ProductStock ps
+            JOIN Products p ON ps.ProductID = p.ProductID
+            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0");
     }
 
     public Product? GetById(int id)
     {
         using var conn = _session.CreateConnection();
-        return conn.QuerySingleOrDefault<Product>($"{ProductSelect} WHERE p.ProductID = @id AND p.IsActive = 1", new { id });
+        var p = conn.QuerySingleOrDefault<Product>($"{ProductSelect} WHERE p.ProductID = @id AND p.IsActive = 1", new { id });
+        if (p != null) PopulateStock(new[] { p });
+        return p;
     }
 
     public IEnumerable<Product> GetByCompany(int companyId)
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Product>($"{ProductSelect} WHERE p.CompanyID = @companyId AND p.IsActive = 1 ORDER BY p.PCode, p.Name", new { companyId });
+        return PopulateStock(conn.Query<Product>($"{ProductSelect} WHERE p.CompanyID = @companyId AND p.IsActive = 1 ORDER BY p.PCode, p.Name", new { companyId }));
     }
 
     public IEnumerable<Product> Search(string term)
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Product>($@"{ProductSelect}
+        return PopulateStock(conn.Query<Product>($@"{ProductSelect}
             WHERE p.IsActive = 1 AND (p.Name LIKE @like OR p.GenericName LIKE @like OR c.Name LIKE @like
               OR c.CCode = TRY_CONVERT(INT, @raw) OR p.PCode = TRY_CONVERT(INT, @raw) OR p.Barcode = @raw)
-            ORDER BY c.CCode, p.PCode, p.Name", new { like = $"%{term}%", raw = term.Trim() });
+            ORDER BY c.CCode, p.PCode, p.Name", new { like = $"%{term}%", raw = term.Trim() }));
     }
 
     public IEnumerable<Product> GetExpired() => GetByExpiryWindow(expired: true, 0);
@@ -64,7 +85,7 @@ public class ProductRepository
     public IEnumerable<Product> GetLowStock()
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Product>($"{ProductSelect} WHERE p.IsActive = 1 AND p.Stock <= p.MinimumStockLevel ORDER BY p.Stock");
+        return PopulateStock(conn.Query<Product>($"{ProductSelect} WHERE p.IsActive = 1 AND (SELECT ISNULL(SUM(QuantityAvailable), 0) FROM ProductStock ps WHERE ps.ProductID = p.ProductID) <= (p.MinimumStockLevel * p.PiecesPerUnit) ORDER BY p.Name"));
     }
 
     public IEnumerable<Product> GetExpiringSoon(int days) => GetByExpiryWindow(expired: false, days);
@@ -73,19 +94,19 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         var predicate = expired
-            ? "pi.ExpiryDate < CAST(GETDATE() AS DATE)"
-            : "pi.ExpiryDate >= CAST(GETDATE() AS DATE) AND pi.ExpiryDate <= DATEADD(day, @days, CAST(GETDATE() AS DATE))";
-        return conn.Query<Product>($@"{ProductSelect}
+            ? "ps.ExpiryDate < CAST(GETDATE() AS DATE)"
+            : "ps.ExpiryDate >= CAST(GETDATE() AS DATE) AND ps.ExpiryDate <= DATEADD(day, @days, CAST(GETDATE() AS DATE))";
+        return PopulateStock(conn.Query<Product>($@"{ProductSelect}
             WHERE p.IsActive=1 AND EXISTS (
-                SELECT 1 FROM PurchaseItems pi JOIN Purchases pu ON pu.PurchaseID=pi.PurchaseID
-                WHERE pi.ProductID=p.ProductID AND pu.IsPosted=1 AND {predicate})
-            ORDER BY p.Name", new { days });
+                SELECT 1 FROM ProductStock ps
+                WHERE ps.ProductID=p.ProductID AND ps.QuantityAvailable > 0 AND {predicate})
+            ORDER BY p.Name", new { days }));
     }
 
     public IEnumerable<Product> GetPrescribable()
     {
         using var conn = _session.CreateConnection();
-        return conn.Query<Product>($"{ProductSelect} WHERE p.IsActive=1 AND p.Stock>0 ORDER BY p.Name");
+        return PopulateStock(conn.Query<Product>($"{ProductSelect} WHERE p.IsActive=1 AND (SELECT ISNULL(SUM(QuantityAvailable), 0) FROM ProductStock ps WHERE ps.ProductID = p.ProductID) > 0 ORDER BY p.Name"));
     }
 
     public int GetNextPCode(int companyId)
@@ -106,10 +127,10 @@ public class ProductRepository
         using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
         product.PCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(PCode),0)+1 FROM Products WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
         var id = conn.ExecuteScalar<int>(@"INSERT INTO Products
-            (PCode,Name,GenericName,Barcode,CompanyID,CompanyName,SupplierID,SupplierName,BatchNumber,Type,Packing,
-             Rate,PurchasePrice,SellingPrice,PiecesPerUnit,Stock,MinimumStockLevel,IsReturnable,IsActive,LastStockUpdateDate)
-            VALUES (@PCode,@Name,@GenericName,@Barcode,@CompanyID,@CompanyName,@SupplierID,@SupplierName,@BatchNumber,@Type,@Packing,
-             @Rate,@PurchasePrice,@SellingPrice,@PiecesPerUnit,@Stock,@MinimumStockLevel,@IsReturnable,1,@LastStockUpdateDate);
+            (PCode,Name,GenericName,Barcode,CompanyID,CompanyName,SupplierID,SupplierName,Type,Packing,
+             Rate,PurchasePrice,SellingPrice,PiecesPerUnit,MinimumStockLevel,IsReturnable,IsActive,LastStockUpdateDate)
+            VALUES (@PCode,@Name,@GenericName,@Barcode,@CompanyID,@CompanyName,@SupplierID,@SupplierName,@Type,@Packing,
+             @Rate,@PurchasePrice,@SellingPrice,@PiecesPerUnit,@MinimumStockLevel,@IsReturnable,1,@LastStockUpdateDate);
             SELECT CONVERT(INT,SCOPE_IDENTITY());", product, tx);
         tx.Commit();
         return id;
@@ -119,7 +140,7 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         conn.Execute(@"UPDATE Products SET Name=@Name,GenericName=@GenericName,Barcode=@Barcode,CompanyID=@CompanyID,
-            CompanyName=@CompanyName,SupplierID=@SupplierID,SupplierName=@SupplierName,BatchNumber=@BatchNumber,Type=@Type,
+            CompanyName=@CompanyName,SupplierID=@SupplierID,SupplierName=@SupplierName,Type=@Type,
             Packing=@Packing,Rate=@Rate,PurchasePrice=@PurchasePrice,SellingPrice=@SellingPrice,PiecesPerUnit=@PiecesPerUnit,
             IsReturnable=@IsReturnable,MinimumStockLevel=@MinimumStockLevel,LastStockUpdateDate=@LastStockUpdateDate
             WHERE ProductID=@ProductID AND IsActive=1", product);
@@ -139,24 +160,46 @@ public class ProductRepository
 
     public void DecrementStock(int productId, int quantity)
     {
-        using var conn = _session.CreateConnection();
-        var updated = conn.Execute(@"UPDATE Products SET Stock=Stock-@quantity,LastStockUpdateDate=CAST(GETDATE() AS DATE)
-            WHERE ProductID=@productId AND Stock>=@quantity AND IsActive=1", new { quantity, productId });
-        if (updated != 1) throw new InvalidOperationException("Insufficient stock.");
+        // Decrement is now handled directly by SaleRepository (FEFO logic).
+        // If this method is called, we should ideally use the FEFO logic.
+        throw new NotSupportedException("Use SaleRepository FEFO deduction for DecrementStock");
     }
 
     public void AddStock(int productId, int quantity)
     {
+        // Used only by quick adjustments? Add a dummy ProductStock entry if needed, but not standard.
+        throw new NotSupportedException("Use PurchaseRepository for adding stock");
+    }
+
+    /// <summary>
+    /// Insert or update a ProductStock row for the given (ProductID, ExpiryDate) pair.
+    /// If a row already exists for that combination, the quantity is ADDED (not overwritten).
+    /// This prevents duplicate rows and correctly stacks same-expiry stock.
+    /// </summary>
+    public void InsertStock(ProductStock stock)
+    {
         using var conn = _session.CreateConnection();
-        conn.Execute(@"UPDATE Products SET Stock=Stock+@quantity,LastStockUpdateDate=CAST(GETDATE() AS DATE)
-            WHERE ProductID=@productId AND IsActive=1", new { quantity, productId });
+        using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        var existingId = conn.ExecuteScalar<int?>(
+            "SELECT StockID FROM ProductStock WITH (UPDLOCK,HOLDLOCK) WHERE ProductID=@ProductID AND ExpiryDate=CAST(@ExpiryDate AS DATE)",
+            new { stock.ProductID, stock.ExpiryDate }, tx);
+        if (existingId.HasValue)
+        {
+            conn.Execute(
+                "UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Qty, PurchasePrice = @PurchasePrice, MRP = @MRP WHERE StockID = @StockID",
+                new { Qty = stock.QuantityAvailable, stock.PurchasePrice, stock.MRP, StockID = existingId.Value }, tx);
+        }
+        else
+        {
+            conn.Execute(@"
+                INSERT INTO ProductStock (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP)
+                VALUES (@ProductID, CAST(@ExpiryDate AS DATE), @QuantityAvailable, @PurchasePrice, @MRP)", stock, tx);
+        }
+        tx.Commit();
     }
 
     public void AdjustStock(int productId, int quantity, DateTime updateDate)
     {
-        using var conn=_session.CreateConnection();
-        var updated=conn.Execute(@"UPDATE Products SET Stock=Stock+@quantity,LastStockUpdateDate=@updateDate
-            WHERE ProductID=@productId AND IsActive=1 AND Stock+@quantity>=0",new{productId,quantity,updateDate=updateDate.Date});
-        if(updated!=1) throw new InvalidOperationException("The stock update would create a negative balance.");
+        throw new NotSupportedException("Use direct ProductStock adjustments.");
     }
 }

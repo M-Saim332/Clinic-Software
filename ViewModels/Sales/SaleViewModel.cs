@@ -57,18 +57,22 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     private void FilterSales()
     {
+        IEnumerable<Sale> result;
         if (string.IsNullOrWhiteSpace(SearchTerm))
         {
-            Sales = new ObservableCollection<Sale>(_allSales);
+            result = _allSales;
         }
         else
         {
             var term = SearchTerm.ToLower().Replace(" ", "").Replace("-", "");
-            Sales = new ObservableCollection<Sale>(
-                _allSales.Where(s => 
-                    s.InvoiceNumber.ToLower().Contains(term) ||
-                    (s.PatientName?.ToLower().Contains(term) ?? false)));
+            result = _allSales.Where(s =>
+                (s.InvoiceNumber?.ToLower().Contains(term) ?? false) ||
+                (s.PatientName?.ToLower().Contains(term) ?? false));
         }
+
+        Sales.Clear();
+        foreach (var item in result)
+            Sales.Add(item);
     }
 
     // KPI summary counts
@@ -115,7 +119,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     
     public int MaxQuantity => SelectedProduct == null 
         ? 1 
-        : Math.Max(0, SelectedProduct.Stock - LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity));
+        : Math.Max(0, SelectedProduct.TotalStock - LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity));
 
     private bool CanAddLineItem() => SelectedProduct != null && Quantity > 0 && Quantity <= MaxQuantity;
 
@@ -176,7 +180,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
                     : (match.Rate > 0 && match.PiecesPerUnit > 0 
                         ? match.Rate / match.PiecesPerUnit 
                         : match.PurchasePrice);
-                var qty = Math.Min(pItem.Quantity, match.Stock);
+                var qty = Math.Min(pItem.Quantity, match.TotalStock);
                 
                 if (qty > 0)
                 {
@@ -231,7 +235,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         if (Quantity <= 0) { StatusMessage = "Quantity must be > 0."; return; }
         var stockQuantity = Quantity;
         var alreadyAllocated = LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity);
-        if (stockQuantity + alreadyAllocated > SelectedProduct.Stock) { StatusMessage = $"Only {SelectedProduct.Stock - alreadyAllocated} tablet/unit(s) remain available for this invoice."; return; }
+        if (stockQuantity + alreadyAllocated > SelectedProduct.TotalStock) { StatusMessage = $"Only {SelectedProduct.TotalStock - alreadyAllocated} tablet/unit(s) remain available for this invoice."; return; }
 
         // Compute line total using percentage-based discount and tax
         var item = new SaleItem
@@ -480,3 +484,4 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     [RelayCommand]
     private void EditInvoice() { InvoiceState = InvoiceState.Draft; StatusMessage = "Invoice returned to draft."; }
 }
+

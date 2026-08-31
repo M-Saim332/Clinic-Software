@@ -89,7 +89,7 @@
                                 <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
                                 <DataGridTextColumn Header="MINIMUM LEVEL" Binding="{Binding MinStock}" Width="140"/>
                                 <DataGridTextColumn Header="STATUS" Binding="{Binding StockStatus}" Width="130"/>
-                                <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
+                                <DataGridTextColumn Header="EXPIRY" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="130"/>
                                 <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="110"/>
                                 <DataGridTextColumn Header="MANUFACTURER" Binding="{Binding Manufacturer}" Width="*"/>
                             </DataGrid.Columns>
@@ -118,7 +118,7 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="190"/>
-                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
+                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="145"/>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </DockPanel>

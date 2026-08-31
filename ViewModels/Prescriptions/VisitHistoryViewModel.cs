@@ -95,7 +95,7 @@ public partial class VisitHistoryViewModel : ViewModelBase
         {
             var t = PatientSearch.ToLower();
             FilteredPatients = new ObservableCollection<Patient>(
-                Patients.Where(p => p.Name.ToLower().Contains(t)));
+                Patients.Where(p => (p.Name?.ToLower().Contains(t) ?? false)));
         }
     }
 }

@@ -86,6 +86,7 @@
                                       BorderThickness="0" GridLinesVisibility="Horizontal"
                                       HorizontalScrollBarVisibility="Auto"
                                       RowBackground="{DynamicResource BrushCardBackground}">
+
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="P.CODE" Binding="{Binding PCode}" Width="75"/>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
@@ -93,6 +94,27 @@
                                     <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="120"/>
                                     <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
+                                    <DataGridTemplateColumn Header="EARLIEST EXPIRY" Width="200">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border IsVisible="{Binding IsExpired}" Background="#FEE2E2" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="EXPIRED" FontSize="10" FontWeight="Bold" Foreground="#B91C1C"/>
+                                                    </Border>
+                                                    <Border IsVisible="{Binding IsExpiringIn60Days}" Background="#FEF08A" BorderBrush="#EAB308" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="&lt; 60D" FontSize="10" FontWeight="Bold" Foreground="#854D0E"/>
+                                                    </Border>
+                                                    <Border IsVisible="{Binding IsExpiringIn6Months}" Background="#FEF9C3" BorderBrush="#FDE047" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="&lt; 6M" FontSize="10" FontWeight="Bold" Foreground="#A16207"/>
+                                                    </Border>
+                                                    <Border IsVisible="{Binding IsExpirySafe}" Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="SAFE" FontSize="10" FontWeight="Bold" Foreground="#15803D"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}, TargetNullValue='No Stock'}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="RATE (TP)" Binding="{Binding Rate, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
@@ -149,7 +171,7 @@
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
-                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="130" Foreground="{DynamicResource BrushRose}"/>
+                                    <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="130" Foreground="{DynamicResource BrushRose}"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -195,7 +217,7 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
-                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
+                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
                                     <DataGridTemplateColumn Header="ACTIONS" Width="150">
                                         <DataGridTemplateColumn.CellTemplate>
@@ -390,6 +412,15 @@
                             <StackPanel Grid.Column="0" Grid.Row="1" Spacing="6" Margin="0,0,12,12">
                                 <TextBlock Text="Packing (box)" Classes="label"/>
                                 <TextBox Text="{Binding Category}" PlaceholderText="e.g. Box, strip, bottle"/>
+                            </StackPanel>
+                            
+                            <!-- Expiry Date -->
+                            <StackPanel Grid.Column="1" Grid.Row="1" Spacing="6" Margin="12,0,0,12">
+                                <TextBlock Text="Expiry Date" Classes="label"/>
+                                <DatePicker SelectedDate="{Binding ExpiryDate}" IsEnabled="{Binding CanEditInitialStock}"/>
+                                <TextBlock Text="Required if adding initial packs"
+                                           FontSize="11" Foreground="{DynamicResource BrushInk500}"
+                                           IsVisible="{Binding CanEditInitialStock}"/>
                             </StackPanel>
                             
                             <!-- Packs (Initial Quantity) -->
