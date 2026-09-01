@@ -135,16 +135,16 @@
             </Border>
 
             <!-- Body (Full-width view for inputs & line items) -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
               <Grid RowDefinitions="Auto,Auto" Margin="28,24,28,40">
                 
                 <!-- Top panel: Inputs & Add Product -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,*" Margin="0,0,0,24">
+                <Grid Grid.Row="0" ColumnDefinitions="1.05*,1.25*" Margin="0,0,0,24">
                     
                     <!-- Left: Invoice Header -->
                     <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="24" Margin="0,0,12,0">
+                            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="24" Margin="0,0,10,0">
                         <StackPanel Spacing="16">
                             <TextBlock Text="INVOICE HEADER" FontSize="11" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
@@ -182,11 +182,11 @@
                     <!-- Right: Add Product -->
                     <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}"
                             BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
-                            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="24" Margin="12,0,0,0"
+                            CornerRadius="{DynamicResource CornerRadiusCard}" Padding="24" Margin="10,0,0,0"
                             VerticalAlignment="Top">
                         <StackPanel Spacing="16">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Left" Text="ADD PRODUCT" FontSize="11" FontWeight="Bold"
+                                <TextBlock DockPanel.Dock="Left" Text="ADD SALE ITEM" FontSize="11" FontWeight="Bold"
                                            Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                            FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
                                 <TextBlock DockPanel.Dock="Right" Text="{Binding GrandTotal, StringFormat='Total Bill: Rs. {0:N2}'}"
@@ -205,10 +205,10 @@
                                 </StackPanel>
                                 
                                 <TextBlock Text="{Binding AvailableStockDisplay}" FontSize="11" Foreground="{DynamicResource BrushInk600}"/>
-                                <!-- Row 1: Qty and Tax -->
+                                <!-- Sales quantities and prices are always individual pieces. -->
                                 <Grid ColumnDefinitions="*,*">
                                     <StackPanel Grid.Column="0" Spacing="6" Margin="0,0,8,0">
-                                        <TextBlock Text="Quantity (Pieces/Tablets)" Classes="label"/>
+                                        <TextBlock Text="Quantity (Pieces)" Classes="label"/>
                                         <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="{Binding MaxQuantity}" FormatString="N0"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
@@ -227,7 +227,7 @@
                                         </Grid>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="6" Margin="8,0,0,0">
-                                        <TextBlock Text="Piece Price" Classes="label"/>
+                                        <TextBlock Text="Unit Price" Classes="label"/>
                                         <NumericUpDown Value="{Binding ProductPrice}" FormatString="N2" Minimum="0" IsReadOnly="True"/>
                                     </StackPanel>
                                 </Grid>
@@ -240,10 +240,22 @@
                                 </Button>
                             </StackPanel>
 
-                            <!-- If not IsNewSale, show grand total big -->
-                            <StackPanel Spacing="12" IsVisible="{Binding !IsNewSale}" VerticalAlignment="Center" Margin="0,32,0,0">
-                                <TextBlock Text="Invoice Posted" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Cannot add products to a posted invoice." FontSize="13" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center"/>
+                            <!-- Review is not posted: keep the state clear and avoid a misleading lock message. -->
+                            <StackPanel Spacing="12" IsVisible="{Binding IsCheckingInvoice}" VerticalAlignment="Center" Margin="0,16,0,0">
+                                <Border Background="#FFF7ED" BorderBrush="#FED7AA" BorderThickness="1" CornerRadius="10" Padding="16">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="Invoice ready for review" FontSize="17" FontWeight="SemiBold" Foreground="#9A3412"/>
+                                        <TextBlock Text="Review the item, batch, and total below. Use Edit Draft to make changes."
+                                                   TextWrapping="Wrap" FontSize="12" Foreground="#C2410C"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{Binding GrandTotal, StringFormat='Amount due: Rs. {0:N2}'}"
+                                           FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Spacing="10" IsVisible="{Binding IsPostedInvoice}" VerticalAlignment="Center" Margin="0,24,0,0">
+                                <TextBlock Text="Invoice posted" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource BrushTeal}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="This invoice is complete and can no longer be changed." FontSize="13" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -255,18 +267,43 @@
                                                 CompactWhenEmpty="True" HorizontalAlignment="Stretch">
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding LineItems}"
-                                      AutoGenerateColumns="False" IsReadOnly="True"
+                                      AutoGenerateColumns="False" IsReadOnly="False"
                                       SelectionMode="Single" Background="Transparent" BorderThickness="0"
-                                      GridLinesVisibility="Horizontal">
+                                      GridLinesVisibility="Horizontal" HorizontalScrollBarVisibility="Auto"
+                                      RowHeight="58" CanUserResizeColumns="True">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
-                                    <DataGridTextColumn Header="QTY" Binding="{Binding Quantity}" Width="80"/>
-                                    <DataGridTextColumn Header="UNIT" Binding="{Binding UnitTypeSold}" Width="70"/>
-                                    <DataGridTextColumn Header="RATE" Binding="{Binding ProductPrice, StringFormat='Rs. \{0:N2\}'}" Width="110"/>
-                                    <DataGridTextColumn Header="DISCOUNT (%)" Binding="{Binding Discount, StringFormat='\{0:N2\}%'}" Width="120"/>
-                                    <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. \{0:N2\}'}" Width="90"/>
-                                    <DataGridTextColumn Header="ITEM TOTAL" Binding="{Binding InvoiceItemTotal, StringFormat='Rs. \{0:N2\}'}" Width="130"/>
-                                    <DataGridTemplateColumn Width="60" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
+                                    <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="180" IsReadOnly="True"/>
+                                    <DataGridTemplateColumn Header="BATCH / EXPIRY" Width="245">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox ItemsSource="{Binding AvailableStockBatches}"
+                                                          SelectedItem="{Binding SelectedStockBatch}"
+                                                          HorizontalAlignment="Stretch">
+                                                    <ComboBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding BatchDisplay}"/>
+                                                        </DataTemplate>
+                                                    </ComboBox.ItemTemplate>
+                                                </ComboBox>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="QTY" Width="92">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                                                         HorizontalAlignment="Stretch"
+                                                         HorizontalContentAlignment="Center"
+                                                         VerticalContentAlignment="Center"
+                                                         ToolTip.Tip="Quantity in pieces"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="RATE / PC" Binding="{Binding ProductPrice, StringFormat='Rs. \{0:N2\}'}" Width="108" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="DISCOUNT" Binding="{Binding Discount, StringFormat='\{0:N2\}%'}" Width="96" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="TAX" Binding="{Binding Tax, StringFormat='Rs. \{0:N2\}'}" Width="92" IsReadOnly="True"/>
+                                    <DataGridTextColumn Header="TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. \{0:N2\}'}" Width="116" IsReadOnly="True"/>
+                                    <DataGridTemplateColumn Width="52" IsVisible="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).IsNewSale}">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <Button Command="{Binding $parent[UserControl].((vm:SaleViewModel)DataContext).RemoveLineItemCommand}"

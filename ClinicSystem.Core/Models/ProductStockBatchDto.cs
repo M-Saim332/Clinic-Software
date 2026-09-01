@@ -17,6 +17,10 @@ public class ProductStockBatchDto
     public decimal RateTP { get; set; }
     public decimal MRP { get; set; }
 
+    public decimal TradePricePerPiece => RateTP / Math.Max(1, PiecesPerUnit);
+    public decimal MrpPerPiece => MRP / Math.Max(1, PiecesPerUnit);
+    public decimal StockValueAtTradePrice => StockQuantity * TradePricePerPiece;
+
     public string StockDisplay => PiecesPerUnit > 1
         ? $"{StockQuantity:N0} pieces ({StockQuantity / PiecesPerUnit} pack{(StockQuantity / PiecesPerUnit == 1 ? string.Empty : "s")})"
         : $"{StockQuantity:N0} pieces";

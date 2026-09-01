@@ -98,6 +98,7 @@ public class ReturnRepository
                 FROM ProductStock WITH (UPDLOCK, HOLDLOCK)
                 WHERE ProductID = @ProductId
                   AND QuantityAvailable > 0
+                  AND IsArchived = 0
                   AND ExpiryDate >= CAST(GETDATE() AS DATE)
                   AND (@ExpiryDate IS NULL OR ExpiryDate = @ExpiryDate)
                 ORDER BY ExpiryDate DESC, StockID DESC",

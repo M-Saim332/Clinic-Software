@@ -117,17 +117,11 @@
                                     </DataGridTemplateColumn>
                                     <DataGridTextColumn Header="RATE (TP)" Binding="{Binding RateTP, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="200">
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="160">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).CanManageProducts}"
                                                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <!-- Patient Return: medicine comes back, revenue decreases -->
-                                                    <Button Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).OpenPatientReturnBatchCommand}"
-                                                            CommandParameter="{Binding}" ToolTip.Tip="Patient Return (stock ↑, revenue ↓)"
-                                                            Classes="btn-amber" Padding="8,4" Height="28">
-                                                        <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/>
-                                                    </Button>
                                                     <Button 
                                                             Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).ViewBatchSpecificCommand}"
                                                             CommandParameter="{Binding}" ToolTip.Tip="View Details"
@@ -179,21 +173,6 @@
                                     <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
                                     <DataGridTextColumn Header="EXPIRY DATE" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="130" Foreground="{DynamicResource BrushRose}"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="6"
-                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <!-- Return to seller: stock goes to seller, clinic gets money back -->
-                                                    <Button Command="{Binding #ExpiredGrid.((vm:ProductRegistryViewModel)DataContext).OpenSupplierReturnCommand}"
-                                                            CommandParameter="{Binding}" ToolTip.Tip="Return to Seller (stock ↓, revenue ↑)"
-                                                            Classes="btn-danger" Padding="8,4" Height="28">
-                                                        <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/>
-                                                    </Button>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </comp:DataTableShellControl.TableContent>
@@ -208,7 +187,7 @@
                                 Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Stock:StockBreakdown|MRP:MRP"/>
                         </comp:DataTableShellControl.HeaderActions>
                         <comp:DataTableShellControl.FilterToolbar>
-                            <TextBlock Text="These products still have stock and are not expired. You can return them to the seller."
+                            <TextBlock Text="These products still have stock and are not expired."
                                        FontSize="11" Foreground="{DynamicResource BrushInk600}" Margin="0,0,0,8"/>
                         </comp:DataTableShellControl.FilterToolbar>
                         <comp:DataTableShellControl.TableContent>
@@ -225,20 +204,6 @@
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="EXPIRY" Binding="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}}" Width="140"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal" Spacing="6"
-                                                            HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                    <Button Command="{Binding #UnsoldGrid.((vm:ProductRegistryViewModel)DataContext).OpenSupplierReturnCommand}"
-                                                            CommandParameter="{Binding}" ToolTip.Tip="Return unsold stock to seller"
-                                                            Classes="btn-danger" Padding="8,4" Height="28">
-                                                        <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/>
-                                                    </Button>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
                         </comp:DataTableShellControl.TableContent>
@@ -281,6 +246,35 @@
     </StackPanel>
 </Button>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Border>
+
+            <!-- Batch quick-view, opened by the Eye action in the batch grid. -->
+            <Border Grid.Row="0" Grid.RowSpan="3"
+                    IsVisible="{Binding ShowBatchDetails}"
+                    Background="#80000000" ZIndex="150">
+                <Border Background="{DynamicResource BrushCardBackground}"
+                        CornerRadius="12" Padding="28" MaxWidth="440"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="Batch Details" FontSize="18" FontWeight="Bold"
+                                   FontFamily="{DynamicResource FontLexend}"/>
+                        <TextBlock Text="{Binding ViewingStockBatch.ProductName}" FontSize="16" FontWeight="SemiBold"/>
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="18" RowSpacing="8">
+                            <TextBlock Grid.Row="0" Text="Expiry" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ViewingStockBatch.ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}"/>
+                            <TextBlock Grid.Row="1" Text="Pack size" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ViewingStockBatch.PiecesPerUnit, StringFormat=\{0:N0\} pieces}"/>
+                            <TextBlock Grid.Row="2" Text="Available" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ViewingStockBatch.StockQuantity, StringFormat=\{0:N0\} pieces}"/>
+                            <TextBlock Grid.Row="3" Text="TP / piece" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ViewingStockBatch.TradePricePerPiece, StringFormat='Rs. \{0:N2\}'}"/>
+                            <TextBlock Grid.Row="4" Text="MRP / piece" Foreground="{DynamicResource BrushInk600}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ViewingStockBatch.MrpPerPiece, StringFormat='Rs. \{0:N2\}'}"/>
+                        </Grid>
+                        <Button Command="{Binding CloseBatchDetailsCommand}" Classes="btn-primary" Content="Close"
+                                HorizontalAlignment="Right"/>
                     </StackPanel>
                 </Border>
             </Border>

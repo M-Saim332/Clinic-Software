@@ -87,7 +87,7 @@ public class DatabaseSession
 
     private static void VerifyRequiredSchema(IDbConnection conn)
     {
-        string[] tables = ["Patients", "Products", "Suppliers", "Companies", "Users", "Appointments", "Purchases", "PurchaseItems", "Sales", "SaleItems", "Prescriptions", "PrescriptionItems", "Returns", "ReturnItems"];
+        string[] tables = ["Patients", "Products", "ProductStock", "Suppliers", "Companies", "Users", "Appointments", "Purchases", "PurchaseItems", "Sales", "SaleItems", "Prescriptions", "PrescriptionItems", "Returns", "ReturnItems"];
         var missingTables = tables.Where(table => conn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@table, 'U') IS NULL THEN 1 ELSE 0 END", new { table }) == 1).ToList();
         if (missingTables.Count > 0)
@@ -98,8 +98,12 @@ public class DatabaseSession
             ("Patients", "Phone"), ("Patients", "IsActive"),
             ("Products", "TabletsPerBox"), ("Products", "IsActive"),
             ("Sales", "ReceptionistId"), ("Sales", "IsActive"),
-            ("SaleItems", "StockQuantity"), ("PurchaseItems", "PackageQuantity"),
+            ("SaleItems", "StockQuantity"), ("SaleItems", "StockID"), ("PurchaseItems", "PackageQuantity"),
             ("Returns", "StockQuantity"),
+            ("ProductStock", "StockID"), ("ProductStock", "ProductID"),
+            ("ProductStock", "ExpiryDate"), ("ProductStock", "QuantityAvailable"),
+            ("ProductStock", "PurchasePrice"), ("ProductStock", "MRP"),
+            ("ProductStock", "UpdatedAt"), ("ProductStock", "IsArchived"),
             ("Companies", "CCode"), ("Suppliers", "SCode"), ("Products", "PCode"),
             ("Products", "Packing"), ("Products", "PiecesPerUnit"), ("Products", "LastStockUpdateDate"),
             ("Appointments", "CNIC"), ("Patients", "PatientContext"), ("Patients", "ReasonOfVisit"),

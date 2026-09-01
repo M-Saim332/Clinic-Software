@@ -229,9 +229,11 @@ public class SaleRepository
         sale.Items = conn.Query<SaleItem>(@"SELECT
                 ROW_NUMBER() OVER (ORDER BY si.SaleItemID) SerialNumber,
                 si.*,
-                p.Name ProductName
+                p.Name ProductName,
+                ps.ExpiryDate AS BatchExpiryDate
             FROM SaleItems si
             JOIN Products p ON si.ProductID=p.ProductID
+            LEFT JOIN ProductStock ps ON si.StockID=ps.StockID
             WHERE si.SaleID=@id
             ORDER BY si.SaleItemID", new { id }).ToList();
         return sale;
@@ -282,10 +284,12 @@ public class SaleRepository
         foreach (var item in items)
         {
             item.SaleID = saleId;
-            item.UnitTypeSold = "Pieces";
-            item.StockQuantity = item.Quantity;
-            conn.Execute(@"INSERT INTO SaleItems (SaleID,ProductID,Quantity,UnitTypeSold,StockQuantity,UnitPrice,Discount,Tax,LineTotal)
-                VALUES (@SaleID,@ProductID,@Quantity,@UnitTypeSold,@StockQuantity,@UnitPrice,@Discount,@Tax,@LineTotal)", item, tx);
+            if (string.IsNullOrWhiteSpace(item.UnitTypeSold))
+                item.UnitTypeSold = "Piece";
+            if (!item.StockID.HasValue)
+                throw new InvalidOperationException($"A stock batch must be selected for product #{item.ProductID}.");
+            conn.Execute(@"INSERT INTO SaleItems (SaleID,ProductID,StockID,Quantity,UnitTypeSold,StockQuantity,UnitPrice,Discount,Tax,LineTotal)
+                VALUES (@SaleID,@ProductID,@StockID,@Quantity,@UnitTypeSold,@StockQuantity,@UnitPrice,@Discount,@Tax,@LineTotal)", item, tx);
         }
     }
 
@@ -300,22 +304,21 @@ public class SaleRepository
         if (items.Count == 0) throw new InvalidOperationException("A sale must contain at least one item.");
         foreach (var item in items)
         {
-            var stocks = conn.Query<ProductStock>("SELECT * FROM ProductStock WHERE ProductID=@ProductID AND QuantityAvailable > 0 ORDER BY ExpiryDate ASC", new { item.ProductID }, tx).ToList();
-            int remaining = item.StockQuantity;
-            
-            foreach (var stock in stocks)
-            {
-                if (remaining <= 0) break;
-                
-                int deduct = Math.Min(stock.QuantityAvailable, remaining);
-                conn.Execute("UPDATE ProductStock SET QuantityAvailable = QuantityAvailable - @Deduct WHERE StockID = @StockID", new { Deduct = deduct, stock.StockID }, tx);
-                remaining -= deduct;
-            }
-            
-            if (remaining > 0) throw new InvalidOperationException($"Insufficient stock for product #{item.ProductID}.");
-            
-            // Delete completely depleted stock records
-            conn.Execute("DELETE FROM ProductStock WHERE ProductID=@ProductID AND QuantityAvailable <= 0", new { item.ProductID }, tx);
+            if (!item.StockID.HasValue)
+                throw new InvalidOperationException($"Sale item for product #{item.ProductID} has no selected stock batch.");
+
+            var affected = conn.Execute(@"
+                UPDATE ProductStock
+                SET QuantityAvailable = QuantityAvailable - @Quantity,
+                    UpdatedAt = CURRENT_TIMESTAMP
+                WHERE StockID = @StockID
+                  AND ProductID = @ProductID
+                  AND IsArchived = 0
+                  AND QuantityAvailable >= @Quantity",
+                new { Quantity = item.StockQuantity, StockID = item.StockID.Value, item.ProductID }, tx);
+
+            if (affected != 1)
+                throw new InvalidOperationException($"Insufficient stock in the selected batch for product #{item.ProductID}.");
         }
         var next = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(SaleID),0) FROM Sales WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
         var invoice = $"SAL-{next:D6}";

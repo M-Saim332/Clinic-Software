@@ -332,6 +332,7 @@ BEGIN
         SaleItemID INT IDENTITY(1,1) PRIMARY KEY,
         SaleID     INT FOREIGN KEY REFERENCES Sales(SaleID) ON DELETE CASCADE,
         ProductID INT FOREIGN KEY REFERENCES Products(ProductID),
+        StockID INT NULL,
         Quantity   INT NOT NULL,
         UnitTypeSold NVARCHAR(20) NOT NULL DEFAULT 'Tablet',
         StockQuantity INT NOT NULL DEFAULT 0,
@@ -345,6 +346,7 @@ ELSE
 BEGIN
     IF COL_LENGTH('SaleItems', 'UnitTypeSold') IS NULL ALTER TABLE SaleItems ADD UnitTypeSold NVARCHAR(20) NOT NULL DEFAULT 'Tablet';
     IF COL_LENGTH('SaleItems', 'StockQuantity') IS NULL ALTER TABLE SaleItems ADD StockQuantity INT NOT NULL DEFAULT 0;
+    IF COL_LENGTH('SaleItems', 'StockID') IS NULL ALTER TABLE SaleItems ADD StockID INT NULL;
     IF COL_LENGTH('SaleItems', 'UnitPrice') IS NULL ALTER TABLE SaleItems ADD UnitPrice DECIMAL(10,2) NOT NULL DEFAULT 0;
 END
 GO

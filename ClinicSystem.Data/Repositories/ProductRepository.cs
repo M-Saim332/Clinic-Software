@@ -12,8 +12,8 @@ public class ProductRepository
                p.Type, p.Packing, p.Rate, p.PurchasePrice, p.SellingPrice,
                p.PiecesPerUnit, p.MinimumStockLevel, p.IsReturnable,
                p.IsActive, p.LastStockUpdateDate,
-               (SELECT ISNULL(SUM(QuantityAvailable), 0) FROM ProductStock ps WHERE ps.ProductID = p.ProductID) AS TotalStock,
-               (SELECT MIN(ExpiryDate) FROM ProductStock ps WHERE ps.ProductID = p.ProductID AND QuantityAvailable > 0) AS EarliestExpiry
+               (SELECT ISNULL(SUM(QuantityAvailable), 0) FROM ProductStock ps WHERE ps.ProductID = p.ProductID AND ps.IsArchived = 0) AS TotalStock,
+               (SELECT MIN(ExpiryDate) FROM ProductStock ps WHERE ps.ProductID = p.ProductID AND ps.IsArchived = 0 AND QuantityAvailable > 0) AS EarliestExpiry
         FROM Products p
         LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
         LEFT JOIN Suppliers s ON p.SupplierID = s.SupplierID";
@@ -25,7 +25,7 @@ public class ProductRepository
         var list = products.ToList();
         if (list.Count == 0) return list;
         using var conn = _session.CreateConnection();
-        var stocks = conn.Query<ProductStock>("SELECT * FROM ProductStock WHERE QuantityAvailable > 0");
+        var stocks = conn.Query<ProductStock>("SELECT * FROM ProductStock WHERE QuantityAvailable > 0 AND IsArchived = 0");
         var lookup = stocks.GroupBy(s => s.ProductID).ToDictionary(g => g.Key, g => g.OrderBy(x => x.ExpiryDate).ToList());
         foreach (var p in list)
         {
@@ -54,7 +54,7 @@ public class ProductRepository
             FROM ProductStock ps
             INNER JOIN Products p ON ps.ProductID = p.ProductID
             LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
-            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0
+            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0 AND ps.IsArchived = 0
             ORDER BY p.Name ASC, ps.ExpiryDate ASC");
     }
 
@@ -68,10 +68,19 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.ExecuteScalar<decimal>(@"
-            SELECT ISNULL(SUM(ps.PurchasePrice * ps.QuantityAvailable), 0)
+            -- QuantityAvailable is stored in individual pieces, while the batch
+            -- trade price is stored per pack. Convert it to a per-piece amount
+            -- before valuing the available pieces. A missing/invalid pack size
+            -- is treated as one piece to prevent a divide-by-zero error.
+            SELECT ISNULL(SUM(
+                CAST(ps.QuantityAvailable AS DECIMAL(18, 6)) *
+                (ps.PurchasePrice / CAST(
+                    CASE WHEN ISNULL(p.PiecesPerUnit, 0) > 0 THEN p.PiecesPerUnit ELSE 1 END
+                    AS DECIMAL(18, 6)))
+            ), 0)
             FROM ProductStock ps
             JOIN Products p ON ps.ProductID = p.ProductID
-            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0");
+            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0 AND ps.IsArchived = 0");
     }
 
     /// <summary>
@@ -93,7 +102,7 @@ public class ProductRepository
                 COUNT(CASE WHEN ps.ExpiryDate < CAST(GETDATE() AS DATE) THEN 1 END) AS ExpiredBatches
             FROM ProductStock ps
             INNER JOIN Products p ON p.ProductID = ps.ProductID
-            WHERE p.IsActive = 1;");
+            WHERE p.IsActive = 1 AND ps.IsArchived = 0;");
     }
 
     public Product? GetById(int id)
@@ -187,20 +196,30 @@ public class ProductRepository
         return id;
     }
 
-    public void Update(Product product)
+    /// <summary>Updates an active master product and reports whether a row was changed.</summary>
+    public bool Update(Product product)
     {
         using var conn = _session.CreateConnection();
-        conn.Execute(@"UPDATE Products SET Name=@Name,GenericName=@GenericName,Barcode=@Barcode,CompanyID=@CompanyID,
+        return conn.Execute(@"UPDATE Products SET Name=@Name,GenericName=@GenericName,Barcode=@Barcode,CompanyID=@CompanyID,
             CompanyName=@CompanyName,SupplierID=@SupplierID,SupplierName=@SupplierName,Type=@Type,
             Packing=@Packing,Rate=@Rate,PurchasePrice=@PurchasePrice,SellingPrice=@SellingPrice,PiecesPerUnit=@PiecesPerUnit,
             IsReturnable=@IsReturnable,MinimumStockLevel=@MinimumStockLevel,LastStockUpdateDate=@LastStockUpdateDate
-            WHERE ProductID=@ProductID AND IsActive=1", product);
+            WHERE ProductID=@ProductID AND IsActive=1", product) == 1;
     }
 
     public bool Delete(int id)
     {
         using var conn = _session.CreateConnection();
-        return conn.Execute("UPDATE Products SET IsActive=0 WHERE ProductID=@id AND IsActive=1", new { id }) == 1;
+        using var tx = conn.BeginTransaction();
+        var archived = conn.Execute("UPDATE Products SET IsActive=0 WHERE ProductID=@id AND IsActive=1", new { id }, tx);
+        if (archived == 1)
+        {
+            conn.Execute(@"UPDATE ProductStock
+                SET QuantityAvailable=0, IsArchived=1, UpdatedAt=CURRENT_TIMESTAMP
+                WHERE ProductID=@id", new { id }, tx);
+        }
+        tx.Commit();
+        return archived == 1;
     }
 
     public int SoftDeleteAll()
@@ -237,7 +256,7 @@ public class ProductRepository
         if (existingId.HasValue)
         {
             conn.Execute(
-                "UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Qty, PurchasePrice = @PurchasePrice, MRP = @MRP WHERE StockID = @StockID",
+                "UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Qty, PurchasePrice = @PurchasePrice, MRP = @MRP, IsArchived = 0 WHERE StockID = @StockID",
                 new { Qty = stock.QuantityAvailable, stock.PurchasePrice, stock.MRP, StockID = existingId.Value }, tx);
         }
         else
@@ -275,11 +294,13 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         return conn.Query<ProductStock>(@"
-            SELECT *
-            FROM ProductStock
-            WHERE ProductID = @productId
-              AND QuantityAvailable > 0
-              AND ExpiryDate >= CAST(GETDATE() AS DATE)
+            SELECT ps.*, p.PiecesPerUnit AS PiecesPerPack
+            FROM ProductStock ps
+            INNER JOIN Products p ON p.ProductID = ps.ProductID
+            WHERE ps.ProductID = @productId
+              AND ps.QuantityAvailable > 0
+              AND ps.IsArchived = 0
+              AND ps.ExpiryDate >= CAST(GETDATE() AS DATE)
             ORDER BY ExpiryDate, StockID", new { productId });
     }
 
@@ -293,8 +314,33 @@ public class ProductRepository
         return conn.Execute(@"
             UPDATE ProductStock
             SET QuantityAvailable = 0,
+                IsArchived = 1,
                 UpdatedAt = CURRENT_TIMESTAMP
             WHERE StockID = @stockId", new { stockId }) == 1;
+    }
+
+    /// <summary>Updates the master catalogue details and one selected stock batch atomically.</summary>
+    public bool UpdateProductAndStockBatch(Product product, int stockId, decimal rateTp, decimal mrp)
+    {
+        using var conn = _session.CreateConnection();
+        using var tx = conn.BeginTransaction();
+        var productUpdated = conn.Execute(@"UPDATE Products SET Name=@Name,GenericName=@GenericName,Barcode=@Barcode,CompanyID=@CompanyID,
+            CompanyName=@CompanyName,SupplierID=@SupplierID,SupplierName=@SupplierName,Type=@Type,
+            Packing=@Packing,Rate=@Rate,PurchasePrice=@PurchasePrice,SellingPrice=@SellingPrice,PiecesPerUnit=@PiecesPerUnit,
+            IsReturnable=@IsReturnable,MinimumStockLevel=@MinimumStockLevel,LastStockUpdateDate=@LastStockUpdateDate
+            WHERE ProductID=@ProductID AND IsActive=1", product, tx);
+        var batchUpdated = conn.Execute(@"UPDATE ProductStock
+            SET PurchasePrice=@rateTp, MRP=@mrp, UpdatedAt=CURRENT_TIMESTAMP
+            WHERE StockID=@stockId AND ProductID=@ProductID AND IsArchived=0", new { stockId, product.ProductID, rateTp, mrp }, tx);
+
+        if (productUpdated != 1 || batchUpdated != 1)
+        {
+            tx.Rollback();
+            return false;
+        }
+
+        tx.Commit();
+        return true;
     }
 
     /// <summary>
@@ -309,6 +355,7 @@ public class ProductRepository
             FROM ProductStock
             WHERE ProductID = @productId
               AND QuantityAvailable > 0
+              AND IsArchived = 0
               AND ExpiryDate >= CAST(GETDATE() AS DATE)
             ORDER BY ExpiryDate DESC, StockID DESC", new { productId });
     }

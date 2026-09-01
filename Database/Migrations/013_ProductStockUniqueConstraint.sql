@@ -36,11 +36,11 @@ WHERE ps.StockID <> d.KeepStockID;
 GO
 
 -- Step 3: Drop old non-unique index if it exists
-IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = ''IX_ProductStock_ProductID_ExpiryDate'' AND object_id = OBJECT_ID(''ProductStock''))
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_ProductStock_ProductID_ExpiryDate' AND object_id = OBJECT_ID('ProductStock'))
     DROP INDEX IX_ProductStock_ProductID_ExpiryDate ON ProductStock;
 GO
 
 -- Step 4: Add UNIQUE constraint
-IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = ''UQ_ProductStock_ProductID_ExpiryDate'' AND object_id = OBJECT_ID(''ProductStock''))
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UQ_ProductStock_ProductID_ExpiryDate' AND object_id = OBJECT_ID('ProductStock'))
     ALTER TABLE ProductStock ADD CONSTRAINT UQ_ProductStock_ProductID_ExpiryDate UNIQUE (ProductID, ExpiryDate);
 GO

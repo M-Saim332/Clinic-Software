@@ -36,6 +36,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveAndCheckCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PostInvoiceCommand))]
+    private bool _isProcessing;
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditDraft))]
     [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
     [NotifyPropertyChangedFor(nameof(IsViewingInvoiceDocument))]
@@ -119,6 +123,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [NotifyPropertyChangedFor(nameof(CanCheckInvoice))]
     private InvoiceState _invoiceState = InvoiceState.Draft;
     private int _currentPurchaseId;
+    private FormMode _modeBeforeReview = FormMode.Add;
 
     // Invoice branding is loaded from the active clinic/pharmacy profile.
     [ObservableProperty] private string _clinicName    = "DR ASIF PHARMA";
@@ -179,7 +184,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
     public bool IsPostedInvoice => InvoiceState == InvoiceState.Posted;
     public bool CanEditDraft => ShowForm && Mode == FormMode.View && InvoiceState == InvoiceState.Draft && _currentPurchaseId > 0;
-    public bool CanCheckInvoice => CanEditDraft;
+    public bool CanCheckInvoice => CanReviewInvoice;
+    public bool CanReviewInvoice => !IsProcessing && ShowForm && InvoiceState == InvoiceState.Draft &&
+                                    (Mode == FormMode.Add || Mode == FormMode.Edit);
+    public bool CanPostInvoice => !IsProcessing && ShowForm && IsCheckingInvoice && LineItems.Count > 0;
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
@@ -340,109 +348,36 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
+    // Kept for older bindings. Saving now means opening an in-memory review only;
+    // no purchase, purchase-item, or stock row is written until final posting.
+    [RelayCommand(CanExecute = nameof(CanReviewInvoice))]
     private async Task SaveAsync()
     {
-        try
-        {
-            if (SelectedSupplier == null && string.IsNullOrWhiteSpace(SupplierName))
-            {
-                StatusMessage = "Supplier (or Supplier Name) is required.";
-                return;
-            }
-
-            // Auto-add line item if the user forgot to click "+ Add"
-            if (SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText))
-            {
-                AddLineItem();
-                if (!string.IsNullOrEmpty(StatusMessage)) return; // If AddLineItem failed validation, stop saving
-            }
-
-            if (!LineItems.Any())
-            {
-                StatusMessage = "At least one item is required.";
-                return;
-            }
-
-        // Auto-provision any inline products
-        foreach (var item in LineItems)
-        {
-            if (item.ProductID == 0)
-            {
-                var newProduct = new Product
-                {
-                    Name = item.ProductName ?? "Unknown Product",
-                    PurchasePrice = item.PurchasePrice,
-                    SellingPrice = item.PackMRP,
-                    Rate = item.PurchasePrice,
-                    Category = "General",
-                    IsActive = true
-                };
-                item.ProductID = await Task.Run(() => _productRepo.Insert(newProduct));
-            }
-        }
-
-        var p = new Purchase
-        {
-            InvoiceNumber = InvoiceNumber,
-            PurchaseDate = PurchaseDate.DateTime,
-            SupplierID = SelectedSupplier?.SupplierID,
-            SupplierName = SelectedSupplier == null ? SupplierName : null,
-            TotalAmount = GrandTotal,
-            CreatedBy = CurrentUser?.UserID,
-            CreatedByName = LoggedInUserName,
-            Items = LineItems.ToList()
-        };
-
-
-            if (Mode == FormMode.Add)
-            {
-                _currentPurchaseId = await Task.Run(() => _repo.Insert(p));
-                p.PurchaseID = _currentPurchaseId;
-                InvoiceNumber = p.InvoiceNumber;
-                SelectedPurchase = p;
-                StatusMessage = "Draft saved. Check the invoice before posting; stock is unchanged.";
-                var supplierLabel = SelectedSupplier?.Name ?? SupplierName;
-                LogActivity("Purchase Created", $"Invoice #{p.InvoiceNumber} from {supplierLabel} — Rs. {p.TotalAmount:N2}", "Purchases");
-            }
-            else if (Mode == FormMode.Edit)
-            {
-                p.PurchaseID = _currentPurchaseId;
-                await Task.Run(() => _repo.Update(p));
-                SelectedPurchase = p;
-                StatusMessage = "Draft updated. Check the invoice before posting.";
-                LogActivity("Purchase Updated", $"Draft invoice #{p.InvoiceNumber} updated", "Purchases");
-            }
-
-            await InitializeAsync();
-            _viewingDocumentMode = false; // stay in edit footer after save, not doc view
-            Mode = FormMode.View;
-            ShowForm = true;
-            NotifyButtonStates();
-            OnPropertyChanged(nameof(IsViewingInvoiceDocument));
-            OnPropertyChanged(nameof(CanProcessInvoice));
-            PostInvoiceCommand.NotifyCanExecuteChanged();
-            CheckInvoiceCommand.NotifyCanExecuteChanged();
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error saving invoice: {ex.Message}";
-        }
+        await SaveAndCheckAsync();
     }
 
-    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
+    [RelayCommand(CanExecute = nameof(CanReviewInvoice))]
     private async Task SaveAndCheckAsync()
     {
-        await SaveAsync();
-        if (Mode == FormMode.View && InvoiceState == InvoiceState.Draft && _currentPurchaseId > 0)
-        {
-            CheckInvoice();
-        }
+        await Task.CompletedTask;
+        if (!PrepareForReview()) return;
+
+        _modeBeforeReview = Mode;
+        InvoiceState = InvoiceState.Checking;
+        _viewingDocumentMode = false;
+        Mode = FormMode.View;
+        NotifyButtonStates();
+        StatusMessage = $"Invoice reviewed — {LineItems.Count} item(s), Grand Total Rs. {GrandTotal:N2}. No stock has been posted.";
     }
 
     [RelayCommand]
     private void Cancel()
     {
+        if (IsCheckingInvoice)
+        {
+            EditCheckedInvoice();
+            return;
+        }
         ResetFormToList();
         StatusMessage = string.Empty;
     }
@@ -525,6 +460,8 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         OnPropertyChanged(nameof(IsCheckingInvoice));
         OnPropertyChanged(nameof(IsPostedInvoice));
         OnPropertyChanged(nameof(CanProcessInvoice));
+        OnPropertyChanged(nameof(CanReviewInvoice));
+        OnPropertyChanged(nameof(CanPostInvoice));
         PostInvoiceCommand.NotifyCanExecuteChanged();
         CheckInvoiceCommand.NotifyCanExecuteChanged();
         SaveAndCheckCommand.NotifyCanExecuteChanged();
@@ -611,43 +548,84 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         SelectedProduct = Products.FirstOrDefault(p => p.ProductID == id); PreselectedEntityId = id;
     }
 
-    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
-    private void CheckInvoice()
+    private bool PrepareForReview()
     {
-        if (_currentPurchaseId == 0 && SelectedPurchase?.PurchaseID > 0) _currentPurchaseId = SelectedPurchase.PurchaseID;
-        if (_currentPurchaseId == 0) { StatusMessage = "Save the draft before checking it."; return; }
-        if (InvoiceState == InvoiceState.Posted) { StatusMessage = "Invoice is already posted."; return; }
-        // Validate line items
-        if (!LineItems.Any()) { StatusMessage = "No items on this invoice to check."; return; }
-        InvoiceState = InvoiceState.Checking;
-        OnPropertyChanged(nameof(DocumentStatus));
-        NotifyButtonStates();
-        StatusMessage = $"Invoice reviewed — {LineItems.Count} item(s), Grand Total Rs. {GrandTotal:N2}. Ready to post.";
-    }
-
-    [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
-    private async Task PostInvoiceAsync()
-    {
-        if (SaveCancelEnabled)
+        if (SelectedSupplier == null && string.IsNullOrWhiteSpace(SupplierName))
         {
-            await SaveAsync();
-            if (_currentPurchaseId == 0 || Mode != FormMode.View) return;
+            StatusMessage = "Supplier (or Supplier Name) is required.";
+            return false;
         }
 
-        var id = _currentPurchaseId > 0 ? _currentPurchaseId : SelectedPurchase?.PurchaseID ?? 0;
-        if (id == 0) { StatusMessage = "Save the draft before posting stock."; return; }
-        if (InvoiceState == InvoiceState.Posted) { StatusMessage = "Purchase invoice is already posted."; return; }
+        // Preserve the convenient unfinished-line behaviour, but do not persist it.
+        if (SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText))
+        {
+            AddLineItem();
+            if (!string.IsNullOrEmpty(StatusMessage)) return false;
+        }
+
+        if (!LineItems.Any())
+        {
+            StatusMessage = "At least one item is required.";
+            return false;
+        }
+
+        return true;
+    }
+
+    private Purchase BuildPurchase() => new()
+    {
+        InvoiceNumber = InvoiceNumber,
+        PurchaseDate = PurchaseDate.DateTime,
+        SupplierID = SelectedSupplier?.SupplierID,
+        SupplierName = SelectedSupplier == null ? SupplierName : null,
+        TotalAmount = GrandTotal,
+        CreatedBy = CurrentUser?.UserID,
+        CreatedByName = LoggedInUserName,
+        Items = LineItems.ToList()
+    };
+
+    [RelayCommand(CanExecute = nameof(CanReviewInvoice))]
+    private void CheckInvoice()
+    {
+        if (!PrepareForReview()) return;
+        _modeBeforeReview = Mode;
+        InvoiceState = InvoiceState.Checking;
+        Mode = FormMode.View;
+        NotifyButtonStates();
+        StatusMessage = $"Invoice reviewed — {LineItems.Count} item(s), Grand Total Rs. {GrandTotal:N2}. No stock has been posted.";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPostInvoice))]
+    private async Task PostInvoiceAsync()
+    {
+        if (IsProcessing || !IsCheckingInvoice) return;
+        IsProcessing = true;
         try
         {
-            await Task.Run(() => _repo.PostPurchase(id));
+            // Inline product names are created only at final post time, never while reviewing.
+            foreach (var item in LineItems.Where(x => x.ProductID == 0))
+            {
+                var newProduct = new Product
+                {
+                    Name = item.ProductName ?? "Unknown Product", PurchasePrice = item.PurchasePrice,
+                    SellingPrice = item.PackMRP, Rate = item.PurchasePrice, Category = "General", IsActive = true
+                };
+                item.ProductID = await Task.Run(() => _productRepo.Insert(newProduct));
+            }
+
+            var purchase = BuildPurchase();
+            purchase.PurchaseID = _currentPurchaseId;
+            _currentPurchaseId = await Task.Run(() => _repo.SaveAndPost(purchase));
             InvoiceState = InvoiceState.Posted;
-            OnPropertyChanged(nameof(DocumentStatus));
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            var supplierLabel = SelectedSupplier?.Name ?? SupplierName;
+            LogActivity("Purchase Posted", $"Invoice #{purchase.InvoiceNumber} from {supplierLabel} — Rs. {purchase.TotalAmount:N2}", "Purchases");
             await InitializeAsync();
             ResetFormToList();
             StatusMessage = "Purchase posted. Stock and product rates were updated.";
         }
         catch (Exception ex) { StatusMessage = $"Posting failed: {ex.Message}"; }
+        finally { IsProcessing = false; }
     }
 
     [RelayCommand]
@@ -662,10 +640,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     {
         if (IsPostedInvoice) return;
         InvoiceState = InvoiceState.Draft;
-        OnPropertyChanged(nameof(DocumentStatus));
-        if (_currentPurchaseId > 0) Mode = FormMode.Edit;
+        Mode = _modeBeforeReview is FormMode.Add or FormMode.Edit ? _modeBeforeReview : FormMode.Add;
         NotifyButtonStates();
-        StatusMessage = "Invoice returned to draft editing.";
+        StatusMessage = "Returned to editing. Nothing has been saved or posted yet.";
     }
     [RelayCommand]
     private void EditDraft()

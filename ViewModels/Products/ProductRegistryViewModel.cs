@@ -62,6 +62,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private ObservableCollection<ProductStockBatchDto> _productStockBatches = new();
     [ObservableProperty] private ObservableCollection<ProductStockBatchDto> _filteredProductStockBatches = new();
     [ObservableProperty] private ProductStockBatchDto? _selectedProductStockBatch;
+    [ObservableProperty] private ProductStockBatchDto? _viewingStockBatch;
+    [ObservableProperty] private bool _showBatchDetails;
+    private int? _editingStockId;
 
     // Companies for selection ComboBox
     [ObservableProperty] private ObservableCollection<Company> _companies = new();
@@ -194,17 +197,33 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [RelayCommand]
     private async Task EditBatchSpecificAsync(ProductStockBatchDto batch)
     {
-        var product = GetProductForBatch(batch);
-        if (product != null)
-            await EditSpecificAsync(product);
+        if (!CanManageProducts) { StatusMessage = "The doctor's drug inventory is read-only."; return; }
+        if (batch == null) return;
+
+        var product = await Task.Run(() => _repo.GetById(batch.ProductID));
+        if (product == null) { StatusMessage = "The selected product was not found."; return; }
+
+        SelectedProduct = product;
+        SelectedProductStockBatch = batch;
+        Companies = new ObservableCollection<Company>(await Task.Run(() => _companyRepo.GetAll()));
+        FillFields(product);
+        Rate = batch.RateTP.ToString("F2");
+        PurchasePrice = batch.MRP.ToString("F2");
+        TabletsPerBox = Math.Max(1, batch.PiecesPerUnit).ToString();
+        ExpiryDate = new DateTimeOffset(batch.ExpiryDate, TimeSpan.Zero);
+        _editingStockId = batch.StockID;
+        Mode = FormMode.Edit;
+        NotifyButtonStates();
+        StatusMessage = "Editing the selected expiry batch.";
     }
 
     [RelayCommand]
-    private async Task ViewBatchSpecificAsync(ProductStockBatchDto batch)
+    private Task ViewBatchSpecificAsync(ProductStockBatchDto batch)
     {
-        var product = GetProductForBatch(batch);
-        if (product != null)
-            await ViewSpecificAsync(product);
+        if (batch == null) return Task.CompletedTask;
+        ViewingStockBatch = batch;
+        ShowBatchDetails = true;
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
@@ -312,6 +331,13 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     }
 
     [RelayCommand]
+    private void CloseBatchDetails()
+    {
+        ShowBatchDetails = false;
+        ViewingStockBatch = null;
+    }
+
+    [RelayCommand]
     private void RequestDeleteAll()
     {
         if (!IsAdmin) { StatusMessage = "Only an administrator can archive all products."; return; }
@@ -339,20 +365,30 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [RelayCommand]
     private async Task SaveAsync()
     {
+        var isNewProduct = Mode == FormMode.Add;
         if (!ClinicSystem.UI.Helpers.ValidationHelper.IsValidName(Name)) { StatusMessage = "Valid Name is required (min 2 chars, no numbers)."; return; }
-        if (SelectedCompany == null) { StatusMessage = "Select a company before adding a product."; return; }
+        if (isNewProduct && SelectedCompany == null) { StatusMessage = "Select a company before adding a product."; return; }
         if (!decimal.TryParse(PurchasePrice, out var purchase) || purchase < 0) { StatusMessage = "Enter a valid MRP."; return; }
         if (!int.TryParse(MinimumStockLevel, out var minStock) || minStock < 0) { StatusMessage = "Enter valid minimum stock."; return; }
         if (!int.TryParse(TabletsPerBox, out var tablets) || tablets <= 0) { StatusMessage = "Pieces per unit must be at least 1."; return; }
-        if (!int.TryParse(InitialQuantityPacks, out var initialPacks) || initialPacks < 0) { StatusMessage = "Initial quantity packs must be zero or greater."; return; }
-        if (initialPacks > 0 && ExpiryDate == null) { StatusMessage = "Expiry Date is required when adding initial stock."; return; }
+        var initialPacks = 0;
+        if (isNewProduct && (!int.TryParse(InitialQuantityPacks, out initialPacks) || initialPacks < 0))
+        {
+            StatusMessage = "Initial quantity packs must be zero or greater.";
+            return;
+        }
+        if (isNewProduct && initialPacks > 0 && ExpiryDate == null)
+        {
+            StatusMessage = "Expiry Date is required when adding initial stock.";
+            return;
+        }
 
         var m = BuildProduct();
         try
         {
             await Task.Run(() =>
             {
-                if (Mode == FormMode.Add)
+                if (isNewProduct)
                 {
                     m.ProductID = _repo.Insert(m);
                     if (initialPacks > 0)
@@ -371,18 +407,23 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
                 else
                 {
                     m.ProductID = SelectedProduct!.ProductID;
-                    _repo.Update(m);
+                    var saved = _editingStockId.HasValue
+                        ? _repo.UpdateProductAndStockBatch(m, _editingStockId.Value, CurrentRate, CurrentPurchasePrice)
+                        : _repo.Update(m);
+                    if (!saved)
+                        throw new InvalidOperationException("The product was not found or has already been archived.");
                 }
             });
 
-            StatusMessage = Mode == FormMode.Add ? "Product added." : "Product updated.";
-            if (Mode == FormMode.Add)
+            StatusMessage = isNewProduct ? "Product added." : "Product updated.";
+            if (isNewProduct)
                 LogActivity("Product Added", $"New product '{m.Name}' added to inventory", "Products");
             else
                 LogActivity("Product Updated", $"Product '{m.Name}' was updated", "Products");
             
             Mode = FormMode.View;
             NotifyButtonStates();
+            _editingStockId = null;
             await InitializeAsync();
             ProductSaved?.Invoke(m);
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
@@ -601,6 +642,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         MinimumStockLevel = "10";
         SelectedCompany = null;
         CompanyName = string.Empty;
+        _editingStockId = null;
         NotifyCalculatedTotals();
     }
 
@@ -633,14 +675,21 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         Rack = string.IsNullOrWhiteSpace(Rack) ? null : Rack.Trim(),
 
         Rate = decimal.TryParse(Rate, out var rate) ? rate : 0,
+        Barcode = SelectedProduct?.Barcode,
         PurchasePrice = SelectedProduct?.PurchasePrice ?? 0,
         SellingPrice = decimal.TryParse(PurchasePrice, out var sp) ? sp : 0,
         TabletsPerBox = int.TryParse(TabletsPerBox, out var tpb) ? Math.Max(1, tpb) : 1,
 
         MinimumStockLevel = int.TryParse(MinimumStockLevel, out var ms) ? ms : 10,
         LastStockUpdateDate = SelectedProduct?.LastStockUpdateDate ?? DateTime.Today,
-        CompanyID = SelectedCompany?.CompanyID,
-        CompanyName = SelectedCompany != null ? SelectedCompany.Name : (string.IsNullOrWhiteSpace(CompanyName) ? null : CompanyName.Trim())
+        // Editing must retain the existing company when the lookup is temporarily
+        // unavailable; a company selection is mandatory only for a new product.
+        CompanyID = SelectedCompany?.CompanyID ?? SelectedProduct?.CompanyID,
+        CompanyName = SelectedCompany?.Name ?? SelectedProduct?.CompanyName ??
+                      (string.IsNullOrWhiteSpace(CompanyName) ? null : CompanyName.Trim()),
+        SupplierID = SelectedProduct?.SupplierID,
+        SupplierName = SelectedProduct?.SupplierName,
+        IsReturnable = SelectedProduct?.IsReturnable ?? true
     };
 
     private void NotifyButtonStates()

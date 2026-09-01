@@ -392,12 +392,12 @@
                                     IsVisible="{Binding IsDraftInvoice}">
                                 <TextBlock Text="DRAFT" FontSize="12" FontWeight="Bold" Foreground="#4B5563"/>
                             </Border>
-                            <!-- Post Invoice button (only when not posted) -->
+                            <!-- Posting is intentionally available only after the in-memory review. -->
                             <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary"
-                                    IsVisible="{Binding !IsPostedInvoice}">
+                                    IsVisible="{Binding IsCheckingInvoice}" IsEnabled="{Binding !IsProcessing}">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <materialIcons:MaterialIcon Kind="Download" Width="16" Height="16"/>
-                                    <TextBlock Text="Post Purchase Invoice"/>
+                                    <TextBlock Text="Confirm &amp; Post"/>
                                 </StackPanel>
                             </Button>
                             <!-- PDF button (only when posted) -->
@@ -419,7 +419,7 @@
             <Grid RowDefinitions="Auto,Auto" Margin="0,0,0,16">
 
                 <!-- Direct two-column form grid: invoice details on the left, line entry on the right. -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,*" Margin="28,20,28,0"
+                <Grid Grid.Row="0" ColumnDefinitions="1.05*,1.25*" Margin="28,20,28,0"
                       HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
                     <!-- Left: Invoice Header card -->
@@ -571,11 +571,23 @@
                                 </Border>
                             </StackPanel>
 
-                            <!-- View-only state (Mode=View, no editing) -->
-                            <StackPanel Spacing="6" IsVisible="{Binding !SaveCancelEnabled}" HorizontalAlignment="Center" Margin="0,20,0,0">
-                                <materialIcons:MaterialIcon Kind="FileEye" Width="28" Height="28" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Invoice Viewed" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk400}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Line items cannot be edited on a saved invoice." FontSize="12" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center"/>
+                            <!-- Review and posted states are intentionally distinct. -->
+                            <StackPanel Spacing="12" IsVisible="{Binding IsCheckingInvoice}" HorizontalAlignment="Stretch" Margin="0,16,0,0">
+                                <Border Background="#FFF7ED" BorderBrush="#FED7AA" BorderThickness="1" CornerRadius="10" Padding="16">
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="Purchase invoice ready for review" FontSize="17" FontWeight="SemiBold" Foreground="#9A3412"/>
+                                        <TextBlock Text="Confirm the supplier, expiry dates, quantities, and totals before posting stock."
+                                                   TextWrapping="Wrap" FontSize="12" Foreground="#C2410C"/>
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{Binding GrandTotal, StringFormat='Grand total: Rs. {0:N2}'}"
+                                           FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Spacing="6" IsVisible="{Binding IsPostedInvoice}" HorizontalAlignment="Center" Margin="0,20,0,0">
+                                <materialIcons:MaterialIcon Kind="CheckCircle" Width="28" Height="28" Foreground="{DynamicResource BrushTeal}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Purchase invoice posted" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushTeal}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Stock has been updated for this invoice." FontSize="12" Foreground="{DynamicResource BrushInk500}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -589,19 +601,16 @@
                             <DataGrid ItemsSource="{Binding LineItems}"
                                       AutoGenerateColumns="False" IsReadOnly="True"
                                       SelectionMode="Single" Background="Transparent" BorderThickness="0"
-                                      GridLinesVisibility="Horizontal">
+                                      GridLinesVisibility="Horizontal"
+                                      RowHeight="58" CanUserResizeColumns="True">
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="*"/>
-                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="110"/>
-                                    <DataGridTextColumn Header="QTY" Binding="{Binding PackageQuantity}" Width="65"/>
-                                    <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="65"/>
-                                    <DataGridTextColumn Header="RATE" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="95"/>
-                                    <DataGridTextColumn Header="MRP" Binding="{Binding PackMRP, StringFormat='Rs. {0:N2}'}" Width="95"/>
-                                    <DataGridTextColumn Header="DISC%" Binding="{Binding ExtraDiscount}" Width="70"/>
-                                    <DataGridTextColumn Header="SUB TOTAL" Binding="{Binding SubTotal, StringFormat='Rs. {0:N2}'}" Width="110"/>
-                                    <DataGridTextColumn Header="ADV.TAX" Binding="{Binding ATax}" Width="75"/>
-                                    <DataGridTextColumn Header="C.S.TAX" Binding="{Binding CompanySalesTax}" Width="75"/>
-                                    <DataGridTextColumn Header="NET AMOUNT" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="115"/>
+                                    <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="180"/>
+                                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" Width="120"/>
+                                    <DataGridTextColumn Header="PACKS" Binding="{Binding PackageQuantity}" Width="72"/>
+                                    <DataGridTextColumn Header="BONUS" Binding="{Binding BonusQuantity}" Width="72"/>
+                                    <DataGridTextColumn Header="TP" Binding="{Binding PurchasePrice, StringFormat='Rs. {0:N2}'}" Width="92"/>
+                                    <DataGridTextColumn Header="MRP" Binding="{Binding PackMRP, StringFormat='Rs. {0:N2}'}" Width="92"/>
+                                    <DataGridTextColumn Header="NET TOTAL" Binding="{Binding LineNetTotal, StringFormat='Rs. {0:N2}'}" Width="125"/>
                                     <DataGridTemplateColumn Width="46" IsVisible="{Binding $parent[UserControl].((vm:PurchaseViewModel)DataContext).SaveCancelEnabled}">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
@@ -649,16 +658,18 @@
                             </StackPanel>
                         </Button>
                         <TextBlock Text="✓ POSTED" IsVisible="{Binding IsPostedInvoice}" FontWeight="Bold" Foreground="{DynamicResource BrushTeal}" VerticalAlignment="Center"/>
-                        <Button Command="{Binding SaveAndCheckCommand}" Classes="btn-secondary" IsVisible="{Binding !IsPostedInvoice}">
+                        <Button Command="{Binding SaveAndCheckCommand}" Classes="btn-secondary" IsVisible="{Binding IsDraftInvoice}">
                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <materialIcons:MaterialIcon Kind="ClipboardList" Width="18" Height="18"/>
                                 <TextBlock Text="Check Invoice" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
-                        <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary" IsVisible="{Binding !IsPostedInvoice}">
+                        <Button Command="{Binding EditCheckedInvoiceCommand}" Classes="btn-secondary" IsVisible="{Binding IsCheckingInvoice}" Content="Edit Invoice"/>
+                        <Button Command="{Binding PostInvoiceCommand}" Classes="btn-primary"
+                                IsVisible="{Binding IsCheckingInvoice}" IsEnabled="{Binding !IsProcessing}">
                             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <materialIcons:MaterialIcon Kind="Download" Width="18" Height="18"/>
-                                <TextBlock Text="Post Purchase Invoice" VerticalAlignment="Center"/>
+                                <TextBlock Text="Confirm &amp; Post" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

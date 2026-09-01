@@ -9,7 +9,7 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Sales;
 
-public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationContext
+public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationContext, IRecipient<InventoryChangedMessage>
 {
     public event Action? RequestAddProduct;
     public int? PreselectedEntityId { get; set; }
@@ -31,9 +31,13 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         _productRepo = productRepo;
         _activityRepo = activityRepo;
         InvoiceVM = invoiceVM;
+        WeakReferenceMessenger.Default.RegisterAll(this);
 
         InvoiceVM.RequestGoBack += () => ShowInvoicePrint = false;
     }
+
+    /// <summary>Refreshes the product search list after batch/product archival.</summary>
+    public void Receive(InventoryChangedMessage message) => _ = InitializeAsync();
 
     [ObservableProperty] private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -107,23 +111,34 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
     [ObservableProperty] private decimal _productPrice;
-    [ObservableProperty] private string _selectedUnitType = "Tablet";
+    [ObservableProperty] private string _selectedUnitType = "Piece";
     [ObservableProperty] private bool _showDeleteAllConfirm;
 
-    public List<string> UnitTypes { get; } = new() { "Pieces" };
+    public List<string> UnitTypes { get; } = new() { "Piece" };
     public string LoggedInUserName => CurrentUser?.DisplayName ?? "Unknown";
     public bool IsAdmin => CurrentUser?.IsAdmin ?? false;
     public string AvailableStockDisplay => SelectedProduct == null
         ? string.Empty
         : $"Available stock: {SelectedProduct.StockBreakdown}";
     
-    public int MaxQuantity => SelectedProduct == null 
-        ? 1 
-        : Math.Max(0, SelectedProduct.TotalStock - LineItems.Where(x => x.ProductID == SelectedProduct.ProductID).Sum(x => x.StockQuantity));
+    public int MaxQuantity
+    {
+        get
+        {
+            if (SelectedProduct == null) return 1;
+            var availablePieces = SelectedProduct.TotalStock - LineItems
+                .Where(item => item.ProductID == SelectedProduct.ProductID)
+                .Sum(item => item.StockQuantity);
+            return Math.Max(0, availablePieces);
+        }
+    }
 
     private bool CanAddLineItem() => SelectedProduct != null && Quantity > 0 && Quantity <= MaxQuantity;
 
-    public decimal Subtotal => LineItems.Sum(x => x.InvoiceItemTotal);
+    // LineNetTotal includes the per-line tax after applying the unit price and discount.
+    // Keeping the invoice summary on this value makes a Pack/Piece switch refresh the
+    // payable amount immediately and keeps the persisted Sale.GrandTotal consistent.
+    public decimal Subtotal => LineItems.Sum(x => x.LineNetTotal);
     public decimal GrandTotal => Subtotal;
     public bool IsDraftInvoice => InvoiceState == InvoiceState.Draft;
     public bool IsCheckingInvoice => InvoiceState == InvoiceState.Checking;
@@ -189,13 +204,16 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
                         ProductID = match.ProductID,
                         ProductName = match.Name,
                         Quantity = qty,
-                        UnitTypeSold = "Pieces",
+                        UnitTypeSold = "Piece",
                         StockQuantity = qty,
                         Discount = 0,
                         Tax = 0,
                         ProductPrice = price
                     };
-                    item.LineTotal = item.InvoiceItemTotal;
+                    ConfigureBatch(item, match);
+                    if (item.SelectedStockBatch == null)
+                        continue;
+                    item.LineTotal = item.LineNetTotal;
                     LineItems.Add(item);
                 }
             }
@@ -243,16 +261,30 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
             ProductID = SelectedProduct.ProductID,
             ProductName = SelectedProduct.Name,
             Quantity = Quantity,
-            UnitTypeSold = "Pieces",
+            UnitTypeSold = "Piece",
             StockQuantity = stockQuantity,
             Discount = Discount,
             Tax = Tax,
             ProductPrice = ProductPrice
         };
-        item.LineTotal = item.InvoiceItemTotal;
+        ConfigureBatch(item, SelectedProduct);
+        if (item.SelectedStockBatch == null)
+        {
+            StatusMessage = "No active batch is available for the selected product.";
+            return;
+        }
+        var alreadyReserved = LineItems
+            .Where(line => line.StockID == item.StockID)
+            .Sum(line => line.StockQuantity);
+        if (alreadyReserved + item.StockQuantity > item.SelectedStockBatch.QuantityAvailable)
+        {
+            StatusMessage = $"Only {item.SelectedStockBatch.QuantityAvailable - alreadyReserved} piece(s) remain in the selected batch.";
+            return;
+        }
+        item.LineTotal = item.LineNetTotal;
 
         LineItems.Add(item);
-        OnPropertyChanged(nameof(GrandTotal));
+        RecalculateInvoiceTotals();
         
         // Reset inputs
         SelectedProduct = null;
@@ -260,7 +292,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         Discount = 0;
         Tax = 0;
         ProductPrice = 0;
-        SelectedUnitType = "Pieces";
+        SelectedUnitType = "Piece";
         StatusMessage = string.Empty;
         
         OnPropertyChanged(nameof(MaxQuantity));
@@ -270,12 +302,10 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     [RelayCommand]
     private void RemoveLineItem(SaleItem item)
     {
-        if (item != null && LineItems.Contains(item))
+            if (item != null && LineItems.Contains(item))
         {
             LineItems.Remove(item);
-            OnPropertyChanged(nameof(GrandTotal));
-            OnPropertyChanged(nameof(MaxQuantity));
-            AddLineItemCommand.NotifyCanExecuteChanged();
+            RecalculateInvoiceTotals();
         }
     }
 
@@ -363,6 +393,26 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         StatusMessage = string.Empty;
     }
 
+    /// <summary>Defaults a sales line to the earliest-expiring active batch (FEFO).</summary>
+    private void ConfigureBatch(SaleItem item, Product product)
+    {
+        // Query the live batch table at line creation so the POS default always
+        // reflects current FEFO availability rather than a stale product total.
+        var batches = _productRepo.GetActiveStockBatches(product.ProductID).ToList();
+
+        item.PiecesPerUnit = Math.Max(1, product.PiecesPerUnit);
+        item.AvailableStockBatches = batches;
+        item.SelectedStockBatch = batches.FirstOrDefault();
+        item.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is nameof(SaleItem.SelectedStockBatch) or nameof(SaleItem.ProductPrice) or nameof(SaleItem.UnitTypeSold) or nameof(SaleItem.Quantity))
+            {
+                item.LineTotal = item.LineNetTotal;
+                RecalculateInvoiceTotals();
+            }
+        };
+    }
+
     /// <summary>Discard the current in-memory invoice without writing or posting it.</summary>
     private void ResetFormToList()
     {
@@ -416,10 +466,10 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         Tax = 0;
         ProductPrice = 0;
         ProductSearchTerm = string.Empty;
-        SelectedUnitType = "Pieces";
+        SelectedUnitType = "Piece";
         IsLoadedFromHandoff = false;
         HandoffSourceText = string.Empty;
-        OnPropertyChanged(nameof(GrandTotal));
+        RecalculateInvoiceTotals();
     }
 
     private void NotifyButtonStates()
@@ -443,36 +493,65 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     partial void OnSelectedProductChanged(Product? value)
     {
-        if (value != null)
-        {
-            ProductPrice = value.SellingPrice > 0 && value.PiecesPerUnit > 0
-                ? value.SellingPrice / value.PiecesPerUnit
-                : (value.Rate > 0 && value.PiecesPerUnit > 0 
-                    ? value.Rate / value.PiecesPerUnit 
-                    : value.PurchasePrice);
-        }
+        _ = RefreshSelectedProductPricingAsync(value);
         OnPropertyChanged(nameof(AvailableStockDisplay));
         OnPropertyChanged(nameof(MaxQuantity));
         AddLineItemCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnQuantityChanged(int value)
-    {
-        OnPropertyChanged(nameof(GrandTotal));
-        AddLineItemCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnQuantityChanged(int value) => RecalculateInvoiceTotals();
 
-    partial void OnDiscountChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
-    partial void OnProductPriceChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
+    partial void OnDiscountChanged(decimal value) => RecalculateInvoiceTotals();
+    partial void OnProductPriceChanged(decimal value) => RecalculateInvoiceTotals();
 
     partial void OnSelectedUnitTypeChanged(string value)
     {
-        if (SelectedProduct != null) ProductPrice = SelectedProduct.SellingPrice > 0 && SelectedProduct.PiecesPerUnit > 0
-            ? SelectedProduct.SellingPrice / SelectedProduct.PiecesPerUnit
-            : (SelectedProduct.Rate > 0 && SelectedProduct.PiecesPerUnit > 0 
-                ? SelectedProduct.Rate / SelectedProduct.PiecesPerUnit 
-                : SelectedProduct.PurchasePrice);
+        if (SelectedProduct != null) ProductPrice = GetSelectedUnitPrice(SelectedProduct);
         OnPropertyChanged(nameof(AvailableStockDisplay));
+        OnPropertyChanged(nameof(MaxQuantity));
+    }
+
+    private decimal GetSelectedUnitPrice(Product product)
+    {
+        var piecesPerPack = Math.Max(1, product.PiecesPerUnit);
+        if (product.SellingPrice > 0)
+            return product.SellingPrice / piecesPerPack;
+        if (product.Rate > 0)
+            return product.Rate / piecesPerPack;
+        return product.PurchasePrice;
+    }
+
+    /// <summary>Uses the live FEFO batch price for the entry panel, not a cached product rate.</summary>
+    private async Task RefreshSelectedProductPricingAsync(Product? product)
+    {
+        if (product == null)
+        {
+            ProductPrice = 0;
+            return;
+        }
+
+        var batches = await Task.Run(() => _productRepo.GetActiveStockBatches(product.ProductID).ToList());
+        if (SelectedProduct?.ProductID != product.ProductID) return;
+
+        var fifoBatch = batches.FirstOrDefault();
+        if (fifoBatch == null)
+        {
+            ProductPrice = 0;
+            StatusMessage = "Product Out of Stock.";
+            return;
+        }
+
+        ProductPrice = fifoBatch.MRP / Math.Max(1, product.PiecesPerUnit);
+        StatusMessage = string.Empty;
+    }
+
+    /// <summary>Single recalculation path for add, quantity edit, batch change, and delete.</summary>
+    private void RecalculateInvoiceTotals()
+    {
+        OnPropertyChanged(nameof(Subtotal));
+        OnPropertyChanged(nameof(GrandTotal));
+        OnPropertyChanged(nameof(MaxQuantity));
+        AddLineItemCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand] private void QuickAddProduct() => RequestAddProduct?.Invoke();
@@ -485,7 +564,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         PreselectedEntityId = id;
     }
     
-    partial void OnSalesTaxChanged(decimal value) => OnPropertyChanged(nameof(GrandTotal));
+    partial void OnSalesTaxChanged(decimal value) => RecalculateInvoiceTotals();
 
     [RelayCommand]
     private void CheckInvoice()

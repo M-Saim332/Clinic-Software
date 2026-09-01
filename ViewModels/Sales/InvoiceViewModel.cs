@@ -36,11 +36,11 @@ public partial class InvoiceViewModel : ViewModelBase
     public decimal DocumentGrossAmount => DocumentGrandTotal;
     public decimal DocumentDiscountAmount => LineItems.Sum(x => x.DiscountAmount);
     public decimal DocumentAdvanceWHTax => LineItems.Sum(x => x.AdvTaxAmount);
-    public decimal DocumentTaxAmount => 0;
+    public decimal DocumentTaxAmount => LineItems.Sum(x => x.TaxAmount);
     public decimal DocumentCNValue => 0;
     public decimal DocumentAdjustmentsTotal => 0;
     public bool HasAdjustments => false;
-    public decimal DocumentGrandTotal => Math.Max(0m, LineItems.Sum(x => x.InvoiceItemTotal));
+    public decimal DocumentGrandTotal => Math.Max(0m, LineItems.Sum(x => x.LineNetTotal));
     public string DocumentStatus => SaleData?.IsPosted == true ? "POSTED" : "DRAFT";
     public string DocumentGeneratedDateDisplay => DateTime.Now.ToString("dd MMM yyyy hh:mm tt");
 

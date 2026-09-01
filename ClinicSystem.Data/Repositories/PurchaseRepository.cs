@@ -97,6 +97,48 @@ public class PurchaseRepository
         tx.Commit();
     }
 
+    /// <summary>
+    /// Creates (or updates a legacy unposted draft) and posts a purchase in one database transaction.
+    /// Review screens never call this method; it is reserved for the final confirmation action.
+    /// </summary>
+    public int SaveAndPost(Purchase purchase)
+    {
+        using var conn = _session.CreateConnection();
+        using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+
+        int purchaseId;
+        if (purchase.PurchaseID > 0)
+        {
+            var posted = conn.ExecuteScalar<bool?>("SELECT IsPosted FROM Purchases WITH (UPDLOCK,HOLDLOCK) WHERE PurchaseID=@PurchaseID", purchase, tx);
+            if (!posted.HasValue) throw new InvalidOperationException("Purchase was not found.");
+            if (posted.Value) throw new InvalidOperationException("Purchase invoice is already posted.");
+
+            purchaseId = purchase.PurchaseID;
+            conn.Execute(@"UPDATE Purchases SET InvoiceNumber=@InvoiceNumber,PurchaseDate=@PurchaseDate,SupplierID=@SupplierID,
+                SupplierName=@SupplierName,TotalAmount=@TotalAmount,CreatedBy=@CreatedBy,CreatedByName=@CreatedByName
+                WHERE PurchaseID=@PurchaseID", purchase, tx);
+            conn.Execute("DELETE FROM PurchaseItems WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(purchase.InvoiceNumber) || purchase.InvoiceNumber == "Auto-generated")
+            {
+                var next = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(PurchaseID),0)+1 FROM Purchases WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
+                purchase.InvoiceNumber = $"PUR-{next:D6}";
+            }
+
+            purchaseId = conn.ExecuteScalar<int>(@"INSERT INTO Purchases
+                (InvoiceNumber,PurchaseDate,SupplierID,SupplierName,TotalAmount,CreatedBy,CreatedByName,IsPosted,PostedAt)
+                VALUES (@InvoiceNumber,@PurchaseDate,@SupplierID,@SupplierName,@TotalAmount,@CreatedBy,@CreatedByName,0,NULL);
+                SELECT CONVERT(INT,SCOPE_IDENTITY());", purchase, tx);
+        }
+
+        ReplaceItems(conn, tx, purchaseId, purchase.Items);
+        PostPurchase(conn, tx, purchaseId);
+        tx.Commit();
+        return purchaseId;
+    }
+
     private static void ReplaceItems(System.Data.IDbConnection conn, System.Data.IDbTransaction tx, int purchaseId, IEnumerable<PurchaseItem> items)
     {
         foreach (var item in items)
@@ -118,9 +160,15 @@ public class PurchaseRepository
     {
         using var conn = _session.CreateConnection();
         using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        PostPurchase(conn, tx, purchaseId);
+        tx.Commit();
+    }
+
+    private static void PostPurchase(System.Data.IDbConnection conn, System.Data.IDbTransaction tx, int purchaseId)
+    {
         var purchase = conn.QuerySingleOrDefault<Purchase>("SELECT * FROM Purchases WITH (UPDLOCK,HOLDLOCK) WHERE PurchaseID=@purchaseId", new { purchaseId }, tx)
             ?? throw new InvalidOperationException("Purchase was not found.");
-        if (purchase.IsPosted) { tx.Commit(); return; }
+        if (purchase.IsPosted) return;
         var items = conn.Query<PurchaseItem>("SELECT * FROM PurchaseItems WHERE PurchaseID=@purchaseId", new { purchaseId }, tx).ToList();
         if (items.Count == 0) throw new InvalidOperationException("A purchase must contain at least one item.");
         foreach (var item in items)
@@ -149,7 +197,7 @@ public class PurchaseRepository
             var stockId = conn.ExecuteScalar<int?>(@"SELECT StockID FROM ProductStock WITH (UPDLOCK,HOLDLOCK) WHERE ProductID=@ProductID AND ExpiryDate=CAST(@ExpiryDate AS DATE)", new { item.ProductID, item.ExpiryDate }, tx);
             if (stockId.HasValue)
             {
-                conn.Execute(@"UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Quantity, PurchasePrice = @BatchPurchasePrice, MRP = @PackMRP WHERE StockID=@StockID", 
+                conn.Execute(@"UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Quantity, PurchasePrice = @BatchPurchasePrice, MRP = @PackMRP, IsArchived = 0 WHERE StockID=@StockID",
                     new { Quantity = stockQuantity, BatchPurchasePrice = batchPurchasePrice, PackMRP = item.PackMRP, StockID = stockId.Value }, tx);
             }
             else
@@ -159,7 +207,6 @@ public class PurchaseRepository
             }
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);
-        tx.Commit();
     }
 
     public bool Delete(int id)
