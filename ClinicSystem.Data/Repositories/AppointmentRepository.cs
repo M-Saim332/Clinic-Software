@@ -93,6 +93,44 @@ public class AppointmentRepository
               ORDER BY a.AppointmentTime ASC", new { date = date.Date });
     }
 
+    /// <summary>
+    /// Gets the database server's local calendar day.  AppointmentDate is stored and
+    /// queried as a clinic-local date, so dashboard ranges must use this same clock
+    /// rather than converting a UTC timestamp on the client.
+    /// </summary>
+    public DateTime GetLocalCalendarToday()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.ExecuteScalar<DateTime>("SELECT CAST(GETDATE() AS DATE)").Date;
+    }
+
+    /// <summary>
+    /// Returns one count for every calendar day in the requested range.  Missing days
+    /// are deliberately returned as zero so trend charts never collapse to one point.
+    /// </summary>
+    public IReadOnlyDictionary<DateTime, double> GetPatientTrendCounts(DateTime startInclusive, DateTime endInclusive)
+    {
+        var start = startInclusive.Date;
+        var end = endInclusive.Date;
+        if (end < start) throw new ArgumentOutOfRangeException(nameof(endInclusive));
+
+        using var conn = _session.CreateConnection();
+        // AppointmentDate is a clinic-local SQL Server date/time.  Do not apply a
+        // UTC conversion here: it would move early-morning appointments into the
+        // previous calendar day.  The exclusive end bound includes all of @end.
+        var grouped = conn.Query(@"
+            SELECT CAST(AppointmentDate AS DATE) AS [Date], COUNT(*) AS [Count]
+            FROM Appointments
+            WHERE AppointmentDate >= @start AND AppointmentDate < DATEADD(day, 1, @end)
+            GROUP BY CAST(AppointmentDate AS DATE)", new { start, end })
+            .ToDictionary(row => ((DateTime)row.Date).Date, row => (double)(int)row.Count);
+
+        var result = new Dictionary<DateTime, double>();
+        for (var day = start; day <= end; day = day.AddDays(1))
+            result[day] = grouped.TryGetValue(day, out var count) ? count : 0d;
+        return result;
+    }
+
     public bool CheckConflict(int doctorId, DateTime date, TimeSpan time, int? excludeAppointmentId = null)
     {
         using var conn = _session.CreateConnection();

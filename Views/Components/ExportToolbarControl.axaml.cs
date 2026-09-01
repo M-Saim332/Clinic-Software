@@ -10,6 +10,7 @@ using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.Views.Components;
 
@@ -63,6 +64,7 @@ public partial class ExportToolbarControl : UserControl
 
         await using var stream = await file.OpenWriteAsync();
         var title = ReportName;
+        var clinicName = ClinicBrandingService.ClinicName;
         var filters = string.IsNullOrWhiteSpace(FilterSummary) ? "Current on-screen rows" : FilterSummary;
         var exportedAt = DateTime.Now.ToString("dd MMM yyyy, hh:mm tt", CultureInfo.CurrentCulture);
 
@@ -75,7 +77,7 @@ public partial class ExportToolbarControl : UserControl
             {
                 header.Item().Background(Colors.Blue.Darken2).Padding(10).Column(col =>
                 {
-                    col.Item().Text("MediCompare").FontSize(16).Bold().FontColor(Colors.White);
+                    col.Item().Text(clinicName).FontSize(16).Bold().FontColor(Colors.White);
                     col.Item().Text(title).FontSize(11).FontColor(Colors.White);
                 });
                 header.Item().PaddingTop(6).Text($"Filters: {filters}    Exported: {exportedAt}").FontSize(8);

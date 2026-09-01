@@ -180,6 +180,7 @@ public partial class App : Application
 
         var settingsRepo = _services.GetRequiredService<SettingsRepository>();
         ClinicSystem.UI.Services.ThemeService.Initialize(settingsRepo);
+        ClinicSystem.UI.Services.ClinicBrandingService.Initialize(settingsRepo);
 
         ShowLoginWindow(desktop, previousWindow);
     }

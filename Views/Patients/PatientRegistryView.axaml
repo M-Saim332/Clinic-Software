@@ -69,8 +69,14 @@
                 <TabItem Header="Waiting Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Waiting Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
                         <comp:DataTableShellControl.HeaderActions>
-                            <comp:ExportToolbarControl ReportName="Clinic_Waiting_Patients" ItemsSource="{Binding FilteredPatients}"
-                                Columns="Name:Name:2|Age:Age|Phone:Phone|Appointment Time:AppointmentTimeDisplay|Reason of Visit:ReasonOfVisit:2"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox Width="230" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Search name, ID, phone...">
+                                    <TextBox.InnerLeftContent><materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="6,0,0,0"/></TextBox.InnerLeftContent>
+                                </TextBox>
+                                <comp:ExportToolbarControl ReportName="Clinic_Waiting_Patients" ItemsSource="{Binding FilteredPatients}"
+                                    Columns="Name:Name:2|Age:Age|Phone:Phone|Appointment Time:AppointmentTimeDisplay|Reason of Visit:ReasonOfVisit:2"/>
+                            </StackPanel>
                         </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>
@@ -111,8 +117,14 @@
                 <TabItem Header="Visited Today" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="Visited Today" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
                         <comp:DataTableShellControl.HeaderActions>
-                            <comp:ExportToolbarControl ReportName="Clinic_Visited_Today" ItemsSource="{Binding FilteredPatients}"
-                                Columns="Name:Name:2|Age:Age|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Last Visit:LastVisitDate"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox Width="230" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Search name, ID, phone...">
+                                    <TextBox.InnerLeftContent><materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="6,0,0,0"/></TextBox.InnerLeftContent>
+                                </TextBox>
+                                <comp:ExportToolbarControl ReportName="Clinic_Visited_Today" ItemsSource="{Binding FilteredPatients}"
+                                    Columns="Name:Name:2|Age:Age|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Last Visit:LastVisitDate"/>
+                            </StackPanel>
                         </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>
@@ -143,8 +155,14 @@
                 <TabItem Header="All Patients" FontSize="14" FontWeight="Medium">
                     <comp:DataTableShellControl Title="All Patients" RecordCount="{Binding FilteredPatients.Count}" Margin="0,12,0,0">
                         <comp:DataTableShellControl.HeaderActions>
-                            <comp:ExportToolbarControl ReportName="Clinic_All_Patients" ItemsSource="{Binding FilteredPatients}"
-                                Columns="Patient ID:PatientID|Name:Name:2|Age:Age|Gender:Gender|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Status:VisitStatus|Last Visit:LastVisitDate"/>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox Width="230" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         PlaceholderText="Search name, ID, phone...">
+                                    <TextBox.InnerLeftContent><materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16" Margin="6,0,0,0"/></TextBox.InnerLeftContent>
+                                </TextBox>
+                                <comp:ExportToolbarControl ReportName="Clinic_All_Patients" ItemsSource="{Binding FilteredPatients}"
+                                    Columns="Patient ID:PatientID|Name:Name:2|Age:Age|Gender:Gender|Phone:Phone|Reason of Visit:ReasonOfVisit:2|Status:VisitStatus|Last Visit:LastVisitDate"/>
+                            </StackPanel>
                         </comp:DataTableShellControl.HeaderActions>
 
                         <comp:DataTableShellControl.TableContent>

@@ -11,6 +11,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Returns;
 
@@ -74,11 +75,16 @@ public partial class ReturnHistoryViewModel : ViewModelBase, ISearchable
         {
             await using var stream = await file.OpenWriteAsync();
             var r = SelectedReturn;
+            var clinicName = ClinicBrandingService.ClinicName;
             Document.Create(c => c.Page(page =>
             {
                 page.Size(PageSizes.A4);
                 page.Margin(2, Unit.Centimetre);
-                page.Header().Text("MEDICINE RETURN INVOICE").FontSize(20).Bold().FontColor(Colors.Blue.Darken2);
+                page.Header().Column(header =>
+                {
+                    header.Item().Text(clinicName).FontSize(20).Bold().FontColor(Colors.Blue.Darken2);
+                    header.Item().Text($"Medicine Return Invoice | Exported: {DateTime.Now:dd MMM yyyy, hh:mm tt}").FontSize(9);
+                });
                 page.Content().PaddingTop(20).Column(col =>
                 {
                     col.Spacing(10);

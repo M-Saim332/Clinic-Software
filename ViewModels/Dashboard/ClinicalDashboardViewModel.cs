@@ -11,6 +11,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.Messaging;
+using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Dashboard;
 
@@ -31,11 +33,13 @@ public class RecentVisitItem
     public string Status { get; set; } = string.Empty;
 }
 
-public partial class ClinicalDashboardViewModel : ViewModelBase
+public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<AppointmentStatusChangedMessage>
 {
     private readonly AppointmentRepository _appointmentRepo;
     private readonly PatientRepository _patientRepo;
     private List<Appointment> _appointmentTrendSource = new();
+    private IReadOnlyDictionary<DateTime, double> _monthlyTrendCounts = new Dictionary<DateTime, double>();
+    private DateTime _trendToday = DateTime.Today;
 
     // KPIs
     [ObservableProperty] private int _todaysAppointments;
@@ -81,6 +85,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
     {
         _appointmentRepo = appointmentRepo;
         _patientRepo = patientRepo;
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     public async Task InitializeAsync()
@@ -94,7 +99,15 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             var patientList = patients.ToList();
             _appointmentTrendSource = appointmentList;
 
-            var today = DateTime.Today;
+            // Keep the range and SQL grouping on the database server's local
+            // calendar.  This prevents a UTC/client offset from placing 01 Sep
+            // appointments under 31 Aug.
+            var today = await Task.Run(_appointmentRepo.GetLocalCalendarToday);
+            _trendToday = today;
+            // Monthly chart is a rolling 30-day clinical trend, not only the days elapsed
+            // in the calendar month. The repository returns every date with zero-filled gaps.
+            var trendStart = today.AddDays(-29);
+            _monthlyTrendCounts = await Task.Run(() => _appointmentRepo.GetPatientTrendCounts(trendStart, today));
             var yesterday = today.AddDays(-1);
 
             // Calculate KPIs
@@ -178,7 +191,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
 
     private void BuildPatientTrendChart()
     {
-        var today = DateTime.Today;
+        var today = _trendToday;
         var appointments = _appointmentTrendSource;
 
         var points = SelectedPatientTrendRange switch
@@ -188,7 +201,10 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
                 new DateTime(today.Year, 12, 1),
                 appointments),
             "Lifetime" => BuildLifetimePoints(appointments, today),
-            _ => BuildDailyPoints(new DateTime(today.Year, today.Month, 1), today, appointments)
+            _ => BuildDailyPoints(
+                today.AddDays(-29),
+                today,
+                _monthlyTrendCounts)
         };
 
         PatientTrendSeries = new ISeries[]
@@ -201,7 +217,9 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
                 GeometrySize = 8,
                 GeometryStroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 2 },
                 GeometryFill = new SolidColorPaint(SKColors.White),
-                LineSmoothness = 0.45
+                // Straight segments and an anchored point geometry keep the hover target
+                // on the same axis coordinates as the rendered data node.
+                LineSmoothness = 0
             }
         };
 
@@ -210,23 +228,29 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
             new Axis
             {
                 Labels = points.Select(p => p.Label).ToArray(),
-                LabelsRotation = points.Count > 12 ? 35 : 0
+                LabelsRotation = points.Count > 12 ? 35 : 0,
+                TextSize = 9
             }
         };
-        YAxes = new Axis[] { new Axis { MinLimit = 0 } };
+        var maxValue = points.Count == 0 ? 0 : points.Max(p => p.Value);
+        YAxes = new Axis[]
+        {
+            new Axis
+            {
+                MinLimit = 0,
+                MaxLimit = Math.Max(1, Math.Ceiling(maxValue) + 1),
+                MinStep = 1,
+                TextSize = 10
+            }
+        };
     }
 
-    private static List<TrendPoint> BuildDailyPoints(DateTime startDate, DateTime endDate, IReadOnlyCollection<Appointment> appointments)
+    private static List<TrendPoint> BuildDailyPoints(DateTime startDate, DateTime endDate, IReadOnlyDictionary<DateTime, double> countsByDay)
     {
-        var appointmentsByDay = appointments
-            .Where(a => a.AppointmentDate.Date >= startDate.Date && a.AppointmentDate.Date <= endDate.Date)
-            .GroupBy(a => a.AppointmentDate.Date)
-            .ToDictionary(g => g.Key, g => (double)g.Count());
-
         var dayCount = Math.Max(1, (endDate.Date - startDate.Date).Days + 1);
         return Enumerable.Range(0, dayCount)
             .Select(i => startDate.AddDays(i))
-            .Select(d => new TrendPoint(d.ToString("dd MMM"), appointmentsByDay.TryGetValue(d.Date, out var count) ? count : 0))
+            .Select(d => new TrendPoint(d.ToString("dd MMM"), countsByDay.TryGetValue(d.Date, out var count) ? count : 0))
             .ToList();
     }
 
@@ -279,4 +303,6 @@ public partial class ClinicalDashboardViewModel : ViewModelBase
     }
 
     private readonly record struct TrendPoint(string Label, double Value);
+
+    public void Receive(AppointmentStatusChangedMessage message) => _ = InitializeAsync();
 }

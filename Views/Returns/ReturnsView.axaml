@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:ClinicSystem.UI.ViewModels.Returns"
-             xmlns:vmSub="using:ClinicSystem.UI.ViewModels.Returns"
              xmlns:models="using:ClinicSystem.Core.Models"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              xmlns:comp="using:ClinicSystem.UI.Views.Components"
@@ -9,403 +8,183 @@
              x:DataType="vm:ReturnsViewModel"
              x:CompileBindings="True"
              Background="{DynamicResource BrushBackground}">
-
   <Grid RowDefinitions="Auto,*">
-
-    <!-- ══════════════════════════════════════════════════
-         Header Bar
-    ══════════════════════════════════════════════════ -->
-    <Border Grid.Row="0"
-            Background="{DynamicResource BrushCardBackground}"
-            BorderBrush="{DynamicResource BrushLine}"
-            BorderThickness="0,0,0,1"
-            Padding="28,18">
-      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-        <Border Width="40" Height="40" CornerRadius="10"
-                Background="{DynamicResource BrushBlue50}">
+    <Border Grid.Row="0" Background="{DynamicResource BrushCardBackground}"
+            BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="28,18">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource BrushBlue50}">
           <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="20" Height="20"
                                       Foreground="{DynamicResource BrushPrimaryBlue}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Border>
-        <StackPanel VerticalAlignment="Center" Spacing="1">
-          <TextBlock Text="Returns" FontSize="20" FontWeight="Bold"
-                     Foreground="{DynamicResource BrushInk900}"
-                     FontFamily="{DynamicResource FontLexend}"/>
-          <TextBlock Text="Process patient refunds and supplier credits, or browse the full return ledger"
+        <StackPanel Spacing="2" VerticalAlignment="Center">
+          <TextBlock Text="Returns" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource BrushInk900}"/>
+          <TextBlock Text="Process patient refunds and supplier credits, or browse the return ledger"
                      FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
         </StackPanel>
       </StackPanel>
     </Border>
 
-    <!-- ══════════════════════════════════════════════════
-         TabControl  (same pattern as Reports page)
-    ══════════════════════════════════════════════════ -->
     <TabControl Grid.Row="1" Margin="28,20">
-
-      <!-- ── Tab 1: Process Return ─── -->
       <TabItem Header="Process Return">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-          <Grid ColumnDefinitions="3*,*">
-
-            <!-- ─── Left card: form ─── -->
-            <Border Grid.Column="0"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}"
-                    BorderThickness="1" CornerRadius="12"
-                    Padding="20" Margin="0,0,10,0">
-              <StackPanel Spacing="14"
-                          DataContext="{Binding ProcessReturn}">
-
-                <!-- Return Type + Patient/Supplier -->
-                <Grid ColumnDefinitions="*,*"
-                      IsEnabled="{Binding IsDraftInvoice}">
-                  <StackPanel Grid.Column="0" Spacing="5" Margin="0,0,6,0">
+          <Grid ColumnDefinitions="3*,*" ColumnSpacing="20">
+            <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
+                    BorderBrush="{DynamicResource BrushLine}" BorderThickness="1" CornerRadius="12" Padding="20"
+                    DataContext="{Binding ProcessReturn}">
+              <StackPanel Spacing="14">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsEnabled="{Binding IsDraftInvoice}">
+                  <StackPanel Grid.Column="0" Spacing="5">
                     <TextBlock Text="Return Type"/>
-                    <ComboBox ItemsSource="{Binding ReturnTypes}"
-                              SelectedItem="{Binding ReturnType}"
-                              HorizontalAlignment="Stretch"/>
+                    <ComboBox ItemsSource="{Binding ReturnTypes}" SelectedItem="{Binding ReturnType}"/>
                   </StackPanel>
-
-                  <!-- Patient selector -->
-                  <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"
-                              IsVisible="{Binding IsPatientReturn}">
+                  <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding IsPatientReturn}">
                     <TextBlock Text="Patient"/>
-                    <comp:SearchableComboBoxControl ItemsSource="{Binding Patients}"
-                                                   SelectedItem="{Binding SelectedPatient}"
-                                                   DisplayMemberPath="Name"
-                                                   DetailMemberPath="Phone"/>
+                    <comp:SearchableComboBoxControl ItemsSource="{Binding Patients}" SelectedItem="{Binding SelectedPatient}"
+                                                     DisplayMemberPath="Name" DetailMemberPath="Phone"/>
                   </StackPanel>
-
-                  <!-- Supplier selector -->
-                  <StackPanel Grid.Column="1" Spacing="5" Margin="6,0,0,0"
-                              IsVisible="{Binding IsSupplierReturn}">
+                  <StackPanel Grid.Column="1" Spacing="5" IsVisible="{Binding IsSupplierReturn}">
                     <TextBlock Text="Supplier"/>
-                    <comp:SearchableComboBoxControl ItemsSource="{Binding Suppliers}"
-                                                   SelectedItem="{Binding SelectedSupplier}"
-                                                   DisplayMemberPath="Name"
-                                                   DetailMemberPath="SCode"/>
+                    <comp:SearchableComboBoxControl ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}"
+                                                     DisplayMemberPath="Name" DetailMemberPath="SCode"/>
                   </StackPanel>
                 </Grid>
 
-                <!-- Optional invoice (patient only) -->
-                <StackPanel Spacing="5"
-                            IsVisible="{Binding IsPatientReturn}"
-                            IsEnabled="{Binding IsDraftInvoice}">
+                <StackPanel Spacing="5" IsVisible="{Binding IsPatientReturn}" IsEnabled="{Binding IsDraftInvoice}">
                   <TextBlock Text="Invoice No (optional)" Foreground="{DynamicResource BrushInk600}" FontSize="12"/>
-                  <comp:SearchableComboBoxControl ItemsSource="{Binding Sales}"
-                                                 SelectedItem="{Binding SelectedSale}"
-                                                 DisplayMemberPath="InvoiceNumber"
-                                                 DetailMemberPath="PatientName"/>
+                  <comp:SearchableComboBoxControl ItemsSource="{Binding Sales}" SelectedItem="{Binding SelectedSale}"
+                                                   DisplayMemberPath="InvoiceNumber" DetailMemberPath="PatientName"/>
                 </StackPanel>
 
-                <!-- ─── Medicine rows section ─── -->
-                <Border Background="{DynamicResource BrushBackground}"
-                        BorderBrush="{DynamicResource BrushLine}"
-                        BorderThickness="1" CornerRadius="8"
-                        Padding="12,10"
-                        IsEnabled="{Binding IsDraftInvoice}">
-                  <StackPanel Spacing="0">
-
-                    <!-- Header row -->
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,8">
+                <Border Background="{DynamicResource BrushBackground}" BorderBrush="{DynamicResource BrushLine}"
+                        BorderThickness="1" CornerRadius="8" Padding="12" IsEnabled="{Binding IsDraftInvoice}">
+                  <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto">
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="SELECT MEDICINES" FontSize="11" FontWeight="Bold"
-                                   LetterSpacing="1.2" Foreground="{DynamicResource BrushInk400}"
-                                   VerticalAlignment="Center"/>
-                        <Border Background="{DynamicResource BrushBlue50}"
-                                CornerRadius="4" Padding="6,2">
-                          <TextBlock Text="{Binding GlobalUnitLabel, StringFormat='Qty in: {0}'}"
-                                     FontSize="11" Foreground="{DynamicResource BrushPrimaryBlue}"
-                                     FontWeight="SemiBold"/>
+                        <TextBlock Text="SELECT MEDICINES" FontSize="11" FontWeight="Bold" LetterSpacing="1.2"
+                                   Foreground="{DynamicResource BrushInk400}"/>
+                        <Border Background="{DynamicResource BrushBlue50}" CornerRadius="4" Padding="6,2">
+                          <TextBlock Text="{Binding GlobalUnitLabel, StringFormat='Qty in: {0}'}" FontSize="11"
+                                     Foreground="{DynamicResource BrushPrimaryBlue}"/>
                         </Border>
                       </StackPanel>
-                      <!-- + button -->
-                      <Button Grid.Column="1"
-                              Command="{Binding AddRowCommand}"
-                              ToolTip.Tip="Add another medicine"
-                              Width="32" Height="32" Padding="0"
-                              HorizontalContentAlignment="Center"
-                              VerticalContentAlignment="Center"
-                              Classes="btn-primary"
-                              FontSize="18" FontWeight="Bold"
-                              Content="+"/>
+                      <Button Grid.Column="1" Command="{Binding AddRowCommand}" Content="+" Width="32" Height="32"
+                              Padding="0" Classes="btn-primary" FontSize="18"/>
                     </Grid>
 
-                    <!-- Column headers -->
-                    <Grid ColumnDefinitions="*,100,90,110,38" Margin="0,0,0,4">
-                      <TextBlock Grid.Column="0" Text="MEDICINE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="2,0"/>
-                      <TextBlock Grid.Column="1" Text="QTY"      FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="6,0,0,0"/>
-                      <TextBlock Grid.Column="2" Text="UNIT"     FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="4,0,0,0"/>
-                      <TextBlock Grid.Column="3" Text="REFUND"   FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}" Margin="6,0,0,0"/>
+                    <Grid ColumnDefinitions="2*,120,88,120,34">
+                      <TextBlock Text="MEDICINE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                      <TextBlock Grid.Column="1" Text="QTY" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                      <TextBlock Grid.Column="2" Text="UNIT" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
+                      <TextBlock Grid.Column="3" Text="REFUND" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BrushInk400}"/>
                     </Grid>
 
-                    <!-- Dynamic rows -->
                     <ItemsControl ItemsSource="{Binding ReturnRows}">
                       <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vmSub:ReturnRow">
-                          <Border Margin="0,0,0,6"
-                                  Background="{DynamicResource BrushCardBackground}"
-                                  BorderBrush="{DynamicResource BrushLine}"
-                                  BorderThickness="1" CornerRadius="6"
-                                  Padding="8,8">
+                        <DataTemplate>
+                          <Border Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}"
+                                  BorderThickness="1" CornerRadius="6" Padding="8">
                             <StackPanel Spacing="4">
-                              <Grid ColumnDefinitions="*,100,90,110,38" MinHeight="36">
-                                <comp:SearchableComboBoxControl
-                                    Grid.Column="0"
-                                    ItemsSource="{Binding $parent[UserControl].((vm:ReturnsViewModel)DataContext).ProcessReturn.Products}"
-                                    SelectedItem="{Binding SelectedProduct}"
-                                    DisplayMemberPath="Name"
-                                    DetailMemberPath="Type"
-                                    Placeholder="Search medicine..."
-                                    Margin="0,0,6,0"/>
-
-                                <NumericUpDown Grid.Column="1"
-                                              Value="{Binding EnteredQuantity}"
-                                              Minimum="1"
-                                              Maximum="{Binding MaxQuantity}"
-                                              Margin="0,0,4,0"/>
-
-                                <Border Grid.Column="2"
-                                        Background="{DynamicResource BrushBlue50}"
-                                        CornerRadius="4" Padding="6,4"
-                                        VerticalAlignment="Center" Margin="0,0,4,0">
-                                  <TextBlock Text="{Binding UnitLabel}"
-                                             FontSize="12" FontWeight="SemiBold"
-                                             Foreground="{DynamicResource BrushPrimaryBlue}"
-                                             HorizontalAlignment="Center"/>
+                              <Grid ColumnDefinitions="2*,120,88,120,34">
+                                <comp:SearchableComboBoxControl Grid.Column="0" ItemsSource="{Binding $parent[UserControl].DataContext.ProcessReturn.Products}"
+                                                                 SelectedItem="{Binding SelectedProduct}" DisplayMemberPath="Name"
+                                                                 DetailMemberPath="Type" Placeholder="Search medicine..."/>
+                                <NumericUpDown Grid.Column="1" Value="{Binding EnteredQuantity}" Minimum="1"
+                                               Maximum="{Binding MaxQuantity}" FormatString="0" Width="110"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border Grid.Column="2" Background="{DynamicResource BrushBlue50}" CornerRadius="4" Padding="6,4">
+                                  <TextBlock Text="{Binding UnitLabel}" HorizontalAlignment="Center" FontWeight="SemiBold"
+                                             Foreground="{DynamicResource BrushPrimaryBlue}"/>
                                 </Border>
-
-                                <TextBlock Grid.Column="3"
-                                           Text="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}"
-                                           VerticalAlignment="Center" FontWeight="SemiBold"
-                                           Margin="4,0"/>
-
-                                <Button Grid.Column="4"
-                                        Command="{Binding $parent[UserControl].((vm:ReturnsViewModel)DataContext).ProcessReturn.RemoveRowCommand}"
-                                        CommandParameter="{Binding}"
-                                        Content="−"
-                                        Width="30" Height="30" Padding="0"
-                                        HorizontalContentAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        FontSize="16"
-                                        Classes="btn-secondary"/>
+                                <TextBlock Grid.Column="3" Text="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}"
+                                           VerticalAlignment="Center" FontWeight="Bold" Margin="8,0"/>
+                                <Button Grid.Column="4" Command="{Binding $parent[UserControl].DataContext.ProcessReturn.RemoveRowCommand}"
+                                        CommandParameter="{Binding}" Content="−" Width="28" Height="28" Padding="0" Classes="btn-secondary"/>
                               </Grid>
-
-                              <TextBlock Text="{Binding StockInfo}"
-                                         FontSize="11"
-                                         Foreground="{DynamicResource BrushInk500}"
-                                         IsVisible="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                         Margin="4,0,0,0"/>
+                              <ComboBox ItemsSource="{Binding SelectedProduct.StockEntries}" SelectedItem="{Binding SelectedBatch}"
+                                        DisplayMemberBinding="{Binding BatchDisplay}" MinHeight="30"
+                                        IsVisible="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                              <TextBlock Text="{Binding StockInfo}" FontSize="11" Foreground="{DynamicResource BrushInk500}"
+                                         IsVisible="{Binding SelectedProduct, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                             </StackPanel>
                           </Border>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
-
-                    <Button Command="{Binding AddReturnItemCommand}"
-                            Classes="btn-secondary"
-                            Content="✓  Add to Invoice"
-                            Margin="0,6,0,0"
+                    <Button Command="{Binding AddReturnItemCommand}" Content="✓  Add to Invoice" Classes="btn-secondary"
                             IsVisible="{Binding IsDraftInvoice}"/>
                   </StackPanel>
                 </Border>
 
-                <!-- Reason & Notes -->
-                <TextBox Text="{Binding Reason}"
-                         PlaceholderText="Reason / notes (optional)"
-                         IsEnabled="{Binding IsDraftInvoice}"/>
+                <TextBox Text="{Binding Reason}" PlaceholderText="Reason (optional)" IsEnabled="{Binding IsDraftInvoice}"/>
+                <TextBox Text="{Binding Notes}" PlaceholderText="Additional notes (optional)" AcceptsReturn="True"
+                         Height="55" TextWrapping="Wrap" IsEnabled="{Binding IsDraftInvoice}"/>
 
-                <TextBox Text="{Binding Notes}"
-                         PlaceholderText="Additional notes (optional)"
-                         AcceptsReturn="True"
-                         Height="55" TextWrapping="Wrap"
-                         IsEnabled="{Binding IsDraftInvoice}"/>
-
-                <!-- Invoice staging DataGrid -->
-                <DataGrid ItemsSource="{Binding ReturnItems}"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          MaxHeight="200"
-                          HorizontalScrollBarVisibility="Auto"
-                          GridLinesVisibility="Horizontal"
-                          Background="Transparent"
-                          BorderThickness="0">
-                  <DataGrid.Styles>
-                    <Style Selector="DataGridColumnHeader">
-                      <Setter Property="Padding" Value="10,10"/>
-                    </Style>
-                    <Style Selector="DataGridCell">
-                      <Setter Property="Padding" Value="10,10"/>
-                    </Style>
-                  </DataGrid.Styles>
+                <DataGrid ItemsSource="{Binding ReturnItems}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="190">
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}"  Width="*"    MinWidth="200"/>
-                    <DataGridTextColumn Header="TYPE"     Binding="{Binding ProductType}"  Width="Auto" MinWidth="110"/>
-                    <DataGridTextColumn Header="QTY"      Binding="{Binding EnteredQuantity}" Width="Auto" MinWidth="70"/>
-                    <DataGridTextColumn Header="PIECES"   Binding="{Binding Quantity}"     Width="Auto" MinWidth="80"/>
-                    <DataGridTextColumn Header="AMOUNT"   Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="110"/>
-                    <DataGridTemplateColumn Header="ACTIONS" Width="Auto" MinWidth="70">
-                      <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate x:DataType="models:ReturnItem">
-                          <Button Command="{Binding $parent[UserControl].((vm:ReturnsViewModel)DataContext).ProcessReturn.RemoveReturnItemCommand}"
-                                  CommandParameter="{Binding}"
-                                  Content="×"
-                                  Classes="btn-danger"
-                                  Padding="4" Width="24" Height="24"
-                                  HorizontalAlignment="Center"
-                                  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                  IsVisible="{Binding $parent[UserControl].((vm:ReturnsViewModel)DataContext).ProcessReturn.IsDraftInvoice}"/>
-                        </DataTemplate>
-                      </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}" Width="*"/>
+                    <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="110"/>
+                    <DataGridTextColumn Header="PIECES" Binding="{Binding Quantity}" Width="80"/>
+                    <DataGridTextColumn Header="REFUND" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="120"/>
                   </DataGrid.Columns>
                 </DataGrid>
 
-                <!-- Summary card -->
-                <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="14">
-                  <StackPanel Spacing="4">
+                <Border Background="{DynamicResource BrushBlue50}" CornerRadius="8" Padding="12">
+                  <StackPanel Spacing="3">
                     <TextBlock Text="{Binding StockQuantity, StringFormat='Total pieces adjusted: {0}'}"/>
                     <TextBlock Text="{Binding RefundAmount, StringFormat='Refund / credit: Rs. {0:N2}'}"
-                               FontSize="15" FontWeight="Bold"
-                               Foreground="{DynamicResource BrushPrimaryBlue}"/>
+                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushPrimaryBlue}"/>
                   </StackPanel>
                 </Border>
-
-                <TextBlock Text="{Binding StatusMessage}"
-                           Margin="0,4,0,0"
-                           Foreground="{DynamicResource BrushRose}"
-                           IsHitTestVisible="False"/>
-
-                <!-- Action buttons -->
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" TextWrapping="Wrap"/>
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                  <Button Command="{Binding ProcessReturnCommand}"
-                          Classes="btn-primary"
-                          Content="Check Invoice"
-                          IsVisible="{Binding IsDraftInvoice}"/>
-                  <Button Command="{Binding EditInvoiceCommand}"
-                          Classes="btn-secondary"
-                          Content="Edit Draft"
-                          IsVisible="{Binding IsCheckingInvoice}"/>
-                  <Button Command="{Binding ProcessReturnCommand}"
-                          Classes="btn-primary"
-                          IsVisible="{Binding IsCheckingInvoice}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/>
-                      <TextBlock Text="Post Invoice"/>
-                    </StackPanel>
-                  </Button>
-                  <Button Command="{Binding NewReturnCommand}"
-                          Classes="btn-secondary"
-                          Content="New Return"
-                          IsVisible="{Binding IsPostedInvoice}"/>
+                  <Button Command="{Binding CheckInvoiceCommand}" Content="Check Invoice" Classes="btn-primary" IsVisible="{Binding IsDraftInvoice}"/>
+                  <Button Command="{Binding EditDraftCommand}" Content="Edit Draft" Classes="btn-secondary" IsVisible="{Binding IsCheckingInvoice}"/>
+                  <Button Command="{Binding PostReturnCommand}" Content="Post Invoice" Classes="btn-primary" IsVisible="{Binding IsCheckingInvoice}"/>
+                  <Button Command="{Binding NewReturnCommand}" Content="New Return" Classes="btn-secondary" IsVisible="{Binding IsPostedInvoice}"/>
                 </StackPanel>
-
               </StackPanel>
             </Border>
 
-            <!-- ─── Right policy card ─── -->
-            <Border Grid.Column="1"
-                    Background="{DynamicResource BrushCardBackground}"
-                    BorderBrush="{DynamicResource BrushLine}"
-                    BorderThickness="1" CornerRadius="12"
-                    Padding="14" Margin="10,0,0,0"
-                    VerticalAlignment="Top"
-                    DataContext="{Binding ProcessReturn}">
+            <Border Grid.Column="1" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}"
+                    BorderThickness="1" CornerRadius="12" Padding="16" VerticalAlignment="Top" DataContext="{Binding ProcessReturn}">
               <StackPanel Spacing="10">
-                <TextBlock Text="RETURN POLICY" FontSize="10" FontWeight="Bold"
-                           Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.2"/>
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BrushInk600}">
-                  <Run Text="Patient returns"/>
-                  <Run Text=" restore stock in Pieces." FontWeight="SemiBold"/>
-                </TextBlock>
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BrushInk600}">
-                  <Run Text="Supplier returns"/>
-                  <Run Text=" deduct stock in Packs (qty × tablets/pack)." FontWeight="SemiBold"/>
-                </TextBlock>
-                <TextBlock Text="Posted returns are immutable and retained for audit."
-                           TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
-                <TextBlock Text="Use + to add multiple medicines in one transaction."
-                           TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource BrushInk600}"/>
+                <TextBlock Text="RETURN POLICY" FontSize="11" FontWeight="Bold" LetterSpacing="1.2" Foreground="{DynamicResource BrushInk400}"/>
+                <TextBlock Text="Patient returns restore stock in pieces at the per-piece MRP." TextWrapping="Wrap"/>
+                <TextBlock Text="Supplier returns deduct stock in packs at the full Pack TP." TextWrapping="Wrap"/>
+                <TextBlock Text="Check Invoice is a preview only. Stock changes only after Post Invoice." TextWrapping="Wrap"/>
               </StackPanel>
             </Border>
-
           </Grid>
         </ScrollViewer>
       </TabItem>
 
-      <!-- ── Tab 2: Return History ─── -->
       <TabItem Header="Return History">
         <Grid RowDefinitions="Auto,*,Auto">
-
-          <!-- Toolbar -->
-          <StackPanel Grid.Row="0"
-                      Orientation="Horizontal" Spacing="8"
-                      HorizontalAlignment="Right"
-                      Margin="0,0,0,12"
-                      DataContext="{Binding ReturnHistory}">
-            <TextBox Width="240" Text="{Binding SearchTerm}"
-                     PlaceholderText="Search returns..."
-                     VerticalAlignment="Center">
-              <TextBox.InnerLeftContent>
-                <materialIcons:MaterialIcon Kind="Magnify" Width="16" Height="16"
-                                            Foreground="{DynamicResource BrushInk400}"
-                                            Margin="6,0,0,0"/>
-              </TextBox.InnerLeftContent>
-            </TextBox>
-            <Button Command="{Binding GenerateReturnInvoiceCommand}" Classes="btn-secondary">
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="📄"/>
-                <TextBlock Text="Save as PDF"/>
-              </StackPanel>
-            </Button>
+          <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,0,0,12" DataContext="{Binding ReturnHistory}">
+            <TextBox Width="240" Text="{Binding SearchTerm}" PlaceholderText="Search returns..."/>
+            <Button Command="{Binding GenerateReturnInvoiceCommand}" Content="Save as PDF" Classes="btn-secondary"/>
           </StackPanel>
-
-          <!-- Ledger DataGrid -->
-          <Border Grid.Row="1"
-                  Background="{DynamicResource BrushCardBackground}"
-                  BorderBrush="{DynamicResource BrushLine}"
-                  BorderThickness="1" CornerRadius="12"
-                  ClipToBounds="True">
-            <DataGrid ItemsSource="{Binding ReturnHistory.Returns}"
-                      SelectedItem="{Binding ReturnHistory.SelectedReturn}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      GridLinesVisibility="Horizontal"
-                      Background="Transparent"
-                      BorderThickness="0"
-                      HorizontalScrollBarVisibility="Auto">
-              <DataGrid.Styles>
-                <Style Selector="DataGridColumnHeader">
-                  <Setter Property="Padding" Value="10,12"/>
-                </Style>
-                <Style Selector="DataGridCell">
-                  <Setter Property="Padding" Value="10,12"/>
-                </Style>
-              </DataGrid.Styles>
+          <Border Grid.Row="1" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}"
+                  BorderThickness="1" CornerRadius="12" ClipToBounds="True">
+            <DataGrid ItemsSource="{Binding ReturnHistory.Returns}" SelectedItem="{Binding ReturnHistory.SelectedReturn}"
+                      AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column" HorizontalScrollBarVisibility="Disabled">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="RETURN NO"            Binding="{Binding ReturnNo}"              Width="Auto" MinWidth="120"/>
-                <DataGridTextColumn Header="DATE &amp; TIME"      Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="Auto" MinWidth="145"/>
-                <DataGridTextColumn Header="TYPE"                 Binding="{Binding ReturnType}"             Width="Auto" MinWidth="120"/>
-                <DataGridTextColumn Header="MEDICINE"             Binding="{Binding ProductName}"            Width="*"    MinWidth="200"/>
-                <DataGridTextColumn Header="PIECES"               Binding="{Binding Quantity}"               Width="Auto" MinWidth="80"/>
-                <DataGridTextColumn Header="PATIENT / SUPPLIER"   Binding="{Binding PatientName}"            Width="*"    MinWidth="160"/>
-                <DataGridTextColumn Header="REFUND AMOUNT"        Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="Auto" MinWidth="120"/>
-                <DataGridTextColumn Header="PROCESSED BY"         Binding="{Binding CreatedByName}"          Width="Auto" MinWidth="130"/>
+                <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="120"/>
+                <DataGridTextColumn Header="DATE &amp; TIME" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="145"/>
+                <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="130"/>
+                <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductSummary}" Width="2*"/>
+                <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="100"/>
+                <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="1.4*"/>
+                <DataGridTextColumn Header="REFUND AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="135"/>
+                <DataGridTextColumn Header="PROCESSED BY" Binding="{Binding CreatedByName}" Width="135"/>
               </DataGrid.Columns>
             </DataGrid>
           </Border>
-
-          <!-- Status -->
-          <TextBlock Grid.Row="2"
-                     Text="{Binding ReturnHistory.StatusMessage}"
-                     Margin="0,8,0,0"
-                     Foreground="{DynamicResource BrushRose}"
-                     IsHitTestVisible="False"/>
-
+          <TextBlock Grid.Row="2" Text="{Binding ReturnHistory.StatusMessage}" Foreground="{DynamicResource BrushRose}" Margin="0,8"/>
         </Grid>
       </TabItem>
-
     </TabControl>
-
   </Grid>
 </UserControl>

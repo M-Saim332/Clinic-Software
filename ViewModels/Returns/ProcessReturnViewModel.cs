@@ -76,19 +76,30 @@ public partial class ProcessReturnViewModel : ViewModelBase
         try
         {
             IsBusy = true;
-            var products  = await Task.Run(_productRepo.GetAll);
+            var products  = await Task.Run(_productRepo.GetAll) ?? Enumerable.Empty<Product>();
             var patients  = await Task.Run(() => _patientRepo.GetAll());
             var suppliers = await Task.Run(_supplierRepo.GetAll);
             var sales     = await Task.Run(_saleRepo.GetAll);
 
-            Products  = new ObservableCollection<Product>(products.Where(p => p.IsReturnable));
+            Products  = new ObservableCollection<Product>(products.Where(p => p != null && p.IsReturnable));
             Patients  = new ObservableCollection<Patient>(patients);
             Suppliers = new ObservableCollection<Supplier>(suppliers);
             Sales     = new ObservableCollection<Sale>(sales.Where(s => s.IsPosted));
             
             StatusMessage = "Process return module loaded.";
         }
-        catch (Exception ex) { StatusMessage = $"Failed to load data: {ex.Message}"; }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RETURNS INIT ERROR] {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+
+            // Preserve a renderable form if the database/schema is temporarily
+            // unavailable.  A failed data load must never collapse the Returns UI.
+            Products = new ObservableCollection<Product>();
+            Patients = new ObservableCollection<Patient>();
+            Suppliers = new ObservableCollection<Supplier>();
+            Sales = new ObservableCollection<Sale>();
+            StatusMessage = $"Returns data could not be loaded: {ex.Message}";
+        }
         finally { IsBusy = false; }
     }
 
@@ -141,9 +152,14 @@ public partial class ProcessReturnViewModel : ViewModelBase
                 ProductId       = product.ProductID,
                 ProductName     = product.Name,
                 ProductType     = product.Type,
+                StockID         = row.SelectedBatch?.StockID,
                 EnteredQuantity = row.EnteredQuantity,
                 UnitType        = unitLabel,
                 Quantity        = piecesQty,
+                PiecesPerPack   = Math.Max(1, product.PiecesPerUnit),
+                UnitPrice       = IsPatientReturn
+                    ? Math.Round((row.SelectedBatch?.MRP > 0 ? row.SelectedBatch.MRP : product.SellingPrice) / Math.Max(1, product.PiecesPerUnit), 2, MidpointRounding.AwayFromZero)
+                    : (row.SelectedBatch?.PurchasePrice > 0 ? row.SelectedBatch.PurchasePrice : product.Rate),
                 Reason          = string.IsNullOrWhiteSpace(Reason) ? null : Reason.Trim(),
                 RefundAmount    = row.RefundAmount,
             });
@@ -151,8 +167,6 @@ public partial class ProcessReturnViewModel : ViewModelBase
 
         ReturnRows.Clear();
         ReturnRows.Add(new ReturnRow(this));
-        Reason = string.Empty;
-
         OnPropertyChanged(nameof(StockQuantity));
         OnPropertyChanged(nameof(RefundAmount));
         StatusMessage = $"{ReturnItems.Count} item(s) ready for invoice check.";
@@ -170,19 +184,25 @@ public partial class ProcessReturnViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ProcessReturnAsync()
+    private void CheckInvoice()
     {
+        if (IsBusy || !IsDraftInvoice) return;
         if (ReturnRows.Any(r => r.SelectedProduct != null))
             AddReturnItem();
 
         if (ReturnItems.Count == 0) { StatusMessage = "Add at least one medicine."; return; }
 
-        if (InvoiceState == InvoiceState.Draft)
-        {
-            InvoiceState = InvoiceState.Checking;
-            StatusMessage = "Return invoice ready for review. Post when confirmed.";
-            return;
-        }
+        // This is deliberately an in-memory state transition. No Return, ReturnItem,
+        // or ProductStock record is created or updated until PostReturn is invoked.
+        InvoiceState = InvoiceState.Checking;
+        StatusMessage = "Return invoice ready for review. Post when confirmed.";
+    }
+
+    [RelayCommand]
+    private async Task PostReturnAsync()
+    {
+        if (IsBusy || !IsCheckingInvoice) return;
+        if (ReturnItems.Count == 0) { StatusMessage = "Add at least one medicine."; return; }
 
         if (IsPatientReturn && SelectedPatient == null)  { StatusMessage = "Select the patient returning the medicine."; return; }
         if (IsSupplierReturn && SelectedSupplier == null) { StatusMessage = "Select the supplier receiving the return."; return; }
@@ -206,6 +226,7 @@ public partial class ProcessReturnViewModel : ViewModelBase
             ReturnNo     = $"RET-{DateTime.Now:yyyyMMddHHmmssfff}",
             ProductId    = ReturnItems[0].ProductId,
             Quantity     = ReturnItems.Sum(i => i.Quantity),
+            EnteredQuantity = ReturnItems.Sum(i => i.EnteredQuantity),
             UnitType     = unitType,
             StockQuantity = ReturnItems.Sum(i => i.Quantity),
             ReturnType   = ReturnType,
@@ -229,8 +250,8 @@ public partial class ProcessReturnViewModel : ViewModelBase
             LogActivity(ReturnType, $"{ret.ReturnNo}: {ret.Items.Count} item(s), Rs. {ret.RefundAmount:N2}", "Returns");
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             WeakReferenceMessenger.Default.Send(new RefundCompletedMessage());
-            ClearForm();
-            await InitializeAsync();
+            // Keep the posted invoice visible for review. The operator explicitly
+            // starts a clean form through NewReturn, which calls ClearForm().
             StatusMessage = $"Return {ret.ReturnNo} processed. Amount: Rs. {ret.RefundAmount:N2}.";
         }
         catch (Exception ex) { StatusMessage = $"Return failed: {ex.Message}"; }
@@ -251,7 +272,16 @@ public partial class ProcessReturnViewModel : ViewModelBase
         OnPropertyChanged(nameof(RefundAmount));
     }
 
-    [RelayCommand] private void EditInvoice()  { if (!IsPostedInvoice) InvoiceState = InvoiceState.Draft; }
+    [RelayCommand]
+    private void EditDraft()
+    {
+        if (IsCheckingInvoice)
+        {
+            InvoiceState = InvoiceState.Draft;
+            StatusMessage = "Draft restored. Update the medicines or quantities, then check it again.";
+        }
+    }
+
     [RelayCommand] private void NewReturn()    { ClearForm(); InvoiceState = InvoiceState.Draft; StatusMessage = "New return draft."; }
 
     partial void OnReturnTypeChanged(string value)

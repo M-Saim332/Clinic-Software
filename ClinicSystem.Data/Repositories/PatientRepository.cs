@@ -32,14 +32,20 @@ public class PatientRepository
             "SELECT * FROM Patients WHERE PatientID = @id AND IsActive = 1", new { id });
     }
 
-    public IEnumerable<Patient> Search(string term)
+    /// <summary>Case-insensitive wildcard search over the patient registry's searchable identifiers.</summary>
+    public IEnumerable<Patient> Search(string searchText, string context = "Clinical")
     {
         using var conn = _session.CreateConnection();
         return conn.Query<Patient>(
-            @"SELECT * FROM Patients
-              WHERE IsActive = 1 AND (Name LIKE @term OR Phone LIKE @term OR CNIC LIKE @term)
-              ORDER BY Name",
-            new { term = $"%{term}%" });
+            @"SELECT PatientID, Name, Age, Gender, Phone, CNIC, Address, ReasonOfVisit, PatientContext,
+                     NextAppointmentDate, NextAppointmentTime, VisitStatus, LastVisitDate, IsActive
+              FROM Patients
+              WHERE IsActive = 1
+                AND (PatientContext=@context OR PatientContext='Both')
+                AND (Name LIKE @term OR Phone LIKE @term OR CNIC LIKE @term
+                     OR CONVERT(NVARCHAR(20), PatientID) LIKE @term)
+              ORDER BY Name ASC",
+            new { term = $"%{searchText.Trim()}%", context });
     }
 
     public int Insert(Patient p)

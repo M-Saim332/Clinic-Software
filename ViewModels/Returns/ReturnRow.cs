@@ -24,6 +24,13 @@ public partial class ReturnRow : ObservableObject
     private Product? _selectedProduct;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(StockInfo))]
+    [NotifyPropertyChangedFor(nameof(MaxQuantity))]
+    [NotifyPropertyChangedFor(nameof(PiecesQuantity))]
+    [NotifyPropertyChangedFor(nameof(RefundAmount))]
+    private ProductStock? _selectedBatch;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PiecesQuantity))]
     [NotifyPropertyChangedFor(nameof(RefundAmount))]
     private int _enteredQuantity = 1;
@@ -36,12 +43,18 @@ public partial class ReturnRow : ObservableObject
         OnPropertyChanged(nameof(RefundAmount));
         OnPropertyChanged(nameof(MaxQuantity));
         OnPropertyChanged(nameof(StockInfo));
+        OnPropertyChanged(nameof(SelectedBatch));
     }
 
     partial void OnSelectedProductChanged(Product? value)
     {
         // Reset quantity on medicine change
         EnteredQuantity = 1;
+        // Match the repository fallback: newest active batch when no explicit selection is made.
+        SelectedBatch = value?.StockEntries
+            .Where(s => s.QuantityAvailable > 0 && !s.IsArchived)
+            .OrderByDescending(s => s.ExpiryDate)
+            .FirstOrDefault();
         OnPropertyChanged(nameof(UnitLabel));
         OnPropertyChanged(nameof(StockInfo));
         OnPropertyChanged(nameof(MaxQuantity));
@@ -79,15 +92,16 @@ public partial class ReturnRow : ObservableObject
         get
         {
             if (SelectedProduct == null) return 0;
-            var unitPrice = _parent.IsPatientReturn
-                ? SelectedProduct.SellingPrice
-                : SelectedProduct.PurchasePrice;
             if (_parent.IsPatientReturn)
-                return EnteredQuantity * (SelectedProduct.PiecesPerUnit > 0
-                    ? Math.Round(unitPrice / SelectedProduct.PiecesPerUnit, 2, MidpointRounding.AwayFromZero)
-                    : unitPrice);
-            // Supplier: entered Packs × PurchasePrice per pack
-            return EnteredQuantity * unitPrice;
+            {
+                var packMrp = SelectedBatch?.MRP > 0 ? SelectedBatch.MRP : SelectedProduct.SellingPrice;
+                return EnteredQuantity * Math.Round(packMrp / Math.Max(1, SelectedProduct.PiecesPerUnit), 2, MidpointRounding.AwayFromZero);
+            }
+
+            // Supplier returns are entered in packs and therefore use the full batch TP,
+            // never the master product's per-piece landed cost.
+            var packTradePrice = SelectedBatch?.PurchasePrice > 0 ? SelectedBatch.PurchasePrice : SelectedProduct.Rate;
+            return EnteredQuantity * packTradePrice;
         }
     }
 
@@ -97,10 +111,11 @@ public partial class ReturnRow : ObservableObject
         get
         {
             if (SelectedProduct == null) return 9999;
-            if (_parent.IsPatientReturn) return SelectedProduct.TotalStock > 0 ? SelectedProduct.TotalStock : 9999;
+            var availablePieces = SelectedBatch?.QuantityAvailable ?? SelectedProduct.TotalStock;
+            if (_parent.IsPatientReturn) return availablePieces > 0 ? availablePieces : 9999;
             // Supplier: max packs = Stock / PiecesPerUnit
             var ppu = SelectedProduct.PiecesPerUnit < 1 ? 1 : SelectedProduct.PiecesPerUnit;
-            return SelectedProduct.TotalStock > 0 ? Math.Max(1, SelectedProduct.TotalStock / ppu) : 9999;
+            return availablePieces > 0 ? availablePieces / ppu : 9999;
         }
     }
 
@@ -110,9 +125,11 @@ public partial class ReturnRow : ObservableObject
         get
         {
             if (SelectedProduct == null) return string.Empty;
+            var availablePieces = SelectedBatch?.QuantityAvailable ?? SelectedProduct.TotalStock;
+            var ppu = Math.Max(1, SelectedProduct.PiecesPerUnit);
             return _parent.IsPatientReturn
-                ? $"Stock: {SelectedProduct.TotalStock} pcs | Sell Rs.{SelectedProduct.SellingPrice:N2}"
-                : $"Stock: {SelectedProduct.TotalStock} pcs ({SelectedProduct.FullPacksInStock} packs) | Buy Rs.{SelectedProduct.PurchasePrice:N2}";
+                ? $"Stock: {availablePieces:N0} pcs ({availablePieces / ppu:N0} packs) | Rate: Rs. {Math.Round((SelectedBatch?.MRP > 0 ? SelectedBatch.MRP : SelectedProduct.SellingPrice) / ppu, 2, MidpointRounding.AwayFromZero):N2}/pc"
+                : $"Stock: {availablePieces:N0} pcs ({availablePieces / ppu:N0} packs) | Pack TP: Rs. {(SelectedBatch?.PurchasePrice > 0 ? SelectedBatch.PurchasePrice : SelectedProduct.Rate):N2}";
         }
     }
 
@@ -126,14 +143,15 @@ public partial class ReturnRow : ObservableObject
         {
             if (SelectedProduct == null) return "Select a medicine.";
             if (EnteredQuantity <= 0) return "Quantity must be > 0.";
-            if (_parent.IsPatientReturn && PiecesQuantity > SelectedProduct.TotalStock)
-                return $"Only {SelectedProduct.TotalStock} pieces in stock.";
+            var availablePieces = SelectedBatch?.QuantityAvailable ?? SelectedProduct.TotalStock;
+            if (_parent.IsPatientReturn && PiecesQuantity > availablePieces)
+                return $"Only {availablePieces} pieces in stock.";
             if (!_parent.IsPatientReturn)
             {
                 var ppu = SelectedProduct.PiecesPerUnit < 1 ? 1 : SelectedProduct.PiecesPerUnit;
-                var maxPacks = SelectedProduct.TotalStock / ppu;
+                var maxPacks = availablePieces / ppu;
                 if (EnteredQuantity > maxPacks)
-                    return $"Only {maxPacks} pack(s) in stock ({SelectedProduct.TotalStock} pcs).";
+                    return $"Only {maxPacks} pack(s) in stock ({availablePieces} pcs).";
             }
             return string.Empty;
         }

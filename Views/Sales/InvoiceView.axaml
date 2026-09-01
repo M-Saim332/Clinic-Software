@@ -111,7 +111,7 @@
                     <!-- Footer Warranty -->
                     <StackPanel Spacing="4" Margin="0,8,0,0">
                         <TextBlock Text="Thank you for your visit!" HorizontalAlignment="Center" FontWeight="Bold"/>
-                        <TextBlock Text="Software by MediCompare" FontSize="9" HorizontalAlignment="Center" Foreground="Gray"/>
+                        <TextBlock Text="{Binding ClinicName}" FontSize="9" HorizontalAlignment="Center" Foreground="Gray"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

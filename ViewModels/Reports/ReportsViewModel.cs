@@ -14,6 +14,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using ClosedXML.Excel;
+using ClinicSystem.UI.Services;
 
 namespace ClinicSystem.UI.ViewModels.Reports;
 
@@ -238,10 +239,15 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         try
         {
             using var stream = new MemoryStream();
+            var clinicName = ClinicBrandingService.ClinicName;
             Document.Create(c => c.Page(page =>
             {
                 page.Size(PageSizes.A4); page.Margin(2, Unit.Centimetre);
-                page.Header().Text("Patient List Report").FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                page.Header().Column(header =>
+                {
+                    header.Item().Text(clinicName).FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                    header.Item().Text($"Patient List Report | Filters: Current list | Exported: {DateTime.Now:dd MMM yyyy, hh:mm tt}").FontSize(9);
+                });
                 page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
                 {
                     table.ColumnsDefinition(cols => { cols.ConstantColumn(50); cols.RelativeColumn(3); cols.ConstantColumn(60); cols.ConstantColumn(80); cols.RelativeColumn(2); cols.RelativeColumn(2); });
@@ -302,10 +308,15 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
         try
         {
             using var stream = new MemoryStream();
+            var clinicName = ClinicBrandingService.ClinicName;
             Document.Create(c => c.Page(page =>
             {
                 page.Size(PageSizes.A4); page.Margin(2, Unit.Centimetre);
-                page.Header().Text("Product Stock Report").FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                page.Header().Column(header =>
+                {
+                    header.Item().Text(clinicName).FontSize(18).SemiBold().FontColor(Colors.Blue.Darken2);
+                    header.Item().Text($"Inventory Valuation | Filters: Current stock | Exported: {DateTime.Now:dd MMM yyyy, hh:mm tt}").FontSize(9);
+                });
                 page.Content().PaddingVertical(1, Unit.Centimetre).Table(table =>
                 {
                     table.ColumnsDefinition(cols => { cols.RelativeColumn(3); cols.ConstantColumn(80); cols.ConstantColumn(80); cols.ConstantColumn(90); cols.RelativeColumn(2); });

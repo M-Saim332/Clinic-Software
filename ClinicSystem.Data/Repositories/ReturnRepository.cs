@@ -42,6 +42,7 @@ public class ReturnRepository
             var first = ret.Items.FirstOrDefault();
             ret.ProductName = first?.ProductName; ret.ProductId = first?.ProductId ?? ret.ProductId;
             ret.Quantity = ret.Items.Sum(i => i.Quantity); ret.StockQuantity = ret.Quantity;
+            ret.EnteredQuantity = ret.Items.Sum(i => i.EnteredQuantity);
             ret.RefundAmount = ret.Items.Sum(i => i.RefundAmount);
         }
     }
@@ -60,17 +61,17 @@ public class ReturnRepository
         ret.ReturnId = conn.ExecuteScalar<int>(@"INSERT INTO Returns
             (ReturnNo,ProductId,BatchNo,Quantity,UnitType,StockQuantity,ReturnType,Reason,Notes,PatientId,SupplierId,SaleId,
              RefundAmount,CreatedBy,CreatedAt,IsPosted,PostedAt)
-            VALUES (@ReturnNo,@ProductId,@BatchNo,@Quantity,'Pieces',@StockQuantity,@ReturnType,@Reason,@Notes,@PatientId,@SupplierId,@SaleId,
+            VALUES (@ReturnNo,@ProductId,@BatchNo,@Quantity,@UnitType,@StockQuantity,@ReturnType,@Reason,@Notes,@PatientId,@SupplierId,@SaleId,
              @RefundAmount,@CreatedBy,@CreatedAt,0,NULL); SELECT CONVERT(INT,SCOPE_IDENTITY());",
             new { ret.ReturnNo, ProductId=first.ProductId, ret.BatchNo, Quantity=ret.Items.Sum(i=>i.Quantity), StockQuantity=ret.Items.Sum(i=>i.Quantity),
-                ret.ReturnType, ret.Reason, ret.Notes, ret.PatientId, ret.SupplierId, ret.SaleId,
+                ret.UnitType, ret.ReturnType, ret.Reason, ret.Notes, ret.PatientId, ret.SupplierId, ret.SaleId,
                 RefundAmount=ret.Items.Sum(i=>i.RefundAmount), ret.CreatedBy, ret.CreatedAt }, tx);
         foreach (var item in ret.Items)
         {
             if (item.Quantity <= 0) throw new InvalidOperationException("Return quantities must be greater than zero.");
             item.ReturnId = ret.ReturnId;
-            conn.Execute(@"INSERT INTO ReturnItems (ReturnId,ProductId,Quantity,Reason,RefundAmount)
-                VALUES (@ReturnId,@ProductId,@Quantity,@Reason,@RefundAmount)", item, tx);
+            conn.Execute(@"INSERT INTO ReturnItems (ReturnId,ProductId,StockID,Quantity,EnteredQuantity,UnitType,UnitPrice,PiecesPerPack,Reason,RefundAmount)
+                VALUES (@ReturnId,@ProductId,@StockID,@Quantity,@EnteredQuantity,@UnitType,@UnitPrice,@PiecesPerPack,@Reason,@RefundAmount)", item, tx);
         }
         tx.Commit();
         if (postAfterSave) PostReturn(ret.ReturnId);
@@ -93,7 +94,7 @@ public class ReturnRepository
             DateTime? expiryDate = DateTime.TryParse(ret.BatchNo, out var parsedExpiry)
                 ? parsedExpiry.Date
                 : null;
-            var stockId = conn.ExecuteScalar<int?>(@"
+            var stockId = item.StockID ?? conn.ExecuteScalar<int?>(@"
                 SELECT TOP (1) StockID
                 FROM ProductStock WITH (UPDLOCK, HOLDLOCK)
                 WHERE ProductID = @ProductId

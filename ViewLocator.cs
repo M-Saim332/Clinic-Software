@@ -66,12 +66,34 @@ public class ViewLocator : IDataTemplate
             SettingsViewModel          => new SettingsView          { DataContext = param },
             InvoiceViewModel          => new InvoiceView          { DataContext = param },
             ProfileViewModel          => new ProfileView          { DataContext = param },
-            ReturnsViewModel          => new ReturnsView          { DataContext = param },
+            ReturnsViewModel returnsViewModel => BuildReturnsView(returnsViewModel),
             ProcessReturnViewModel    => new ProcessReturnView    { DataContext = param },
             ReturnHistoryViewModel    => new ReturnHistoryView    { DataContext = param },
             DiscountRefundViewModel   => new DiscountRefundPanel  { DataContext = param },
             _ => new TextBlock { Text = $"No view for {param?.GetType().Name}" }
         };
+    }
+
+    private static Control BuildReturnsView(ReturnsViewModel viewModel)
+    {
+        try
+        {
+            return new ReturnsView { DataContext = viewModel };
+        }
+        catch (Exception ex)
+        {
+            // Never leave the navigation content blank. This diagnostic surface
+            // gives a visible failure description while preserving the rest of the
+            // application, and writes the full exception for debugger inspection.
+            System.Diagnostics.Debug.WriteLine($"[RETURNS VIEW ERROR] {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+            return new TextBlock
+            {
+                Text = $"Returns could not open.{Environment.NewLine}{ex.Message}",
+                TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                Margin = new Avalonia.Thickness(28),
+                FontSize = 15
+            };
+        }
     }
 
     public bool Match(object? data) => data is ViewModelBase;

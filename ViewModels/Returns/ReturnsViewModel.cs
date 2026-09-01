@@ -25,7 +25,10 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
     public bool IsReturnHistoryTab  => ActiveTab == "ReturnHistory";
 
     public string SearchPlaceholder => "Search returns…";
-    public string StatusMessage     => IsReturnHistoryTab ? ReturnHistory.StatusMessage : ProcessReturn.StatusMessage;
+    private string _initializationError = string.Empty;
+    public string StatusMessage => !string.IsNullOrWhiteSpace(_initializationError)
+        ? _initializationError
+        : IsReturnHistoryTab ? ReturnHistory.StatusMessage : ProcessReturn.StatusMessage;
 
     [ObservableProperty] private string _searchTerm = string.Empty;
 
@@ -44,12 +47,32 @@ public partial class ReturnsViewModel : ViewModelBase, ISearchable
         });
     }
 
-    public async Task InitializeAsync()
+    public Task InitializeAsync() => LoadInitialDataAsync();
+
+    /// <summary>
+    /// Loads both tabs without letting a database or migration failure destabilize
+    /// the Avalonia navigation visual tree. Each child ViewModel also reports its
+    /// own detailed load error in its status area.
+    /// </summary>
+    public async Task LoadInitialDataAsync()
     {
-        await Task.WhenAll(
-            ProcessReturn.InitializeAsync(),
-            ReturnHistory.InitializeAsync()
-        );
+        try
+        {
+            _initializationError = string.Empty;
+            await Task.WhenAll(
+                ProcessReturn.InitializeAsync(),
+                ReturnHistory.InitializeAsync()
+            );
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[RETURNS INIT ERROR] {ex.Message}{Environment.NewLine}{ex.StackTrace}");
+            _initializationError = $"Returns data could not be loaded: {ex.Message}";
+        }
+        finally
+        {
+            OnPropertyChanged(nameof(StatusMessage));
+        }
     }
 
     partial void OnActiveTabChanged(string value)

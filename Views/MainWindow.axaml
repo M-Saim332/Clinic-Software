@@ -32,7 +32,7 @@
           </StackPanel>
 
           <!-- Middle: Global Search Bar -->
-          <TextBox Grid.Column="1" Width="360" HorizontalAlignment="Center" Text="{Binding SearchText}" PlaceholderText="Search patients, appointments, etc..." Background="{DynamicResource ThemeInputBackgroundBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}">
+          <TextBox Grid.Column="1" Width="360" HorizontalAlignment="Center" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Search patients, appointments, etc..." Background="{DynamicResource ThemeInputBackgroundBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource BrushLine}">
               <TextBox.InnerLeftContent>
                   <materialIcons:MaterialIcon Kind="Magnify" Width="18" Height="18" Foreground="{DynamicResource ThemeSubtleForegroundBrush}" Margin="12,0,8,0"/>
               </TextBox.InnerLeftContent>

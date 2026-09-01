@@ -8,6 +8,8 @@ public class ProductReturn
     public int ProductId { get; set; }
     public string BatchNo { get; set; } = string.Empty;
     public int Quantity { get; set; }
+    /// <summary>Total in the transaction unit (packs for supplier, pieces for patient).</summary>
+    public int EnteredQuantity { get; set; }
     public string UnitType { get; set; } = "Pieces";
     public int StockQuantity { get; set; }
     public string ReturnType { get; set; } = "Patient Return"; // Patient Return or Supplier Return
@@ -30,4 +32,5 @@ public class ProductReturn
     public string? SupplierName { get; set; }
     public string CounterpartyName => PatientName ?? SupplierName ?? string.Empty;
     public string ProductSummary => Items.Count > 1 ? $"{Items[0].ProductName} +{Items.Count - 1} more" : ProductName ?? string.Empty;
+    public string QuantityWithUnit => $"{EnteredQuantity:N0} {(UnitType == "Packs" ? "Packs" : "Pcs")}";
 }

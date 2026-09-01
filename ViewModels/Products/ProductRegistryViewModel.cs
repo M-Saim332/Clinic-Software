@@ -26,10 +26,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         _companyRepo = companyRepo;
         _returnRepo = returnRepo;
 
-        WeakReferenceMessenger.Default.Register<InventoryChangedMessage>(this, async (r, m) =>
-        {
-            await InitializeAsync();
-        });
+        // Static handler avoids capturing this in a delegate; the messenger retains only a weak recipient reference.
+        WeakReferenceMessenger.Default.Register<ProductRegistryViewModel, InventoryChangedMessage>(
+            this, static (recipient, message) => _ = recipient.InitializeAsync());
     }
 
     [ObservableProperty]
@@ -38,6 +37,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
     [ObservableProperty] private string _searchTerm = string.Empty;
+    private CancellationTokenSource? _searchCancellation;
     public string SearchPlaceholder => "Search Products...";
 
     // ── KPI Summary Card properties ────────────────────────────────────
@@ -472,7 +472,23 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         ShowList = false;
     }
 
-    partial void OnSearchTermChanged(string value) => FilterProducts();
+    partial void OnSearchTermChanged(string value)
+    {
+        _searchCancellation?.Cancel();
+        _searchCancellation?.Dispose();
+        _searchCancellation = new CancellationTokenSource();
+        _ = FilterAfterTypingPauseAsync(_searchCancellation.Token);
+    }
+
+    private async Task FilterAfterTypingPauseAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(200, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested) FilterProducts();
+        }
+        catch (OperationCanceledException) { }
+    }
     partial void OnCompanyFilterChanged(Company? value) => FilterProducts();
     [RelayCommand] private void ClearCompanyFilter() => CompanyFilter = null;
 

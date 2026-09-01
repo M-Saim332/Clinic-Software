@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 namespace ClinicSystem.UI.ViewModels.Patients;
 
 
-public partial class PatientRegistryViewModel : ViewModelBase
+public partial class PatientRegistryViewModel : ViewModelBase, ISearchable
 {
     private readonly PatientRepository _repo;
     private readonly ProductRepository _productRepo;
@@ -33,7 +33,19 @@ public partial class PatientRegistryViewModel : ViewModelBase
     [ObservableProperty] private FormMode _mode = FormMode.View;
     [ObservableProperty] private string _statusMessage = string.Empty;
     [ObservableProperty] private bool _showList;
-    [ObservableProperty] private string _searchTerm = string.Empty;
+    [ObservableProperty] private string _searchText = string.Empty;
+    private CancellationTokenSource? _searchCancellation;
+
+    // Connect the global shell search to the same debounced registry filter used
+    // by the table-level search boxes. Keeping one source of truth prevents the
+    // two inputs from producing different result sets.
+    public string SearchTerm
+    {
+        get => SearchText;
+        set => SearchText = value ?? string.Empty;
+    }
+
+    public string SearchPlaceholder => "Search name, ID, phone...";
 
     [ObservableProperty] private int _totalPatientsCount;
     [ObservableProperty] private int _activeThisMonthCount;
@@ -399,7 +411,23 @@ public partial class PatientRegistryViewModel : ViewModelBase
         ShowList = false;
     }
 
-    partial void OnSearchTermChanged(string value) => FilterPatients();
+    partial void OnSearchTextChanged(string value)
+    {
+        _searchCancellation?.Cancel();
+        _searchCancellation?.Dispose();
+        _searchCancellation = new CancellationTokenSource();
+        _ = FilterPatientsAfterTypingPauseAsync(_searchCancellation.Token);
+    }
+
+    private async Task FilterPatientsAfterTypingPauseAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(200, cancellationToken);
+            if (!cancellationToken.IsCancellationRequested) FilterPatients();
+        }
+        catch (OperationCanceledException) { }
+    }
     partial void OnSelectedPatientChanged(Patient? value) => OnPropertyChanged(nameof(CanUsePrescriptionActions));
     partial void OnSelectedTabChanged(int value) => FilterPatients();
 
@@ -471,18 +499,18 @@ public partial class PatientRegistryViewModel : ViewModelBase
         };
 
         IEnumerable<Patient> result;
-        if (string.IsNullOrWhiteSpace(SearchTerm))
+        if (string.IsNullOrWhiteSpace(SearchText))
         {
             result = source;
         }
         else
         {
-            var term = SearchTerm.ToLower();
+            var term = SearchText.Trim();
             result = source.Where(p =>
-                (p.Name?.ToLower().Contains(term) ?? false)
-                || (p.Phone?.ToLower().Contains(term) ?? false)
-                || (p.Address?.ToLower().Contains(term) ?? false)
-                || (p.Diagnosis?.ToLower().Contains(term) ?? false));
+                p.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || (p.Phone?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+                || p.PatientID.ToString().Contains(term, StringComparison.OrdinalIgnoreCase)
+                || (p.CNIC?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
         }
 
         FilteredPatients.Clear();

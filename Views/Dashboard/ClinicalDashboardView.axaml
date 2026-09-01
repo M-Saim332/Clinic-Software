@@ -161,7 +161,8 @@
                                       Series="{Binding PatientTrendSeries}" 
                                       XAxes="{Binding XAxes}" 
                                       YAxes="{Binding YAxes}"
-                                      TooltipPosition="Top">
+                                      TooltipPosition="Top"
+                                      Background="Transparent">
                   </lvc:CartesianChart>
               </Grid>
           </Border>

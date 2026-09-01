@@ -25,6 +25,8 @@ public static class PrescriptionPrintService
         });
         if (file == null) return false;
 
+        var clinicName = ClinicBrandingService.ClinicName;
+        var exportedAt = DateTime.Now.ToString("dd MMM yyyy, hh:mm tt");
         await using var stream = await file.OpenWriteAsync();
         Document.Create(document => document.Page(page =>
         {
@@ -39,10 +41,10 @@ public static class PrescriptionPrintService
                 {
                     row.RelativeItem().Column(clinic =>
                     {
-                        clinic.Item().Text("PATIENT PRESCRIPTION")
+                        clinic.Item().Text(clinicName)
                             .FontSize(20).Bold().FontColor(Colors.Blue.Darken2);
                         clinic.Item().PaddingTop(2)
-                            .Text($"Prescription #{(prescription.PrescriptionID > 0 ? prescription.PrescriptionID : "New")}")
+                            .Text($"Patient Prescription | Exported: {exportedAt}")
                             .FontSize(9).FontColor(Colors.Grey.Medium);
                     });
                     row.AutoItem().AlignRight().Column(apptCol =>

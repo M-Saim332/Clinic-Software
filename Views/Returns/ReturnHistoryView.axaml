@@ -69,7 +69,8 @@
               BorderBrush="{DynamicResource BrushLine}"
               BorderThickness="0,1,0,0"
               GridLinesVisibility="Horizontal"
-              HorizontalScrollBarVisibility="Auto">
+              HeadersVisibility="Column"
+              HorizontalScrollBarVisibility="Disabled">
       <DataGrid.Styles>
         <Style Selector="DataGridColumnHeader">
           <Setter Property="Padding" Value="10,12"/>
@@ -100,7 +101,7 @@
         </DataGridTemplateColumn>
 
         <DataGridTextColumn Header="MEDICINE"          Binding="{Binding ProductSummary}"       Width="*" MinWidth="200"/>
-        <DataGridTextColumn Header="QTY / PIECES"      Binding="{Binding Quantity}"             Width="Auto" MinWidth="100"/>
+        <DataGridTextColumn Header="QTY / UNIT"        Binding="{Binding QuantityWithUnit}"     Width="Auto" MinWidth="100"/>
         <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}"    Width="*" MinWidth="160"/>
         
         <DataGridTemplateColumn Header="REFUND AMOUNT" Width="Auto" MinWidth="120">
@@ -131,7 +132,7 @@
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Item Name" Binding="{Binding ProductName}" Width="*" MinWidth="150" />
                 <DataGridTextColumn Header="Item Type" Binding="{Binding ProductType}" Width="Auto" MinWidth="100" />
-                <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80" />
+                <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="100" />
                 <DataGridTextColumn Header="Refund Amount" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="120" />
                 <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="*" MinWidth="150" />
               </DataGrid.Columns>

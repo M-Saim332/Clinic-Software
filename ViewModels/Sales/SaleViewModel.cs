@@ -107,6 +107,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     [ObservableProperty] private Product? _selectedProduct;
     [ObservableProperty] private string _productSearchTerm = string.Empty;
     [ObservableProperty] private ObservableCollection<Product> _filteredProducts = new();
+    private CancellationTokenSource? _productSearchCancellation;
     [ObservableProperty] private int _quantity = 1;
     [ObservableProperty] private decimal _discount;
     [ObservableProperty] private decimal _tax;
@@ -481,16 +482,38 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
 
     partial void OnProductSearchTermChanged(string value)
     {
-        var term = value?.Trim().ToLower() ?? string.Empty;
-        FilteredProducts = string.IsNullOrEmpty(term)
-            ? new ObservableCollection<Product>(Products)
-            : new ObservableCollection<Product>(
-                Products.Where(m =>
-                    m.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                    (m.GenericName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (m.CompanyName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)));
+        _productSearchCancellation?.Cancel();
+        _productSearchCancellation?.Dispose();
+        _productSearchCancellation = new CancellationTokenSource();
+        _ = FilterProductsAfterTypingPauseAsync(value, _productSearchCancellation.Token);
     }
 
+    /// <summary>Debounces only the POS suggestion list; pricing, FIFO, and cart logic are untouched.</summary>
+    private async Task FilterProductsAfterTypingPauseAsync(string? searchText, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(200, cancellationToken);
+            if (cancellationToken.IsCancellationRequested) return;
+
+            var term = searchText?.Trim() ?? string.Empty;
+            var matches = (string.IsNullOrEmpty(term) ? Products : Products.Where(m =>
+                    m.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    (m.GenericName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (m.CompanyName?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+                .Take(30)
+                .ToList();
+
+            if (!cancellationToken.IsCancellationRequested)
+                FilteredProducts = new ObservableCollection<Product>(matches);
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    /*
+     * Product lookup remains an in-memory filter over the already-loaded active catalog.
+     * The 30-result cap applies only to the POS suggestion popup, not reports or catalog search.
+     */
     partial void OnSelectedProductChanged(Product? value)
     {
         _ = RefreshSelectedProductPricingAsync(value);
