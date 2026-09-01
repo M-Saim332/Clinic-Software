@@ -1,12 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using ClinicSystem.Core.Models;
 using ClinicSystem.Data.Repositories;
+using ClinicSystem.UI.Messages;
 using System.Collections.ObjectModel;
 
 namespace ClinicSystem.UI.ViewModels.Inventory;
 
-public partial class InventoryViewModel : ViewModelBase, ISearchable
+public partial class InventoryViewModel : ViewModelBase, ISearchable, IRecipient<InventoryChangedMessage>
 {
     private readonly ProductRepository _productRepo;
     private readonly ReturnRepository _returnRepo;
@@ -15,6 +17,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
     {
         _productRepo = productRepo;
         _returnRepo = returnRepo;
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     [ObservableProperty] private string _statusMessage = string.Empty;
@@ -34,6 +37,8 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
 
     // Adjustment fields
     [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private ObservableCollection<ProductStock> _availableStockBatches = new();
+    [ObservableProperty] private ProductStock? _selectedStockBatch;
     [ObservableProperty] private int _adjustmentQuantity;
     [ObservableProperty] private string _adjustmentReason = string.Empty;
     [ObservableProperty] private DateTimeOffset _adjustmentDate=DateTimeOffset.Now;
@@ -73,6 +78,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
         try
         {
             var products = await Task.Run(() => _productRepo.GetAll());
+            var metrics = await Task.Run(() => _productRepo.GetInventoryMetrics());
             var list = products.ToList();
             var today = DateTime.Today;
 
@@ -81,16 +87,32 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
                 _rawList = list;
                 FilterInventory();
 
-                TotalStockItems = AllStock.Count;
-                LowStockCount = LowStock.Count;
-                OutOfStockCount = OutOfStock.Count;
-                ExpiredCount = Expired.Count;
+                TotalStockItems = metrics.TotalStockItems;
+                LowStockCount = metrics.LowStockItems;
+                OutOfStockCount = metrics.OutOfStockItems;
+                ExpiredCount = metrics.ExpiredBatches;
             });
         }
         catch (Exception ex)
         {
             Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load inventory: {ex.Message}");
         }
+    }
+
+    /// <summary>Refresh when stock changes elsewhere (sales, purchases, or returns).</summary>
+    public void Receive(InventoryChangedMessage message) => _ = InitializeAsync();
+
+    partial void OnSelectedProductChanged(Product? value) => _ = LoadStockBatchesAsync(value);
+
+    private async Task LoadStockBatchesAsync(Product? product)
+    {
+        SelectedStockBatch = null;
+        AvailableStockBatches.Clear();
+        if (product == null) return;
+
+        var batches = await Task.Run(() => _productRepo.GetActiveStockBatches(product.ProductID));
+        foreach (var batch in batches)
+            AvailableStockBatches.Add(batch);
     }
 
     [RelayCommand]
@@ -108,27 +130,37 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
             return;
         }
 
+        if (SelectedStockBatch == null)
+        {
+            StatusMessage = "Please select an expiry batch.";
+            return;
+        }
+
         // Convert pack input → piece delta
         int piecesPerUnit = SelectedProduct.PiecesPerUnit > 0 ? SelectedProduct.PiecesPerUnit : 1;
         int deltaPieces = AdjustmentQuantity * piecesPerUnit;
 
-        if (SelectedProduct.TotalStock + deltaPieces < 0)
-        {
-            StatusMessage = $"Cannot adjust below zero stock. Current stock: {SelectedProduct.StockBreakdown}.";
-            return;
-        }
-
         try
         {
-            await Task.Run(() => _productRepo.AdjustStock(SelectedProduct.ProductID, deltaPieces, AdjustmentDate.Date));
+            var newQuantity = SelectedStockBatch.QuantityAvailable + deltaPieces;
+            if (newQuantity < 0)
+            {
+                StatusMessage = $"Cannot adjust below zero for the selected batch ({SelectedStockBatch.QuantityAvailable} pieces available; expires {SelectedStockBatch.ExpiryDate:dd MMM yyyy}).";
+                return;
+            }
+
+            await Task.Run(() => _productRepo.AdjustStock(SelectedStockBatch.StockID, newQuantity));
             StatusMessage = $"Stock adjusted for {SelectedProduct.Name}: {(AdjustmentQuantity > 0 ? "+" : "")}{AdjustmentQuantity} pack(s) = {(deltaPieces > 0 ? "+" : "")}{deltaPieces} pieces.";
             
             SelectedProduct = null;
+            SelectedStockBatch = null;
+            AvailableStockBatches.Clear();
             AdjustmentQuantity = 0;
             AdjustmentReason = string.Empty;
             AdjustmentDate=DateTimeOffset.Now;
             
             await InitializeAsync();
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
         }
         catch (Exception ex)
         {
@@ -187,7 +219,8 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
             Notes = SupplierReturnNotes,
             RefundAmount = SupplierCreditAmount, // Recorded as refund amount (credit in dashboard)
             CreatedBy = CurrentUser?.UserID,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now,
+            IsPosted = true
         };
 
         try
@@ -199,7 +232,7 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable
                 LogActivity("Supplier Return", $"Returned {SupplierReturnQuantity} expired units of {ReturnTargetProduct.Name}", "Inventory");
                 IsSupplierReturnModalOpen = false;
             });
-            _ = InitializeAsync();
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
         }
         catch (Exception ex)
         {

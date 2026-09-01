@@ -33,10 +33,20 @@ public partial class DataTableShellControl : UserControl
     public static readonly StyledProperty<bool> ShowEmptyStateProperty =
         AvaloniaProperty.Register<DataTableShellControl, bool>(nameof(ShowEmptyState), true);
 
+    public static readonly StyledProperty<bool> CompactWhenEmptyProperty =
+        AvaloniaProperty.Register<DataTableShellControl, bool>(nameof(CompactWhenEmpty), false);
+
     public bool ShowEmptyState
     {
         get => GetValue(ShowEmptyStateProperty);
         set => SetValue(ShowEmptyStateProperty, value);
+    }
+
+    /// <summary>Constrains this card only while it displays its empty-state placeholder.</summary>
+    public bool CompactWhenEmpty
+    {
+        get => GetValue(CompactWhenEmptyProperty);
+        set => SetValue(CompactWhenEmptyProperty, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -46,6 +56,23 @@ public partial class DataTableShellControl : UserControl
         {
             var val = change.NewValue as string;
             ShowEmptyState = string.IsNullOrEmpty(val) || val == "0";
+            UpdateEmptyStateLayout();
+        }
+        else if (change.Property == CompactWhenEmptyProperty)
+            UpdateEmptyStateLayout();
+    }
+
+    private void UpdateEmptyStateLayout()
+    {
+        if (CompactWhenEmpty && ShowEmptyState)
+        {
+            MinHeight = 140;
+            MaxHeight = 260;
+        }
+        else
+        {
+            ClearValue(MinHeightProperty);
+            ClearValue(MaxHeightProperty);
         }
     }
 

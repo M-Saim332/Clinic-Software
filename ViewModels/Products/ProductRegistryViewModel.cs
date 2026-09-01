@@ -59,6 +59,9 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     [ObservableProperty] private ObservableCollection<Product> _products = new();
     [ObservableProperty] private ObservableCollection<Product> _filteredProducts = new();
     [ObservableProperty] private Product? _selectedProduct;
+    [ObservableProperty] private ObservableCollection<ProductStockBatchDto> _productStockBatches = new();
+    [ObservableProperty] private ObservableCollection<ProductStockBatchDto> _filteredProductStockBatches = new();
+    [ObservableProperty] private ProductStockBatchDto? _selectedProductStockBatch;
 
     // Companies for selection ComboBox
     [ObservableProperty] private ObservableCollection<Company> _companies = new();
@@ -116,10 +119,20 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     // ── Delete confirmation state ──────────────────────────────────────
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PendingDeleteLabel))]
+    [NotifyPropertyChangedFor(nameof(DeleteConfirmationTitle))]
     private Product? _pendingDeleteProduct;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PendingDeleteLabel))]
+    [NotifyPropertyChangedFor(nameof(DeleteConfirmationTitle))]
+    private ProductStockBatchDto? _pendingDeleteStockBatch;
     [ObservableProperty] private bool _showDeleteConfirm;
     [ObservableProperty] private bool _deleteAllRequested;
-    public string PendingDeleteLabel => DeleteAllRequested ? "All active products" : PendingDeleteProduct?.Name ?? string.Empty;
+    public string PendingDeleteLabel => DeleteAllRequested
+        ? "All active products"
+        : PendingDeleteStockBatch != null
+            ? $"{PendingDeleteStockBatch.ProductName} — expires {PendingDeleteStockBatch.ExpiryDate:dd MMM yyyy}"
+            : PendingDeleteProduct?.Name ?? string.Empty;
+    public string DeleteConfirmationTitle => PendingDeleteStockBatch != null ? "Archive Stock Batch?" : "Delete Product?";
 
     // ── Return Modal State (Patient Return & Supplier Return) ──────────
     [ObservableProperty] private bool _isReturnModalOpen;
@@ -165,10 +178,73 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     }
 
     [RelayCommand]
+    private async Task ViewSpecificAsync(Product product)
+    {
+        if (product == null) return;
+        SelectedProduct = product;
+        var comps = await Task.Run(() => _companyRepo.GetAll());
+        Companies = new ObservableCollection<Company>(comps);
+        FillFields(product);
+        SelectedCompany = Companies.FirstOrDefault(c => c.CompanyID == product.CompanyID);
+        Mode = FormMode.View;
+        NotifyButtonStates();
+        StatusMessage = "Viewing product details.";
+    }
+
+    [RelayCommand]
+    private async Task EditBatchSpecificAsync(ProductStockBatchDto batch)
+    {
+        var product = GetProductForBatch(batch);
+        if (product != null)
+            await EditSpecificAsync(product);
+    }
+
+    [RelayCommand]
+    private async Task ViewBatchSpecificAsync(ProductStockBatchDto batch)
+    {
+        var product = GetProductForBatch(batch);
+        if (product != null)
+            await ViewSpecificAsync(product);
+    }
+
+    [RelayCommand]
+    private void RequestDeleteBatchSpecific(ProductStockBatchDto batch)
+    {
+        if (!CanManageProducts) { StatusMessage = "The doctor's drug inventory is read-only."; return; }
+        if (batch == null) return;
+        PendingDeleteProduct = null;
+        PendingDeleteStockBatch = batch;
+        ShowDeleteConfirm = true;
+    }
+
+    [RelayCommand]
+    private void OpenPatientReturnBatch(ProductStockBatchDto batch)
+    {
+        var product = GetProductForBatch(batch);
+        if (product != null)
+            OpenPatientReturn(product);
+    }
+
+    private Product? GetProductForBatch(ProductStockBatchDto? batch)
+    {
+        if (batch == null) return null;
+        var product = Products.FirstOrDefault(item => item.ProductID == batch.ProductID);
+        if (product == null) return null;
+
+        // The detail form should reflect the exact batch the user selected.
+        product.EarliestExpiry = batch.ExpiryDate;
+        product.TotalStock = batch.StockQuantity;
+        product.Rate = batch.RateTP;
+        product.MRP = batch.MRP;
+        return product;
+    }
+
+    [RelayCommand]
     private void RequestDeleteSpecific(Product product)
     {
         if (!CanManageProducts) { StatusMessage = "The doctor's drug inventory is read-only."; return; }
         if (product == null) return;
+        PendingDeleteStockBatch = null;
         PendingDeleteProduct = product;
         ShowDeleteConfirm = true;
     }
@@ -177,8 +253,10 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     private async Task ConfirmDeleteAsync()
     {
         var target = PendingDeleteProduct;
+        var batch = PendingDeleteStockBatch;
         ShowDeleteConfirm = false;
         PendingDeleteProduct = null;
+        PendingDeleteStockBatch = null;
         if (DeleteAllRequested)
         {
             DeleteAllRequested = false;
@@ -190,6 +268,23 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
             return;
         }
+        if (batch != null)
+        {
+            var archived = await Task.Run(() => _repo.ArchiveStockBatch(batch.StockID));
+            if (archived)
+            {
+                StatusMessage = $"Archived batch expiring {batch.ExpiryDate:dd MMM yyyy}.";
+                LogActivity("Stock Batch Archived", $"Archived {batch.ProductName} batch expiring {batch.ExpiryDate:dd MMM yyyy}", "Products");
+                await InitializeAsync();
+                WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+            }
+            else
+            {
+                StatusMessage = "The selected stock batch was not found.";
+            }
+            return;
+        }
+
         if (target == null) return;
 
         var ok = await Task.Run(() => _repo.Delete(target.ProductID));
@@ -212,6 +307,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
     {
         ShowDeleteConfirm = false;
         PendingDeleteProduct = null;
+        PendingDeleteStockBatch = null;
         DeleteAllRequested = false;
     }
 
@@ -221,6 +317,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         if (!IsAdmin) { StatusMessage = "Only an administrator can archive all products."; return; }
         DeleteAllRequested = true;
         PendingDeleteProduct = null;
+        PendingDeleteStockBatch = null;
         ShowDeleteConfirm = true;
         OnPropertyChanged(nameof(PendingDeleteLabel));
     }
@@ -465,6 +562,28 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         FilteredProducts.Clear();
         foreach (var item in result)
             FilteredProducts.Add(item);
+
+        FilterProductStockBatches();
+    }
+
+    private void FilterProductStockBatches()
+    {
+        IEnumerable<ProductStockBatchDto> result = ProductStockBatches;
+        if (CompanyFilter != null)
+            result = result.Where(batch => batch.CompanyID == CompanyFilter.CompanyID);
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.ToLower();
+            result = result.Where(batch =>
+                batch.ProductName.ToLower().Contains(term) ||
+                (batch.CompanyName?.ToLower().Contains(term) ?? false) ||
+                batch.PCode.ToString().Contains(term));
+        }
+
+        FilteredProductStockBatches.Clear();
+        foreach (var batch in result)
+            FilteredProductStockBatches.Add(batch);
     }
 
     private void ClearFields()
@@ -572,6 +691,8 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         try
         {
             var meds = await Task.Run(() => _repo.GetAll());
+            var batches = await Task.Run(() => _repo.GetProductInventory());
+            var totalStockValue = await Task.Run(() => _repo.GetTotalStockValue());
             var comps = await Task.Run(() => _companyRepo.GetAll());
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
@@ -579,6 +700,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
                 StatusMessage = string.Empty;
                 Companies = new ObservableCollection<Company>(comps);
                 Products = new ObservableCollection<Product>(meds);
+                ProductStockBatches = new ObservableCollection<ProductStockBatchDto>(batches);
                 FilterProducts();
 
                 if (prevSelectedId.HasValue)
@@ -586,10 +708,11 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
                     SelectedProduct = FilteredProducts.FirstOrDefault(p => p.ProductID == prevSelectedId.Value);
                 }
 
-                LowStockCount   = Products.Count(m => m.IsLowStock && !m.IsExpired);
-                ExpiredCount     = Products.Count(m => m.IsExpired);
-                var totalVal     = Products.Sum(m => m.TotalStock * m.PricePerTablet);
-                TotalInventoryValue = FormatMoney(totalVal);
+                LowStockCount = Products.GroupBy(m => m.ProductID)
+                    .Count(g => g.First().AggregateStock <= g.First().MinimumStockPieces && !g.Any(m => m.IsExpired));
+                ExpiredCount = Products.Count(m => m.IsExpired);
+                // Use each batch's T.P. rather than the product's most recent price.
+                TotalInventoryValue = FormatMoney(totalStockValue);
             });
         }
         catch (Exception ex)

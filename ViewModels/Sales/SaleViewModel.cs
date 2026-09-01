@@ -321,7 +321,7 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
                 if (postedSale != null)
                 {
                     InvoiceVM.LoadInvoice(postedSale);
-                    ShowForm = false;
+                    ResetFormToList();
                     ShowInvoicePrint = true;
                 }
             }
@@ -359,10 +359,19 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
     [RelayCommand]
     private void Cancel()
     {
-        Mode = FormMode.View;
-        ShowForm = false;
-        NotifyButtonStates();
+        ResetFormToList();
         StatusMessage = string.Empty;
+    }
+
+    /// <summary>Discard the current in-memory invoice without writing or posting it.</summary>
+    private void ResetFormToList()
+    {
+        ClearFields();
+        Mode = FormMode.View;
+        InvoiceState = InvoiceState.Draft;
+        ShowForm = false;
+        ShowInvoicePrint = false;
+        NotifyButtonStates();
     }
 
     public async Task InitializeAsync()
@@ -401,6 +410,11 @@ public partial class SaleViewModel : ViewModelBase, ISearchable, INavigationCont
         SalesTax = 0;
         PaymentMethod = "Cash";
         LineItems.Clear();
+        SelectedProduct = null;
+        Quantity = 1;
+        Discount = 0;
+        Tax = 0;
+        ProductPrice = 0;
         ProductSearchTerm = string.Empty;
         SelectedUnitType = "Pieces";
         IsLoadedFromHandoff = false;

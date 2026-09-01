@@ -131,6 +131,8 @@ public class PurchaseRepository
             var stockQuantity = (item.PackageQuantity + item.BonusQuantity) * piecesPerUnit;
             var effectiveCostPerPiece = item.EffectiveCostPerPiece;
             var packPurchasePrice = effectiveCostPerPiece * piecesPerUnit;
+            // ProductStock stores the trade price entered for this specific expiry batch.
+            var batchPurchasePrice = item.PurchasePrice;
             conn.Execute(@"UPDATE Products SET 
                 PurchasePrice=@EffectiveCostPerPiece,
                 Rate=@PackPurchasePrice,
@@ -144,16 +146,16 @@ public class PurchaseRepository
                     item.ProductID 
                 }, tx);
                 
-            var stockId = conn.ExecuteScalar<int?>(@"SELECT StockID FROM ProductStock WHERE ProductID=@ProductID AND ExpiryDate=CAST(@ExpiryDate AS DATE)", new { item.ProductID, item.ExpiryDate }, tx);
+            var stockId = conn.ExecuteScalar<int?>(@"SELECT StockID FROM ProductStock WITH (UPDLOCK,HOLDLOCK) WHERE ProductID=@ProductID AND ExpiryDate=CAST(@ExpiryDate AS DATE)", new { item.ProductID, item.ExpiryDate }, tx);
             if (stockId.HasValue)
             {
-                conn.Execute(@"UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Quantity, PurchasePrice = @PackPurchasePrice, MRP = @PackMRP WHERE StockID=@StockID", 
-                    new { Quantity = stockQuantity, PackPurchasePrice = packPurchasePrice, PackMRP = item.PackMRP, StockID = stockId.Value }, tx);
+                conn.Execute(@"UPDATE ProductStock SET QuantityAvailable = QuantityAvailable + @Quantity, PurchasePrice = @BatchPurchasePrice, MRP = @PackMRP WHERE StockID=@StockID", 
+                    new { Quantity = stockQuantity, BatchPurchasePrice = batchPurchasePrice, PackMRP = item.PackMRP, StockID = stockId.Value }, tx);
             }
             else
             {
-                conn.Execute(@"INSERT INTO ProductStock (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP) VALUES (@ProductID, CAST(@ExpiryDate AS DATE), @Quantity, @PackPurchasePrice, @PackMRP)", 
-                    new { item.ProductID, item.ExpiryDate, Quantity = stockQuantity, PackPurchasePrice = packPurchasePrice, PackMRP = item.PackMRP }, tx);
+                conn.Execute(@"INSERT INTO ProductStock (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP) VALUES (@ProductID, CAST(@ExpiryDate AS DATE), @Quantity, @BatchPurchasePrice, @PackMRP)", 
+                    new { item.ProductID, item.ExpiryDate, Quantity = stockQuantity, BatchPurchasePrice = batchPurchasePrice, PackMRP = item.PackMRP }, tx);
             }
         }
         conn.Execute("UPDATE Purchases SET IsPosted=1,PostedAt=SYSDATETIME() WHERE PurchaseID=@purchaseId", new { purchaseId }, tx);

@@ -69,18 +69,18 @@
 
                 <!-- TAB 0: ALL PRODUCTS -->
                 <TabItem Header="All Products" FontSize="14" FontWeight="Medium">
-                    <comp:DataTableShellControl Title="Product Inventory" RecordCount="{Binding FilteredProducts.Count}" Margin="0,12,0,0">
+                    <comp:DataTableShellControl Title="Product Inventory" RecordCount="{Binding FilteredProductStockBatches.Count}" Margin="0,12,0,0">
                         <comp:DataTableShellControl.HeaderActions>
-                            <comp:ExportToolbarControl ReportName="Products_List" ItemsSource="{Binding FilteredProducts}"
-                                Columns="P.Code:PCode|Product Name:Name:2|Company:CompanyName|Type:Type|Packing:Packing|Stock:StockBreakdown|MRP:MRP"/>
+                            <comp:ExportToolbarControl ReportName="Product_Expiry_Batches" ItemsSource="{Binding FilteredProductStockBatches}"
+                                Columns="P.Code:PCode|Product Name:ProductName:2|Company:CompanyName|Type:Type|Packing:Packing|Batch Expiry:ExpiryDate|Batch Stock:StockDisplay|T.P:RateTP|MRP:MRP"/>
                         </comp:DataTableShellControl.HeaderActions>
 
 
                         <!-- Table -->
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid x:Name="ProductGrid"
-                                      ItemsSource="{Binding FilteredProducts}"
-                                      SelectedItem="{Binding SelectedProduct}"
+                                       ItemsSource="{Binding FilteredProductStockBatches}"
+                                       SelectedItem="{Binding SelectedProductStockBatch}"
                                       AutoGenerateColumns="False" IsReadOnly="True"
                                       SelectionMode="Single" Background="Transparent"
                                       BorderThickness="0" GridLinesVisibility="Horizontal"
@@ -89,12 +89,12 @@
 
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="P.CODE" Binding="{Binding PCode}" Width="75"/>
-                                    <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding Name}" Width="*" MinWidth="160"/>
+                                    <DataGridTextColumn Header="PRODUCT NAME" Binding="{Binding ProductName}" Width="*" MinWidth="160"/>
                                     <DataGridTextColumn Header="COMPANY" Binding="{Binding CompanyName}" Width="130"/>
                                     <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="120"/>
                                     <DataGridTextColumn Header="PACKING" Binding="{Binding Packing}" Width="120"/>
-                                    <DataGridTextColumn Header="STOCK" Binding="{Binding StockBreakdown}" Width="160"/>
-                                    <DataGridTemplateColumn Header="EARLIEST EXPIRY" Width="200">
+                                    <DataGridTextColumn Header="BATCH STOCK" Binding="{Binding StockDisplay}" Width="160"/>
+                                    <DataGridTemplateColumn Header="BATCH EXPIRY" Width="200">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
@@ -110,32 +110,38 @@
                                                     <Border IsVisible="{Binding IsExpirySafe}" Background="#DCFCE7" BorderBrush="#22C55E" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,8,0">
                                                         <TextBlock Text="SAFE" FontSize="10" FontWeight="Bold" Foreground="#15803D"/>
                                                     </Border>
-                                                    <TextBlock Text="{Binding EarliestExpiry, StringFormat=\{0:dd MMM yyyy\}, TargetNullValue='No Stock'}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ExpiryDate, StringFormat=\{0:dd MMM yyyy\}}" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header="RATE (TP)" Binding="{Binding Rate, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                                    <DataGridTextColumn Header="RATE (TP)" Binding="{Binding RateTP, StringFormat='Rs. {0:N2}'}" Width="120"/>
                                     <DataGridTextColumn Header="MRP" Binding="{Binding MRP, StringFormat='Rs. {0:N2}'}" Width="130"/>
-                                    <DataGridTemplateColumn Header="ACTIONS" Width="150">
+                                    <DataGridTemplateColumn Header="ACTIONS" Width="200">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).CanManageProducts}"
                                                             HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <!-- Patient Return: medicine comes back, revenue decreases -->
-                                                    <Button Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).OpenPatientReturnCommand}"
+                                                    <Button Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).OpenPatientReturnBatchCommand}"
                                                             CommandParameter="{Binding}" ToolTip.Tip="Patient Return (stock ↑, revenue ↓)"
                                                             Classes="btn-amber" Padding="8,4" Height="28">
                                                         <materialIcons:MaterialIcon Kind="KeyboardReturn" Width="18" Height="18"/>
                                                     </Button>
                                                     <Button 
-                                                            Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).EditSpecificCommand}"
+                                                            Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).ViewBatchSpecificCommand}"
+                                                            CommandParameter="{Binding}" ToolTip.Tip="View Details"
+                                                            Classes="btn-primary" Padding="8,4" Height="28">
+                                                        <materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18"/>
+                                                    </Button>
+                                                    <Button 
+                                                            Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).EditBatchSpecificCommand}"
                                                             CommandParameter="{Binding}" ToolTip.Tip="Edit"
                                                             Classes="btn-secondary" Padding="8,4" Height="28">
                                                         <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
                                                     </Button>
                                                     <Button 
-                                                            Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).RequestDeleteSpecificCommand}"
+                                                            Command="{Binding #ProductGrid.((vm:ProductRegistryViewModel)DataContext).RequestDeleteBatchSpecificCommand}"
                                                             CommandParameter="{Binding}" ToolTip.Tip="Delete"
                                                             Classes="btn-danger" Padding="8,4" Height="28">
                                                         <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18"/>
@@ -251,7 +257,7 @@
                         BoxShadow="0 8 32 0 #30000000">
                     <StackPanel Spacing="20">
                         <StackPanel Spacing="6">
-                            <TextBlock Text="Delete Product?" FontSize="18" FontWeight="Bold"
+                            <TextBlock Text="{Binding DeleteConfirmationTitle}" FontSize="18" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushInk900}"
                                        FontFamily="{DynamicResource FontLexend}"/>
                             <TextBlock Text="{Binding PendingDeleteLabel}"

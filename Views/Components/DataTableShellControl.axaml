@@ -38,9 +38,9 @@
                 <!-- Empty State Overlay -->
                 <StackPanel IsVisible="{Binding ShowEmptyState, ElementName=Root}"
                             HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Margin="0,40,0,40" Spacing="16">
-                    <Border Width="64" Height="64" CornerRadius="32" Background="{DynamicResource BrushBackground}">
-                        <materialIcons:MaterialIcon Kind="Magnify" Width="28" Height="28" Foreground="{DynamicResource BrushInk400}"/>
+                            Margin="0,16,0,16" Spacing="10">
+                    <Border Width="48" Height="48" CornerRadius="24" Background="{DynamicResource BrushBackground}">
+                        <materialIcons:MaterialIcon Kind="Magnify" Width="22" Height="22" Foreground="{DynamicResource BrushInk400}"/>
                     </Border>
                     <StackPanel Spacing="4" HorizontalAlignment="Center">
                         <TextBlock Text="No records found" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource BrushInk900}" HorizontalAlignment="Center"/>

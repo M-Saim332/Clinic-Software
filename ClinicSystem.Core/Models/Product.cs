@@ -23,6 +23,11 @@ public class Product
     public int PiecesPerUnit { get; set; } = 1;
     public int TabletsPerBox { get => PiecesPerUnit; set => PiecesPerUnit = value; }
     public int TotalStock { get; set; }
+    public string StockDisplay => $"{TotalStock:N0} in stock";
+    /// <summary>Total quantity across every expiry batch for this product.</summary>
+    public int ProductTotalStock { get; set; }
+    public int AggregateStock => ProductTotalStock > 0 ? ProductTotalStock : TotalStock;
+    public string AggregateStockDisplay => $"{AggregateStock:N0} total";
     public DateTime? EarliestExpiry { get; set; }
     public List<ProductStock> StockEntries { get; set; } = new();
     public int MinimumStockLevel { get; set; } = 10;

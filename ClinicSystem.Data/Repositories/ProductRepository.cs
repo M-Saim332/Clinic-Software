@@ -41,6 +41,23 @@ public class ProductRepository
         return PopulateStock(conn.Query<Product>($"{ProductSelect} WHERE p.IsActive = 1 ORDER BY c.CCode, p.PCode, p.Name"));
     }
 
+    /// <summary>Returns one row for each non-empty ProductStock expiry batch.</summary>
+    public IEnumerable<ProductStockBatchDto> GetProductInventory()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<ProductStockBatchDto>(@"
+            SELECT p.ProductID, ps.StockID, p.PCode,
+                   p.Name AS ProductName, p.CompanyID, c.Name AS CompanyName,
+                   p.Type, p.Packing, p.PiecesPerUnit,
+                   ps.QuantityAvailable AS StockQuantity, ps.ExpiryDate,
+                   ps.PurchasePrice AS RateTP, ps.MRP
+            FROM ProductStock ps
+            INNER JOIN Products p ON ps.ProductID = p.ProductID
+            LEFT JOIN Companies c ON p.CompanyID = c.CompanyID
+            WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0
+            ORDER BY p.Name ASC, ps.ExpiryDate ASC");
+    }
+
     public int GetCount()
     {
         using var conn = _session.CreateConnection();
@@ -55,6 +72,28 @@ public class ProductRepository
             FROM ProductStock ps
             JOIN Products p ON ps.ProductID = p.ProductID
             WHERE p.IsActive = 1 AND ps.QuantityAvailable > 0");
+    }
+
+    /// <summary>
+    /// Gets the inventory counters from the same batch rows used for valuation.
+    /// A low-stock threshold is stored in packs, so it is converted to pieces
+    /// before it is compared with a batch's available quantity.
+    /// </summary>
+    public InventoryMetrics GetInventoryMetrics()
+    {
+        using var conn = _session.CreateConnection();
+        return conn.QuerySingle<InventoryMetrics>(@"
+            SELECT
+                COUNT(CASE WHEN ps.QuantityAvailable > 0 THEN 1 END) AS TotalStockItems,
+                COUNT(CASE WHEN ps.QuantityAvailable > 0
+                                  AND ps.QuantityAvailable <= p.MinimumStockLevel *
+                                      CASE WHEN ISNULL(p.PiecesPerUnit, 0) > 0 THEN p.PiecesPerUnit ELSE 1 END
+                           THEN 1 END) AS LowStockItems,
+                COUNT(CASE WHEN ps.QuantityAvailable = 0 THEN 1 END) AS OutOfStockItems,
+                COUNT(CASE WHEN ps.ExpiryDate < CAST(GETDATE() AS DATE) THEN 1 END) AS ExpiredBatches
+            FROM ProductStock ps
+            INNER JOIN Products p ON p.ProductID = ps.ProductID
+            WHERE p.IsActive = 1;");
     }
 
     public Product? GetById(int id)
@@ -125,6 +164,18 @@ public class ProductRepository
     {
         using var conn = _session.CreateConnection();
         using var tx = conn.BeginTransaction(System.Data.IsolationLevel.Serializable);
+        
+        // Prevent duplication of products with the same name under the same company
+        var existingId = conn.ExecuteScalar<int?>(
+            "SELECT TOP 1 ProductID FROM Products WITH (UPDLOCK,HOLDLOCK) WHERE Name = @Name AND CompanyID = @CompanyID AND IsActive = 1",
+            new { product.Name, product.CompanyID }, transaction: tx);
+            
+        if (existingId.HasValue)
+        {
+            tx.Commit();
+            throw new InvalidOperationException($"A product with the name '{product.Name}' already exists under the selected company.");
+        }
+
         product.PCode = conn.ExecuteScalar<int>("SELECT ISNULL(MAX(PCode),0)+1 FROM Products WITH (UPDLOCK,HOLDLOCK)", transaction: tx);
         var id = conn.ExecuteScalar<int>(@"INSERT INTO Products
             (PCode,Name,GenericName,Barcode,CompanyID,CompanyName,SupplierID,SupplierName,Type,Packing,
@@ -198,8 +249,67 @@ public class ProductRepository
         tx.Commit();
     }
 
-    public void AdjustStock(int productId, int quantity, DateTime updateDate)
+    /// <summary>
+    /// Sets the quantity for one expiry batch. Stock is deliberately never stored on
+    /// the Products row; totals are calculated from ProductStock instead.
+    /// </summary>
+    public void AdjustStock(int stockId, int newQuantity)
     {
-        throw new NotSupportedException("Use direct ProductStock adjustments.");
+        if (newQuantity < 0)
+            throw new ArgumentOutOfRangeException(nameof(newQuantity), "Stock cannot be negative.");
+
+        using var conn = _session.CreateConnection();
+        var updated = conn.Execute(@"
+            UPDATE ProductStock
+            SET QuantityAvailable = @newQuantity,
+                UpdatedAt = CURRENT_TIMESTAMP
+            WHERE StockID = @stockId",
+            new { stockId, newQuantity });
+
+        if (updated != 1)
+            throw new InvalidOperationException("The selected stock batch was not found.");
+    }
+
+    /// <summary>Returns the selectable, non-expired batches for one product.</summary>
+    public IEnumerable<ProductStock> GetActiveStockBatches(int productId)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<ProductStock>(@"
+            SELECT *
+            FROM ProductStock
+            WHERE ProductID = @productId
+              AND QuantityAvailable > 0
+              AND ExpiryDate >= CAST(GETDATE() AS DATE)
+            ORDER BY ExpiryDate, StockID", new { productId });
+    }
+
+    /// <summary>
+    /// Removes one batch from active inventory without archiving its master product.
+    /// History is retained in the batch row for transaction traceability.
+    /// </summary>
+    public bool ArchiveStockBatch(int stockId)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Execute(@"
+            UPDATE ProductStock
+            SET QuantityAvailable = 0,
+                UpdatedAt = CURRENT_TIMESTAMP
+            WHERE StockID = @stockId", new { stockId }) == 1;
+    }
+
+    /// <summary>
+    /// Finds the batch used by the aggregate inventory adjustment screen. Prefer a
+    /// non-expired batch and, when more than one is available, use the latest expiry.
+    /// </summary>
+    public ProductStock? GetLatestActiveStock(int productId)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.QueryFirstOrDefault<ProductStock>(@"
+            SELECT TOP (1) *
+            FROM ProductStock
+            WHERE ProductID = @productId
+              AND QuantityAvailable > 0
+              AND ExpiryDate >= CAST(GETDATE() AS DATE)
+            ORDER BY ExpiryDate DESC, StockID DESC", new { productId });
     }
 }

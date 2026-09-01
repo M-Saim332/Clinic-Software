@@ -183,11 +183,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
 
     public bool MutationEnabled => !ShowForm;
     public bool SaveCancelEnabled => ShowForm && (Mode == FormMode.Add || Mode == FormMode.Edit);
-    public bool IsViewingInvoiceDocument => ShowForm && Mode == FormMode.View;
+    // Document view is only active when explicitly viewing a saved invoice; NOT during create/edit/check workflow
+    public bool IsViewingInvoiceDocument => ShowForm && Mode == FormMode.View && _viewingDocumentMode;
+    private bool _viewingDocumentMode;
     public string DocumentStatus => IsPostedInvoice ? "POSTED" : IsCheckingInvoice ? "CHECKING" : "DRAFT";
     public string SupplierDisplayName => SelectedSupplier?.Name ?? SupplierName ?? "Walk-in / Unlisted Supplier";
 
-    public bool CanProcessInvoice => LineItems.Count > 0 || SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText);
+    public bool CanProcessInvoice => LineItems.Count > 0 || SelectedProduct != null || !string.IsNullOrWhiteSpace(ProductSearchText) || (_currentPurchaseId > 0 && Mode == FormMode.View);
 
     [RelayCommand]
     private async Task NewAsync()
@@ -207,6 +209,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         }
         catch { /* silently keep existing lists if refresh fails */ }
 
+        _viewingDocumentMode = false;
         Mode = FormMode.Add;
         ShowForm = true;
         NotifyButtonStates();
@@ -214,28 +217,35 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     }
 
     [RelayCommand]
-    private async Task ViewDetailsAsync()
+    private async Task ViewDetailsAsync(Purchase? purchase)
     {
-        if (SelectedPurchase == null) { StatusMessage = "Select a purchase first."; return; }
+        // The grid passes its live SelectedItem explicitly. This keeps the command reliable
+        // even if a DataGrid selection binding is delayed by a template or focus change.
+        if (purchase != null)
+            SelectedPurchase = purchase;
+
+        var selectedPurchase = SelectedPurchase;
+        if (selectedPurchase == null) { StatusMessage = "Select a purchase first."; return; }
         
         try
         {
-            InvoiceNumber = SelectedPurchase.InvoiceNumber;
-            SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == SelectedPurchase.SupplierID);
-            SupplierName = SelectedPurchase.SupplierName ?? string.Empty;
+            InvoiceNumber = selectedPurchase.InvoiceNumber;
+            SelectedSupplier = Suppliers.FirstOrDefault(s => s.SupplierID == selectedPurchase.SupplierID);
+            SupplierName = selectedPurchase.SupplierName ?? string.Empty;
             SupplierSearchText = SelectedSupplier?.Name ?? SupplierName;
-            PurchaseDate = new DateTimeOffset(SelectedPurchase.PurchaseDate);
+            PurchaseDate = new DateTimeOffset(selectedPurchase.PurchaseDate);
             
-            var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(SelectedPurchase.PurchaseID));
+            var purchaseWithItems = await Task.Run(() => _repo.GetByIdWithItems(selectedPurchase.PurchaseID));
             var items = purchaseWithItems?.Items ?? new List<PurchaseItem>();
             LineItems = new ObservableCollection<PurchaseItem>(items);
-            _currentPurchaseId = SelectedPurchase.PurchaseID;
+            _currentPurchaseId = selectedPurchase.PurchaseID;
             InvoiceState = purchaseWithItems?.IsPosted == true ? InvoiceState.Posted : InvoiceState.Draft;
             
             OnPropertyChanged(nameof(GrandTotal));
             NotifyDocumentTotals();
             _ = LoadClinicSettingsAsync();
             
+            _viewingDocumentMode = true; // show the invoice doc preview
             Mode = FormMode.View;
             ShowForm = true;
             NotifyButtonStates();
@@ -405,9 +415,14 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             }
 
             await InitializeAsync();
+            _viewingDocumentMode = false; // stay in edit footer after save, not doc view
             Mode = FormMode.View;
             ShowForm = true;
             NotifyButtonStates();
+            OnPropertyChanged(nameof(IsViewingInvoiceDocument));
+            OnPropertyChanged(nameof(CanProcessInvoice));
+            PostInvoiceCommand.NotifyCanExecuteChanged();
+            CheckInvoiceCommand.NotifyCanExecuteChanged();
         }
         catch (Exception ex)
         {
@@ -428,9 +443,7 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     [RelayCommand]
     private void Cancel()
     {
-        Mode = FormMode.View;
-        ShowForm = false;
-        NotifyButtonStates();
+        ResetFormToList();
         StatusMessage = string.Empty;
     }
 
@@ -488,6 +501,18 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         NotifyDocumentTotals();
     }
 
+    private void ResetFormToList()
+    {
+        ClearFields();
+        _currentPurchaseId = 0;
+        SelectedPurchase = null;
+        _viewingDocumentMode = false;
+        InvoiceState = InvoiceState.Draft;
+        Mode = FormMode.View;
+        ShowForm = false;
+        NotifyButtonStates();
+    }
+
     private void NotifyButtonStates()
     {
         OnPropertyChanged(nameof(MutationEnabled));
@@ -496,6 +521,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         OnPropertyChanged(nameof(CanCheckInvoice));
         OnPropertyChanged(nameof(IsViewingInvoiceDocument));
         OnPropertyChanged(nameof(DocumentStatus));
+        OnPropertyChanged(nameof(IsDraftInvoice));
+        OnPropertyChanged(nameof(IsCheckingInvoice));
+        OnPropertyChanged(nameof(IsPostedInvoice));
+        OnPropertyChanged(nameof(CanProcessInvoice));
+        PostInvoiceCommand.NotifyCanExecuteChanged();
+        CheckInvoiceCommand.NotifyCanExecuteChanged();
+        SaveAndCheckCommand.NotifyCanExecuteChanged();
     }
 
     private void NotifyDocumentTotals()
@@ -584,9 +616,13 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
     {
         if (_currentPurchaseId == 0 && SelectedPurchase?.PurchaseID > 0) _currentPurchaseId = SelectedPurchase.PurchaseID;
         if (_currentPurchaseId == 0) { StatusMessage = "Save the draft before checking it."; return; }
+        if (InvoiceState == InvoiceState.Posted) { StatusMessage = "Invoice is already posted."; return; }
+        // Validate line items
+        if (!LineItems.Any()) { StatusMessage = "No items on this invoice to check."; return; }
         InvoiceState = InvoiceState.Checking;
         OnPropertyChanged(nameof(DocumentStatus));
-        StatusMessage = "Invoice checked. Review it, then post.";
+        NotifyButtonStates();
+        StatusMessage = $"Invoice reviewed — {LineItems.Count} item(s), Grand Total Rs. {GrandTotal:N2}. Ready to post.";
     }
 
     [RelayCommand(CanExecute = nameof(CanProcessInvoice))]
@@ -607,8 +643,9 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
             InvoiceState = InvoiceState.Posted;
             OnPropertyChanged(nameof(DocumentStatus));
             WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
-            StatusMessage = "Purchase posted. Stock and product rates were updated.";
             await InitializeAsync();
+            ResetFormToList();
+            StatusMessage = "Purchase posted. Stock and product rates were updated.";
         }
         catch (Exception ex) { StatusMessage = $"Posting failed: {ex.Message}"; }
     }

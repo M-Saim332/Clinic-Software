@@ -251,7 +251,8 @@
 
                 <!-- Bottom panel: Invoice Line items list -->
                 <Grid Grid.Row="1">
-                    <comp:DataTableShellControl Title="Invoice Items" RecordCount="{Binding LineItems.Count}">
+                    <comp:DataTableShellControl Title="Invoice Items" RecordCount="{Binding LineItems.Count}"
+                                                CompactWhenEmpty="True" HorizontalAlignment="Stretch">
                         <comp:DataTableShellControl.TableContent>
                             <DataGrid ItemsSource="{Binding LineItems}"
                                       AutoGenerateColumns="False" IsReadOnly="True"

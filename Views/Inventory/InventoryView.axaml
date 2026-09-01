@@ -78,7 +78,19 @@
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Select Product *" Classes="label"/>
                                 <comp:SearchableComboBoxControl ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
-                                          DisplayMemberPath="Name" DetailMemberPath="Stock" Placeholder="Search product..."/>
+                                          DisplayMemberPath="Name" DetailMemberPath="StockDisplay" Placeholder="Search product..."/>
+                            </StackPanel>
+
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Select Batch / Expiry *" Classes="label"/>
+                                <ComboBox ItemsSource="{Binding AvailableStockBatches}"
+                                          SelectedItem="{Binding SelectedStockBatch}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding BatchDisplay}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </StackPanel>
 
                             <StackPanel Spacing="6">

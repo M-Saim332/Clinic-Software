@@ -77,7 +77,6 @@ BEGIN
         PurchasePrice     DECIMAL(10,2) DEFAULT 0,
         SellingPrice      DECIMAL(10,2) DEFAULT 0,
         TabletsPerBox     INT NOT NULL DEFAULT 1,
-        Stock             INT DEFAULT 0,
         MinimumStockLevel INT DEFAULT 0,
         IsReturnable      BIT NOT NULL DEFAULT 1,
         IsActive          BIT NOT NULL DEFAULT 1
@@ -97,7 +96,6 @@ BEGIN
     IF COL_LENGTH('Products', 'PurchasePrice') IS NULL ALTER TABLE Products ADD PurchasePrice DECIMAL(10,2) DEFAULT 0;
     IF COL_LENGTH('Products', 'SellingPrice') IS NULL ALTER TABLE Products ADD SellingPrice DECIMAL(10,2) DEFAULT 0;
     IF COL_LENGTH('Products', 'TabletsPerBox') IS NULL ALTER TABLE Products ADD TabletsPerBox INT NOT NULL DEFAULT 1;
-    IF COL_LENGTH('Products', 'Stock') IS NULL ALTER TABLE Products ADD Stock INT DEFAULT 0;
     IF COL_LENGTH('Products', 'MinimumStockLevel') IS NULL ALTER TABLE Products ADD MinimumStockLevel INT DEFAULT 0;
     IF COL_LENGTH('Products', 'Rate') IS NULL ALTER TABLE Products ADD Rate DECIMAL(10,2) NOT NULL CONSTRAINT DF_Products_Rate DEFAULT 0;
     IF COL_LENGTH('Products', 'IsReturnable') IS NULL ALTER TABLE Products ADD IsReturnable BIT NOT NULL DEFAULT 1;

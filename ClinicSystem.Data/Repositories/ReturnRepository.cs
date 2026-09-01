@@ -87,10 +87,38 @@ public class ReturnRepository
         var items = conn.Query<ReturnItem>("SELECT * FROM ReturnItems WHERE ReturnId=@returnId", new { returnId }, tx).ToList();
         foreach (var item in items)
         {
-            var sql = ret.ReturnType == "Patient Return"
-                ? "UPDATE Products SET Stock=Stock+@Quantity,LastStockUpdateDate=CAST(GETDATE() AS DATE) WHERE ProductID=@ProductId AND IsActive=1"
-                : "UPDATE Products SET Stock=Stock-@Quantity,LastStockUpdateDate=CAST(GETDATE() AS DATE) WHERE ProductID=@ProductId AND IsActive=1 AND Stock>=@Quantity";
-            if (conn.Execute(sql, item, tx) != 1) throw new InvalidOperationException($"Unable to update stock for product #{item.ProductId}.");
+            // ReturnItems does not currently persist an expiry. A date-shaped BatchNo
+            // is honored when present; otherwise the latest active product batch is
+            // used. This keeps all stock movement in ProductStock, never Products.
+            DateTime? expiryDate = DateTime.TryParse(ret.BatchNo, out var parsedExpiry)
+                ? parsedExpiry.Date
+                : null;
+            var stockId = conn.ExecuteScalar<int?>(@"
+                SELECT TOP (1) StockID
+                FROM ProductStock WITH (UPDLOCK, HOLDLOCK)
+                WHERE ProductID = @ProductId
+                  AND QuantityAvailable > 0
+                  AND ExpiryDate >= CAST(GETDATE() AS DATE)
+                  AND (@ExpiryDate IS NULL OR ExpiryDate = @ExpiryDate)
+                ORDER BY ExpiryDate DESC, StockID DESC",
+                new { item.ProductId, ExpiryDate = expiryDate }, tx);
+
+            if (!stockId.HasValue)
+                throw new InvalidOperationException($"No active stock batch was found for product #{item.ProductId}.");
+
+            var affected = ret.ReturnType == "Patient Return"
+                ? conn.Execute(@"UPDATE ProductStock
+                    SET QuantityAvailable = QuantityAvailable + @Quantity,
+                        UpdatedAt = CURRENT_TIMESTAMP
+                    WHERE StockID = @StockID", new { item.Quantity, StockID = stockId.Value }, tx)
+                : conn.Execute(@"UPDATE ProductStock
+                    SET QuantityAvailable = QuantityAvailable - @Quantity,
+                        UpdatedAt = CURRENT_TIMESTAMP
+                    WHERE StockID = @StockID AND QuantityAvailable >= @Quantity",
+                    new { item.Quantity, StockID = stockId.Value }, tx);
+
+            if (affected != 1)
+                throw new InvalidOperationException($"Unable to update stock batch for product #{item.ProductId}.");
         }
         conn.Execute("UPDATE Returns SET IsPosted=1,PostedAt=SYSDATETIME() WHERE ReturnId=@returnId", new { returnId }, tx);
         tx.Commit();
