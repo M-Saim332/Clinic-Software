@@ -12,7 +12,9 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-    <Content Include="appsettings.json" CopyToOutputDirectory="Always" />
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <!-- appsettings.local.json is gitignored (per-machine). Copy only if it exists locally. -->
     <Content Include="appsettings.local.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('appsettings.local.json')" />
     <Content Include="Database\**\*.sql" CopyToOutputDirectory="PreserveNewest" />

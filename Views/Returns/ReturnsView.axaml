@@ -120,12 +120,21 @@
                 <TextBox Text="{Binding Notes}" PlaceholderText="Additional notes (optional)" AcceptsReturn="True"
                          Height="55" TextWrapping="Wrap" IsEnabled="{Binding IsDraftInvoice}"/>
 
-                <DataGrid ItemsSource="{Binding ReturnItems}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="190">
+                <DataGrid ItemsSource="{Binding ReturnItems}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="190"
+                          CanUserResizeColumns="True" HorizontalAlignment="Stretch" GridLinesVisibility="Horizontal"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                  <DataGrid.Styles>
+                    <Style Selector="DataGridCell TextBlock">
+                      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                      <Setter Property="VerticalAlignment" Value="Center"/>
+                      <Setter Property="ToolTip.Tip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                    </Style>
+                  </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}" Width="*"/>
-                    <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="110"/>
-                    <DataGridTextColumn Header="PIECES" Binding="{Binding Quantity}" Width="80"/>
-                    <DataGridTextColumn Header="REFUND" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="120"/>
+                    <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductName}" Width="2*" MinWidth="140"/>
+                    <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="1.1*" MinWidth="100"/>
+                    <DataGridTextColumn Header="PIECES" Binding="{Binding Quantity}" Width="0.8*" MinWidth="80"/>
+                    <DataGridTextColumn Header="REFUND" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="1.2*" MinWidth="115"/>
                   </DataGrid.Columns>
                 </DataGrid>
 
@@ -167,18 +176,27 @@
           </StackPanel>
           <Border Grid.Row="1" Background="{DynamicResource BrushCardBackground}" BorderBrush="{DynamicResource BrushLine}"
                   BorderThickness="1" CornerRadius="12" ClipToBounds="True">
-            <DataGrid ItemsSource="{Binding ReturnHistory.Returns}" SelectedItem="{Binding ReturnHistory.SelectedReturn}"
-                      AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal"
-                      HeadersVisibility="Column" HorizontalScrollBarVisibility="Disabled">
+            <DataGrid x:Name="ReturnHistoryGrid" ItemsSource="{Binding ReturnHistory.Returns}" SelectedItem="{Binding ReturnHistory.SelectedReturn}"
+                      AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="All"
+                      HeadersVisibility="Column" HorizontalScrollBarVisibility="Auto" CanUserResizeColumns="True"
+                      CanUserSortColumns="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                      VerticalScrollBarVisibility="Auto">
+              <DataGrid.Styles>
+                <Style Selector="DataGridCell TextBlock">
+                  <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+                  <Setter Property="ToolTip.Tip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                </Style>
+              </DataGrid.Styles>
               <DataGrid.Columns>
-                <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="120"/>
-                <DataGridTextColumn Header="DATE &amp; TIME" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="145"/>
-                <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="130"/>
-                <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductSummary}" Width="2*"/>
-                <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="100"/>
-                <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="1.4*"/>
-                <DataGridTextColumn Header="REFUND AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="135"/>
-                <DataGridTextColumn Header="PROCESSED BY" Binding="{Binding CreatedByName}" Width="135"/>
+                <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNo}" Width="140" MinWidth="140"/>
+                <DataGridTextColumn Header="DATE &amp; TIME" Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="160" MinWidth="160"/>
+                <DataGridTextColumn Header="TYPE" Binding="{Binding ReturnType}" Width="120" MinWidth="120"/>
+                <DataGridTextColumn Header="MEDICINE" Binding="{Binding ProductSummary}" Width="150" MinWidth="150"/>
+                <DataGridTextColumn Header="QTY / UNIT" Binding="{Binding QuantityWithUnit}" Width="100" MinWidth="100"/>
+                <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}" Width="140" MinWidth="140"/>
+                <DataGridTextColumn Header="REFUND AMOUNT" Binding="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" Width="120" MinWidth="120"/>
+                <DataGridTextColumn Header="PROCESSED BY" Binding="{Binding CreatedByName}" Width="140" MinWidth="140"/>
               </DataGrid.Columns>
             </DataGrid>
           </Border>

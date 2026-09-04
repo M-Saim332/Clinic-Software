@@ -68,9 +68,14 @@
               Background="{DynamicResource BrushCardBackground}"
               BorderBrush="{DynamicResource BrushLine}"
               BorderThickness="0,1,0,0"
-              GridLinesVisibility="Horizontal"
+              GridLinesVisibility="All"
               HeadersVisibility="Column"
-              HorizontalScrollBarVisibility="Disabled">
+              HorizontalScrollBarVisibility="Auto"
+              VerticalScrollBarVisibility="Auto"
+              CanUserResizeColumns="True"
+              CanUserSortColumns="True"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
       <DataGrid.Styles>
         <Style Selector="DataGridColumnHeader">
           <Setter Property="Padding" Value="10,12"/>
@@ -85,12 +90,17 @@
         <Style Selector="DataGridCell">
           <Setter Property="Padding" Value="10,12"/>
         </Style>
+        <Style Selector="DataGridCell TextBlock">
+          <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+          <Setter Property="VerticalAlignment" Value="Center"/>
+          <Setter Property="ToolTip.Tip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+        </Style>
       </DataGrid.Styles>
       <DataGrid.Columns>
-        <DataGridTextColumn Header="RETURN NO"         Binding="{Binding ReturnNo}"            Width="Auto" MinWidth="120"/>
-        <DataGridTextColumn Header="DATE &amp; TIME"   Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="Auto" MinWidth="140"/>
+        <DataGridTextColumn Header="RETURN NO"         Binding="{Binding ReturnNo}"            Width="140" MinWidth="140"/>
+        <DataGridTextColumn Header="DATE &amp; TIME"   Binding="{Binding CreatedAt, StringFormat=\{0:dd MMM yyyy HH:mm\}}" Width="160" MinWidth="160"/>
         
-        <DataGridTemplateColumn Header="RETURN TYPE" Width="Auto" MinWidth="120">
+        <DataGridTemplateColumn Header="RETURN TYPE" Width="120" MinWidth="120">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="models:ProductReturn">
               <Border Background="{DynamicResource BrushBlue50}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center" HorizontalAlignment="Left">
@@ -100,11 +110,11 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTextColumn Header="MEDICINE"          Binding="{Binding ProductSummary}"       Width="*" MinWidth="200"/>
-        <DataGridTextColumn Header="QTY / UNIT"        Binding="{Binding QuantityWithUnit}"     Width="Auto" MinWidth="100"/>
-        <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}"    Width="*" MinWidth="160"/>
+        <DataGridTextColumn Header="MEDICINE"          Binding="{Binding ProductSummary}"       Width="150" MinWidth="150"/>
+        <DataGridTextColumn Header="QTY / UNIT"        Binding="{Binding QuantityWithUnit}"     Width="100" MinWidth="100"/>
+        <DataGridTextColumn Header="PATIENT / SUPPLIER" Binding="{Binding CounterpartyName}"    Width="140" MinWidth="140"/>
         
-        <DataGridTemplateColumn Header="REFUND AMOUNT" Width="Auto" MinWidth="120">
+        <DataGridTemplateColumn Header="REFUND AMOUNT" Width="120" MinWidth="120">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="models:ProductReturn">
               <TextBlock Text="{Binding RefundAmount, StringFormat='Rs. {0:N2}'}" TextAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
@@ -112,7 +122,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTextColumn Header="PROCESSED BY"      Binding="{Binding CreatedByName}"        Width="Auto" MinWidth="130"/>
+        <DataGridTextColumn Header="PROCESSED BY"      Binding="{Binding CreatedByName}"        Width="140" MinWidth="140"/>
         
         <DataGridTemplateColumn Header="ACTIONS" Width="Auto" MinWidth="90">
           <DataGridTemplateColumn.CellTemplate>

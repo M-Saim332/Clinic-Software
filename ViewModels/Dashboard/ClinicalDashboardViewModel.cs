@@ -3,6 +3,7 @@ using ClinicSystem.Data.Repositories;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiveChartsCore;
+using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
@@ -35,6 +36,7 @@ public class RecentVisitItem
 
 public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<AppointmentStatusChangedMessage>
 {
+    private static readonly TimeZoneInfo PakistanTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pakistan Standard Time");
     private readonly AppointmentRepository _appointmentRepo;
     private readonly PatientRepository _patientRepo;
     private List<Appointment> _appointmentTrendSource = new();
@@ -99,10 +101,10 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
             var patientList = patients.ToList();
             _appointmentTrendSource = appointmentList;
 
-            // Keep the range and SQL grouping on the database server's local
-            // calendar.  This prevents a UTC/client offset from placing 01 Sep
-            // appointments under 31 Aug.
-            var today = await Task.Run(_appointmentRepo.GetLocalCalendarToday);
+            // All chart boundaries use PKT, independently of the workstation or
+            // SQL Server timezone. AppointmentDate is a clinic-local calendar date,
+            // so it is queried with these PKT date boundaries without UTC shifting.
+            var today = GetPakistanToday();
             _trendToday = today;
             // Monthly chart is a rolling 30-day clinical trend, not only the days elapsed
             // in the calendar month. The repository returns every date with zero-filled gaps.
@@ -209,9 +211,9 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
 
         PatientTrendSeries = new ISeries[]
         {
-            new LineSeries<double>
+            new LineSeries<DateTimePoint>
             {
-                Values = points.Select(p => p.Value).ToArray(),
+                Values = points.Select(p => new DateTimePoint(p.Date, p.Value)).ToArray(),
                 Fill = new SolidColorPaint(new SKColor(37, 99, 235, 40)),
                 Stroke = new SolidColorPaint(new SKColor(37, 99, 235)) { StrokeThickness = 3 },
                 GeometrySize = 8,
@@ -227,7 +229,12 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
         {
             new Axis
             {
-                Labels = points.Select(p => p.Label).ToArray(),
+                // The X coordinate and its text both come from the same PKT date.
+                // This eliminates index-based tooltip labels drifting one day.
+                Labeler = value => new DateTime((long)value).ToString(GetTrendDateFormat(points)),
+                MinLimit = points.Count == 0 ? null : points[0].Date.Ticks,
+                MaxLimit = points.Count == 0 ? null : points[^1].Date.AddDays(1).Ticks,
+                UnitWidth = GetTrendUnitWidth(points),
                 LabelsRotation = points.Count > 12 ? 35 : 0,
                 TextSize = 9
             }
@@ -250,7 +257,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
         var dayCount = Math.Max(1, (endDate.Date - startDate.Date).Days + 1);
         return Enumerable.Range(0, dayCount)
             .Select(i => startDate.AddDays(i))
-            .Select(d => new TrendPoint(d.ToString("dd MMM"), countsByDay.TryGetValue(d.Date, out var count) ? count : 0))
+            .Select(d => new TrendPoint(d.Date, countsByDay.TryGetValue(d.Date, out var count) ? count : 0))
             .ToList();
     }
 
@@ -266,7 +273,7 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
         var monthCount = Math.Max(1, ((end.Year - start.Year) * 12) + end.Month - start.Month + 1);
         return Enumerable.Range(0, monthCount)
             .Select(i => start.AddMonths(i))
-            .Select(m => new TrendPoint(m.ToString("MMM"), appointmentsByMonth.TryGetValue(m, out var count) ? count : 0))
+            .Select(m => new TrendPoint(m.Date, appointmentsByMonth.TryGetValue(m, out var count) ? count : 0))
             .ToList();
     }
 
@@ -285,24 +292,36 @@ public partial class ClinicalDashboardViewModel : ViewModelBase, IRecipient<Appo
         var totalMonths = ((currentMonth.Year - firstMonth.Year) * 12) + currentMonth.Month - firstMonth.Month + 1;
 
         if (totalMonths <= 24)
-        {
-            var monthly = BuildMonthlyPoints(firstMonth, currentMonth, appointments);
-            return monthly.Select((p, i) =>
-            {
-                var month = firstMonth.AddMonths(i);
-                return p with { Label = month.ToString("MMM yyyy") };
-            }).ToList();
-        }
+            return BuildMonthlyPoints(firstMonth, currentMonth, appointments);
 
         var appointmentsByYear = appointments
             .GroupBy(a => a.AppointmentDate.Year)
             .ToDictionary(g => g.Key, g => (double)g.Count());
         return Enumerable.Range(firstMonth.Year, today.Year - firstMonth.Year + 1)
-            .Select(year => new TrendPoint(year.ToString(), appointmentsByYear.TryGetValue(year, out var count) ? count : 0))
+            .Select(year => new TrendPoint(new DateTime(year, 1, 1), appointmentsByYear.TryGetValue(year, out var count) ? count : 0))
             .ToList();
     }
 
-    private readonly record struct TrendPoint(string Label, double Value);
+    private static DateTime GetPakistanToday() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, PakistanTimeZone).Date;
+
+    private string GetTrendDateFormat(IReadOnlyList<TrendPoint> points) => SelectedPatientTrendRange switch
+    {
+        "Yearly" => "MMM",
+        // A short lifetime range is plotted by month; a longer one by year.
+        "Lifetime" when points.Count > 1 && points[^1].Date < points[0].Date.AddYears(3) => "MMM yyyy",
+        "Lifetime" => "yyyy",
+        _ => "dd MMM"
+    };
+
+    private double GetTrendUnitWidth(IReadOnlyList<TrendPoint> points) => SelectedPatientTrendRange switch
+    {
+        "Yearly" => TimeSpan.FromDays(30).Ticks,
+        "Lifetime" when points.Count > 1 && points[^1].Date < points[0].Date.AddYears(3) => TimeSpan.FromDays(30).Ticks,
+        "Lifetime" => TimeSpan.FromDays(365).Ticks,
+        _ => TimeSpan.FromDays(1).Ticks
+    };
+
+    private readonly record struct TrendPoint(DateTime Date, double Value);
 
     public void Receive(AppointmentStatusChangedMessage message) => _ = InitializeAsync();
 }

@@ -99,10 +99,25 @@ public partial class ReportsViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private async Task LoadPatientListAsync()
     {
-        IsBusy = true;
-        PatientList = new ObservableCollection<Patient>(await Task.Run(() => _patientRepo.GetAll()));
-        StatusMessage = $"{PatientList.Count} patients.";
-        IsBusy = false;
+        try
+        {
+            IsBusy = true;
+            // Keep an always-valid collection bound while the repository runs.
+            PatientList ??= new ObservableCollection<Patient>();
+            var patients = await Task.Run(() => _patientRepo.GetAll()) ?? Enumerable.Empty<Patient>();
+            PatientList = new ObservableCollection<Patient>(patients);
+            StatusMessage = $"{PatientList.Count} patients.";
+        }
+        catch (Exception ex)
+        {
+            PatientList = new ObservableCollection<Patient>();
+            StatusMessage = $"Patient list could not be loaded: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"[REPORTS PATIENT LIST ERROR] {ex}");
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]

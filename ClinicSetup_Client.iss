@@ -33,7 +33,9 @@ DiskSpanning=no
 
 ; Requires admin
 PrivilegesRequired=admin
-ArchitecturesInstallIn64BitMode=x64
+PrivilegesRequiredOverridesAllowed=dialog
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 ; Wizard appearance
 WizardStyle=modern
@@ -60,13 +62,13 @@ Source: "publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs creat
 ; ── Default appsettings is generated via [Code] section
 
 [Icons]
-Name: "{group}\{#AppName}";       Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"
+Name: "{group}\{#AppName}";         Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Flags: runmaximized
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}";    Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Tasks: desktopicon; Flags: runmaximized
 
 [Run]
-; Launch app after install
-Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
+; Launch app after install (elevated)
+Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runasoriginaluser; WorkingDir: "{app}"
 
 [Messages]
 FinishedLabel=Setup finished!%n%nNEXT STEPS (Reception PC / Client):%n%n1. The application will launch.%n2. You are connected to the main server.
@@ -86,10 +88,10 @@ begin
   DbPage.Add('SQL Username:', False);
   DbPage.Add('SQL Password:', True);
   
-  DbPage.Values[0] := 'DOCTOR-PC\SQLEXPRESS';
+  DbPage.Values[0] := '192.168.100.50,1433';
   DbPage.Values[1] := 'ClinicDB';
   DbPage.Values[2] := 'sa';
-  DbPage.Values[3] := '';
+  DbPage.Values[3] := 'Admin@123';
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

@@ -77,9 +77,9 @@ public partial class ProcessReturnViewModel : ViewModelBase
         {
             IsBusy = true;
             var products  = await Task.Run(_productRepo.GetAll) ?? Enumerable.Empty<Product>();
-            var patients  = await Task.Run(() => _patientRepo.GetAll());
-            var suppliers = await Task.Run(_supplierRepo.GetAll);
-            var sales     = await Task.Run(_saleRepo.GetAll);
+            var patients  = await Task.Run(() => _patientRepo.GetAll()) ?? Enumerable.Empty<Patient>();
+            var suppliers = await Task.Run(_supplierRepo.GetAll) ?? Enumerable.Empty<Supplier>();
+            var sales     = await Task.Run(_saleRepo.GetAll) ?? Enumerable.Empty<Sale>();
 
             Products  = new ObservableCollection<Product>(products.Where(p => p != null && p.IsReturnable));
             Patients  = new ObservableCollection<Patient>(patients);
@@ -223,7 +223,6 @@ public partial class ProcessReturnViewModel : ViewModelBase
         var unitType = IsPatientReturn ? "Pieces" : "Packs";
         var ret = new ProductReturn
         {
-            ReturnNo     = $"RET-{DateTime.Now:yyyyMMddHHmmssfff}",
             ProductId    = ReturnItems[0].ProductId,
             Quantity     = ReturnItems.Sum(i => i.Quantity),
             EnteredQuantity = ReturnItems.Sum(i => i.EnteredQuantity),

@@ -9,7 +9,8 @@ OutputDir=Installer
 OutputBaseFilename=ClinicSetup
 Compression=lzma2
 SolidCompression=yes
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=admin
 
 [Tasks]

@@ -56,7 +56,11 @@ public class ReturnRepository
         ret.IsPosted = false;
         using var conn = _session.CreateConnection();
         using var tx = conn.BeginTransaction();
-        ret.ReturnNo = string.IsNullOrWhiteSpace(ret.ReturnNo) ? $"RET-{DateTime.Now:yyyyMMddHHmmssfff}" : ret.ReturnNo;
+        // Use the database identity as the public sequence. A unique temporary value
+        // keeps the NOT NULL value safe until SQL Server returns the new ReturnId.
+        // This is concurrency-safe and produces RET1, RET2, RET3... without relying
+        // on a timestamp or a separate "last number" query.
+        ret.ReturnNo = $"TMP-{Guid.NewGuid():N}";
         var first = ret.Items[0];
         ret.ReturnId = conn.ExecuteScalar<int>(@"INSERT INTO Returns
             (ReturnNo,ProductId,BatchNo,Quantity,UnitType,StockQuantity,ReturnType,Reason,Notes,PatientId,SupplierId,SaleId,
@@ -66,6 +70,8 @@ public class ReturnRepository
             new { ret.ReturnNo, ProductId=first.ProductId, ret.BatchNo, Quantity=ret.Items.Sum(i=>i.Quantity), StockQuantity=ret.Items.Sum(i=>i.Quantity),
                 ret.UnitType, ret.ReturnType, ret.Reason, ret.Notes, ret.PatientId, ret.SupplierId, ret.SaleId,
                 RefundAmount=ret.Items.Sum(i=>i.RefundAmount), ret.CreatedBy, ret.CreatedAt }, tx);
+        ret.ReturnNo = $"RET{ret.ReturnId}";
+        conn.Execute("UPDATE Returns SET ReturnNo=@ReturnNo WHERE ReturnId=@ReturnId", new { ret.ReturnNo, ret.ReturnId }, tx);
         foreach (var item in ret.Items)
         {
             if (item.Quantity <= 0) throw new InvalidOperationException("Return quantities must be greater than zero.");

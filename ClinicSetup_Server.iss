@@ -33,7 +33,9 @@ DiskSpanning=no
 
 ; Requires admin (needed for Program Files install)
 PrivilegesRequired=admin
-ArchitecturesInstallIn64BitMode=x64
+PrivilegesRequiredOverridesAllowed=dialog
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 ; Wizard appearance
 WizardStyle=modern
@@ -66,13 +68,13 @@ Source: "Database\Migration_AddDiscountRefunds.sql"; DestDir: "{app}\Database"; 
 ; ── Default appsettings is generated via [Code] section
 
 [Icons]
-Name: "{group}\{#AppName}";     Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"
+Name: "{group}\{#AppName}";         Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Flags: runmaximized
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}";    Filename: "{app}\{#AppExe}"; WorkingDir: "{app}"; Tasks: desktopicon; Flags: runmaximized
 
 [Run]
-; Launch app after install
-Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent; WorkingDir: "{app}"
+; Launch app after install (elevated)
+Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent runasoriginaluser; WorkingDir: "{app}"
 
 [Messages]
 FinishedLabel=Setup finished!%n%nNEXT STEPS (Doctor PC / Server):%n%n1. Open SQL Server Management Studio (SSMS)%n2. Connect to your SQL Server instance%n3. Open and run: {app}\Database\Schema.sql%n4. Launch the app.
@@ -92,7 +94,7 @@ begin
   DbPage.Add('SQL Username (leave blank for Windows Auth):', False);
   DbPage.Add('SQL Password (leave blank for Windows Auth):', True);
   
-  DbPage.Values[0] := '(local)\SQLEXPRESS';
+  DbPage.Values[0] := '.\SQLEXPRESS';
   DbPage.Values[1] := 'ClinicDB';
   DbPage.Values[2] := '';
   DbPage.Values[3] := '';

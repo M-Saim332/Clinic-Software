@@ -451,7 +451,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     partial void OnSelectedNotificationChanged(AppNotification? value)
     {
         if (value == null) return;
-        MarkNotificationRead(value.Key);
+        _ = MarkNotificationReadAsync(value.Key);
         
         if (value.Title == "New pharmacy handoff" && value.Payload is Prescription prescription)
         {
@@ -483,16 +483,22 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
 
         try
         {
+            var userId = CurrentUser?.UserID ?? 0;
+            var readKeys = userId > 0
+                ? await Task.Run(() => GetReadNotificationKeys(userId))
+                : new HashSet<string>(StringComparer.Ordinal);
             var handoffs = await Task.Run(() => _prescriptionRepo.GetPharmacyHandoffs(includeDispensed: true).ToList());
             var items = handoffs
                 .Where(ShouldShowWorkflowNotification)
-                .Select(ToNotification)
+                .Select(prescription => ToNotification(prescription, readKeys))
                 .OrderByDescending(n => n.IsUnread)
                 .ThenByDescending(n => ParseNotificationTime(n.TimeText))
                 .ToList();
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                _readNotificationKeys.Clear();
+                _readNotificationKeys.UnionWith(readKeys);
                 Notifications = new ObservableCollection<AppNotification>(items);
                 UnreadNotificationCount = items.Count(n => n.IsUnread);
                 OnPropertyChanged(nameof(HasNotifications));
@@ -532,7 +538,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         return false;
     }
 
-    private AppNotification ToNotification(Prescription prescription)
+    private AppNotification ToNotification(Prescription prescription, ISet<string> readKeys)
     {
         var patient = string.IsNullOrWhiteSpace(prescription.PatientName) ? "Patient" : prescription.PatientName;
         var status = prescription.WorkflowStatus;
@@ -565,7 +571,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 "Dispensed" => "BrushEmerald",
                 _ => "BrushPrimaryBlue"
             },
-            IsUnread = !_readNotificationKeys.Contains(key),
+            IsUnread = !readKeys.Contains(key),
             Payload = prescription
         };
     }
@@ -573,8 +579,51 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     private static DateTime ParseNotificationTime(string value) =>
         DateTime.TryParse(value, out var parsed) ? parsed : DateTime.MinValue;
 
-    private void MarkNotificationRead(string key)
+    private HashSet<string> GetReadNotificationKeys(int userId)
     {
+        using var connection = _dbSession.CreateConnection();
+        return connection.Query<string>(@"
+            SELECT NotificationKey
+            FROM NotificationReadStates
+            WHERE UserID = @UserID", new { UserID = userId })
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    private void PersistReadNotificationKeys(int userId, IEnumerable<string> keys)
+    {
+        using var connection = _dbSession.CreateConnection();
+        using var transaction = connection.BeginTransaction();
+        foreach (var key in keys.Where(key => !string.IsNullOrWhiteSpace(key)).Distinct(StringComparer.Ordinal))
+        {
+            connection.Execute(@"
+                MERGE NotificationReadStates WITH (HOLDLOCK) AS target
+                USING (SELECT @UserID AS UserID, @NotificationKey AS NotificationKey) AS source
+                ON target.UserID = source.UserID AND target.NotificationKey = source.NotificationKey
+                WHEN MATCHED THEN UPDATE SET ReadAt = SYSDATETIME()
+                WHEN NOT MATCHED THEN INSERT (UserID, NotificationKey, ReadAt)
+                    VALUES (source.UserID, source.NotificationKey, SYSDATETIME());",
+                new { UserID = userId, NotificationKey = key }, transaction);
+        }
+        transaction.Commit();
+    }
+
+    private async Task MarkNotificationReadAsync(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key) || _readNotificationKeys.Contains(key)) return;
+        var userId = CurrentUser?.UserID ?? 0;
+        if (userId <= 0) return;
+
+        try
+        {
+            // Persist first: a failed write must not create a misleading read UI state.
+            await Task.Run(() => PersistReadNotificationKeys(userId, new[] { key }));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NOTIFICATION READ ERROR] {ex}");
+            return;
+        }
+
         if (!_readNotificationKeys.Add(key)) return;
         Notifications = new ObservableCollection<AppNotification>(
             Notifications.Select(n => n.Key == key ? new AppNotification
@@ -593,10 +642,27 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     }
 
     [RelayCommand]
-    private void MarkAllNotificationsRead()
+    private async Task MarkAllNotificationsReadAsync()
     {
-        foreach (var notification in Notifications)
-            _readNotificationKeys.Add(notification.Key);
+        var keys = Notifications.Where(notification => notification.IsUnread)
+            .Select(notification => notification.Key)
+            .Where(key => !string.IsNullOrWhiteSpace(key))
+            .ToArray();
+        if (keys.Length == 0) return;
+
+        var userId = CurrentUser?.UserID ?? 0;
+        if (userId <= 0) return;
+        try
+        {
+            await Task.Run(() => PersistReadNotificationKeys(userId, keys));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NOTIFICATION READ ERROR] {ex}");
+            return;
+        }
+
+        _readNotificationKeys.UnionWith(keys);
 
         Notifications = new ObservableCollection<AppNotification>(
             Notifications.Select(n => new AppNotification

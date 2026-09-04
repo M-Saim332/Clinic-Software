@@ -188,7 +188,8 @@
                                           GridLinesVisibility="All"
                                           HorizontalGridLinesBrush="#E5E7EB"
                                           VerticalGridLinesBrush="#E5E7EB"
-                                          HeadersVisibility="Column" FontSize="12" MinHeight="380">
+                                          HeadersVisibility="Column" FontSize="12" MinHeight="380"
+                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                     <DataGrid.Styles>
                                         <Style Selector="DataGridColumnHeader">
                                             <Setter Property="Background" Value="#F3F4F6"/>
@@ -219,22 +220,23 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Item Description (min-width: 220px, left-aligned) -->
-                                        <DataGridTemplateColumn MinWidth="220" Width="*">
+                                        <!-- Description takes remaining A4 width; it is the only truncatable field. -->
+                                        <DataGridTemplateColumn MinWidth="180" Width="*">
                                             <DataGridTemplateColumn.Header>
                                                 <TextBlock Text="Item Description" TextWrapping="NoWrap" HorizontalAlignment="Left"/>
                                             </DataGridTemplateColumn.Header>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <TextBlock Text="{Binding ProductName}" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                               Margin="4,0,4,0" TextWrapping="NoWrap"/>
+                                                               Margin="4,0,4,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                               ToolTip.Tip="{Binding ProductName}"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
 
-                                        <!-- Expiry Date (min-width: 90px, centered) -->
-                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                        <!-- Expiry Date (centered) -->
+                                        <DataGridTemplateColumn MinWidth="100" Width="100">
                                             <DataGridTemplateColumn.Header>
                                                 <TextBlock Text="Expiry Date" TextWrapping="NoWrap" HorizontalAlignment="Center"/>
                                             </DataGridTemplateColumn.Header>
@@ -269,7 +271,7 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Rate (T.P) (min-width: 90px, right-aligned) -->
+                                        <!-- Rate (T.P) (right-aligned) -->
                                         <DataGridTemplateColumn MinWidth="95" Width="95">
                                             <DataGridTemplateColumn.Header>
                                                 <TextBlock Text="Rate (T.P)" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
@@ -281,8 +283,8 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- MRP (min-width: 90px, right-aligned) -->
-                                        <DataGridTemplateColumn MinWidth="95" Width="95">
+                                        <!-- MRP (right-aligned) -->
+                                        <DataGridTemplateColumn MinWidth="90" Width="90">
                                             <DataGridTemplateColumn.Header>
                                                 <TextBlock Text="MRP" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
                                             </DataGridTemplateColumn.Header>
@@ -293,8 +295,8 @@
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
 
-                                        <!-- Line Total (min-width: 110px, right-aligned) -->
-                                        <DataGridTemplateColumn MinWidth="110" Width="115">
+                                        <!-- Line Total (right-aligned) -->
+                                        <DataGridTemplateColumn MinWidth="110" Width="110">
                                             <DataGridTemplateColumn.Header>
                                                 <TextBlock Text="Line Total" TextWrapping="NoWrap" HorizontalAlignment="Right"/>
                                             </DataGridTemplateColumn.Header>

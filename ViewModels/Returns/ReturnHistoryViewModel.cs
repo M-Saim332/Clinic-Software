@@ -39,9 +39,9 @@ public partial class ReturnHistoryViewModel : ViewModelBase, ISearchable
         try
         {
             IsBusy = true;
-            var returns = await Task.Run(_returnRepo.GetAll);
+            var returns = await Task.Run(_returnRepo.GetAll) ?? Enumerable.Empty<ProductReturn>();
             
-            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 _allReturns = new ObservableCollection<ProductReturn>(returns);
                 FilterReturns();
@@ -50,11 +50,16 @@ public partial class ReturnHistoryViewModel : ViewModelBase, ISearchable
         }
         catch (Exception ex) 
         { 
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => StatusMessage = $"Failed to load returns: {ex.Message}");
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _allReturns = new ObservableCollection<ProductReturn>();
+                Returns = new ObservableCollection<ProductReturn>();
+                StatusMessage = $"Failed to load returns: {ex.Message}";
+            });
         }
         finally 
         { 
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => IsBusy = false);
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => IsBusy = false);
         }
     }
 
@@ -110,6 +115,7 @@ public partial class ReturnHistoryViewModel : ViewModelBase, ISearchable
     private void FilterReturns()
     {
         var term = SearchTerm?.Trim() ?? string.Empty;
+        _allReturns ??= new ObservableCollection<ProductReturn>();
         Returns = new ObservableCollection<ProductReturn>(string.IsNullOrEmpty(term) ? _allReturns
             : _allReturns.Where(r =>
                 r.ReturnNo.Contains(term, StringComparison.OrdinalIgnoreCase) ||

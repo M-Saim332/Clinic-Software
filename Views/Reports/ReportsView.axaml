@@ -49,15 +49,18 @@
                         </StackPanel>
                     </comp:DataTableShellControl.FilterToolbar>
                     <comp:DataTableShellControl.TableContent>
-                        <DataGrid ItemsSource="{Binding PatientList}" AutoGenerateColumns="False" IsReadOnly="True"
-                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal">
+                        <DataGrid x:Name="PatientListGrid" ItemsSource="{Binding PatientList}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="Transparent" BorderThickness="0" GridLinesVisibility="All"
+                                  CanUserResizeColumns="True" CanUserSortColumns="True"
+                                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding PatientID}" Width="70"/>
-                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="90"/>
-                                <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="110"/>
-                                <DataGridTextColumn Header="CONTACT" Binding="{Binding Contact}" Width="150"/>
-                                <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="*"/>
+                                <DataGridTextColumn Header="ID" Binding="{Binding PatientID}" Width="80" MinWidth="60"/>
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="1.5*" MinWidth="130"/>
+                                <DataGridTextColumn Header="AGE" Binding="{Binding Age}" Width="70" MinWidth="60"/>
+                                <DataGridTextColumn Header="GENDER" Binding="{Binding Gender}" Width="100" MinWidth="90"/>
+                                <DataGridTextColumn Header="CONTACT" Binding="{Binding Contact}" Width="140" MinWidth="120"/>
+                                <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="2*" MinWidth="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </comp:DataTableShellControl.TableContent>

@@ -31,6 +31,8 @@ public class ProductReturn
     public string? PatientName { get; set; }
     public string? SupplierName { get; set; }
     public string CounterpartyName => PatientName ?? SupplierName ?? string.Empty;
-    public string ProductSummary => Items.Count > 1 ? $"{Items[0].ProductName} +{Items.Count - 1} more" : ProductName ?? string.Empty;
+    public string ProductSummary => Items is { Count: > 1 }
+        ? $"{Items[0].ProductName ?? string.Empty} +{Items.Count - 1} more"
+        : ProductName ?? string.Empty;
     public string QuantityWithUnit => $"{EnteredQuantity:N0} {(UnitType == "Packs" ? "Packs" : "Pcs")}";
 }

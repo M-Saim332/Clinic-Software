@@ -144,7 +144,8 @@ public class DatabaseSession
 
                 try
                 {
-                    conn.Execute(cmd);
+                    using var command = new SqlCommand(cmd, (SqlConnection)conn);
+                    command.ExecuteNonQuery();
                 }
                 catch (Exception ex)
                 {
