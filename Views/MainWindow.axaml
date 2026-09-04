@@ -5,6 +5,7 @@
         xmlns:userviews="using:ClinicSystem.UI.Views.Users"
         xmlns:comp="using:ClinicSystem.UI.Views.Components"
         x:Class="ClinicSystem.UI.Views.MainWindow"
+        x:Name="Root"
         x:DataType="vm:MainWindowViewModel" x:CompileBindings="True"
         Title="Clinic Management System"
         Width="1280" Height="700"
@@ -83,15 +84,17 @@
                                                         <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="12"
                                                                    Foreground="{DynamicResource ThemeSubtleForegroundBrush}" LineHeight="17"/>
                                                                    
-                                                        <Border IsVisible="{Binding Payload, Converter={x:Static ObjectConverters.IsNotNull}}" 
-                                                                Margin="0,4,0,0" Padding="8,4" Background="{DynamicResource BrushPrimaryBlue10}" 
-                                                                CornerRadius="4" HorizontalAlignment="Left"
-                                                                ToolTip.Tip="Click notification to load into Sales &amp; Billing">
+                                                        <Button IsVisible="{Binding Payload, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                                Command="{Binding #Root.((vm:MainWindowViewModel)DataContext).OpenNotificationCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Margin="0,4,0,0" Padding="8,4" Background="{DynamicResource BrushPrimaryBlue10}"
+                                                                BorderThickness="0" CornerRadius="4" HorizontalAlignment="Left"
+                                                                ToolTip.Tip="Mark as read and load into Sales &amp; Billing">
                                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                                 <materialIcons:MaterialIcon Kind="CreditCardOutline" Width="14" Height="14" Foreground="{DynamicResource ThemePrimaryBrush}"/>
                                                                 <TextBlock Text="Load Into Sales &amp; Billing" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource ThemePrimaryBrush}"/>
                                                             </StackPanel>
-                                                        </Border>
+                                                        </Button>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>

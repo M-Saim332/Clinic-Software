@@ -452,11 +452,22 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     {
         if (value == null) return;
         _ = MarkNotificationReadAsync(value.Key);
-        
-        if (value.Title == "New pharmacy handoff" && value.Payload is Prescription prescription)
+    }
+
+    [RelayCommand]
+    private async Task OpenNotificationAsync(AppNotification? notification)
+    {
+        if (notification == null) return;
+
+        // The action button must await the durable read-state write before it
+        // changes pages. This prevents a reload from winning the race and showing
+        // the same item as unread again.
+        await MarkNotificationReadAsync(notification.Key);
+
+        if (notification.Title == "New pharmacy handoff" && notification.Payload is Prescription prescription)
         {
             ShowSalesCommand.Execute(null);
-            _ = _saleVM.LoadFromHandoffAsync(prescription);
+            await _saleVM.LoadFromHandoffAsync(prescription);
         }
     }
 
