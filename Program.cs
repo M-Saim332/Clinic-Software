@@ -1,6 +1,6 @@
 using Avalonia;
 using System;
-using ClinicSystem.UI.ViewModels;
+using System.IO;
 namespace ClinicSystem.UI;
 
 sealed class Program
@@ -11,8 +11,16 @@ sealed class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        try
+        {
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            WriteStartupFailure(ex);
+            Environment.ExitCode = 1;
+        }
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -21,4 +29,20 @@ sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+    internal static void WriteStartupFailure(Exception exception)
+    {
+        var details = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Application startup failed{Environment.NewLine}{exception}{Environment.NewLine}{Environment.NewLine}";
+        Console.Error.WriteLine(details);
+        System.Diagnostics.Debug.WriteLine(details);
+
+        try
+        {
+            File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "app_startup_error.log"), details);
+        }
+        catch
+        {
+            // Console.Error is still available when the application directory is not writable.
+        }
+    }
 }

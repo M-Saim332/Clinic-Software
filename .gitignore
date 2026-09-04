@@ -9,3 +9,7 @@ obj/
 *.pdb
 appsettings.local.json
 Installer/*.exe
+
+# Runtime and development logs
+app_startup_error.log
+*.log

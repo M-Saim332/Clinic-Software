@@ -39,35 +39,76 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        try
         {
-            // Read from bin/output directory (where the app actually runs from)
-            string? cs = ConnectionStringHelper.ReadEffective();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // Read from bin/output directory (where the app actually runs from)
+                string? cs = ConnectionStringHelper.ReadEffective();
 
-            if (ConnectionStringHelper.IsPlaceholder(cs))
-            {
-                // No valid connection string — show setup screen
-                ShowDbSetupWindow(desktop, previousWindow: null,
-                    initialError: "No database connection has been configured for this computer.");
-            }
-            else
-            {
-                // Try to connect with the stored string
-                var (ok, error) = ConnectionStringHelper.TestConnection(cs!);
-                if (!ok)
+                if (ConnectionStringHelper.IsPlaceholder(cs))
                 {
+                    // No valid connection string — show setup screen
                     ShowDbSetupWindow(desktop, previousWindow: null,
-                        initialError: $"Could not connect to database: {error}");
+                        initialError: "No database connection has been configured for this computer.");
                 }
                 else
                 {
-                    // All good — boot normally
-                    BuildServicesAndLogin(desktop, previousWindow: null);
+                    // Try to connect with the stored string
+                    var (ok, error) = ConnectionStringHelper.TestConnection(cs!);
+                    if (!ok)
+                    {
+                        ShowDbSetupWindow(desktop, previousWindow: null,
+                            initialError: $"Could not connect to database: {error}");
+                    }
+                    else
+                    {
+                        // All good — boot normally
+                        BuildServicesAndLogin(desktop, previousWindow: null);
+                    }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            Program.WriteStartupFailure(ex);
 
-        base.OnFrameworkInitializationCompleted();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                ShowStartupErrorWindow(desktop, ex);
+        }
+        finally
+        {
+            base.OnFrameworkInitializationCompleted();
+        }
+    }
+
+    private static void ShowStartupErrorWindow(IClassicDesktopStyleApplicationLifetime desktop, Exception exception)
+    {
+        var window = new Window
+        {
+            Title = "Clinic Management System – Startup Error",
+            Width = 720,
+            Height = 440,
+            MinWidth = 520,
+            MinHeight = 320,
+            Content = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto,
+                Content = new TextBox
+                {
+                    IsReadOnly = true,
+                    AcceptsReturn = true,
+                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                    Text = "The application could not complete startup.\n\n" +
+                           "Details were written to app_startup_error.log in the application folder.\n\n" +
+                           exception
+                }
+            }
+        };
+
+        desktop.MainWindow = window;
+        window.Show();
     }
 
     // ── DB Setup Window ───────────────────────────────────────────────────────

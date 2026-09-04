@@ -1,4 +1,28 @@
 # Clinic Management System
+
+## Setup and troubleshooting
+
+### First-time setup
+
+Restore dependencies once before building or running the desktop application:
+
+```powershell
+dotnet restore ClinicSystem.UI.csproj --disable-parallel
+dotnet build ClinicSystem.UI.csproj --no-restore
+```
+
+After a successful restore/build, start without repeating package downloads:
+
+```powershell
+dotnet run --no-build --no-restore
+```
+
+If NuGet downloads time out, verify access to `https://api.nuget.org/v3/index.json`, then retry the restore command above. `--no-cache` is not an offline mode; it forces packages to download again and should only be used when intentionally refreshing a corrupt package cache.
+
+### Startup diagnostics
+
+If the desktop app cannot open a login or setup window, startup errors are written to `app_startup_error.log` in the application output directory. The app also displays a startup-error window containing the exception details. Check this log first for database connection, migration, dependency-injection, or XAML bootstrap errors.
+
 ## Software Requirements & Architecture Specification
 
 ---
