@@ -24,12 +24,12 @@
     <Grid Grid.Column="1" RowDefinitions="60,Auto,*,Auto">
 
       <!-- Top bar -->
-      <Border Grid.Row="0" Background="{DynamicResource ThemeContentBackgroundBrush}"
+      <Border Grid.Row="0" Background="{DynamicResource ThemeTopBarBackgroundBrush}"
               BorderBrush="{DynamicResource BrushLine}" BorderThickness="0,0,0,1" Padding="24,0">
         <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
           <!-- Left: Page Title -->
           <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-              <TextBlock Text="{Binding PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ThemeContentForegroundBrush}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding PageTitle}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource ThemeTopBarForegroundBrush}" FontFamily="{DynamicResource FontLexend}" VerticalAlignment="Center"/>
           </StackPanel>
 
           <!-- Middle: Global Search Bar -->

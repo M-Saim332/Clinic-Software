@@ -271,7 +271,6 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             {
                 _repo.SetValue("ClinicName",    ClinicName);
                 _repo.SetValue("PharmacyName",  PharmacyName);
-                _repo.SetValue("ReceptionistTheme", ReceptionistTheme);
                 _repo.SetValue("ClinicAddress", ClinicAddress);
                 _repo.SetValue("Address", ClinicAddress);
                 _repo.SetValue("ClinicPhone",   ClinicPhone);
@@ -288,7 +287,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
             StatusMessage = "Settings saved successfully!";
             LogActivity("Settings Updated", "Application settings were updated", "Settings");
             SettingsSaved?.Invoke();
-            WeakReferenceMessenger.Default.Send(new ClinicNameChangedMessage(ClinicName));
+            WeakReferenceMessenger.Default.Send(new ClinicNameChangedMessage(ClinicName, PharmacyName));
         }
         catch (Exception ex) { StatusMessage = $"Failed to save settings: {ex.Message}"; }
         finally { IsBusy = false; }
@@ -369,7 +368,7 @@ public partial class SettingsViewModel : ViewModelBase, ISearchable
     [RelayCommand] private void ShowResetConfirm()
     {
         IsResetConfirmVisible = true;
-        StatusMessage = "⚠️ Warning: This will permanently delete ALL patient, product, and company data.";
+        StatusMessage = "⚠️ Warning: This will delete all client/business data (including stock and invoices). A rollback backup is created first.";
     }
 
     [RelayCommand] private void CancelReset()

@@ -470,7 +470,7 @@
                                                TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <Separator/>
-                                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
                                     <!-- Row 0: Dashboards -->
                                     <Border Grid.Column="0" Grid.Row="0" Classes="perm-box" Margin="0,0,8,8">
                                         <CheckBox Content="Clinic: Dashboard" IsChecked="{Binding AccDashboard}" Classes="perm-chk"/>
@@ -506,7 +506,7 @@
                                         <CheckBox Content="Pharma: Reports" IsChecked="{Binding AccReports}" Classes="perm-chk"/>
                                     </Border>
                                     <Border Grid.Column="2" Grid.Row="3" Classes="perm-box" Margin="0,0,0,8">
-                                        <CheckBox Content="Clinic: Drugs" IsChecked="{Binding AccProducts}" Classes="perm-chk"/>
+                                        <CheckBox Content="Clinic: Drugs" IsChecked="{Binding AccClinicProducts}" Classes="perm-chk"/>
                                     </Border>
                                     <!-- Row 4 -->
                                     <Border Grid.Column="0" Grid.Row="4" Classes="perm-box" Margin="0,0,8,0">
@@ -517,6 +517,9 @@
                                     </Border>
                                     <Border Grid.Column="2" Grid.Row="4" Classes="perm-box" Margin="0">
                                         <CheckBox Content="Clinic: Settings" IsChecked="{Binding AccSettings}" Classes="perm-chk"/>
+                                    </Border>
+                                    <Border Grid.Column="0" Grid.Row="5" Classes="perm-box" Margin="0,8,8,0">
+                                        <CheckBox Content="Clinic: Reports" IsChecked="{Binding AccClinicReports}" Classes="perm-chk"/>
                                     </Border>
                                 </Grid>
                             </StackPanel>

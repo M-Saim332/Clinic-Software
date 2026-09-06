@@ -50,6 +50,9 @@ public class User
     public bool HasAccess(string module)
     {
         if (IsAdmin || UserRole == UserRole.Doctor) return true;
-        return Permissions?.Contains(module) ?? false;
+        if (string.IsNullOrWhiteSpace(Permissions) || string.IsNullOrWhiteSpace(module)) return false;
+        return Permissions
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Any(permission => string.Equals(permission, module, StringComparison.OrdinalIgnoreCase));
     }
 }

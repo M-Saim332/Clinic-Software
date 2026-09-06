@@ -9,6 +9,7 @@ namespace ClinicSystem.UI.ViewModels.Suppliers;
 public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
 {
     public event Action<Supplier>? SupplierSaved;
+    public event Action? CancelRequested;
     private readonly SupplierRepository _repo;
     private ObservableCollection<Supplier> _allSuppliers = new();
 
@@ -158,6 +159,7 @@ public partial class SupplierRegistryViewModel : ViewModelBase, ISearchable
         Mode = FormMode.View;
         NotifyButtonStates();
         StatusMessage = string.Empty;
+        CancelRequested?.Invoke();
     }
 
     public async Task InitializeAsync()

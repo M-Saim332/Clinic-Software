@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ClinicSystem.UI.ViewModels.Reports"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="ClinicSystem.UI.Views.Reports.DailyReportsView"
+             x:DataType="vm:DailyReportsViewModel">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="28" Spacing="22" MaxWidth="1180" HorizontalAlignment="Stretch">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="4">
+          <TextBlock Text="Daily Reports" FontSize="26" FontWeight="Bold"/>
+          <TextBlock Text="Print complete clinic and pharmacy summaries for one business day."
+                     Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Spacing="5">
+          <TextBlock Text="REPORT DATE" FontSize="11" FontWeight="Bold"/>
+          <DatePicker SelectedDate="{Binding ReportDate}" Width="210"/>
+        </StackPanel>
+      </Grid>
+
+      <Border Background="{DynamicResource ThemePrimaryLightBrush}" CornerRadius="10" Padding="18,12">
+        <TextBlock Text="{Binding ReportDateText}" FontSize="16" FontWeight="SemiBold"
+                   Foreground="{DynamicResource ThemePrimaryBrush}"/>
+      </Border>
+
+      <UniformGrid Columns="3" Rows="2">
+        <Button Margin="6" Height="150" Command="{Binding PrintSalesSummaryCommand}">
+          <StackPanel Spacing="9"><materialIcons:MaterialIcon Kind="ReceiptTextOutline" Width="30" Height="30" Foreground="{DynamicResource ThemePrimaryBrush}"/><TextBlock Text="Daily Sales Summary" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding SalesCount, StringFormat='{}{0} posted invoices'}"/><TextBlock Text="{Binding SalesTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="SemiBold"/></StackPanel>
+        </Button>
+        <Button Margin="6" Height="150" Command="{Binding PrintPurchaseSummaryCommand}">
+          <StackPanel Spacing="9"><materialIcons:MaterialIcon Kind="CartOutline" Width="30" Height="30" Foreground="#D97706"/><TextBlock Text="Daily Purchase Summary" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding PurchaseCount, StringFormat='{}{0} posted invoices'}"/><TextBlock Text="{Binding PurchaseTotal, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="SemiBold"/></StackPanel>
+        </Button>
+        <Button Margin="6" Height="150" Command="{Binding PrintPatientsSummaryCommand}">
+          <StackPanel Spacing="9"><materialIcons:MaterialIcon Kind="AccountGroupOutline" Width="30" Height="30" Foreground="#059669"/><TextBlock Text="Daily Patients Summary" FontSize="16" FontWeight="Bold"/><TextBlock Text="Appointments and visits"/><TextBlock Text="{Binding PatientCount, StringFormat='{}{0} patients'}" FontSize="18" FontWeight="SemiBold"/></StackPanel>
+        </Button>
+        <Button Margin="6" Height="150" Command="{Binding PrintReturnsSummaryCommand}">
+          <StackPanel Spacing="9"><materialIcons:MaterialIcon Kind="ArrowULeftTop" Width="30" Height="30" Foreground="#DC2626"/><TextBlock Text="Daily Returns Summary" FontSize="16" FontWeight="Bold"/><TextBlock Text="{Binding ReturnCount, StringFormat='{}{0} posted returns'}"/><TextBlock Text="Patient and supplier returns"/></StackPanel>
+        </Button>
+        <Button Margin="6" Height="150" Command="{Binding PrintProfitLossSummaryCommand}">
+          <StackPanel Spacing="9"><materialIcons:MaterialIcon Kind="ChartLine" Width="30" Height="30" Foreground="#7C3AED"/><TextBlock Text="Profit &amp; Loss Summary" FontSize="16" FontWeight="Bold"/><TextBlock Text="Sales − purchases − refunds + credits"/><TextBlock Text="{Binding NetProfitLoss, StringFormat='Rs. {0:N2}'}" FontSize="18" FontWeight="SemiBold"/></StackPanel>
+        </Button>
+      </UniformGrid>
+
+      <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource ThemeSubtleForegroundBrush}"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

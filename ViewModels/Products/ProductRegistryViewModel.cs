@@ -14,6 +14,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
 {
     public event Action? RequestAddCompany;
     public event Action<Product>? ProductSaved;
+    public event Action? CancelRequested;
     public int? PreselectedEntityId { get; set; }
     public Action<int>? ReturnToCaller { get; set; }
     private readonly ProductRepository _repo;
@@ -441,6 +442,7 @@ public partial class ProductRegistryViewModel : ViewModelBase, ISearchable, INav
         NotifyButtonStates();
         if (SelectedProduct != null) FillFields(SelectedProduct);
         StatusMessage = string.Empty;
+        CancelRequested?.Invoke();
     }
 
     [RelayCommand] private void Find() { ShowList = !ShowList; FilterProducts(); }

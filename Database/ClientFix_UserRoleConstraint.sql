@@ -1,14 +1,17 @@
--- ============================================================
---  Migration 002: Keep the Users.Role CHECK constraint aligned with every
---  role supported by the application.
---  Run this once on any live ClinicDB instance.
--- ============================================================
+/*
+ Immediate client repair for CK_Users_Role.
 
-USE ClinicDB;
+ Safe to run against an existing ClinicDB. No user records are deleted or
+ modified. Only the Users.Role validation constraint is replaced.
+*/
+USE [ClinicDB];
 GO
 
--- Drop the old CHECK constraint dynamically
+SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+
 DECLARE @DropRoleConstraintsSql NVARCHAR(MAX) = N'';
+
 SELECT @DropRoleConstraintsSql = @DropRoleConstraintsSql
     + N'ALTER TABLE dbo.Users DROP CONSTRAINT ' + QUOTENAME(name) + N';'
 FROM sys.check_constraints
@@ -16,14 +19,17 @@ WHERE parent_object_id = OBJECT_ID(N'dbo.Users')
   AND CHARINDEX(N'Role', definition) > 0;
 
 IF LEN(@DropRoleConstraintsSql) > 0
-BEGIN
     EXEC sys.sp_executesql @DropRoleConstraintsSql;
-END
 
--- Recreate with every role exposed by UserRegistryViewModel.RoleOptions.
 ALTER TABLE dbo.Users WITH CHECK
     ADD CONSTRAINT CK_Users_Role
     CHECK (Role IN ('Doctor', 'Receptionist', 'Admin', 'Pharmacist', 'Assistant'));
 
-PRINT 'CK_Users_Role updated — all supported roles are now allowed.';
+COMMIT TRANSACTION;
+GO
+
+SELECT name, definition
+FROM sys.check_constraints
+WHERE parent_object_id = OBJECT_ID(N'dbo.Users')
+  AND name = N'CK_Users_Role';
 GO

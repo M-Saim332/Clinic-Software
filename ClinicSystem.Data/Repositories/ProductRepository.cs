@@ -289,6 +289,47 @@ public class ProductRepository
             throw new InvalidOperationException("The selected stock batch was not found.");
     }
 
+    /// <summary>
+    /// Updates the pack MRP for one selected batch and the catalogue's default MRP
+    /// for future purchase entries. Historical invoice item prices are immutable.
+    /// </summary>
+    public void AdjustBatchMrp(int stockId, int productId, decimal packMrp)
+    {
+        if (packMrp <= 0)
+            throw new ArgumentOutOfRangeException(nameof(packMrp), "MRP must be greater than zero.");
+
+        using var conn = _session.CreateConnection();
+        using var tx = conn.BeginTransaction();
+        var batchUpdated = conn.Execute(@"
+            UPDATE ProductStock
+            SET MRP = @packMrp,
+                UpdatedAt = CURRENT_TIMESTAMP
+            WHERE StockID = @stockId
+              AND ProductID = @productId
+              AND IsArchived = 0", new { stockId, productId, packMrp }, tx);
+
+        if (batchUpdated != 1)
+        {
+            tx.Rollback();
+            throw new InvalidOperationException("The selected active stock batch was not found.");
+        }
+
+        var productUpdated = conn.Execute(@"
+            UPDATE Products
+            SET SellingPrice = @packMrp,
+                LastStockUpdateDate = CURRENT_TIMESTAMP
+            WHERE ProductID = @productId AND IsActive = 1",
+            new { productId, packMrp }, tx);
+
+        if (productUpdated != 1)
+        {
+            tx.Rollback();
+            throw new InvalidOperationException("The product catalogue entry was not found.");
+        }
+
+        tx.Commit();
+    }
+
     /// <summary>Returns the selectable, non-expired batches for one product.</summary>
     public IEnumerable<ProductStock> GetActiveStockBatches(int productId)
     {

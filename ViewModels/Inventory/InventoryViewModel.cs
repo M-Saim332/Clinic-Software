@@ -42,6 +42,14 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable, IRecipient
     [ObservableProperty] private int _adjustmentQuantity;
     [ObservableProperty] private string _adjustmentReason = string.Empty;
     [ObservableProperty] private DateTimeOffset _adjustmentDate=DateTimeOffset.Now;
+    [ObservableProperty] private Product? _priceSelectedProduct;
+    [ObservableProperty] private ObservableCollection<ProductStock> _priceAvailableStockBatches = new();
+    [ObservableProperty] private ProductStock? _priceSelectedStockBatch;
+    [ObservableProperty] private decimal _newMrpValue;
+    public decimal CurrentPackMrp => PriceSelectedStockBatch?.MRP ?? 0;
+    public decimal CurrentPieceMrp => CurrentPackMrp / Math.Max(1, PriceSelectedProduct?.PiecesPerUnit ?? 1);
+    public decimal AdjustedPackMrpPreview => NewMrpValue;
+    public decimal AdjustedPieceMrpPreview => AdjustedPackMrpPreview / Math.Max(1, PriceSelectedProduct?.PiecesPerUnit ?? 1);
 
     // Supplier Return Fields
     [ObservableProperty] private bool _isSupplierReturnModalOpen;
@@ -103,6 +111,34 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable, IRecipient
     public void Receive(InventoryChangedMessage message) => _ = InitializeAsync();
 
     partial void OnSelectedProductChanged(Product? value) => _ = LoadStockBatchesAsync(value);
+
+    partial void OnPriceSelectedProductChanged(Product? value) => _ = LoadPriceStockBatchesAsync(value);
+
+    private async Task LoadPriceStockBatchesAsync(Product? product)
+    {
+        PriceSelectedStockBatch = null;
+        PriceAvailableStockBatches.Clear();
+        if (product == null) return;
+        var batches = await Task.Run(() => _productRepo.GetActiveStockBatches(product.ProductID));
+        foreach (var batch in batches)
+            PriceAvailableStockBatches.Add(batch);
+    }
+
+    partial void OnPriceSelectedStockBatchChanged(ProductStock? value)
+    {
+        NewMrpValue = value?.MRP ?? 0;
+        NotifyPricePreview();
+    }
+
+    partial void OnNewMrpValueChanged(decimal value) => NotifyPricePreview();
+
+    private void NotifyPricePreview()
+    {
+        OnPropertyChanged(nameof(CurrentPackMrp));
+        OnPropertyChanged(nameof(CurrentPieceMrp));
+        OnPropertyChanged(nameof(AdjustedPackMrpPreview));
+        OnPropertyChanged(nameof(AdjustedPieceMrpPreview));
+    }
 
     private async Task LoadStockBatchesAsync(Product? product)
     {
@@ -166,6 +202,43 @@ public partial class InventoryViewModel : ViewModelBase, ISearchable, IRecipient
         {
             StatusMessage = $"Failed to adjust stock: {ex.Message}";
         }
+    }
+
+    [RelayCommand]
+    private async Task AdjustPriceAsync()
+    {
+        if (PriceSelectedProduct == null || PriceSelectedStockBatch == null)
+        {
+            StatusMessage = "Please select a product and expiry batch.";
+            return;
+        }
+        if (NewMrpValue <= 0)
+        {
+            StatusMessage = "Enter an MRP greater than zero.";
+            return;
+        }
+
+        var packMrp = Math.Round(AdjustedPackMrpPreview, 2, MidpointRounding.AwayFromZero);
+        var pieceMrp = Math.Round(packMrp / Math.Max(1, PriceSelectedProduct.PiecesPerUnit), 2, MidpointRounding.AwayFromZero);
+        try
+        {
+            await Task.Run(() => _productRepo.AdjustBatchMrp(PriceSelectedStockBatch.StockID, PriceSelectedProduct.ProductID, packMrp));
+            StatusMessage = $"MRP updated for {PriceSelectedProduct.Name} ({PriceSelectedStockBatch.ExpiryDate:MMM yyyy}): Pack Rs. {packMrp:N2} | Piece Rs. {pieceMrp:N2}.";
+            LogActivity("Batch MRP Adjustment", $"Updated {PriceSelectedProduct.Name} batch #{PriceSelectedStockBatch.StockID} to Pack MRP Rs. {packMrp:N2} / Piece Rs. {pieceMrp:N2}", "Inventory");
+
+            // A completed price adjustment starts a clean operation. Clear all
+            // price-module selections explicitly before refreshing collections,
+            // otherwise the ComboBox can retain the old batch object visually.
+            PriceSelectedStockBatch = null;
+            PriceAvailableStockBatches.Clear();
+            PriceSelectedProduct = null;
+            NewMrpValue = 0;
+            NotifyPricePreview();
+
+            await InitializeAsync();
+            WeakReferenceMessenger.Default.Send(new InventoryChangedMessage());
+        }
+        catch (Exception ex) { StatusMessage = $"Failed to adjust MRP: {ex.Message}"; }
     }
 
     [RelayCommand]

@@ -201,6 +201,7 @@ public partial class App : Application
         services.AddSingleton<DashboardViewModel>();
         services.AddSingleton<ClinicalDashboardViewModel>();
         services.AddSingleton<ClinicalReportsViewModel>();
+        services.AddSingleton<DailyReportsViewModel>();
         services.AddSingleton<ChangePasswordViewModel>();
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();
@@ -236,11 +237,13 @@ public partial class App : Application
 
         loginVM.LoginSucceeded += user =>
         {
-            if (user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist or ClinicSystem.Core.Enums.UserRole.Pharmacist)
-            {
-                var theme = _services.GetRequiredService<SettingsRepository>().GetValue("ReceptionistTheme", "System Default");
-                ClinicSystem.UI.Services.ThemeService.ApplyTheme(theme);
-            }
+            // Theme is an application-wide setting shared by every role and PC
+            // connected to this database. Re-read it at login so a workstation
+            // immediately picks up the theme last saved by the administrator.
+            ClinicSystem.UI.Services.ThemeService.LoadCustomThemes();
+            var theme = _services.GetRequiredService<SettingsRepository>()
+                .GetValue("AppTheme", "System Default");
+            ClinicSystem.UI.Services.ThemeService.ApplyTheme(theme);
             ShowMainWindow(desktop, loginWindow);
         };
 

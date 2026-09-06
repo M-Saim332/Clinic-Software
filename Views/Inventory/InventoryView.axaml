@@ -52,62 +52,82 @@
 
         <!-- Main Body split -->
         <Grid Grid.Row="2" ColumnDefinitions="360,*" Margin="28,12,28,24">
-            <!-- Left: Manual Stock Adjustment -->
+            <!-- Left: Independent stock and MRP adjustment modules -->
             <Border Grid.Column="0" Background="{DynamicResource BrushCardBackground}"
                     BorderBrush="{DynamicResource BrushLine}" BorderThickness="1"
                     CornerRadius="{DynamicResource CornerRadiusCard}"
-                    Padding="24" Margin="0,0,24,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="MANUAL ADJUSTMENT" FontSize="11" FontWeight="Bold"
+                    Padding="16" Margin="0,0,24,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0" Text="INVENTORY ADJUSTMENTS" FontSize="11" FontWeight="Bold"
                                Foreground="{DynamicResource BrushInk400}" LetterSpacing="1.5"
                                FontFamily="{DynamicResource FontLexend}" Margin="0,0,0,16"/>
+                    <TabControl Grid.Row="1">
+                        <TabItem Header="Adjust Stock">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="14" Margin="4,16,4,8">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Select Product *" Classes="label"/>
+                                        <comp:SearchableComboBoxControl ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
+                                                  DisplayMemberPath="Name" DetailMemberPath="StockDisplay" Placeholder="Search product..."/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Select Batch / Expiry *" Classes="label"/>
+                                        <ComboBox ItemsSource="{Binding AvailableStockBatches}" SelectedItem="{Binding SelectedStockBatch}">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding BatchDisplay}"/></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Packs (+ Add, − Remove) *" Classes="label"/>
+                                        <NumericUpDown Value="{Binding AdjustmentQuantity}" FormatString="N0"/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6"><TextBlock Text="Update Date" Classes="label"/><DatePicker SelectedDate="{Binding AdjustmentDate}"/></StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Reason for Stock Adjustment" Classes="label"/>
+                                        <TextBox Text="{Binding AdjustmentReason}" PlaceholderText="Why is stock being changed?" AcceptsReturn="True" Height="70" TextWrapping="Wrap" VerticalContentAlignment="Top" Padding="12,10"/>
+                                    </StackPanel>
+                                    <Button Command="{Binding AdjustStockCommand}" Classes="btn-primary" HorizontalAlignment="Stretch" Height="40">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"><materialIcons:MaterialIcon Kind="Sync" Width="18" Height="18"/><TextBlock Text="Update Stock Level"/></StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
 
-                    <StackPanel DockPanel.Dock="Bottom" Spacing="12" Margin="0,16,0,0">
-                        <Button  Command="{Binding AdjustStockCommand}"
-                                Classes="btn-primary" HorizontalAlignment="Stretch" Height="40" VerticalContentAlignment="Center">
-    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <materialIcons:MaterialIcon Kind="Sync" Width="18" Height="18"/>
-        <TextBlock Text="Update Stock Level" VerticalAlignment="Center"/>
-    </StackPanel>
-</Button>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" FontSize="13" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <ScrollViewer>
-                        <StackPanel Spacing="16">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="Select Product *" Classes="label"/>
-                                <comp:SearchableComboBoxControl ItemsSource="{Binding AllStock}" SelectedItem="{Binding SelectedProduct}"
-                                          DisplayMemberPath="Name" DetailMemberPath="StockDisplay" Placeholder="Search product..."/>
-                            </StackPanel>
-
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="Select Batch / Expiry *" Classes="label"/>
-                                <ComboBox ItemsSource="{Binding AvailableStockBatches}"
-                                          SelectedItem="{Binding SelectedStockBatch}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding BatchDisplay}"/>
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-                            </StackPanel>
-
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="Update Stock — Packs (+ to Add, − to Remove) *" Classes="label"/>
-                                <NumericUpDown Value="{Binding AdjustmentQuantity}" FormatString="N0"/>
-                            </StackPanel>
-                            <StackPanel Spacing="6"><TextBlock Text="Update Date" Classes="label"/><DatePicker SelectedDate="{Binding AdjustmentDate}"/></StackPanel>
-
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="Reason for Adjustment" Classes="label"/>
-                                <TextBox Text="{Binding AdjustmentReason}" PlaceholderText="Explain why the stock is being updated..."
-                                         AcceptsReturn="True" Height="100" TextWrapping="Wrap"
-                                         VerticalContentAlignment="Top" Padding="12,10"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
-                </DockPanel>
+                        <TabItem Header="Adjust MRP">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="14" Margin="4,16,4,8">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Select Product *" Classes="label"/>
+                                        <comp:SearchableComboBoxControl ItemsSource="{Binding AllStock}" SelectedItem="{Binding PriceSelectedProduct}"
+                                                  DisplayMemberPath="Name" DetailMemberPath="StockDisplay" Placeholder="Search product..."/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Select Batch / Expiry *" Classes="label"/>
+                                        <ComboBox ItemsSource="{Binding PriceAvailableStockBatches}" SelectedItem="{Binding PriceSelectedStockBatch}">
+                                            <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding BatchDisplay}"/></DataTemplate></ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="New Pack MRP *" Classes="label"/>
+                                        <NumericUpDown Value="{Binding NewMrpValue}" Minimum="0" Increment="1" FormatString="N2"/>
+                                    </StackPanel>
+                                    <Border Background="{DynamicResource ThemePrimaryLightBrush}" CornerRadius="8" Padding="12">
+                                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                            <StackPanel><TextBlock Text="NEW PACK MRP" FontSize="10"/><TextBlock Text="{Binding AdjustedPackMrpPreview, StringFormat='Rs. {0:N2}'}" FontWeight="Bold"/></StackPanel>
+                                            <StackPanel Grid.Column="1"><TextBlock Text="NEW MRP / PIECE" FontSize="10"/><TextBlock Text="{Binding AdjustedPieceMrpPreview, StringFormat='Rs. {0:N2}'}" FontWeight="Bold"/></StackPanel>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="Enter the full pack MRP. Per-piece MRP is calculated automatically using Pieces Per Pack."
+                                               FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                                    <TextBlock Text="Only this expiry batch and the future purchase default will change. Posted invoices remain unchanged." FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource BrushInk600}"/>
+                                    <Button Command="{Binding AdjustPriceCommand}" Classes="btn-primary" HorizontalAlignment="Stretch" Height="40">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center"><materialIcons:MaterialIcon Kind="CurrencyUsd" Width="18" Height="18"/><TextBlock Text="Update Batch MRP"/></StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                    <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Foreground="{DynamicResource BrushRose}" FontSize="12" TextWrapping="Wrap" Margin="4,10,4,0"/>
+                </Grid>
             </Border>
 
             <!-- Right: Stock Tabs -->
@@ -120,7 +140,7 @@
                         <comp:DataTableShellControl Title="Full Stock Listing" RecordCount="{Binding AllStock.Count}">
                             <comp:DataTableShellControl.HeaderActions>
                                 <comp:ExportToolbarControl ReportName="Inventory_All_Stock" ItemsSource="{Binding AllStock}"
-                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Update Date:LastStockUpdateDate"/>
+                                    Columns="Product:Name:2|Stock Level:StockBreakdown|Pack MRP:MRP|MRP / Piece:PricePerTablet|Update Date:LastStockUpdateDate"/>
                             </comp:DataTableShellControl.HeaderActions>
                             <comp:DataTableShellControl.TableContent>
                                 <DataGrid ItemsSource="{Binding AllStock}" AutoGenerateColumns="False" IsReadOnly="True"
@@ -128,6 +148,8 @@
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="PRODUCT" Binding="{Binding Name}" Width="*"/>
                                         <DataGridTextColumn Header="STOCK LEVEL" Binding="{Binding StockBreakdown}" Width="190"/>
+                                        <DataGridTextColumn Header="PACK MRP" Binding="{Binding MRP, StringFormat=Rs.\ \{0:N2\}}" Width="110"/>
+                                        <DataGridTextColumn Header="MRP / PIECE" Binding="{Binding PricePerTablet, StringFormat=Rs.\ \{0:N2\}}" Width="115"/>
                                         <DataGridTextColumn Header="UPDATE DATE" Binding="{Binding LastStockUpdateDate, StringFormat=\{0:dd MMM yyyy\}}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>

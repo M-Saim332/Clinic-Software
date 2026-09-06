@@ -320,6 +320,15 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Command="{Binding ShowDailyReportsCommand}"
+                            Classes="navbtn" Classes.active="{Binding IsDailyReportsActive}"
+                            IsVisible="{Binding CanAccessDailyReports}">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <materialIcons:MaterialIcon Kind="CalendarTodayOutline" Width="17" Height="17" VerticalAlignment="Center"/>
+                            <TextBlock Text="Daily Reports" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
                 </StackPanel>
             </ScrollViewer>
 

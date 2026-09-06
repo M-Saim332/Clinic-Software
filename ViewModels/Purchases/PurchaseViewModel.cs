@@ -9,7 +9,7 @@ using ClinicSystem.UI.Messages;
 
 namespace ClinicSystem.UI.ViewModels.Purchases;
 
-public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigationContext
+public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigationContext, IRecipient<InventoryChangedMessage>
 {
     public event Action? RequestAddSupplier;
     public event Action? RequestAddProduct;
@@ -27,7 +27,10 @@ public partial class PurchaseViewModel : ViewModelBase, ISearchable, INavigation
         _supplierRepo = supplierRepo;
         _productRepo = productRepo;
         _settingsRepo = settingsRepo;
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
+
+    public void Receive(InventoryChangedMessage message) => _ = InitializeAsync();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditDraft))]

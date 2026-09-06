@@ -144,6 +144,22 @@ public class SaleRepository
         return ((int)row.UnitsSold, (decimal)row.CostOfGoods);
     }
 
+    public IEnumerable<DailyInvoiceProfitRow> GetInvoiceProfitByRange(DateTime fromInclusive, DateTime toExclusive)
+    {
+        using var conn = _session.CreateConnection();
+        return conn.Query<DailyInvoiceProfitRow>(@"SELECT s.SaleID,s.InvoiceNumber,s.SaleDate,s.PatientName,
+            ISNULL(SUM(si.LineTotal),0) Revenue,
+            ISNULL(SUM(si.StockQuantity*(" + PurchasePieceCostSql + @")),0) CostOfGoods,
+            ISNULL(SUM(si.LineTotal-(si.StockQuantity*(" + PurchasePieceCostSql + @"))),0) Profit
+            FROM Sales s
+            JOIN SaleItems si ON s.SaleID=si.SaleID
+            JOIN Products p ON si.ProductID=p.ProductID
+            " + CostApplySql + @"
+            WHERE s.IsPosted=1 AND s.IsActive=1 AND s.SaleDate>=@fromInclusive AND s.SaleDate<@toExclusive
+            GROUP BY s.SaleID,s.InvoiceNumber,s.SaleDate,s.PatientName
+            ORDER BY s.SaleDate,s.SaleID", new { fromInclusive, toExclusive });
+    }
+
     public IEnumerable<string> GetReceptionistNames()
     {
         using var conn = _session.CreateConnection();

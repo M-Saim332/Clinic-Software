@@ -27,18 +27,22 @@ BEGIN
     -- Only migrate if ProductStock is empty to avoid duplicating stock on re-run
     IF NOT EXISTS (SELECT 1 FROM ProductStock)
     BEGIN
-        -- Insert existing stock into ProductStock with a dummy far-future expiry date
+        -- Preserve legacy master-row stock using a far-future placeholder expiry date.
         -- Note: We could try to infer from PurchaseItems, but since old data didn't strictly link stock to expiry,
         -- setting a safe date ensures the existing stock remains sellable under the new FEFO logic.
-        INSERT INTO ProductStock (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP)
-        SELECT 
-            ProductID, 
-            COALESCE(ExpiryDate, '2099-12-31'), -- Use product's ExpiryDate if exists, else far future
-            Stock, 
-            PurchasePrice, 
-            SellingPrice
-        FROM Products
-        WHERE Stock > 0;
+        -- Dynamic SQL is required because SQL Server resolves column references for
+        -- the whole batch even when the COL_LENGTH guard evaluates to false.
+        EXEC sys.sp_executesql N'
+            INSERT INTO dbo.ProductStock
+                (ProductID, ExpiryDate, QuantityAvailable, PurchasePrice, MRP)
+            SELECT
+                ProductID,
+                COALESCE(ExpiryDate, CONVERT(date, ''2099-12-31'')),
+                Stock,
+                COALESCE(PurchasePrice, 0),
+                COALESCE(SellingPrice, 0)
+            FROM dbo.Products
+            WHERE Stock > 0;';
     END
 
     -- Drop the old Stock column from Products (and its constraints if any)
@@ -49,8 +53,12 @@ BEGIN
     WHERE dc.parent_object_id = OBJECT_ID('Products') AND c.name = 'Stock';
 
     IF @DefaultConstraintName IS NOT NULL
-        EXEC('ALTER TABLE Products DROP CONSTRAINT ' + @DefaultConstraintName);
+    BEGIN
+        DECLARE @dropStockConstraintSql nvarchar(500) =
+            N'ALTER TABLE dbo.Products DROP CONSTRAINT ' + QUOTENAME(@DefaultConstraintName) + N';';
+        EXEC sys.sp_executesql @dropStockConstraintSql;
+    END
 
-    ALTER TABLE Products DROP COLUMN Stock;
+    EXEC sys.sp_executesql N'ALTER TABLE dbo.Products DROP COLUMN Stock;';
 END
 GO

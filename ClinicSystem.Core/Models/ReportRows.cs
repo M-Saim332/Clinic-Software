@@ -1,5 +1,16 @@
 namespace ClinicSystem.Core.Models;
 
+public class DailyInvoiceProfitRow
+{
+    public int SaleID { get; set; }
+    public string InvoiceNumber { get; set; } = string.Empty;
+    public DateTime SaleDate { get; set; }
+    public string? PatientName { get; set; }
+    public decimal Revenue { get; set; }
+    public decimal CostOfGoods { get; set; }
+    public decimal Profit { get; set; }
+}
+
 public class SaleInvoiceSummaryRow
 {
     public int SaleID { get; set; }

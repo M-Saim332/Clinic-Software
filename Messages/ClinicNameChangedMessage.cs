@@ -2,10 +2,12 @@ namespace ClinicSystem.UI.Messages;
 
 public class ClinicNameChangedMessage
 {
-    public string NewName { get; }
+    public string ClinicName { get; }
+    public string PharmacyName { get; }
     
-    public ClinicNameChangedMessage(string newName)
+    public ClinicNameChangedMessage(string clinicName, string pharmacyName)
     {
-        NewName = newName;
+        ClinicName = clinicName;
+        PharmacyName = pharmacyName;
     }
 }

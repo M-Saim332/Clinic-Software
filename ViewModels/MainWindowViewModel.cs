@@ -58,6 +58,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     private readonly UserRegistryViewModel     _userVM;
     private readonly ReportsViewModel          _reportsVM;
     private readonly ClinicalReportsViewModel  _clinicalReportsVM;
+    private readonly DailyReportsViewModel     _dailyReportsVM;
     private readonly CompanyRegistryViewModel  _companyVM;
     private readonly SupplierRegistryViewModel _supplierVM;
     private readonly SearchViewModel            _searchVM;
@@ -75,6 +76,8 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     private Action<Company>? _pendingCompanyReturn;
     private Action<Supplier>? _pendingSupplierReturn;
     private Action<Product>? _pendingProductReturn;
+    private Action? _pendingSupplierCancel;
+    private Action? _pendingProductCancel;
 
     public ChangePasswordViewModel ChangePasswordVM { get; }
 
@@ -88,6 +91,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         UserRegistryViewModel     userVM,
         ReportsViewModel          reportsVM,
         ClinicalReportsViewModel  clinicalReportsVM,
+        DailyReportsViewModel     dailyReportsVM,
         CompanyRegistryViewModel  companyVM,
         SupplierRegistryViewModel supplierVM,
         SearchViewModel           searchVM,
@@ -112,6 +116,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         _userVM         = userVM;
         _reportsVM      = reportsVM;
         _clinicalReportsVM = clinicalReportsVM;
+        _dailyReportsVM = dailyReportsVM;
         _companyVM      = companyVM;
         _supplierVM     = supplierVM;
         _searchVM       = searchVM;
@@ -133,7 +138,12 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
 
         _settingsVM.SettingsSaved += () =>
         {
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => DynamicClinicName = _settingsVM.ClinicName);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                ClinicDisplayName = _settingsVM.ClinicName;
+                PharmacyDisplayName = _settingsVM.PharmacyName;
+                OnPropertyChanged(nameof(DynamicClinicName));
+            });
         };
 
         // Allow Dashboard to trigger the shared Change Password popup
@@ -163,31 +173,54 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         _purchaseVM.RequestAddSupplier += () =>
         {
             _pendingSupplierReturn = async supplier => { NavigateTo(_purchaseVM, "Purchases"); await _purchaseVM.PreselectSupplierAsync(supplier.SupplierID); };
+            _pendingSupplierCancel = () => NavigateTo(_purchaseVM, "Purchases");
             NavigateTo(_supplierVM, "Suppliers"); _supplierVM.NewCommand.Execute(null);
         };
         _purchaseVM.RequestAddProduct += () =>
         {
             _pendingProductReturn = async product => { NavigateTo(_purchaseVM, "Purchases"); await _purchaseVM.PreselectProductAsync(product.ProductID); };
+            _pendingProductCancel = () => NavigateTo(_purchaseVM, "Purchases");
             NavigateTo(_productVM, "Products"); _productVM.NewCommand.Execute(null);
         };
         _saleVM.RequestAddProduct += () =>
         {
             _pendingProductReturn = async product => { NavigateTo(_saleVM, "Sales & Billing"); await _saleVM.PreselectProductAsync(product.ProductID); };
+            _pendingProductCancel = () => NavigateTo(_saleVM, "Sales & Billing");
             NavigateTo(_productVM, "Products"); _productVM.NewCommand.Execute(null);
         };
         _companyVM.CompanySaved += company => { var callback=_pendingCompanyReturn; _pendingCompanyReturn=null; callback?.Invoke(company); };
-        _supplierVM.SupplierSaved += supplier => { var callback=_pendingSupplierReturn; _pendingSupplierReturn=null; callback?.Invoke(supplier); };
-        _productVM.ProductSaved += product => { var callback=_pendingProductReturn; _pendingProductReturn=null; callback?.Invoke(product); };
+        _supplierVM.SupplierSaved += supplier =>
+        {
+            var callback = _pendingSupplierReturn;
+            _pendingSupplierReturn = null;
+            _pendingSupplierCancel = null;
+            callback?.Invoke(supplier);
+        };
+        _productVM.ProductSaved += product =>
+        {
+            var callback = _pendingProductReturn;
+            _pendingProductReturn = null;
+            _pendingProductCancel = null;
+            callback?.Invoke(product);
+        };
+        _supplierVM.CancelRequested += () =>
+        {
+            var callback = _pendingSupplierCancel;
+            _pendingSupplierCancel = null;
+            _pendingSupplierReturn = null;
+            callback?.Invoke();
+        };
+        _productVM.CancelRequested += () =>
+        {
+            var callback = _pendingProductCancel;
+            _pendingProductCancel = null;
+            _pendingProductReturn = null;
+            callback?.Invoke();
+        };
 
         CurrentSystemMode = ShouldStartInClinicalMode ? "Clinical" : "Pharma";
 
-        // Start on the role's dashboard.
-        if (CanAccessDashboard) NavigateTo(CurrentSystemMode == "Clinical" ? _clinicalDashboardVM : _dashboardVM, "Dashboard");
-        else if (CanAccessPatients) NavigateTo(_patientVM, "Patients");
-        else if (CanAccessAppointments) NavigateTo(_appointmentVM, "Appointments");
-        else if (CanAccessPurchases) NavigateTo(_purchaseVM, "Purchases");
-        else if (CanAccessSales) NavigateTo(_saleVM, "Sales & Billing");
-        else if (CanAccessUsers) NavigateTo(_userVM, "Users");
+        NavigateToFirstAccessiblePage();
 
         // Startup data load
         IsLoading = true;
@@ -211,10 +244,14 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
                 await _clinicalDashboardVM.InitializeAsync();
                 await LoadNotificationsAsync();
                 
-                // Load active business name for the top bar
-                var settings = await Task.Run(() => _dbSession.CreateConnection().QueryFirstOrDefault<string>(
-                    "SELECT TOP 1 SettingValue FROM Settings WHERE SettingKey IN ('PharmacyName', 'ClinicName') ORDER BY CASE WHEN SettingKey = 'PharmacyName' THEN 0 ELSE 1 END") ?? "DR ASIF'S CLINIC");
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => DynamicClinicName = settings);
+                // Settings has two independent business names. The sidebar selects
+                // the appropriate one whenever the Clinic/Pharma mode changes.
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    ClinicDisplayName = _settingsVM.ClinicName;
+                    PharmacyDisplayName = _settingsVM.PharmacyName;
+                    OnPropertyChanged(nameof(DynamicClinicName));
+                });
 
                 // Compute alert warnings safely
                 var lowStockCount = _productVM.Products.Count(m => m.IsLowStock && !m.IsExpired);
@@ -291,7 +328,9 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     [ObservableProperty] private ViewModelBase? _currentPageViewModel;
     [ObservableProperty] private string _statusText   = string.Empty;
     [ObservableProperty] private string _pageTitle    = "Dashboard";
-    [ObservableProperty] private string _dynamicClinicName = "DR ASIF'S CLINIC";
+    [ObservableProperty] private string _clinicDisplayName = "DR ASIF'S CLINIC";
+    [ObservableProperty] private string _pharmacyDisplayName = "DR ASIF PHARMA";
+    public string DynamicClinicName => IsPharmaMode ? PharmacyDisplayName : ClinicDisplayName;
     [ObservableProperty] private bool   _isLoading;
     [ObservableProperty] private string _alertMessage = string.Empty;
     [ObservableProperty] private bool   _showAlert;
@@ -310,6 +349,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         OnPropertyChanged(nameof(IsClinicalMode));
         OnPropertyChanged(nameof(IsPharmaMode));
         OnPropertyChanged(nameof(ProductNavigationLabel));
+        OnPropertyChanged(nameof(DynamicClinicName));
         NotifyAccessChanged();
     }
 
@@ -352,13 +392,19 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
             user.UserRole is ClinicSystem.Core.Enums.UserRole.Receptionist
                 or ClinicSystem.Core.Enums.UserRole.Pharmacist
                 or ClinicSystem.Core.Enums.UserRole.Assistant;
-        return roleCanUseClinicalModules && user.HasAccess(module);
+        if (!roleCanUseClinicalModules) return false;
+        var permission = module switch
+        {
+            "Products" => "ClinicProducts",
+            "Reports" => "ClinicReports",
+            _ => module
+        };
+        return user.HasAccess(permission);
     }
     private bool ShouldStartInClinicalMode =>
         CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Doctor ||
-        CurrentUser?.UserRole == ClinicSystem.Core.Enums.UserRole.Assistant ||
-        // For mixed-access users: start clinical only if they have clinical access
-        // but have NO pharma access (otherwise start in pharma, or let them switch)
+        // Permissions decide the shell for non-doctors. This prevents a
+        // pharma-only Assistant from becoming trapped in Clinical mode.
         (HasAnyClinicalAccess() && !HasAnyPharmaAccess());
 
     public bool CanAccessPatients     => IsClinicalMode && HasClinicalAccess("Patients");
@@ -370,6 +416,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     public bool CanAccessSales        => IsPharmaMode && HasPharmaAccess("Sales");
     public bool CanAccessInventory    => IsPharmaMode && HasPharmaAccess("Inventory");
     public bool CanAccessReports      => (IsClinicalMode && HasClinicalAccess("Reports")) || (IsPharmaMode && HasPharmaAccess("Reports"));
+    public bool CanAccessDailyReports => IsClinicalMode && HasClinicalAccess("Reports");
     public bool CanAccessReturns      => IsPharmaMode && HasPharmaAccess("Returns");
     public bool CanAccessUsers        => IsPharmaMode && (CurrentUser?.IsAdmin ?? false);
     public bool CanAccessSettings     => IsClinicalMode && HasClinicalAccess("Settings");
@@ -397,7 +444,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
             or ClinicSystem.Core.Enums.UserRole.Pharmacist
             or ClinicSystem.Core.Enums.UserRole.Assistant;
         if (!roleOk) return false;
-        return user.HasAccess("Sales") || user.HasAccess("Purchases") || user.HasAccess("Inventory")
+        return user.HasAccess("PharmaDashboard") || user.HasAccess("Sales") || user.HasAccess("Purchases") || user.HasAccess("Inventory")
             || user.HasAccess("Products") || user.HasAccess("Companies") || user.HasAccess("Suppliers")
             || user.HasAccess("Returns") || user.HasAccess("Reports");
     }
@@ -408,13 +455,14 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         var user = CurrentUser;
         if (user?.IsAdmin == true || user?.IsDoctor == true) return true;
         if (user is null) return false;
-        return user.HasAccess("Patients") || user.HasAccess("Appointments") || user.HasAccess("Settings");
+        return user.HasAccess("Dashboard") || user.HasAccess("Patients") || user.HasAccess("Appointments")
+            || user.HasAccess("ClinicProducts") || user.HasAccess("ClinicReports") || user.HasAccess("Settings");
     }
 
     // TRANSACTIONS
     public bool HasManagementAccess => CanAccessPatients || CanAccessAppointments || CanAccessProducts || CanAccessCompanies || CanAccessSuppliers || CanAccessSettings;
     public bool HasTransactionsAccess => CanAccessPurchases || CanAccessSales || CanAccessReturns;
-    public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports;
+    public bool HasAnalysisAccess => CanAccessInventory || CanAccessReports || CanAccessDailyReports;
     public bool HasUserSettingsAccess => CanAccessUsers;
 
     // ── Active nav flags (for sidebar highlight) ───────────────────────────
@@ -431,6 +479,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     [ObservableProperty] private bool _isAppointmentsActive;
     [ObservableProperty] private bool _isUsersActive;
     [ObservableProperty] private bool _isReportsActive;
+    [ObservableProperty] private bool _isDailyReportsActive;
     [ObservableProperty] private bool _isSettingsActive;
     [ObservableProperty] private bool _isProfileActive;
 
@@ -475,7 +524,12 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
 
     public void Receive(ClinicNameChangedMessage message)
     {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() => DynamicClinicName = message.NewName);
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            ClinicDisplayName = message.ClinicName;
+            PharmacyDisplayName = message.PharmacyName;
+            OnPropertyChanged(nameof(DynamicClinicName));
+        });
     }
 
     private async Task LoadNotificationsAsync()
@@ -709,6 +763,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         IsAppointmentsActive  = vm is AppointmentViewModel;
         IsUsersActive         = vm is UserRegistryViewModel;
         IsReportsActive       = vm is ReportsViewModel || vm is ClinicalReportsViewModel;
+        IsDailyReportsActive  = vm is DailyReportsViewModel;
         IsSettingsActive      = vm is SettingsViewModel;
         IsProfileActive       = vm is ProfileViewModel;
     }
@@ -718,7 +773,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
         IsDashboardActive = IsPatientsActive = IsProductsActive =
         IsCompaniesActive = IsSuppliersActive = IsPurchasesActive = IsSalesActive = IsReturnsActive =
         IsInventoryActive = IsAppointmentsActive =
-        IsUsersActive = IsReportsActive = IsSettingsActive = IsProfileActive = false;
+        IsUsersActive = IsReportsActive = IsDailyReportsActive = IsSettingsActive = IsProfileActive = false;
     }
 
     // ── Navigation commands ────────────────────────────────────────────────
@@ -761,7 +816,7 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     {
         if (!CanSwitchSystemMode) return;
         CurrentSystemMode = "Clinical";
-        ShowDashboard();
+        NavigateToFirstAccessiblePage();
     }
 
     [RelayCommand]
@@ -769,16 +824,38 @@ public partial class MainWindowViewModel : ViewModelBase, IRecipient<Prescriptio
     {
         if (!CanSwitchSystemMode) return;
         CurrentSystemMode = "Pharma";
-        ShowDashboard();
+        NavigateToFirstAccessiblePage();
+    }
+    [RelayCommand] private void ShowDailyReports()
+    {
+        NavigateTo(_dailyReportsVM, "Daily Reports");
+        _ = _dailyReportsVM.InitializeAsync();
+    }
+
+    private void NavigateToFirstAccessiblePage()
+    {
+        if (CanAccessDashboard) { ShowDashboard(); return; }
+        if (CanAccessPatients) { ShowPatients(); return; }
+        if (CanAccessAppointments) { ShowAppointments(); return; }
+        if (CanAccessProducts) { ShowProducts(); return; }
+        if (CanAccessCompanies) { ShowCompanies(); return; }
+        if (CanAccessSuppliers) { ShowSuppliers(); return; }
+        if (CanAccessPurchases) { ShowPurchases(); return; }
+        if (CanAccessSales) { ShowSales(); return; }
+        if (CanAccessReturns) { ShowReturns(); return; }
+        if (CanAccessInventory) { ShowInventory(); return; }
+        if (CanAccessReports) { ShowReports(); return; }
+        if (CanAccessSettings) { ShowSettings(); return; }
+        if (CanAccessUsers) ShowUsers();
     }
 
     private void NotifyAccessChanged()
     {
         foreach (var property in new[] { nameof(CanAccessDashboard), nameof(CanAccessPatients), nameof(CanAccessAppointments),
             nameof(CanAccessProducts), nameof(CanAccessCompanies), nameof(CanAccessSuppliers), nameof(CanAccessPurchases),
-            nameof(CanAccessSales), nameof(CanAccessReturns), nameof(CanAccessInventory), nameof(CanAccessReports),
+            nameof(CanAccessSales), nameof(CanAccessReturns), nameof(CanAccessInventory), nameof(CanAccessReports), nameof(CanAccessDailyReports),
             nameof(CanAccessUsers), nameof(CanAccessSettings), nameof(HasManagementAccess), nameof(HasTransactionsAccess),
-            nameof(HasAnalysisAccess), nameof(HasUserSettingsAccess) }) OnPropertyChanged(property);
+            nameof(HasAnalysisAccess), nameof(HasUserSettingsAccess), nameof(CanSwitchSystemMode) }) OnPropertyChanged(property);
     }
 
     [RelayCommand]

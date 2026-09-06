@@ -58,6 +58,10 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
 
     [ObservableProperty] private ObservableCollection<User> _users = new();
     [ObservableProperty] private User? _selectedUser;
+    // Keep the edit target independent from DataGrid selection. Replacing the
+    // observable collection during an async refresh can legitimately clear
+    // SelectedUser while the edit form is still open.
+    private int? _editingUserId;
 
     // KPI counts
     [ObservableProperty] private int _totalUsersCount;
@@ -156,6 +160,8 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     [ObservableProperty] private bool _accReturns;
     [ObservableProperty] private bool _accInventory;
     [ObservableProperty] private bool _accReports;
+    [ObservableProperty] private bool _accClinicProducts;
+    [ObservableProperty] private bool _accClinicReports;
     [ObservableProperty] private bool _accSearch;
     [ObservableProperty] private bool _accUsers;
     [ObservableProperty] private bool _accSettings;
@@ -173,7 +179,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         // Reset everything
         AccDashboard = AccPharmaDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
         AccSuppliers = AccPurchases = AccSales = AccReturns =
-        AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
+        AccInventory = AccReports = AccClinicProducts = AccClinicReports = AccSearch = AccUsers = AccSettings = false;
 
         switch (value)
         {
@@ -223,6 +229,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private void New()
     {
+        _editingUserId = null;
         ClearFormFields();
         Mode = FormMode.Add;
         View = UserMgmtView.Form;
@@ -233,6 +240,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     private void Edit(User? user)
     {
         if (user == null) return;
+        _editingUserId = user.UserID;
         SelectedUser = user;
         Mode = FormMode.Edit;
         FillFormFields(user);
@@ -244,6 +252,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     private void ViewUser(User? user)
     {
         if (user == null) return;
+        _editingUserId = user.UserID;
         SelectedUser = user;
         Mode = FormMode.View;
         FillFormFields(user);
@@ -254,6 +263,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
     [RelayCommand]
     private void Cancel()
     {
+        _editingUserId = null;
         View = UserMgmtView.List;
         Mode = FormMode.View;
         StatusMessage = string.Empty;
@@ -308,6 +318,13 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
             }
             else // Edit
             {
+                if (_editingUserId is not int editingUserId || editingUserId <= 0)
+                {
+                    StatusMessage = "This user could not be identified. Return to the user list and open Edit again.";
+                    IsSuccess = false;
+                    return;
+                }
+
                 if (!string.IsNullOrWhiteSpace(Password))
                 {
                     if (Password != ConfirmPassword) { StatusMessage = "Passwords do not match."; IsSuccess = false; return; }
@@ -315,7 +332,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
                 }
 
                 var u = BuildUser();
-                u.UserID = SelectedUser!.UserID;
+                u.UserID = editingUserId;
                 await Task.Run(() => _repo.AdminUpdateFull(u));
 
                 if (!string.IsNullOrWhiteSpace(Password))
@@ -330,6 +347,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
 
             View = UserMgmtView.List;
             Mode = FormMode.View;
+            _editingUserId = null;
             await InitializeAsync();
         }
         catch (InvalidOperationException ex)
@@ -554,7 +572,7 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         ProfilePictureData = null;
         AccDashboard = AccPharmaDashboard = AccPatients = AccAppointments = AccProducts = AccCompanies =
         AccSuppliers = AccPurchases = AccSales = AccReturns =
-        AccInventory = AccReports = AccSearch = AccUsers = AccSettings = false;
+        AccInventory = AccReports = AccClinicProducts = AccClinicReports = AccSearch = AccUsers = AccSettings = false;
         // Default permissions for Receptionist
         AccPharmaDashboard = AccCompanies = AccSuppliers = AccProducts = AccPurchases = AccSales = AccReturns = AccInventory = AccReports = true;
         StatusMessage = string.Empty;
@@ -578,22 +596,26 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         IsActive = u.IsActive;
         Password = ConfirmPassword = string.Empty;
 
-        var p = u.Permissions ?? "";
-        AccDashboard      = p.Contains("Dashboard") && !p.Contains("PharmaDashboard");
-        AccPharmaDashboard = p.Contains("PharmaDashboard");
-        AccPatients     = p.Contains("Patients");
-        AccAppointments = p.Contains("Appointments");
-        AccProducts     = p.Contains("Products");
-        AccCompanies    = p.Contains("Companies");
-        AccSuppliers    = p.Contains("Suppliers");
-        AccPurchases    = p.Contains("Purchases");
-        AccSales        = p.Contains("Sales");
-        AccReturns      = p.Contains("Returns");
-        AccInventory    = p.Contains("Inventory");
-        AccReports      = p.Contains("Reports");
-        AccSearch       = p.Contains("Search");
-        AccUsers        = p.Contains("Users");
-        AccSettings     = p.Contains("Settings");
+        var permissions = (u.Permissions ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        AccDashboard       = permissions.Contains("Dashboard");
+        AccPharmaDashboard = permissions.Contains("PharmaDashboard");
+        AccPatients        = permissions.Contains("Patients");
+        AccAppointments    = permissions.Contains("Appointments");
+        AccProducts        = permissions.Contains("Products");
+        AccCompanies       = permissions.Contains("Companies");
+        AccSuppliers       = permissions.Contains("Suppliers");
+        AccPurchases       = permissions.Contains("Purchases");
+        AccSales           = permissions.Contains("Sales");
+        AccReturns         = permissions.Contains("Returns");
+        AccInventory       = permissions.Contains("Inventory");
+        AccReports         = permissions.Contains("Reports");
+        AccClinicProducts  = permissions.Contains("ClinicProducts");
+        AccClinicReports   = permissions.Contains("ClinicReports");
+        AccSearch          = permissions.Contains("Search");
+        AccUsers           = permissions.Contains("Users");
+        AccSettings        = permissions.Contains("Settings");
     }
 
     private string GetPermissionsString()
@@ -611,6 +633,8 @@ public partial class UserRegistryViewModel : ViewModelBase, ISearchable
         if (AccReturns)      p.Add("Returns");
         if (AccInventory)    p.Add("Inventory");
         if (AccReports)      p.Add("Reports");
+        if (AccClinicProducts) p.Add("ClinicProducts");
+        if (AccClinicReports)  p.Add("ClinicReports");
         if (AccSearch)       p.Add("Search");
         if (AccUsers)        p.Add("Users");
         if (AccSettings)     p.Add("Settings");

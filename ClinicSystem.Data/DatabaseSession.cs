@@ -278,8 +278,7 @@ public class DatabaseSession
 
     /// <summary>
     /// Creates a rollback backup, then deletes all clinical data (FK order respected).
-    /// Tables wiped: SaleItems, Sales, PurchaseItems, Purchases, Prescriptions, Appointments,
-    /// Returns, Patients, Products, Products, Companies, Suppliers.
+    /// Tables wiped: transaction records, inventory batches, patients, products, companies and suppliers.
     /// Users and Settings are preserved.
     /// </summary>
     public void ResetAllData()
@@ -294,20 +293,60 @@ public class DatabaseSession
         // Step 2 — delete all data in FK-safe order
         using var conn = new SqlConnection(_connectionString);
         conn.Open();
-        // Delete all data in FK-safe order; skip tables that may not exist yet
+        // Delete all client/business data in FK-safe order.  The delivery reset must
+        // include child rows (ReturnItems and ProductStock), otherwise foreign-key
+        // constraints can leave product or return data behind while the prior code
+        // silently swallowed the failure.
         var tables = new[]
         {
-            "SaleItems", "Sales", "PurchaseItems", "Purchases",
-            "Returns", "DiscountRefunds", "ActivityLogs", "PrescriptionItems", "Prescriptions",
-            "Appointments", "Patients", "Products", "Companies", "Suppliers"
+            "NotificationReadStates",
+            // Returns references Sales through Returns.SaleId, so clear return
+            // rows before their parent sale rows.
+            "ReturnItems", "Returns",
+            "SaleItems", "Sales",
+            "PurchaseItems", "Purchases",
+            "DiscountRefunds",
+            "PrescriptionItems", "Prescriptions",
+            "Appointments",
+            "ProductStock", "Patients", "Products", "Companies", "Suppliers",
+            "ActivityLogs"
         };
-        foreach (var t in tables)
+        using var transaction = conn.BeginTransaction();
+        try
         {
-            try
+            foreach (var table in tables)
             {
-                conn.Execute($"IF OBJECT_ID('{t}', 'U') IS NOT NULL DELETE FROM [{t}]");
+                const string deleteSql = @"
+                    IF OBJECT_ID(@tableName, 'U') IS NOT NULL
+                    BEGIN
+                        DECLARE @statement nvarchar(400) = N'DELETE FROM ' + QUOTENAME(@tableName);
+                        EXEC sp_executesql @statement;
+                    END";
+                conn.Execute(deleteSql, new { tableName = table }, transaction: transaction);
+
+                // A delivery reset should also start newly-created business records
+                // from a clean identity sequence (for example, the first return can
+                // be displayed as RET1). Only reseed tables that actually use IDENTITY.
+                const string reseedSql = @"
+                    IF OBJECT_ID(@tableName, 'U') IS NOT NULL
+                       AND EXISTS (
+                           SELECT 1
+                           FROM sys.identity_columns
+                           WHERE object_id = OBJECT_ID(@tableName))
+                    BEGIN
+                        DECLARE @reseedStatement nvarchar(400) =
+                            N'DBCC CHECKIDENT (' + QUOTENAME(@tableName) + N', RESEED, 0)';
+                        EXEC sp_executesql @reseedStatement;
+                    END";
+                conn.Execute(reseedSql, new { tableName = table }, transaction: transaction);
             }
-            catch { /* ignore if table does not exist */ }
+
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
         }
     }
 
